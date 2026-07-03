@@ -442,6 +442,21 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .kchip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px}
 .kchip.ok{background:#e9f8ef;color:#15803d}.kchip.warn{background:#fdf6e3;color:#b45309}.kchip.bad{background:#fdecec;color:#dc2626}
 @media(max-width:1100px){.kd-grid{grid-template-columns:repeat(2,1fr)}}
+/* CODEC — Project & Activity Board */
+.cp-stat{font-size:12px;font-weight:700;background:#f3f6fa;color:var(--ink);border-radius:12px;padding:4px 11px}
+.cp-headrow,.cp-row{display:grid;grid-template-columns:1.6fr .9fr .7fr .8fr .55fr .8fr 1.7fr;gap:10px;align-items:center;padding:9px 6px}
+.cp-headrow{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px solid var(--line)}
+.cp-row{border-bottom:1px solid #eef1f5;font-size:13px}
+.cp-row:last-child{border-bottom:none}
+.cp-row.cpb{background:#fef8f8}
+.cp-name{font-weight:600;color:var(--ink)}
+.cp-sec{font-size:11px;font-weight:700;border-radius:10px;padding:3px 9px;white-space:nowrap}
+.cp-pic{color:var(--muted);font-size:12.5px}
+.cp-prog{color:var(--muted);font-size:11px}
+.cp-due{color:var(--muted);font-size:12px;white-space:nowrap}
+.cp-need{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-weight:600;color:var(--ink);font-size:12px}
+.cp-need small{font-weight:400;color:var(--muted);font-size:11.5px;flex-basis:100%}
+@media(max-width:1100px){.cp-headrow{display:none}.cp-row{grid-template-columns:1fr 1fr;gap:6px}}
 .bd-crit{background:var(--red-s);color:var(--red)} .bd-neu{background:#eef1f6;color:#64748b}
 .avt{width:26px;height:26px;border-radius:50%;background:#e7eefb;color:var(--blue);display:inline-grid;
   place-items:center;font-size:10.5px;font-weight:700;margin-right:7px;vertical-align:middle}
@@ -980,6 +995,48 @@ function kpiDeptHTML(){
    </div>`).join("")}
   </div></div>`;
 }
+/* ===== CODEC — Project & Activity Board (papan bersama lintas section) =====
+   Masalah yang diselesaikan: tiap section maintain activity masing-masing →
+   tidak saling terlihat → dispute & kurang koordinasi. Di papan ini SEMUA project
+   tampil di satu tempat, dan kolom "Koordinasi" membuat dependensi antar-section
+   EKSPLISIT: siapa menunggu siapa, untuk apa. */
+const CODEC_SECTIONS={ "BU":{n:"Building & Utility",c:"#2563eb",bg:"#eef4ff"}, "PROC":{n:"Procurement",c:"#c2740a",bg:"#fdf3e3"}, "HSE":{n:"HSE & Sustain",c:"#15a34a",bg:"#e9f8ef"}, "EN":{n:"Energy (ERSUS)",c:"#0f6e56",bg:"#e1f5ee"}, "PD":{n:"Project Dev",c:"#7a4fd0",bg:"#f3eefe"}, "GS":{n:"General Services",c:"#be3a76",bg:"#fdeef5"} };
+const CODEC_PROJECTS=[
+ {name:"Lab EHS — renovasi & sertifikasi",sec:"PD",pic:"Khalilul R.",prog:35,due:"Sep 2026",st:"blocked",need:"PROC",note:"Tender vendor tertunda — menunggu UPR release"},
+ {name:"Rejuvenation Lt.1C AMDI",sec:"PD",pic:"Didi S.",prog:48,due:"Agu 2026",st:"warn",need:"BU",note:"Menunggu approval drawing ME dari BU"},
+ {name:"Modernisasi Lift Gedung A",sec:"BU",pic:"Endang M.",prog:62,due:"Okt 2026",st:"ok",need:null,note:""},
+ {name:"PLTS Rooftop fase 2",sec:"EN",pic:"Stevano",prog:55,due:"Nov 2026",st:"warn",need:"HSE",note:"Izin kerja ketinggian — dokumen di HSE"},
+ {name:"Kontrak payung housekeeping 2027",sec:"PROC",pic:"Alma T.",prog:20,due:"Des 2026",st:"ok",need:"GS",note:"Butuh data beban kerja per site dari GS"},
+ {name:"TPS Limbah B3 — perpanjangan izin",sec:"HSE",pic:"Sugianto",prog:80,due:"Jul 2026",st:"ok",need:null,note:""},
+ {name:"Relayout Presdir Room",sec:"PD",pic:"Khalilul R.",prog:15,due:"Sep 2026",st:"blocked",need:"PROC",note:"SPK furniture belum terbit"},
+ {name:"Smart meter air — 3 gedung",sec:"EN",pic:"Stevano",prog:70,due:"Agu 2026",st:"ok",need:"BU",note:"Jadwal shutdown instalasi dikoordinasikan BU"}
+];
+function codecSecChip(k){ const s=CODEC_SECTIONS[k]; return s?`<span class="cp-sec" style="background:${s.bg};color:${s.c}">${s.n}</span>`:''; }
+function codecProjectsHTML(){
+ const blocked=CODEC_PROJECTS.filter(p=>p.st==="blocked").length;
+ const waiting=CODEC_PROJECTS.filter(p=>p.need).length;
+ const stChip=(st)=> st==="ok"?'<span class="kchip ok">🟢 On Track</span>':st==="warn"?'<span class="kchip warn">🟡 At Risk</span>':'<span class="kchip bad">🔴 Blocked</span>';
+ return `<div class="card pad kpi-dept">
+  <div class="kd-head">
+    <div class="panel-t" style="margin:0">🤝 Project Progress — Papan Kolaborasi Lintas Section <span style="font-weight:400;color:var(--muted);font-size:12.5px">— semua section, satu papan · dependensi terlihat semua orang</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="cp-stat">${CODEC_PROJECTS.length} project</span>
+      <span class="cp-stat" style="color:#b45309;background:#fdf6e3">🔗 ${waiting} menunggu section lain</span>
+      ${blocked?`<span class="cp-stat" style="color:#dc2626;background:#fdecec">⛔ ${blocked} blocked</span>`:''}
+    </div>
+  </div>
+  <div class="cp-headrow"><span>Project / Activity</span><span>Section</span><span>PIC</span><span>Progress</span><span>Due</span><span>Status</span><span>🔗 Koordinasi — menunggu siapa, untuk apa</span></div>
+  ${CODEC_PROJECTS.map(p=>`<div class="cp-row ${p.st==='blocked'?'cpb':''}">
+    <span class="cp-name">${p.name}</span>
+    <span>${codecSecChip(p.sec)}</span>
+    <span class="cp-pic">${p.pic}</span>
+    <span><div class="kd-bar" style="margin:0"><i style="width:${p.prog}%;background:${p.st==='blocked'?'#dc2626':p.st==='warn'?'#eab308':'#15a34a'}"></i></div><small class="cp-prog">${p.prog}%</small></span>
+    <span class="cp-due">${p.due}</span>
+    <span>${stChip(p.st)}</span>
+    <span>${p.need?`<span class="cp-need">→ ${codecSecChip(p.need)} <small>${p.note}</small></span>`:'<span class="muted small">—</span>'}</span>
+  </div>`).join("")}
+ </div>`;
+}
 function renderOverview(){
  const el=document.getElementById("page-overview");
  if(isEndUser()){
@@ -993,6 +1050,7 @@ function renderOverview(){
  }
  el.innerHTML=`
  ${kpiDeptHTML()}
+ ${codecProjectsHTML()}
  ${ratingCard()}
  <div class="hl-headrow">
    <div class="hl-tag">📋 TODAY'S LOG</div>
