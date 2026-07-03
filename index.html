@@ -421,6 +421,27 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .tr-stat{background:#f6f8fb;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--muted)}
 .pay-grp{margin-top:14px}
 .pay-grp-h{font-size:13px;font-weight:600;color:var(--ink);background:#f3f6fa;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+/* CODEC — KPI GA Dept */
+.kpi-dept{margin-bottom:18px}
+.kd-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.kd-score{font-size:26px;font-weight:800;color:var(--green)} .kd-score small{font-size:12px;color:var(--muted);font-weight:600;margin-left:2px}
+.kd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kd-tile{border:1px solid var(--line);border-radius:12px;padding:12px 13px;background:#fbfcfe}
+.kd-tile.ok{border-top:3px solid #15a34a}.kd-tile.warn{border-top:3px solid #eab308}.kd-tile.bad{border-top:3px solid #dc2626}
+.kd-top{display:flex;gap:9px;align-items:flex-start;margin-bottom:8px}
+.kd-ic{font-size:20px;line-height:1.2}
+.kd-name{font-weight:700;color:var(--ink);font-size:13px}
+.kd-param{font-size:11px;color:var(--muted);margin-top:1px}
+.kd-nums{display:flex;justify-content:space-between;margin:6px 0 4px}
+.kd-nums small{display:block;font-size:10.5px;color:var(--muted)}
+.kd-nums b{font-size:15px;color:var(--ink)}
+.kd-ach{text-align:right} .kd-ach b{color:var(--blue)}
+.kd-bar{height:6px;background:#edf1f6;border-radius:4px;overflow:hidden;margin:4px 0 9px}
+.kd-bar i{display:block;height:100%;background:#15a34a;border-radius:4px}
+.kd-tile.warn .kd-bar i{background:#eab308}.kd-tile.bad .kd-bar i{background:#dc2626}
+.kchip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px}
+.kchip.ok{background:#e9f8ef;color:#15803d}.kchip.warn{background:#fdf6e3;color:#b45309}.kchip.bad{background:#fdecec;color:#dc2626}
+@media(max-width:1100px){.kd-grid{grid-template-columns:repeat(2,1fr)}}
 .bd-crit{background:var(--red-s);color:var(--red)} .bd-neu{background:#eef1f6;color:#64748b}
 .avt{width:26px;height:26px;border-radius:50%;background:#e7eefb;color:var(--blue);display:inline-grid;
   place-items:center;font-size:10.5px;font-weight:700;margin-right:7px;vertical-align:middle}
@@ -929,6 +950,36 @@ function roleTitle(u){ if(u&&u.pic==="transport")return "PIC Transport"; return 
 /* GA Dept Head: boleh VIEW semua modul, tapi TIDAK boleh aksi di modul mana pun —
    satu-satunya aksi = approval di gate Dept Head (soApprovalCard). Admin tidak termasuk (god-mode). */
 function viewerOnly(){ return gRole==="dept"; }
+/* ===================== CODEC — KPI GA Dept (alignment anchor) =====================
+   CODEC = Collaborative Deck General Affair. Panel paling atas: SEMUA KPI Dept —
+   parameter, target, achievement — visual ramah agar tiap member GA langsung paham. */
+const KPI_DEPT=[
+ {ic:"🎫",name:"SLA Response Tiket",param:"Tiket direspons ≤ 15 menit",target:"≥ 95%",ach:"97.2%",pct:97,st:"ok"},
+ {ic:"⭐",name:"Rating Layanan GA",param:"Survei kepuasan user (skala 5)",target:"≥ 4.0",ach:"4.3",pct:86,st:"ok"},
+ {ic:"⚡",name:"Efisiensi Energi",param:"Konsumsi vs baseline 2019 (ERSUS)",target:"−10%",ach:"−12.4%",pct:100,st:"ok"},
+ {ic:"🏢",name:"Uptime Utilitas",param:"Listrik · air · lift · AC",target:"≥ 99%",ach:"99.6%",pct:99,st:"ok"},
+ {ic:"🛒",name:"Lead Time Procurement",param:"SO → SPK (hari kerja)",target:"≤ 14 HK",ach:"16 HK",pct:70,st:"warn"},
+ {ic:"💰",name:"Payment On-Time",param:"Invoice release sesuai SLA",target:"≥ 95%",ach:"91%",pct:91,st:"warn"},
+ {ic:"🦺",name:"Zero Accident",param:"LTI di area kelolaan GA",target:"0 kasus",ach:"0 kasus",pct:100,st:"ok"},
+ {ic:"📄",name:"Compliance Perizinan",param:"Izin & sertifikat aktif",target:"100%",ach:"96%",pct:96,st:"warn"}
+];
+function kpiChip(st){ return st==="ok"?'<span class="kchip ok">🟢 Tercapai</span>':st==="warn"?'<span class="kchip warn">🟡 Perlu Perhatian</span>':'<span class="kchip bad">🔴 Off Track</span>'; }
+function kpiDeptHTML(){
+ const ok=KPI_DEPT.filter(k=>k.st==="ok").length;
+ return `<div class="card pad kpi-dept">
+  <div class="kd-head">
+    <div class="panel-t" style="margin:0">🎯 KPI GA Dept 2026 <span style="font-weight:400;color:var(--muted);font-size:12.5px">— Alignment · anchor seluruh member GA</span></div>
+    <div class="kd-score">${ok}<small>/${KPI_DEPT.length} tercapai</small></div>
+  </div>
+  <div class="kd-grid">
+  ${KPI_DEPT.map(k=>`<div class="kd-tile ${k.st}">
+     <div class="kd-top"><span class="kd-ic">${k.ic}</span><div><div class="kd-name">${k.name}</div><div class="kd-param">${k.param}</div></div></div>
+     <div class="kd-nums"><div><small>Target</small><b>${k.target}</b></div><div class="kd-ach"><small>Achievement</small><b>${k.ach}</b></div></div>
+     <div class="kd-bar"><i style="width:${Math.min(k.pct,100)}%"></i></div>
+     ${kpiChip(k.st)}
+   </div>`).join("")}
+  </div></div>`;
+}
 function renderOverview(){
  const el=document.getElementById("page-overview");
  if(isEndUser()){
@@ -941,6 +992,7 @@ function renderOverview(){
    return;
  }
  el.innerHTML=`
+ ${kpiDeptHTML()}
  ${ratingCard()}
  <div class="hl-headrow">
    <div class="hl-tag">📋 TODAY'S LOG</div>
