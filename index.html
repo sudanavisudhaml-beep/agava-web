@@ -728,7 +728,7 @@ function go(id){
   active=(id==="ersus")?"energy":id; buildNav();
   ["page-overview","page-procurement","page-building","page-service","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
-  if(id==="overview"){document.getElementById("page-overview").classList.remove("hide");t.textContent="Astra General Affairs Virtual Assistant";s.textContent="Welcome, "+(gUser?gUser.name:"there")+" · Thursday, 18 June 2026";}
+  if(id==="overview"){document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Welcome, "+(gUser?gUser.name:"there")+" · Thursday, 18 June 2026";}
   else if(id==="procurement"){document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
   else if(id==="building"){document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
   else if(id==="service"){document.getElementById("page-service").classList.remove("hide");t.textContent="Service";s.textContent="Complaint tickets · response time, PIC & escalations";}
