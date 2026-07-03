@@ -228,6 +228,92 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .inv-opt{display:block;border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;font-size:12.5px;cursor:pointer}
 .inv-opt:hover{border-color:#cfdaeb}
 .inv-opt input{margin-right:6px}
+.rb-plan-wrap{width:100%;overflow-x:auto;margin-top:12px}
+.rb-plan{width:100%;height:auto;min-width:700px;display:block}
+.rb-outline{fill:#fff;stroke:#d7dee8;stroke-width:2}
+.rb-floorlbl{font-size:13px;font-weight:700;fill:#aeb8c6;font-family:var(--ff)}
+.rb-empty{fill:var(--muted);font-size:15px;font-family:var(--ff)}
+.rb-room rect{stroke-width:1.6;cursor:pointer;transition:fill .12s,stroke .12s}
+.rb-room.free rect{fill:#d7f5e1;stroke:#15a34a}
+.rb-room.busy rect{fill:#fcdada;stroke:#dc2626}
+.rb-room:hover rect{stroke-width:3;filter:brightness(.96)}
+.rb-room text{pointer-events:none}
+.rb-rname{font-size:13px;font-weight:700;fill:#1f3329;font-family:var(--ff)}
+.rb-room.busy .rb-rname{fill:#7a1f1f}
+.rb-rcap{font-size:11px;fill:#4a6b57;font-family:var(--ff)}
+.rb-room.busy .rb-rcap{fill:#9a4040}
+.rb-legend{display:flex;gap:16px;font-size:12px;color:var(--muted);align-items:center;flex-wrap:wrap}
+.rb-legend i{display:inline-block;width:13px;height:13px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.rb-sw.free{background:#d7f5e1;border:1px solid #15a34a}
+.rb-sw.busy{background:#fcdada;border:1px solid #dc2626}
+.rb-plan-img{position:relative;width:100%;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;margin-top:12px}
+.rb-plan-img img{width:100%;display:block;user-select:none}
+.rb-hotspot{position:absolute;border:2px solid;border-radius:5px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:.1s}
+.rb-hotspot.free{background:rgba(21,163,74,.30);border-color:#15a34a}
+.rb-hotspot.busy{background:rgba(220,38,38,.34);border-color:#dc2626}
+.rb-hotspot:hover{box-shadow:0 0 0 2px var(--blue) inset;z-index:3}
+.rb-hot-name{font-size:10px;font-weight:700;color:#1c2b3a;background:rgba(255,255,255,.85);padding:1px 4px;border-radius:3px;line-height:1.15;text-align:center;max-width:96%;overflow:hidden;font-family:var(--ff)}
+.rb-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.rb-chip{border:1.5px solid;border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--ff)}
+.rb-chip.free{background:#d7f5e1;border-color:#15a34a;color:#0f5132}
+.rb-chip.busy{background:#fcdada;border-color:#dc2626;color:#7a1f1f}
+.rb-chip:hover{filter:brightness(.96);box-shadow:0 2px 8px rgba(16,32,54,.12)}
+.rb-chip-code{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.08);font-size:11px;margin-right:3px}
+.rb-plan2{width:100%;height:auto;min-width:640px;display:block;background:#fff;border:1px solid var(--line);border-radius:10px}
+.rb-bldg polygon,.rb-bldg path,.rb-bldg rect{fill:#fcfdff;stroke:#cad4e1;stroke-width:1.6;stroke-linejoin:round}
+.rb-bldg text{fill:#aeb8c6;font-size:12px;font-weight:600;font-family:var(--ff);letter-spacing:.5px}
+.rb-bldg .rb-core-t{font-size:9.5px}
+.rb-room2 rect{stroke-width:1.8;cursor:pointer;transition:.12s}
+.rb-room2.free rect{fill:#d7f5e1;stroke:#15a34a}
+.rb-room2.busy rect{fill:#fcdada;stroke:#dc2626}
+.rb-room2:hover rect{stroke-width:3}
+.rb-room2 text{pointer-events:none}
+.rb-codebig{font-size:19px;font-weight:800;fill:#10391f;font-family:var(--ff)}
+.rb-room2.busy .rb-codebig{fill:#7a1f1f}
+.rb-room2.blink rect{animation:rbBlink .7s ease-in-out infinite}
+@keyframes rbBlink{0%,100%{stroke:#2563eb;stroke-width:4.5}50%{stroke:#2563eb;stroke-width:4.5;fill:#bcd3ff}}
+.rb-leg-room{fill:#d7f5e1;stroke:#15a34a;stroke-width:1.5}
+.rb-leg-space{fill:#eef1f5;stroke:#b6c0cd;stroke-width:1.5}
+.rb-leg-t{fill:#8a96a6;font-size:12px;font-family:var(--ff)}
+.rb-foot{fill:#f7f9fc;stroke:#aab6c6;stroke-width:2.2;stroke-linejoin:round}
+.rb-room2.space rect{fill:#eef1f5;stroke:#b6c0cd;stroke-width:1.4;cursor:default}
+.rb-room2.space .rb-codebig{fill:#7d8a9a;font-size:15px}
+.rb-room2.space:hover rect{stroke-width:1.4}
+.ga-svc-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.ga-svc-btn{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px 16px;cursor:pointer;text-align:left;font-family:var(--ff);box-shadow:0 1px 2px rgba(16,32,54,.05);transition:.14s}
+.ga-svc-btn:hover{border-color:#bcd3f5;box-shadow:0 4px 16px rgba(37,99,235,.14);transform:translateY(-1px)}
+.ga-svc-ic{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:20px;flex:0 0 42px}
+.ga-svc-tx{display:flex;flex-direction:column;min-width:0}
+.ga-svc-tx b{color:var(--ink);font-size:14px}
+.ga-svc-tx small{color:var(--muted);font-size:11.5px}
+@media(max-width:980px){.ga-svc-bar{grid-template-columns:1fr 1fr}}
+.rb-pop{position:fixed;z-index:300;width:258px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 38px rgba(16,32,54,.24);padding:12px 13px;font-size:12.5px}
+.rb-pop-h{display:flex;flex-direction:column;border-bottom:1px solid var(--line);padding-bottom:7px;margin-bottom:6px}
+.rb-pop-h b{color:var(--ink);font-size:13.5px}
+.rb-pop-b{max-height:180px;overflow:auto}
+.rb-slot{display:flex;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.rb-slot:last-child{border-bottom:none}
+.rb-time{font-weight:700;color:var(--blue);white-space:nowrap}
+.rb-form .rbf-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+.rb-form .rbf-ic{width:20px;text-align:center;flex:0 0 20px;font-size:15px;opacity:.75}
+.rb-form input,.rb-form select,.rb-form textarea{flex:1;min-width:0;border:none;outline:none;font-family:var(--ff);font-size:13.5px;background:none;color:var(--ink)}
+.rb-form input:disabled{color:var(--muted)}
+.rb-form textarea{resize:vertical}
+.rb-slots{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.rb-slot-row{display:flex;align-items:center;gap:11px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:12.5px}
+.rb-slot-row:last-child{border-bottom:none}
+.rb-slot-time{font-weight:700;min-width:44px;color:var(--ink)}
+.rb-slot-info{flex:1;display:flex;flex-direction:column;min-width:0;line-height:1.3}
+.rb-slot-email{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rb-slot-row.free{cursor:pointer}
+.rb-slot-row.free:hover{background:var(--blue-s)}
+.rb-slot-row.sel{background:var(--blue)}
+.rb-slot-row.sel .rb-slot-time{color:#fff}
+.rb-slot-row.sel .rb-slot-info{color:#fff;font-weight:600}
+.rb-slot-row.booked{background:#fdecec;cursor:not-allowed}
+.rb-slot-row.booked .rb-slot-time{color:#a8584f}
+.rb-slot-row.booked b{color:#a8584f}
+.rb-slot-row.booked .rb-slot-email{color:#b06b62}
 .copilot-btn{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:30px;padding:8px 16px 8px 11px;cursor:pointer;font-family:var(--ff);box-shadow:0 1px 2px rgba(16,32,54,.05)}
 .copilot-btn:hover{border-color:#bcd3f5;box-shadow:0 3px 12px rgba(37,99,235,.14)}
 .cp-mark{width:20px;height:20px;flex:0 0 20px}
@@ -327,6 +413,14 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .mini i.on{background:var(--blue)}
 .badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:14px}
 .bd-ok{background:var(--green-s);color:var(--green)} .bd-warn{background:var(--amber-s);color:var(--amber)}
+.bd-bad{background:#fdecec;color:#dc2626}
+.btn-mini{border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-mini.ok{border-color:#9bd8b1;background:#eafaf0;color:#15803d}
+.btn-mini.no{border-color:#f0b4b4;background:#fdeded;color:#c0392b}
+.btn-mini:hover{filter:brightness(.97)}
+.tr-stat{background:#f6f8fb;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--muted)}
+.pay-grp{margin-top:14px}
+.pay-grp-h{font-size:13px;font-weight:600;color:var(--ink);background:#f3f6fa;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
 .bd-crit{background:var(--red-s);color:var(--red)} .bd-neu{background:#eef1f6;color:#64748b}
 .avt{width:26px;height:26px;border-radius:50%;background:#e7eefb;color:var(--blue);display:inline-grid;
   place-items:center;font-size:10.5px;font-weight:700;margin-right:7px;vertical-align:middle}
@@ -495,6 +589,8 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
       <div id="page-building" class="hide"></div>
       <div id="page-service" class="hide"></div>
       <div id="page-createticket" class="hide"></div>
+      <div id="page-roombook" class="hide"></div>
+      <div id="page-transport" class="hide"></div>
       <div id="page-createso" class="hide"></div>
       <div id="page-approvals" class="hide"></div>
       <div id="page-assigned" class="hide"></div>
@@ -517,6 +613,9 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 
 <!-- SheetJS (local bundle, offline) — reads .xlsx for Live Data sync -->
 <script src="xlsx.full.min.js"></script>
+<!-- AGAVA Database — Firebase Firestore (gagal-anggun: offline → app tetap jalan lokal) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 /* ---------- icons ---------- */
 const IC={
@@ -556,13 +655,13 @@ const ROLES={
  admin:{label:"Administrator",tier:"*",edit:true,menus:ALLMENUS},
  chief:{label:"Chief of CHCD",tier:"Chief CHCD",menus:["overview","procurement","approvals","reminder"]},
  division:{label:"HCMS Division Head",tier:"Division Head",menus:["overview","procurement","approvals","reminder"]},
- dept:{label:"GA Dept Head",tier:"Dept Head",menus:["overview","procurement","approvals","reminder"]},
+ dept:{label:"GA Dept Head",tier:"Dept Head",menus:ALLMENUS},
  section:{label:"Section Head",tier:"Section Head",menus:ALLMENUS},
  budget:{label:"PIC Budget",tier:"Budget",menus:["overview","procurement","approvals","reminder"]},
  proc:{label:"PIC Procurement",tier:"Procurement",menus:ALLMENUS},
  analyst:{label:"Analyst",tier:null,menus:["overview","procurement","service","reminder"]},
  staff:{label:"Staff Procurement",tier:null,menus:["overview","procurement","service","assigned","reminder"]},
- general:{label:"Staff",tier:null,menus:["overview","service","reminder"]},
+ general:{label:"Staff (Non-GA)",tier:null,menus:["overview","service","energy","reminder"]},
  finance:{label:"Staff Finance",tier:null,menus:["overview","payment","reminder"]}
 };
 const USERS=[
@@ -571,26 +670,27 @@ const USERS=[
  {email:"leonardus.ariyantosatriawan@ai.astra.co.id",name:"Leonardus Ariyanto Satriawan",role:"dept"},
  {email:"elok.normarosediana@ai.astra.co.id",name:"Elok Norma Rosediana",role:"section"},
  {email:"yessy@ai.astra.co.id",name:"Yessy",role:"budget"},
+ {email:"sudana.proc@ai.astra.co.id",name:"Sudana Visudha",role:"proc"},
  {email:"alma.tasyafiandara@ai.astra.co.id",name:"Alma Tasya",role:"analyst"},
  {email:"stevano.wicaksana@ai.astra.co.id",name:"Stevano",role:"analyst"},
  {email:"sugianto@ai.astra.co.id",name:"Sugianto",role:"analyst"},
  {email:"didi.sutama@ai.astra.co.id",name:"Didi Sutama",role:"staff"},
  {email:"endang.maulana@ai.astra.co.id",name:"Endang Maulana",role:"staff"},
  {email:"khalilul.rahman@ai.astra.co.id",name:"Khalilul Rahman",role:"staff"},
- {email:"mujibur@ai.astra.co.id",name:"Mujibur",role:"general"},
+ {email:"mujibur@ai.astra.co.id",name:"Mujibur",role:"general",pic:"transport"},
  {email:"muhamad.zhaenuri@ai.astra.co.id",name:"M Zhaenuri",role:"general"},
  {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general"},
  {email:"salsa.savila@ai.astra.co.id",name:"Salsa",role:"finance"}
 ];
-function buildLoginAccounts(){ const el=document.getElementById("loginAccounts"); if(!el)return; el.innerHTML=USERS.map(u=>{ const r=ROLES[u.role]; const t=r.tier==="*"?"All access":(r.tier||""); return `<button onclick="loginAs('${u.email}')"><span class="la-ava">${ini(u.name)}</span><span class="la-main"><b>${u.name}</b><small>${u.email}</small></span><span class="la-right"><span class="la-role">${r.label}</span>${t?`<span class="la-tier">${t}</span>`:''}</span></button>`; }).join(""); }
+function buildLoginAccounts(){ const el=document.getElementById("loginAccounts"); if(!el)return; el.innerHTML=USERS.map(u=>{ const r=ROLES[u.role]; const t=r.tier==="*"?"All access":(r.tier||""); return `<button onclick="loginAs('${u.email}')"><span class="la-ava">${ini(u.name)}</span><span class="la-main"><b>${u.name}</b><small>${u.email}</small></span><span class="la-right"><span class="la-role">${roleTitle(u)}</span>${t?`<span class="la-tier">${t}</span>`:''}</span></button>`; }).join(""); }
 function loginAs(email){ const u=USERS.find(x=>x.email===email); if(u)applyLogin(u); }
 function doLogin(){ const e=(document.getElementById("loginEmail").value||"").trim().toLowerCase(); const u=USERS.find(x=>x.email.toLowerCase()===e); if(u)applyLogin(u); else { const m=document.getElementById("loginMsg"); if(m)m.textContent="Email not registered. Pick a demo account below."; } }
 function applyLogin(u){
  gUser=u; gRole=u.role; var tt=ROLES[gRole].tier; if(tt&&tt!=="*")gTier=tt;
  const sn=document.getElementById("suName"); if(sn)sn.textContent=u.name;
- const sr=document.getElementById("suRole"); if(sr)sr.textContent=ROLES[gRole].label;
+ const sr=document.getElementById("suRole"); if(sr)sr.textContent=roleTitle(u);
  const sa=document.getElementById("suAvatar"); if(sa)sa.textContent=ini(u.name);
- buildNav(); renderApprovals(); renderAssigned(); updateBell();
+ buildNav(); renderAll(); renderCreateTicket();
  go(ROLES[gRole].menus[0]);
  document.getElementById("login").classList.add("hide");
 }
@@ -626,13 +726,15 @@ function buildNav(){
 function toggleSidebar(){ document.getElementById("side").classList.toggle("collapsed"); }
 function go(id){
   active=(id==="ersus")?"energy":id; buildNav();
-  ["page-overview","page-procurement","page-building","page-service","page-createticket","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
+  ["page-overview","page-procurement","page-building","page-service","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   if(id==="overview"){document.getElementById("page-overview").classList.remove("hide");t.textContent="Astra General Affairs Virtual Assistant";s.textContent="Welcome, "+(gUser?gUser.name:"there")+" · Thursday, 18 June 2026";}
   else if(id==="procurement"){document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
   else if(id==="building"){document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
   else if(id==="service"){document.getElementById("page-service").classList.remove("hide");t.textContent="Service";s.textContent="Complaint tickets · response time, PIC & escalations";}
   else if(id==="createticket"){active="service";buildNav();renderCreateTicket();document.getElementById("page-createticket").classList.remove("hide");t.textContent="Create Service Ticket";s.textContent="New GA service request";}
+  else if(id==="roombook"){active="service";buildNav();renderRoomBook();document.getElementById("page-roombook").classList.remove("hide");t.textContent="Room Booking";s.textContent="Pilih ruang dari denah lantai · powered by ERSUS";}
+  else if(id==="transport"){active="service";buildNav();renderTransport();document.getElementById("page-transport").classList.remove("hide");t.textContent="Transportation";s.textContent="Kendaraan Pool · Voucher Blue Bird · Voucher GoCorp";}
   else if(id==="createso"){active="procurement";buildNav();renderCreateSO();document.getElementById("page-createso").classList.remove("hide");t.textContent="Create Supply Order";s.textContent="Register a new SO into Procurement";}
   else if(id==="approvals"){document.getElementById("page-approvals").classList.remove("hide");t.textContent="Approvals";s.textContent="Approvals routed to your tier — review & action";}
   else if(id==="assigned"){document.getElementById("page-assigned").classList.remove("hide");t.textContent="Assigned SO";s.textContent="Your SO worklist — follow up, UPR, SPK, handover";}
@@ -818,8 +920,26 @@ function esgScorecard(){
   <div style="overflow:auto;margin-top:16px">${esgTable()}</div>
   <div class="muted small" style="margin-top:10px;line-height:1.55">Pencapaian <b>disetahunkan</b>: capaian bulanan = min(penurunan aktual ÷ target bulanan, <b>125%</b> cap KPI Astra) ÷ 12, lalu diakumulasi → di Desember mencapai 125%. Renewable Mix dihitung dari <b>kapasitas terpasang</b> (absolut, bukan produksi). Waste: tahan ≥99% terolah tiap bulan → 100% di Desember. Bobot: GRK 30% · Air 30% · Renewable 10% · Limbah 30%.</div>`;
 }
+/* Staff di luar GA (role general): view terbatas — dalaman GA tidak dipublikasikan. */
+function isEndUser(){ return gRole==="general"; }
+function isPicTransport(){ return !!(gUser&&gUser.pic==="transport"); }
+const ERSUS_URL="https://sudanavisudhaml-beep.github.io/ersus-astra/";
+function openErsusPlatform(){ window.open(ERSUS_URL,"_blank","noopener"); }
+function roleTitle(u){ if(u&&u.pic==="transport")return "PIC Transport"; return (u&&ROLES[u.role])?ROLES[u.role].label:""; }
+/* GA Dept Head: boleh VIEW semua modul, tapi TIDAK boleh aksi di modul mana pun —
+   satu-satunya aksi = approval di gate Dept Head (soApprovalCard). Admin tidak termasuk (god-mode). */
+function viewerOnly(){ return gRole==="dept"; }
 function renderOverview(){
  const el=document.getElementById("page-overview");
+ if(isEndUser()){
+   el.innerHTML=`
+   <div class="card pad">
+     <div class="panel-t">📺 Live Events — hari ini</div>
+     <div class="evroom-note">Acara & pemakaian ruang yang sedang/akan berlangsung</div>
+     ${EVENTS.map(eventRow).join("")}
+   </div>`;
+   return;
+ }
  el.innerHTML=`
  ${ratingCard()}
  <div class="hl-headrow">
@@ -1115,14 +1235,14 @@ function normalizeSO(){SO.forEach(s=>{
  if(s.spkNo===undefined)s.spkNo=s.wstep>=3?("SPK-202606-"+String(140+Math.floor(s.nilai)).padStart(4,"0")):"";
  if(s.wstep>=4&&!s.bastDate)s.bastDate="2026-06-11";
 });}
-function soPhase(s){if(s.apprBudget==="Rejected"||s.apprProc==="Rejected"||s.apprDept==="Rejected")return"rejected";if(s.apprBudget!=="Approved")return"budget";if(s.apprProc!=="Approved")return"proc";if(s.apprDept!=="Approved")return"dept";if(s.wstep<4)return"work";return"pay";}
+function soPhase(s){if(s.apprDept==="Rejected")return"rejected";if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"budget";if(s.escalated){if(s.apprDept!=="Approved")return"dept";if(s.apprProc!=="Approved")return"proc";}else{if(s.apprProc!=="Approved")return"proc";if(s.apprDept!=="Approved")return"dept";}if(s.wstep<4)return"work";return"pay";}
 function soStatusLabel(s){var p=soPhase(s);
  if(p==="rejected")return{t:"Rejected",c:"bd-crit"};
  if(p==="budget")return{t:"Pending Budget",c:"bd-warn"};
  if(p==="proc")return{t:"Budget OK · Pending Proc",c:"bd-warn"};
  if(p==="dept")return{t:"Pending Dept Head",c:"bd-warn"};
  if(p==="work")return{t:WSTEP_DONE[s.wstep],c:"bd-info"};
- return{t:(s.invStep>=3)?"Payment released":(s.invStep!=null?INV_STATUSES[s.invStep]:"BAST done · invoicing"),c:"bd-proc"};}
+ return{t: s.invReleased?"Payment released":(s.invReceived?(s.invProcessed?"Invoice di Proses (BPH)":"Invoice Diterima"):"BAST done · Menunggu Invoice"),c:"bd-proc"};}
 function soPip(s){var p=soPhase(s);return (p==="rejected")?"#dc2626":(p==="work")?"#2563eb":(p==="pay")?"#7a4fd0":(p==="budget"||p==="proc"||p==="dept")?"#c2740a":"#15a34a";}
 
 function renderProc(){
@@ -1140,7 +1260,7 @@ function renderProc(){
    if(procFilter==="bast")return ap(s)&&s.wstep>=4;
  });
  el.innerHTML=`
- <div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn-act" onclick="go('createso')">+ Create SO</button></div>
+ <div style="display:flex;justify-content:flex-end;margin-bottom:14px">${viewerOnly()?'':'<button class="btn-act" onclick="go(\'createso\')">+ Create SO</button>'}</div>
  <div class="funnel">
    <div class="fstep c1"><div class="accent"></div><div class="v">${berjalan}</div><div class="l">SO Ongoing</div><div class="s">active in pipeline</div></div>
    <div class="fstep c2"><div class="accent"></div><div class="v">${upr}</div><div class="l">UPR Done</div><div class="s">vendor proposal issued</div></div>
@@ -1203,7 +1323,7 @@ function openDrawer(no){
     </div>
     <div class="panel-t" style="margin-bottom:14px">Lifecycle Journey</div>
     <div class="tl">
-      ${steps.map(st=>{ const tv=st.tk==='invIn'?(s.invInDate||''):(st.tk&&s.ts?s.ts[st.tk]:''); return `<div class="ts ${st.cls}"><div class="nd">${st.cls==='done'?'✓':''}</div>
+      ${steps.map(st=>{ const tv=st.tk==='invIn'?(s.invRecvDate||''):(st.tk&&s.ts?s.ts[st.tk]:''); return `<div class="ts ${st.cls}"><div class="nd">${st.cls==='done'?'✓':''}</div>
         <div class="tt">${st.t}${st.gate?'<span class="gate-chip">◆ approval</span>':''}</div>
         ${st.sub?`<div class="td">${st.sub}</div>`:''}${(st.cls==='done'&&tv)?`<div class="td" style="color:var(--blue);font-weight:600">🕐 ${tv}</div>`:''}</div>`; }).join("")}
     </div>
@@ -1216,7 +1336,7 @@ function closeDrawer(){document.getElementById("ovl").classList.remove("show");}
 function insightCard(a){
  const cls=a.sev==='crit'?'crit':a.sev==='warn'?'warn':'info';
  const ico=a.sev==='crit'?'🚨':a.sev==='warn'?'⚠️':'💡';
- return `<div class="insight ${cls}"><div class="ico">${ico}</div><div style="flex:1"><div style="font-weight:700;color:var(--ink);font-size:13.5px">${a.t}</div><div style="font-size:12.5px;color:var(--muted);margin-top:3px">${a.d}</div></div>${(a.act&&a.act!=='—')?`<button class="btn-act">${a.act}</button>`:''}</div>`;
+ return `<div class="insight ${cls}"><div class="ico">${ico}</div><div style="flex:1"><div style="font-weight:700;color:var(--ink);font-size:13.5px">${a.t}</div><div style="font-size:12.5px;color:var(--muted);margin-top:3px">${a.d}</div></div>${(a.act&&a.act!=='—'&&!viewerOnly())?`<button class="btn-act">${a.act}</button>`:''}</div>`;
 }
 /* --- Energy module: data nyata 2026 vs baseline 2019 --- */
 const ENERGY_MONTHS=["Jan","Feb","Mar","Apr","Mei"];
@@ -1282,17 +1402,17 @@ function energySections(){
  </div>`;
 }
 function renderEnergy(){
- const el=document.getElementById("page-energy");
+ const el=document.getElementById("page-energy"); const eu=isEndUser();
  el.innerHTML=`
   <div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#f4fbf8,#eef4ff)">
     <div class="sec-ic" style="background:#e1f5ee;color:#0f6e56"><svg viewBox="0 0 24 24" style="stroke-width:1.9;fill:none;stroke:currentColor">${IC.energy}</svg></div>
-    <div style="flex:1"><div style="font-weight:700;color:var(--ink);font-size:14.5px">Energy Intelligence — ERSUS</div><div style="font-size:12.5px;color:var(--muted);margin-top:2px">Energy insights, anomalies & actions. Utility status & maintenance are in Building &amp; Utility.</div></div>
-    <button class="btn-out" onclick="go('ersus')">Open ERSUS Platform →</button>
+    <div style="flex:1"><div style="font-weight:700;color:var(--ink);font-size:14.5px">Energy Intelligence${eu?'':' — ERSUS'}</div><div style="font-size:12.5px;color:var(--muted);margin-top:2px">${eu?'Highlight performa energi GA — penghematan & keberlanjutan.':'Energy insights, anomalies & actions. Utility status & maintenance are in Building &amp; Utility.'}</div></div>
+    ${eu?'':'<button class="btn-out" onclick="openErsusPlatform()">Open ERSUS Platform →</button>'}
   </div>
   ${energySections()}
-  <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>Needs Action</h2><div class="d">Priority insights from ERSUS</div></div><button class="btn-out" style="margin-left:auto" onclick="go('ersus')">View all in ERSUS →</button></div>
+  ${eu?'':`<div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>Needs Action</h2><div class="d">Priority insights from ERSUS</div></div><button class="btn-out" style="margin-left:auto" onclick="openErsusPlatform()">View all in ERSUS →</button></div>
     <div class="sec-body">${ERSUS_ALERTS.filter(a=>a.sev!=='info').slice(0,3).map(insightCard).join("")}</div>
-  </div>`;
+  </div>`}`;
 }
 
 /* ============ BUILDING & UTILITY PAGE ============ */
@@ -1396,7 +1516,7 @@ function svcRating(){
 function openTicket(no){
  const t=TICKETS.find(x=>x.no===no); if(!t)return;
  const tsArr=[0,1,2,3,4].map(i=>(t.ts&&t.ts[i]!=null)?t.ts[i]:(i===0?t.created:''));
- const canSvc=['admin','section','proc','staff','analyst','general'].includes(gRole);
+ const canSvc=['admin','section','proc','staff','analyst'].includes(gRole);
  const next=t.stg<4?TSTAGES[t.stg+1]:null;
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div class="sono" style="font-size:15px">${t.no}${t.esc?' <span class="badge bd-crit">Escalated</span>':''}</div><div style="font-size:14.5px;color:var(--ink);font-weight:700;margin-top:5px">${t.judul}</div><div class="muted small" style="margin-top:3px">${t.cat} · ${t.lokasi} · ${t.team} · PIC ${t.pic||'—'}</div></div>
@@ -1407,24 +1527,47 @@ function openTicket(no){
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
-function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=4)return; t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; if(t.stg===4)t.closed=TODAY_STR; openTicket(no); renderService(); renderOverview(); updateBell(); }
+function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=4)return; t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; if(t.stg===4)t.closed=TODAY_STR; dbSaveTicket(t); openTicket(no); renderService(); renderOverview(); updateBell(); }
+function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
+function gaServiceButtons(){
+ if(viewerOnly()) return '';
+ return gaServiceButtonsRaw();
+}
+function gaServiceButtonsRaw(){
+ return `<div class="ga-svc-bar">
+   <button class="ga-svc-btn" onclick="go('createticket')"><span class="ga-svc-ic" style="background:#eef4ff;color:#2563eb">🎫</span><span class="ga-svc-tx"><b>Create Ticket</b><small>Lapor keluhan / permintaan</small></span></button>
+   <button class="ga-svc-btn" onclick="go('roombook')"><span class="ga-svc-ic" style="background:#e9f8ef;color:#15a34a">🏢</span><span class="ga-svc-tx"><b>Room Booking</b><small>Pesan ruang meeting</small></span></button>
+   <button class="ga-svc-btn" onclick="go('transport')"><span class="ga-svc-ic" style="background:#fdf3e3;color:#c2740a">🚗</span><span class="ga-svc-tx"><b>Transportation</b><small>Pool, Blue Bird, GoCorp</small></span></button>
+   <button class="ga-svc-btn" onclick="gaServiceSoon('Mailing Room')"><span class="ga-svc-ic" style="background:#f3eefe;color:#7a4fd0">📬</span><span class="ga-svc-tx"><b>Mailing Room</b><small>Kurir & dokumen</small></span></button>
+ </div>`;
+}
 function renderService(){
+ if(isEndUser()){
+   const me=gUser?gUser.name:"";
+   const mine=TICKETS.filter(t=>t.requester===me);
+   const ong=mine.filter(t=>t.status!=="Resolved").length, res=mine.filter(t=>t.status==="Resolved").length;
+   document.getElementById("page-service").innerHTML=`
+    ${gaServiceButtons()}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
+      <div class="card kpi"><div class="l">Tiket saya</div><div class="v">${mine.length}</div></div>
+      <div class="card kpi"><div class="l">Berjalan</div><div class="v" style="color:var(--blue)">${ong}</div></div>
+      <div class="card kpi"><div class="l">Selesai</div><div class="v" style="color:var(--green)">${res}</div></div>
+    </div>
+    <div class="card">
+      <div style="padding:16px 18px 6px"><div class="panel-t" style="margin:0">Tiket Saya <span style="font-weight:400;color:var(--muted)">— hanya yang Anda buat</span></div></div>
+      <div class="svc-head"><span></span><span>Ticket</span><span style="text-align:center">Response</span><span>PIC</span><span>Status</span></div>
+      <div class="svc-list">${mine.length?mine.map(ticketRow).join(""):'<div class="muted small" style="padding:34px;text-align:center">Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.</div>'}</div>
+    </div>`;
+   return;
+ }
  const total=TICKETS.length, ongoing=TICKETS.filter(t=>t.status!=="Resolved").length, resolved=TICKETS.filter(t=>t.status==="Resolved").length, esc=TICKETS.filter(t=>t.esc).length;
  const list=TICKETS.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?t.esc: svcFilter==="resolved"?t.status==="Resolved":true);
  const pills=[["all","All",total],["open","Ongoing",ongoing],["esc","Escalated",esc],["resolved","Resolved",resolved]];
  const r=svcRating(); const full=Math.round(r.avg); const stars='★'.repeat(full)+'☆'.repeat(5-full);
  const el=document.getElementById("page-service");
  el.innerHTML=`
-  <div style="display:flex;align-items:stretch;gap:14px;margin-bottom:18px">
-    <div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-      <div class="card kpi"><div class="l">Total tickets</div><div class="v">${total}</div></div>
-      <div class="card kpi"><div class="l">Ongoing</div><div class="v" style="color:var(--blue)">${ongoing}</div></div>
-      <div class="card kpi"><div class="l">Escalated</div><div class="v" style="color:var(--red)">${esc}</div></div>
-      <div class="card kpi"><div class="l">Resolved</div><div class="v" style="color:var(--green)">${resolved}</div></div>
-    </div>
-    <button class="btn-act" style="padding:0 20px;white-space:nowrap" onclick="go('createticket')">+ Create Ticket</button>
-  </div>
-  <div class="two" style="margin-bottom:18px">
+  ${gaServiceButtons()}
+  <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-bottom:18px;align-items:start">
     <div class="card pad">
       <div class="panel-t">⭐ Service Rating · last ${r.n} closed tickets</div>
       <div style="display:flex;align-items:center;gap:18px;margin-bottom:10px">
@@ -1433,11 +1576,20 @@ function renderService(){
       </div>
       ${r.list.map(t=>`<div class="trow" style="padding:7px 0"><div class="tj" style="font-size:12.5px">${t.no} · ${t.judul}</div><span style="color:#f5a623;white-space:nowrap">${'★'.repeat(t.rating)}${'☆'.repeat(5-t.rating)}</span></div>`).join("")}
     </div>
-    <div class="card pad">
-      <div class="panel-t">Vendor Performance by Site <span style="font-weight:400;color:var(--muted)">(Housekeeping & BM · 0–3)</span></div>
-      <div class="vp-note">Tier: Silver &lt; 2.2 · Gold 2.2–2.5 · Platinum ≥ 2.6</div>
-      <div class="boxes" style="grid-template-columns:1fr 1fr">${VENDOR_PERF.map(vendorCard).join("")}</div>
+    <div>
+      <div class="panel-t" style="margin-bottom:12px">Ticket Status</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card kpi"><div class="l">Total tickets</div><div class="v">${total}</div></div>
+        <div class="card kpi"><div class="l">Ongoing</div><div class="v" style="color:var(--blue)">${ongoing}</div></div>
+        <div class="card kpi"><div class="l">Escalated</div><div class="v" style="color:var(--red)">${esc}</div></div>
+        <div class="card kpi"><div class="l">Resolved</div><div class="v" style="color:var(--green)">${resolved}</div></div>
+      </div>
     </div>
+  </div>
+  <div class="card pad" style="margin-bottom:18px">
+    <div class="panel-t">Vendor Performance by Site <span style="font-weight:400;color:var(--muted)">(Housekeeping & BM · 0–3)</span></div>
+    <div class="vp-note">Tier: Silver &lt; 2.2 · Gold 2.2–2.5 · Platinum ≥ 2.6</div>
+    <div class="boxes" style="grid-template-columns:repeat(4,1fr)">${VENDOR_PERF.map(vendorCard).join("")}</div>
   </div>
   ${roomEventCard()}
   <div class="card">
@@ -1491,25 +1643,375 @@ function renderCreateTicket(){
     <div class="vp-note">Fill the details below. After submit, the ticket is listed in the Service module.</div>
     <div class="field"><label>Title</label><input id="ct-title" placeholder="e.g. AC not cooling — Meeting Room 6B"/></div>
     <div class="two" style="gap:0 16px"><div class="field"><label>Category</label><select id="ct-cat">${cats.map(c=>`<option>${c}</option>`).join("")}</select></div>
-    <div class="field"><label>Priority</label><select id="ct-prio"><option>Normal</option><option>High</option><option>Critical</option></select></div></div>
+    <div class="field"><label>Priority</label><select id="ct-prio"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></div></div>
     <div class="two" style="gap:0 16px"><div class="field"><label>Location</label><input id="ct-loc" placeholder="Building / floor / room"/></div>
     <div class="field"><label>Requester</label><input id="ct-req" value="${gUser?gUser.name:''}" disabled style="background:#f1f4f8;color:var(--muted)"/></div></div>
-    <div class="field"><label>Description</label><textarea placeholder="Describe the issue…"></textarea></div>
+    <div class="field"><label>Description</label><textarea id="ct-desc" placeholder="Describe the issue…"></textarea></div>
     <div style="display:flex;gap:10px"><button class="btn-act" onclick="submitTicket()">Submit Ticket</button><button class="btn-out" onclick="go('service')">Cancel</button></div>
   </div>`;
 }
 async function submitTicket(){
  const title=(document.getElementById("ct-title").value||"").trim()||"New service request";
  const cat=document.getElementById("ct-cat").value;
+ const prio=document.getElementById("ct-prio").value;
  const loc=(document.getElementById("ct-loc").value||"").trim()||"—";
+ const desc=(document.getElementById("ct-desc").value||"").trim()||"—";
  const req=gUser?gUser.name:"";
- // Create in-app, then trigger the Power Automate flow and apply its response
- const res=await triggerFlow("createTicket",{title,cat,lokasi:loc,requester:req,created:TODAY_STR})||{};
+ const reqEmail=gUser&&gUser.email?gUser.email:"";
+ // Create in-app, then trigger the Power Automate flow and apply its response.
+ // Payload key = schema yang harus didaftarkan di trigger "When an HTTP request is received".
+ const res=await triggerFlow("createTicket",{title, cat, priority:prio, lokasi:loc, description:desc, requester:req, requesterEmail:reqEmail, created:TODAY_STR})||{};
  if(res.ok===false){ alert("⚠️ Flow 'Create Ticket' gagal dipanggil ("+(res.error||('HTTP '+(res.httpStatus||'?')))+").\nTiket tetap dibuat lokal di AGAVA.\nCek URL/CORS flow di Vendor Management → Power Automate Bridge."); }
  const no=res.ticketNo||("GA-202606-"+String(++ticketSeq).padStart(4,"0"));
  TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,ts:{0:nowStamp()}});
+ dbSaveTicket(TICKETS[0]);
  svcFilter="all"; renderService(); go("service");
  if(res.ticketNo && !res._sim){ alert("✅ Tiket dibuat & flow Power Automate dijalankan.\nNomor dari flow: "+no+"\nStatus: "+(res.status||"Submitted")); }
+}
+
+/* ===================== ROOM BOOKING (Service · denah interaktif) =====================
+   Pilih Site + Floor → denah lantai (hanya ruang meeting, abu gelap = bookable).
+   Hover ruang → kartu jadwal popup + tombol Booking. Klik → form ala Outlook
+   (jam 06:00–21:00). Nantinya di-power oleh ERSUS (lampu/AC/power + reminder + okupansi). */
+const RB_SITES=["AMDI","MA","ABC BSD","ABC BDG"];
+const RB_FLOORS={ "AMDI":["Lantai 1","Lantai 3","Lantai 4","Lantai 6","Lantai 8"], "MA":["Lantai 5","Lantai 12"], "ABC BSD":["Ground Floor","Lantai 2"], "ABC BDG":["Lantai 1"] };
+/* Denah asli (render dari PDF). Bila ada, dipakai sbg background + hotspot ruang. */
+const RB_FLOORPLAN={ "AMDI|Lantai 1":"assets/floor-l1.png", "AMDI|Lantai 3":"assets/floor-l3.png", "AMDI|Lantai 4":"assets/floor-l4.png", "AMDI|Lantai 6":"assets/floor-l6.png", "AMDI|Lantai 8":"assets/floor-l8.png" };
+const RB_ROOMS={
+ "AMDI|Lantai 3":[
+   {id:"l3-studio",name:"Studio Room",cap:20,row:0},{id:"l3-tc1",name:"Training Class 1",cap:36,row:0},{id:"l3-tc2",name:"Training Class 2",cap:36,row:0},{id:"l3-tc3",name:"Training Class 3",cap:36,row:0},{id:"l3-tc4",name:"Training Class 4",cap:36,row:0},
+   {id:"l3-conf1",name:"Conference Room 1",cap:24,row:1},{id:"l3-conf2",name:"Conference Room 2",cap:24,row:1},{id:"l3-321",name:"Meeting 321",cap:18,row:1},{id:"l3-322",name:"Meeting 322",cap:18,row:1},{id:"l3-323",name:"Meeting 323",cap:18,row:1},
+   {id:"l3-311",name:"Meeting 311",cap:18,row:2},{id:"l3-312",name:"Meeting 312",cap:18,row:2},{id:"l3-313",name:"Meeting 313",cap:18,row:2},{id:"l3-314",name:"Meeting 314",cap:18,row:2},{id:"l3-315",name:"Meeting 315",cap:18,row:2},{id:"l3-316",name:"Meeting 316",cap:18,row:2}
+ ],
+ "AMDI|Lantai 4":[
+   {id:"l4-tc1",name:"Training Class 1",cap:36,row:0},{id:"l4-tc2",name:"Training Class 2",cap:36,row:0},{id:"l4-tc3",name:"Training Class 3",cap:36,row:0},{id:"l4-tc4",name:"Training Class 4",cap:36,row:0},
+   {id:"l4-conf1",name:"Conference Room 1",cap:24,row:1},{id:"l4-conf2",name:"Conference Room 2",cap:24,row:1},{id:"l4-421",name:"Meeting 421",cap:18,row:1},{id:"l4-422",name:"Meeting 422",cap:18,row:1},{id:"l4-423",name:"Meeting 423",cap:18,row:1},{id:"l4-424",name:"Meeting 424",cap:18,row:1},
+   {id:"l4-411",name:"Meeting 411",cap:18,row:2},{id:"l4-412",name:"Meeting 412",cap:18,row:2},{id:"l4-413",name:"Meeting 413",cap:18,row:2},{id:"l4-414",name:"Meeting 414",cap:18,row:2},{id:"l4-415",name:"Meeting 415",cap:18,row:2},{id:"l4-416",name:"Meeting 416",cap:18,row:2},{id:"l4-417",name:"Meeting 417",cap:18,row:2}
+ ],
+ "AMDI|Lantai 1":[
+   {id:"l1-sustainability",name:"Sustainability",cap:24,code:1,wing:"L",x:352,y:150,w:122,h:120,type:"meet"},
+   {id:"l1-strive",name:"Strive",cap:12,code:2,wing:"L",x:260,y:150,w:88,h:57,type:"meet"},
+   {id:"l1-teamwork",name:"Teamwork",cap:12,code:3,wing:"L",x:260,y:211,w:88,h:59,type:"meet"},
+   {id:"l1-innovation",name:"Innovation",cap:14,code:4,wing:"L",x:260,y:274,w:88,h:60,type:"meet"},
+   {id:"l1-collaborative",name:"Collaborative",cap:12,code:5,wing:"L",x:260,y:338,w:88,h:58,type:"meet"},
+   {id:"l1-agility",name:"Agility",cap:10,code:6,wing:"L",x:352,y:274,w:122,h:60,type:"meet"},
+   {id:"l1-commitment",name:"Commitment",cap:10,code:7,wing:"L",x:352,y:338,w:122,h:58,type:"meet"},
+   {id:"l1-proactive",name:"Proactive",cap:10,code:8,wing:"L",x:163,y:298,w:90,h:56,type:"meet"},
+   {id:"l1-respect",name:"Respect",cap:10,code:9,wing:"L",x:163,y:358,w:90,h:48,type:"meet"}
+ ],
+ "AMDI|Lantai 6":[
+   {id:"l6-bundar",name:"R. Meja Bundar",cap:12,row:0},{id:"l6-synergi",name:"Synergi",cap:16,row:0},{id:"l6-a",name:"Room A",cap:8,row:0},{id:"l6-b",name:"Room B",cap:8,row:0},
+   {id:"l6-c",name:"Room C",cap:8,row:1},{id:"l6-d",name:"Room D",cap:8,row:1},{id:"l6-e",name:"Room E",cap:8,row:1},{id:"l6-f",name:"Room F",cap:8,row:1}
+ ],
+ "AMDI|Lantai 8":[
+   {id:"l8-wsh",name:"WSH",cap:20,row:0},{id:"l8-lounge",name:"Executive Lounge",cap:30,row:0},{id:"l8-serbaguna",name:"R. Serba Guna",cap:150,row:0}
+ ],
+ "MA|Lantai 5":[{id:"ma5-1",name:"Garuda",cap:20,row:0},{id:"ma5-2",name:"Rajawali",cap:16,row:0},{id:"ma5-3",name:"Elang",cap:12,row:0},{id:"ma5-4",name:"Merpati",cap:10,row:1},{id:"ma5-5",name:"Cendrawasih",cap:10,row:1}],
+ "MA|Lantai 12":[{id:"ma12-1",name:"Borobudur",cap:30,row:0},{id:"ma12-2",name:"Prambanan",cap:24,row:0}],
+ "ABC BSD|Ground Floor":[{id:"bsd-1",name:"Anggrek",cap:16,row:0},{id:"bsd-2",name:"Melati",cap:12,row:0},{id:"bsd-3",name:"Mawar",cap:10,row:0}],
+ "ABC BSD|Lantai 2":[{id:"bsd-4",name:"Tulip",cap:14,row:0},{id:"bsd-5",name:"Sakura",cap:10,row:0}],
+ "ABC BDG|Lantai 1":[{id:"bdg-1",name:"Asia Afrika",cap:20,row:0},{id:"bdg-2",name:"Braga",cap:12,row:0}]
+};
+/* Space non-meeting (office/pantry/toilet/board) — diberi kode juga utk dinamai user; tidak bisa di-book. */
+const RB_SPACES={
+ "AMDI|Lantai 1":[
+   {id:"l1-s10",name:"Open Office",code:10,wing:"L",x:60,y:150,w:96,h:120,type:"space"},
+   {id:"l1-s11",name:"Pantry",code:11,wing:"L",x:60,y:278,w:46,h:78,type:"space"},
+   {id:"l1-s12",name:"Toilet",code:12,wing:"L",x:111,y:278,w:45,h:78,type:"space"},
+   {id:"l1-s13",name:"Office",code:13,wing:"R",x:528,y:152,w:92,h:60,type:"space"},
+   {id:"l1-s14",name:"Office",code:14,wing:"R",x:626,y:152,w:92,h:60,type:"space"},
+   {id:"l1-s15",name:"Board Room",code:15,wing:"R",x:724,y:150,w:120,h:96,type:"space"},
+   {id:"l1-s16",name:"Office",code:16,wing:"R",x:528,y:218,w:92,h:60,type:"space"},
+   {id:"l1-s17",name:"Pantry",code:17,wing:"R",x:626,y:218,w:92,h:60,type:"space"},
+   {id:"l1-s18",name:"Toilet",code:18,wing:"R",x:724,y:252,w:120,h:60,type:"space"},
+   {id:"l1-s19",name:"Core / Lift",code:19,wing:"C",x:470,y:150,w:60,h:96,type:"space"},
+   {id:"l1-s20",name:"Panggung / Void",code:20,wing:"C",x:432,y:336,w:136,h:140,type:"space"}
+ ]
+};
+/* Kemiringan sayap (boomerang): L miring kiri-bawah, R miring kanan-bawah. */
+const RB_ROTS={ "AMDI|Lantai 1":{L:{rot:-22,px:300,py:268,box:[50,138,452,290]},R:{rot:22,px:700,py:268,box:[498,138,452,290]}} };
+let RB_BOOKINGS=[
+ {room:"l3-conf1",date:TODAY_STR,start:"08:00",end:"10:00",title:"Diversity for Leaders",by:"HCD",email:"hcd.event@ai.astra.co.id"},
+ {room:"l3-conf1",date:TODAY_STR,start:"13:00",end:"15:00",title:"Vendor Review",by:"GA Procurement",email:"sudana.visudha@ai.astra.co.id"},
+ {room:"l3-tc1",date:TODAY_STR,start:"09:00",end:"12:00",title:"IR Talk Batch II",by:"Investor Relations",email:"ir.team@ai.astra.co.id"},
+ {room:"l3-311",date:TODAY_STR,start:"10:00",end:"11:00",title:"Sync Procurement",by:"GA",email:"elok.normarosediana@ai.astra.co.id"},
+ {room:"l6-bundar",date:TODAY_STR,start:"14:00",end:"16:00",title:"Leadership Forum",by:"BOD",email:"matilda.esther@ai.astra.co.id"},
+ {room:"l1-sustainability",date:TODAY_STR,start:"09:00",end:"11:30",title:"Town Hall GA",by:"GA",email:"leonardus.ariyantosatriawan@ai.astra.co.id",occupied:true},
+ {room:"l1-strive",date:TODAY_STR,start:"13:00",end:"14:00",title:"1-on-1 Coaching",by:"HCD",email:"hcd.coach@ai.astra.co.id"}
+];
+let rbSite="AMDI", rbFloor="Lantai 1", rbHideT=null;
+function rbRoomBookings(id,date){ return RB_BOOKINGS.filter(b=>b.room===id&&b.date===date).sort((a,b)=>a.start.localeCompare(b.start)); }
+function rbTimeOptions(){ const o=[]; for(let h=6;h<=21;h++){ const hh=('0'+h).slice(-2); o.push(hh+':00'); if(h<21)o.push(hh+':30'); } return o; }
+let RB_NOW="10:00";   // jam acuan status real-time (nanti dari ERSUS / jam asli)
+/* Status real-time: merah = sedang ada booking yang melingkupi jam sekarang (ruang
+   sedang dipakai / ada orang via ERSUS); hijau = kosong saat ini. */
+function rbRoomStatus(id){ const b=RB_BOOKINGS.find(x=>x.room===id&&x.date===TODAY_STR&&RB_NOW>=x.start&&RB_NOW<x.end&&x.occupied!==false); return b?'busy':'free'; }
+function rbLayout(rooms){
+ if(rooms.some(r=>r.x!=null)) return rooms.map(r=>Object.assign({},r));   // koordinat custom (denah mendekati asli)
+ const rows={}; rooms.forEach(r=>{(rows[r.row]=rows[r.row]||[]).push(r);}); const W=1000,M=28,GAP=8,ROWH=150,ROWY=[46,226,406]; const out=[];
+ Object.keys(rows).forEach(rk=>{ const list=rows[rk],n=list.length,w=(W-2*M-GAP*(n-1))/n; list.forEach((r,i)=>out.push(Object.assign({},r,{x:M+i*(w+GAP),y:ROWY[+rk]!=null?ROWY[+rk]:46,w:w,h:ROWH}))); });
+ return out; }
+function rbRoomSvg(r){ const st=rbRoomStatus(r.id), bk=rbRoomBookings(r.id,TODAY_STR);
+ return `<g class="rb-room ${st}" onmouseenter="rbShowPop(event,'${r.id}')" onmouseleave="rbScheduleHide()" onclick="rbOpenForm('${r.id}')">
+   <rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="6"/>
+   <text x="${r.x+r.w/2}" y="${r.y+r.h/2-4}" text-anchor="middle" class="rb-rname">${r.name}</text>
+   <text x="${r.x+r.w/2}" y="${r.y+r.h/2+15}" text-anchor="middle" class="rb-rcap">${r.cap} pax${bk.length?' · '+bk.length+' booking':''}</text>
+ </g>`; }
+function rbHotspot(r){ const st=rbRoomStatus(r.id);
+ return `<button class="rb-hotspot ${st}" style="left:${r.lx}%;top:${r.ly}%;width:${r.lw}%;height:${r.lh}%" onmouseenter="rbShowPop(event,'${r.id}')" onmouseleave="rbScheduleHide()" onclick="rbOpenForm('${r.id}')"><span class="rb-hot-name">${r.name}</span></button>`; }
+function rbChip(r){ const st=rbRoomStatus(r.id), bk=rbRoomBookings(r.id,TODAY_STR);
+ return `<button class="rb-chip ${st}" onmouseenter="rbShowPop(event,'${r.id}');rbHighlight('${r.id}')" onmouseleave="rbScheduleHide();rbUnhighlight()" onclick="rbOpenForm('${r.id}')">${r.code?'<b class="rb-chip-code">'+r.code+'</b> ':''}${r.name} <span style="opacity:.7">· ${r.cap}p${bk.length?' · '+bk.length+'bk':''}</span></button>`; }
+/* Clean schematic denah — bangunan digambar bersih + ruang meeting bernomor (kode).
+   Pilih ruang (hover/klik chip atau ruang) → ruang ber-kode itu BERKEDIP (blink). */
+function rbBuildingSvg(){
+ return `<g class="rb-bldg">
+   <polygon points="100,118 378,150 378,500 78,488"/>
+   <polygon points="900,118 622,150 622,500 922,488"/>
+   <path d="M378,150 C432,98 568,98 622,150 L622,236 C568,266 432,266 378,236 Z"/>
+   <rect x="452" y="168" width="27" height="32" rx="2"/><rect x="521" y="168" width="27" height="32" rx="2"/>
+   <polygon points="442,266 558,266 528,452 472,452"/>
+   <text x="500" y="372" text-anchor="middle">PANGGUNG</text>
+   <text x="500" y="146" text-anchor="middle" class="rb-core-t">CORE · LIFT</text>
+ </g>`;
+}
+function rbRoomSchematic(r){ const st=rbRoomStatus(r.id);
+ return `<g id="rbroom-${r.id}" class="rb-room2 ${st}" onmouseenter="rbShowPop(event,'${r.id}');rbHighlight('${r.id}')" onmouseleave="rbScheduleHide();rbUnhighlight()" onclick="rbOpenForm('${r.id}')">
+   <rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="5"/>
+   <text x="${r.x+r.w/2}" y="${r.y+r.h/2+7}" text-anchor="middle" class="rb-codebig">${r.code}</text>
+ </g>`;
+}
+function rbCleanPlan(rooms){
+ const placed=rooms.map((r,i)=>{ if(r.x!=null) return Object.assign({code:r.code||(i+1)},r);
+   const col=i%4, row=Math.floor(i/4); return Object.assign({},r,{code:i+1,x:122+col*94,y:160+row*70,w:84,h:52}); });
+ return `<div class="rb-plan-wrap"><svg viewBox="0 0 1000 540" class="rb-plan2" preserveAspectRatio="xMidYMid meet">
+   ${rbBuildingSvg()}
+   ${placed.map(rbRoomSchematic).join("")}
+   <rect x="690" y="500" width="22" height="15" rx="3" class="rb-leg-room"/><text x="720" y="512" class="rb-leg-t">Ruang meeting (kode = nomor) — klik untuk book</text>
+ </svg></div>`;
+}
+function rbHighlight(id){ document.querySelectorAll('#page-roombook .rb-room2.blink').forEach(g=>g.classList.remove('blink')); const g=document.getElementById('rbroom-'+id); if(g)g.classList.add('blink'); }
+function rbUnhighlight(){ document.querySelectorAll('#page-roombook .rb-room2.blink').forEach(g=>g.classList.remove('blink')); }
+/* === Denah clean v2: mengikuti boomerang asli — sayap miring, core + panggung di tengah === */
+function rbCoreSvg(){ return ''; }
+function rbSpaceSvg(sp,rot){ const cx=sp.x+sp.w/2, cy=sp.y+sp.h/2, meet=sp.type==="meet";
+ const st=meet?rbRoomStatus(sp.id):"space";
+ const ev=meet?` onmouseenter="rbShowPop(event,'${sp.id}');rbHighlight('${sp.id}')" onmouseleave="rbScheduleHide();rbUnhighlight()" onclick="rbOpenForm('${sp.id}')"`:'';
+ return `<g id="rbroom-${sp.id}" class="rb-room2 ${st}"${ev}>
+   <rect x="${sp.x}" y="${sp.y}" width="${sp.w}" height="${sp.h}" rx="4"/>
+   <text x="${cx}" y="${cy+6}" text-anchor="middle" transform="rotate(${-rot} ${cx} ${cy})" class="rb-codebig">${sp.code}</text>
+ </g>`; }
+function rbCleanPlan2(key){
+ const meet=RB_ROOMS[key]||[], sp=RB_SPACES[key]||[], rots=RB_ROTS[key], all=meet.concat(sp);
+ const wing=(side)=>{ const cfg=rots[side]; if(!cfg)return ''; const arr=all.filter(r=>r.wing===side); const b=cfg.box;
+   return `<g transform="rotate(${cfg.rot} ${cfg.px} ${cfg.py})"><rect x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="14" class="rb-foot"/>${arr.map(s=>rbSpaceSvg(s,cfg.rot)).join("")}</g>`; };
+ const center=all.filter(r=>!r.wing||r.wing==="C").map(s=>rbSpaceSvg(s,0)).join("");
+ return `<div class="rb-plan-wrap"><svg viewBox="0 0 1000 560" class="rb-plan2" preserveAspectRatio="xMidYMid meet">
+   ${rbCoreSvg()}${wing("L")}${wing("R")}${center}
+   <rect x="60" y="528" width="20" height="14" rx="3" class="rb-leg-room"/><text x="88" y="540" class="rb-leg-t">Ruang meeting (klik = book)</text>
+   <rect x="330" y="528" width="20" height="14" rx="3" class="rb-leg-space"/><text x="358" y="540" class="rb-leg-t">Space lain (kode — belum dinamai)</text>
+ </svg></div>`;
+}
+function renderRoomBook(){
+ const el=document.getElementById("page-roombook"); if(!el)return;
+ if((RB_FLOORS[rbSite]||[]).indexOf(rbFloor)<0) rbFloor=(RB_FLOORS[rbSite]||["—"])[0];
+ const key=rbSite+"|"+rbFloor;
+ const raw=RB_ROOMS[key]||[];
+ const img=RB_FLOORPLAN[key];
+ const rooms=rbLayout(raw);
+ el.innerHTML=`
+  <div style="margin-bottom:14px"><button class="btn-out" onclick="go('service')">← Back to Service</button></div>
+  <div class="card pad" style="margin-bottom:16px">
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
+      <div class="field" style="margin:0;min-width:170px"><label>Site</label><select id="rb-site" onchange="rbSetSite(this.value)">${RB_SITES.map(s=>`<option${s===rbSite?' selected':''}>${s}</option>`).join("")}</select></div>
+      <div class="field" style="margin:0;min-width:170px"><label>Floor</label><select id="rb-floor" onchange="rbSetFloor(this.value)">${(RB_FLOORS[rbSite]||[]).map(f=>`<option${f===rbFloor?' selected':''}>${f}</option>`).join("")}</select></div>
+      <div class="muted small" style="flex:1;text-align:right;min-width:200px">Arahkan kursor ke ruang untuk lihat jadwal · klik ruang untuk pesan · jam 06:00–21:00</div>
+    </div>
+  </div>
+  <div class="card pad">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="panel-t" style="margin:0">Denah ${rbSite} · ${rbFloor} <span style="font-weight:400;color:var(--muted)">— ruang meeting</span></div>
+      <div class="rb-legend"><span><i class="rb-sw free"></i> Kosong</span><span><i class="rb-sw busy"></i> Sedang dipakai (ada orang)</span> <span class="muted small">· status pukul ${RB_NOW}</span></div></div>
+    ${(RB_ROTS[key]||img)?`
+    ${RB_ROTS[key]?rbCleanPlan2(key):rbCleanPlan(raw)}
+    <div class="muted small" style="margin-top:8px">Klik / hover ruang di <b>denah</b> atau <b>chip</b> — ruang terpilih akan <b>berkedip</b> di denah. Angka di denah = kode ruang.</div>
+    <div class="rb-chips">${raw.map(rbChip).join("")}</div>
+    `:`
+    <div class="rb-plan-wrap">
+      <svg viewBox="0 0 1000 600" class="rb-plan" preserveAspectRatio="xMidYMid meet">
+        <rect x="14" y="14" width="972" height="572" rx="10" class="rb-outline"/>
+        <text x="28" y="38" class="rb-floorlbl">${rbSite} — ${rbFloor}</text>
+        ${rooms.length?rooms.map(rbRoomSvg).join(""):'<text x="500" y="300" text-anchor="middle" class="rb-empty">Denah belum tersedia untuk lantai ini.</text>'}
+      </svg>
+    </div>`}
+  </div>
+  <div id="rbpop" class="rb-pop hide" onmouseenter="rbCancelHide()" onmouseleave="rbScheduleHide()"></div>`;
+}
+function rbSetSite(s){ rbSite=s; rbFloor=(RB_FLOORS[s]||["—"])[0]; renderRoomBook(); }
+function rbSetFloor(f){ rbFloor=f; renderRoomBook(); }
+function rbScheduleHide(){ rbHideT=setTimeout(()=>{ const p=document.getElementById("rbpop"); if(p)p.classList.add("hide"); },220); }
+function rbCancelHide(){ if(rbHideT){ clearTimeout(rbHideT); rbHideT=null; } }
+function rbShowPop(e,id){
+ rbCancelHide();
+ const room=(RB_ROOMS[rbSite+"|"+rbFloor]||[]).find(r=>r.id===id); if(!room)return;
+ const bk=rbRoomBookings(id,TODAY_STR), pop=document.getElementById("rbpop"); if(!pop)return;
+ pop.innerHTML=`<div class="rb-pop-h"><b>${room.name}</b><span class="muted small">${room.cap} pax · ${rbSite} ${rbFloor}</span></div>
+   <div class="rb-pop-b">${bk.length?bk.map(b=>`<div class="rb-slot"><span class="rb-time">${b.start}–${b.end}</span><span>${b.title}<div class="muted small">${b.email||b.by||''}</div></span></div>`).join(""):'<div class="muted small" style="padding:8px 0">✓ Kosong hari ini — bisa langsung dibook.</div>'}</div>
+   <button class="btn-act" style="width:100%;margin-top:9px;padding:8px" onclick="rbOpenForm('${id}')">+ Booking</button>
+   ${rbRoomStatus(id)==='busy'?`<button class="btn-out" style="width:100%;margin-top:7px;padding:8px;font-size:11.5px" onclick="rbIdleCheck('${id}')">🛰️ Simulasi ERSUS: ruang idle 30 mnt</button>`:''}`;
+ pop.classList.remove("hide");
+ const px=Math.min(e.clientX+14,(window.innerWidth||1200)-272), py=Math.min(e.clientY+10,(window.innerHeight||800)-250);
+ pop.style.left=Math.max(8,px)+"px"; pop.style.top=Math.max(8,py)+"px";
+}
+let rbForm={};
+function rbAddMin(t,m){ const p=t.split(':'); const mins=(+p[0])*60+(+p[1])+m; return ('0'+Math.floor(mins/60)).slice(-2)+':'+('0'+(mins%60)).slice(-2); }
+function rbBookingAt(room,date,time){ return RB_BOOKINGS.find(b=>b.room===room&&b.date===date&&time>=b.start&&time<b.end); }
+function rbRangeFree(room,date,start,end){ for(let t=start;t<end;t=rbAddMin(t,30)){ if(rbBookingAt(room,date,t))return false; } return true; }
+function rbOpenForm(id){
+ rbCancelHide(); const p=document.getElementById("rbpop"); if(p)p.classList.add("hide");
+ const room=(RB_ROOMS[rbSite+"|"+rbFloor]||[]).find(r=>r.id===id); if(!room)return;
+ rbForm={room:id,name:room.name,date:TODAY_STR,selStart:null,selEnd:null};
+ document.getElementById("drawer").innerHTML=`
+  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">Book — ${room.name}</div><div class="muted small" style="margin-top:4px">${rbSite} · ${rbFloor} · ${room.cap} pax</div></div>
+  <div class="db rb-form">
+    <div class="rbf-row"><span class="rbf-ic">📝</span><input id="rb-title" placeholder="Tambahkan judul"/></div>
+    <div class="rbf-row"><span class="rbf-ic">✉️</span><input id="rb-by" value="${gUser?gUser.email:''}" placeholder="Email pemesan"/></div>
+    <div class="rbf-row"><span class="rbf-ic">👥</span><input id="rb-att" placeholder="Undang peserta (opsional)"/></div>
+    <div class="rbf-row"><span class="rbf-ic">📅</span><input id="rb-date" type="date" value="${TODAY_STR}" onchange="rbDateChange(this.value)"/></div>
+    <div class="rbf-row"><span class="rbf-ic">📍</span><input value="${room.name}, ${rbSite} ${rbFloor}" disabled/></div>
+    <div class="panel-t" style="margin-top:8px">Pilih slot jam <span style="font-weight:400;color:var(--muted)">— 06:00–21:00 · slot terisi terkunci</span></div>
+    <div style="font-weight:700;color:var(--blue);margin:2px 0 8px">🕐 <span id="rb-sum">— pilih slot jam —</span></div>
+    <div id="rb-slots" class="rb-slots"></div>
+    <div class="card pad" style="background:#eef6ff;font-size:11.5px;color:#3a5a9c;margin-top:10px;line-height:1.5">⚡ <b>Powered by ERSUS:</b> saat booking aktif, ERSUS menyalakan lampu/AC/power ruangan, kirim reminder menjelang waktu habis, & deteksi apakah ruangan benar terisi.</div>
+    <button class="btn-act" id="rb-save" style="width:100%;margin-top:12px" onclick="rbSaveBooking()" disabled>Simpan Booking</button>
+  </div>`;
+ document.getElementById("ovl").classList.add("show");
+ rbRenderSlots();
+}
+function rbDateChange(v){ rbForm.date=v||TODAY_STR; rbForm.selStart=null; rbForm.selEnd=null; rbRenderSlots(); }
+function rbRenderSlots(){
+ const el=document.getElementById("rb-slots"); if(!el)return;
+ const s=rbForm, slots=[]; for(let h=6;h<21;h++){ slots.push(('0'+h).slice(-2)+':00'); slots.push(('0'+h).slice(-2)+':30'); }
+ const selE=s.selStart?(s.selEnd||rbAddMin(s.selStart,30)):null;
+ el.innerHTML=slots.map(t=>{
+   const bk=rbBookingAt(s.room,s.date,t);
+   if(bk){ const first=(t===bk.start); return `<div class="rb-slot-row booked"><span class="rb-slot-time">${t}</span><div class="rb-slot-info">${first?`<b>${bk.title}</b><span class="rb-slot-email">${bk.email||bk.by||''}</span>`:`<span class="muted small">↑ ${bk.title}</span>`}</div></div>`; }
+   const inSel=s.selStart && t>=s.selStart && t<selE;
+   return `<div class="rb-slot-row free ${inSel?'sel':''}" onclick="rbSlotClick('${t}')"><span class="rb-slot-time">${t}</span><div class="rb-slot-info ${inSel?'':'muted small'}">${inSel?'dipilih':'kosong'}</div></div>`;
+ }).join("");
+ const sum=document.getElementById("rb-sum"); if(sum) sum.textContent = s.selStart ? (s.selStart+" – "+selE) : "— pilih slot jam —";
+ const btn=document.getElementById("rb-save"); if(btn) btn.disabled=!s.selStart;
+}
+function rbSlotClick(t){
+ const s=rbForm;
+ if(rbBookingAt(s.room,s.date,t)) return;          // slot terisi tidak bisa dipilih
+ if(!s.selStart || s.selEnd){ s.selStart=t; s.selEnd=null; }
+ else if(t>s.selStart){ const end=rbAddMin(t,30); if(rbRangeFree(s.room,s.date,s.selStart,end)) s.selEnd=end; else { alert("Ada slot terisi di rentang itu — pilih rentang lain."); s.selStart=t; s.selEnd=null; } }
+ else { s.selStart=t; s.selEnd=null; }
+ rbRenderSlots();
+}
+function rbSaveBooking(){
+ const s=rbForm; if(!s.selStart){ alert("Pilih slot jam dulu."); return; }
+ const start=s.selStart, end=s.selEnd||rbAddMin(start,30);
+ if(!rbRangeFree(s.room,s.date,start,end)){ alert("Rentang bentrok dengan booking lain."); return; }
+ const title=(document.getElementById("rb-title").value||"").trim()||"Booking";
+ const email=(document.getElementById("rb-by").value||"").trim()||(gUser?gUser.email:"");
+ RB_BOOKINGS.push({room:s.room,date:s.date,start,end,title,by:(gUser?gUser.name:""),email});
+ closeDrawer(); renderRoomBook();
+ alert("✅ Booking tersimpan — "+title+"\n"+s.date+" · "+start+"–"+end+"\n(ERSUS akan menyalakan fasilitas ruangan saat jadwal mulai.)");
+}
+
+/* ===================== TRANSPORTATION (Service) ===================== */
+let TRANSPORT_SEQ=2;
+const TRANSPORT_REQ=[
+ {id:"tr1",type:"pool",detail:"AMDI → Bandara Soetta · 2 pax",date:TODAY_STR,time:"06:30",by:"Elok Norma Rosediana",status:"Diproses"},
+ {id:"tr2",type:"bluebird",detail:"Meeting klien Sudirman · 2 voucher",date:TODAY_STR,time:"",by:"Yessy",status:"Diajukan"}
+];
+function transportLabel(t){ return t==='pool'?'Kendaraan Pool':t==='bluebird'?'Voucher Blue Bird':t==='gocorp'?'Voucher GoCorp':t; }
+function transportBadge(s){ return s==='Selesai'?'bd-ok':s==='Diproses'?'bd-info':s==='Ditolak'?'bd-bad':'bd-warn'; }
+function transportPending(){ return TRANSPORT_REQ.filter(r=>(r.status||'Diajukan')==='Diajukan').length; }
+function transportSeeAll(){ return isPicTransport()||gRole==="section"||gRole==="dept"||gRole==="admin"; }
+function transportAction(id,status){ const r=TRANSPORT_REQ.find(x=>x.id===id); if(!r)return; r.status=status;
+ if(typeof updateBell==="function")updateBell();
+ const rm=document.getElementById("page-reminder"); if(rm&&!rm.classList.contains("hide"))renderReminder();
+ const tp=document.getElementById("page-transport"); if(tp&&!tp.classList.contains("hide"))renderTransport();
+ alert((status==='Diproses'?'✅ Disetujui & dijadwalkan dispatch':status==='Selesai'?'🏁 Permintaan ditandai selesai':'⛔ Permintaan ditolak')+":\n"+transportLabel(r.type)+" — "+r.detail+" ("+(r.by||'—')+")"); }
+function transportActionCell(r){ const s=r.status||'Diajukan';
+   if(s==='Diajukan') return `<button class="btn-mini ok" onclick="transportAction('${r.id}','Diproses')">Setujui & Dispatch</button> <button class="btn-mini no" onclick="transportAction('${r.id}','Ditolak')">Tolak</button>`;
+   if(s==='Diproses') return `<button class="btn-mini ok" onclick="transportAction('${r.id}','Selesai')">Tandai Selesai</button>`;
+   return '<span class="muted small">—</span>'; }
+function renderTransport(){
+ const el=document.getElementById("page-transport"); if(!el)return;
+ const me=gUser?gUser.name:"", seeAll=transportSeeAll(), canAct=isPicTransport()||gRole==="admin";
+ const list=seeAll?TRANSPORT_REQ:TRANSPORT_REQ.filter(r=>r.by===me);
+ el.innerHTML=`
+  <div style="margin-bottom:14px"><button class="btn-out" onclick="go('service')">← Back to Service</button></div>
+  <div class="ga-svc-bar" style="grid-template-columns:repeat(3,1fr)">
+    <button class="ga-svc-btn" onclick="openTransport('pool')"><span class="ga-svc-ic" style="background:#eef4ff;color:#2563eb">🚗</span><span class="ga-svc-tx"><b>Kendaraan Pool</b><small>Pesan mobil pool GA</small></span></button>
+    <button class="ga-svc-btn" onclick="openTransport('bluebird')"><span class="ga-svc-ic" style="background:#eaf3ff;color:#1e63c8">🚕</span><span class="ga-svc-tx"><b>Voucher Blue Bird</b><small>Taksi Blue Bird</small></span></button>
+    <button class="ga-svc-btn" onclick="openTransport('gocorp')"><span class="ga-svc-ic" style="background:#e9f8ef;color:#15a34a">🛵</span><span class="ga-svc-tx"><b>Voucher GoCorp</b><small>Gojek for business</small></span></button>
+  </div>
+  <div class="card">
+    <div style="padding:16px 18px 6px"><div class="panel-t" style="margin:0">${seeAll?'Semua Permintaan Transportasi':'Permintaan Transportasi Saya'} <span style="font-weight:400;color:var(--muted)">· ${list.length}</span>${isPicTransport()?' <span class="badge bd-warn" style="margin-left:6px">PIC Transport</span>':''}</div></div>
+    <table><thead><tr><th>Jenis</th><th>Detail</th><th>Tanggal</th><th>Pemohon</th><th>Status</th>${canAct?'<th>Aksi</th>':''}</tr></thead><tbody>
+    ${list.length?list.map(r=>`<tr><td>${transportLabel(r.type)}</td><td>${r.detail}</td><td>${r.date}${r.time?' '+r.time:''}</td><td>${r.by||'—'}</td><td><span class="badge ${transportBadge(r.status||'Diajukan')}">${r.status||'Diajukan'}</span></td>${canAct?`<td>${transportActionCell(r)}</td>`:''}</tr>`).join(""):`<tr><td colspan="${canAct?6:5}" class="muted small" style="text-align:center;padding:30px">Belum ada permintaan. Pilih layanan di atas.</td></tr>`}
+    </tbody></table>
+  </div>`;
+}
+function openTransport(type){
+ const T=transportLabel(type), isPool=(type==='pool');
+ document.getElementById("drawer").innerHTML=`
+  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">${T}</div><div class="muted small" style="margin-top:4px">Layanan transportasi GA</div></div>
+  <div class="db rb-form">
+    <div class="rbf-row"><span class="rbf-ic">📍</span><input id="tr-dest" placeholder="${isPool?'Tujuan / rute':'Tujuan / keperluan'}"/></div>
+    <div class="rbf-row"><span class="rbf-ic">📅</span><input id="tr-date" type="date" value="${TODAY_STR}"/></div>
+    ${isPool?`<div class="rbf-row"><span class="rbf-ic">⏰</span><input id="tr-time" type="time" value="08:00"/></div><div class="rbf-row"><span class="rbf-ic">👥</span><input id="tr-pax" type="number" value="1" min="1"/></div>`:`<div class="rbf-row"><span class="rbf-ic">🎟️</span><input id="tr-qty" type="number" value="1" min="1" placeholder="Jumlah voucher"/></div>`}
+    <div class="rbf-row" style="align-items:flex-start"><span class="rbf-ic">📝</span><textarea id="tr-note" placeholder="Keperluan / catatan…" rows="2"></textarea></div>
+    <button class="btn-act" style="width:100%;margin-top:12px" onclick="saveTransport('${type}')">Ajukan</button>
+  </div>`;
+ document.getElementById("ovl").classList.add("show");
+}
+function saveTransport(type){
+ const dest=(document.getElementById("tr-dest").value||"").trim()||"—";
+ const date=document.getElementById("tr-date").value||TODAY_STR;
+ let detail=dest, time="";
+ if(type==='pool'){ time=document.getElementById("tr-time").value||""; const pax=document.getElementById("tr-pax").value||"1"; detail=dest+" · "+pax+" pax"; }
+ else { const qty=document.getElementById("tr-qty").value||"1"; detail=dest+" · "+qty+" voucher"; }
+ TRANSPORT_REQ.unshift({id:"tr"+(++TRANSPORT_SEQ),type,detail,date,time,by:(gUser?gUser.name:""),status:"Diajukan"});
+ closeDrawer(); renderTransport(); if(typeof updateBell==="function")updateBell();
+ alert("✅ Permintaan "+transportLabel(type)+" diajukan.\nNotifikasi terkirim ke PIC Transport untuk persetujuan.\n"+detail+" · "+date+(time?' '+time:''));
+}
+
+/* ===================== ROOM BOOKING — ERSUS idle auto-release =====================
+   Jika ERSUS mendeteksi ruang idle 30 mnt → notif "jadi digունakan?". Ya → +15 mnt
+   (maks 2x perpanjangan). Jika tetap idle setelah 2x → release (total 1 jam). */
+function rbAllRoom(id){ for(const k in RB_ROOMS){ const r=RB_ROOMS[k].find(x=>x.id===id); if(r)return r; } return {name:id}; }
+function rbReleaseBooking(roomId){ const b=rbBookingAt(roomId,TODAY_STR,RB_NOW); if(!b)return; const i=RB_BOOKINGS.indexOf(b); if(i>=0)RB_BOOKINGS.splice(i,1); }
+function rbIdleCheck(roomId){
+ rbCancelHide(); const p=document.getElementById("rbpop"); if(p)p.classList.add("hide");
+ const room=rbAllRoom(roomId), b=rbBookingAt(roomId,TODAY_STR,RB_NOW);
+ if(!b){ alert("Ruang "+room.name+" tidak sedang dipakai (tak ada booking di jam "+RB_NOW+")."); return; }
+ if((b.ext||0)>=2){ rbReleaseBooking(roomId); renderRoomBook(); alert("📢 ERSUS → "+room.name+"\nBookingan Anda sudah di-release karena 1 jam tidak digunakan. Terima kasih."); return; }
+ document.getElementById("drawer").innerHTML=`
+  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">🛰️ ERSUS — Ruang Idle</div><div class="muted small" style="margin-top:4px">Deteksi okupansi otomatis</div></div>
+  <div class="db">
+    <div class="card pad" style="background:#fff8f0;border-left:4px solid var(--amber);font-size:13px;line-height:1.6">Anda memesan ruang <b>${room.name}</b> di jam <b>${b.start}</b>.<br>Sudah <b>30 menit tidak ditempati</b> — bookingan Anda akan di-release jika tidak ada konfirmasi penggunaan.</div>
+    <div class="muted small" style="margin-top:10px">Perpanjangan terpakai: <b>${b.ext||0}/2</b>${(b.ext||0)===1?' · ini perpanjangan terakhir':''}</div>
+    <div style="font-weight:700;color:var(--ink);margin-top:16px;font-size:14px">Jadi digunakan?</div>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button class="btn-act" style="flex:1" onclick="rbIdleYes('${roomId}')">✅ Ya, digunakan</button>
+      <button class="btn-out" style="flex:1" onclick="rbIdleNo('${roomId}')">Tidak</button>
+    </div>
+  </div>`;
+ document.getElementById("ovl").classList.add("show");
+}
+function rbIdleYes(roomId){
+ const b=rbBookingAt(roomId,TODAY_STR,RB_NOW), room=rbAllRoom(roomId); if(!b){ closeDrawer(); return; }
+ b.ext=(b.ext||0)+1; b.end=rbAddMin(b.end,15);
+ closeDrawer(); renderRoomBook();
+ alert("✅ Booking "+room.name+" diperpanjang 15 menit (s/d "+b.end+").\nPerpanjangan ke-"+b.ext+"/2."+(b.ext>=2?"\n⚠️ Jika masih idle, ruang akan otomatis di-release.":""));
+}
+function rbIdleNo(roomId){
+ const room=rbAllRoom(roomId); rbReleaseBooking(roomId); closeDrawer(); renderRoomBook();
+ alert("📢 Bookingan Anda di-release. Ruang "+room.name+" kembali tersedia. Terima kasih.");
 }
 
 /* Create SO — full page */
@@ -1591,13 +2093,35 @@ function dueStatus(due){ const d=Math.floor((new Date(due)-new Date(TODAY_STR))/
  if(d<=30) return {cls:"bd-warn",txt:"Due in "+d+"d"};
  return {cls:"bd-ok",txt:d+"d left"}; }
 function dueRow(name,sub,due){ const s=dueStatus(due); return `<div class="due-row"><div><div class="dj">${name}</div><div class="dm">${sub} · due ${due}</div></div><span class="badge ${s.cls}">${s.txt}</span></div>`; }
-function updateBell(){ const n=activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0); const b=document.getElementById("bellBadge"); if(!b)return; b.textContent=n; b.classList.toggle("hide",n===0); }
+function myBookingCount(){ return (typeof RB_BOOKINGS!=="undefined"&&gUser)?RB_BOOKINGS.filter(b=>b.email===gUser.email||b.by===gUser.name).length:0; }
+function updateBell(){ const n=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); const b=document.getElementById("bellBadge"); if(!b)return; b.textContent=n; b.classList.toggle("hide",n===0); }
 function followUp(id){ const x=NOTIFS.find(n=>n.id===id); if(x)x.done=true; renderReminder(); updateBell(); }
+function rbRoomName(id){ for(const k in RB_ROOMS){ const r=RB_ROOMS[k].find(x=>x.id===id); if(r)return r.name; } return id; }
 function renderReminder(){
+ if(isEndUser()){
+   const mine=RB_BOOKINGS.filter(b=>gUser&&(b.email===gUser.email||b.by===gUser.name)).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));
+   let picInbox="";
+   if(isPicTransport()){
+     const pend=TRANSPORT_REQ.filter(r=>(r.status||'Diajukan')==='Diajukan');
+     picInbox=`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','reminder')}<div><h2>🚦 Inbox Approval Transport</h2><div class="d">${pend.length} permintaan menunggu persetujuan Anda (PIC Transport)</div></div></div>
+       <div class="sec-body">${pend.length?pend.map(r=>`<div class="due-row"><div><div class="dj">${transportLabel(r.type)} — ${r.detail}</div><div class="dm">Pemohon: ${r.by||'—'} · ${r.date}${r.time?' '+r.time:''}</div></div><div style="display:flex;gap:6px"><button class="btn-mini ok" onclick="transportAction('${r.id}','Diproses')">Setujui & Dispatch</button><button class="btn-mini no" onclick="transportAction('${r.id}','Ditolak')">Tolak</button></div></div>`).join(""):'<div style="text-align:center;padding:30px;color:var(--green);font-weight:600">✅ Tidak ada permintaan menunggu.</div>'}</div>
+     </div>`;
+   }
+   document.getElementById("page-reminder").innerHTML=`
+    ${picInbox}
+    ${clarifyReminderHTML()}
+    <div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','reminder')}<div><h2>📅 Booking Ruang Saya</h2><div class="d">${mine.length} booking yang Anda buat</div></div></div>
+      <div class="sec-body">${mine.length?mine.map(b=>`<div class="due-row"><div><div class="dj">${b.title}</div><div class="dm">${rbRoomName(b.room)} · ${b.date} · ${b.start}–${b.end}</div></div><span class="badge bd-ok">Booked</span></div>`).join(""):'<div class="muted small" style="padding:34px;text-align:center">Belum ada booking. Buat lewat <b>Service → Room Booking</b>.</div>'}</div>
+    </div>`;
+   return;
+ }
  const apprNotifs=pendingApprovals().map(a=>({approval:true,module:"Approval · "+a.tier,alert:a.item,status:a.source,cls:"bd-proc",action:"Awaiting "+a.tier}));
- const payNotifs=(payRemRole()?paymentReminders():[]).map(x=>({pay:true,module:"Payment · Budget",alert:x.s.no+" — "+(x.s.vendor||'vendor')+" (Rp "+(x.s.invNominal||x.s.nilai)+" jt)",status:x.st.state==='overdue'?("Lewat estimasi rilis "+fmtDay(x.st.est)):("Mendekati estimasi "+fmtDay(x.st.est)),cls:x.st.state==='overdue'?'bd-crit':'bd-warn',action:"Proses pembayaran"}));
+ const payNotifs=(payRemRole()?paymentReminders():[]).map(x=> x.kind==='wait'
+   ? {pay:true,module:"Payment · Budget",alert:x.s.no+" — "+(x.s.vendor||'vendor')+" · Menunggu Invoice "+invWaitHK(x.s)+" HK",status:"Vendor belum kirim invoice (≥5 HK)",cls:'bd-warn',action:"Tagih invoice"}
+   : {pay:true,module:"Payment · Budget",alert:x.s.no+" — "+(x.s.vendor||'vendor')+" (Rp "+invNom(x.s)+" jt)",status:"Lewat estimasi rilis "+fmtDay(invRelEst(x.s)),cls:'bd-crit',action:"F-up treasury → Konfirmasi Release"});
  const active=[...apprNotifs, ...payNotifs, ...NOTIFS.filter(n=>!n.done)];
  document.getElementById("page-reminder").innerHTML=`
+  ${clarifyReminderHTML()}
   <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>Notification & Alert Log</h2><div class="d">Alerts & approvals from all AGAVA modules · ${active.length} items need action</div></div></div>
     <div class="sec-body">
       ${active.length?`<div class="nlog-head"><span>Module</span><span>Alert</span><span>Status</span><span>Action</span><span></span></div>
@@ -1620,21 +2144,94 @@ function renderReminder(){
 const TIERS=["Budget","Procurement","Section Head","Dept Head","Division Head","Chief CHCD"];
 let gTier="Section Head";
 let APPROVALS=[];
-function soGateTier(s){ if(s.apprBudget==="Rejected"||s.apprProc==="Rejected"||s.apprDept==="Rejected")return null; if(s.apprBudget!=="Approved")return"Budget"; if(s.apprProc!=="Approved")return"Procurement"; if(s.apprDept!=="Approved")return"Dept Head"; return null; }
-function soApprovalsForTier(t){ return SO.filter(s=>soGateTier(s)===t); }
+/* Gate sadar-eskalasi.
+   Normal (budget ada):   Budget → Procurement → Dept Head → selesai.
+   Eskalasi (budget tdk): Budget(Escalated) → Dept Head → Procurement → selesai. */
+function soGateTier(s){
+ if(s.apprDept==="Rejected")return null;
+ if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"Budget";
+ if(s.escalated){
+   if(s.apprDept!=="Approved")return"Dept Head";
+   if(s.apprProc!=="Approved")return"Procurement";
+   return null;
+ } else {
+   if(s.apprProc!=="Approved")return"Procurement";
+   if(s.apprDept!=="Approved")return"Dept Head";
+   return null;
+ }
+}
+/* SO yang dieskalasi & masih di Dept Head juga muncul di Inbox PIC Procurement (read-only "waiting"). */
+function soApprovalsForTier(t){ return SO.filter(s=>{ const g=soGateTier(s); if(!g)return false; if(g===t)return true; if(t==="Procurement"&&s.escalated&&g==="Dept Head")return true; return false; }); }
 function soPendingAll(){ return SO.filter(s=>soGateTier(s)).map(s=>({approval:true,tier:soGateTier(s),item:s.no+" — "+s.item,source:"SO",status:soGateTier(s)})); }
 function approvalsForTier(){ return soApprovalsForTier(gTier).length + APPROVALS.filter(a=>a.tier===gTier && a.status==="Pending").length; }
 function pendingApprovals(){ return APPROVALS.filter(a=>a.status==="Pending").concat(soPendingAll()); }
 function activeNotifs(){ return NOTIFS.filter(n=>!n.done); }
-function navBadge(id){ let c=0; if(id==="approvals")c=approvalsForTier(); else if(id==="reminder")c=activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0); return c>0?`<span class="nav-badge">${c}</span>`:""; }
+function navBadge(id){ let c=0; if(id==="approvals")c=approvalsForTier(); else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
 function approveSO(no,gate,decision){
  var s=SO.find(x=>x.no===no); if(!s)return;
  s.ts=s.ts||{};
- if(decision==="Rejected"){ s[gate==="budget"?"apprBudget":gate==="proc"?"apprProc":"apprDept"]="Rejected"; }
- else if(gate==="budget"){ s.apprBudget="Approved"; s.ts.budget=nowStamp(); }
- else if(gate==="proc"){ var sel=document.getElementById("assign-"+no); var staff=sel?sel.value:""; if(!staff){alert("Please assign a Staff Procurement first.");return;} s.apprProc="Approved"; s.staffPIC=staff; s.pic=staff; s.ts.proc=nowStamp(); }
- else { s.apprDept="Approved"; s.ts.dept=nowStamp(); }
+ if(gate==="budget"){
+   if(decision==="Escalate"){ s.apprBudget="Escalated"; s.escalated=true; s.ts.budget=nowStamp(); alert("⏫ SO "+no+" diekskalasi ke GA Dept Head (budget tidak ada).\nJuga tampil di Inbox PIC Procurement — status Waiting Approval Dept Head."); }
+   else { s.apprBudget="Approved"; s.escalated=false; s.ts.budget=nowStamp(); alert("✅ Budget di-approve. SO "+no+" diteruskan ke PIC Procurement."); }
+ } else if(gate==="proc"){
+   var sel=document.getElementById("assign-"+no); var staff=sel?sel.value:(s.staffPIC||"");
+   if(!staff){ alert("Pilih Staff Procurement dulu sebelum Approve."); return; }
+   s.apprProc="Approved"; s.staffPIC=staff; s.pic=staff; s.ts.proc=nowStamp();
+   alert(s.escalated ? ("✅ PIC Procurement approve. SO "+no+" langsung masuk Assigned SO "+staff+" (sudah di-approve Dept Head).")
+                     : ("✅ PIC Procurement approve. SO "+no+" diteruskan ke GA Dept Head. Assigned: "+staff+"."));
+ } else if(gate==="dept"){
+   if(decision==="Rejected"){ s.apprDept="Rejected"; s.ts.dept=nowStamp(); alert("⛔ SO "+no+" ditolak GA Dept Head."); }
+   else { s.apprDept="Approved"; s.ts.dept=nowStamp(); alert(s.escalated ? ("✅ GA Dept Head approve. SO "+no+" → tombol aksi PIC Procurement kini aktif.")
+                     : ("✅ GA Dept Head approve. SO "+no+" final approved → masuk Assigned SO "+(s.staffPIC||"")+".")); }
+ }
  renderApprovals(); renderProc(); renderAssigned(); renderReminder(); buildNav(); updateBell();
+}
+/* ===== Klarifikasi: PIC Proc kirim catatan → Requester (Reminder) → jawab → balik ke PIC Proc ===== */
+function openClarify(no){
+ var s=SO.find(x=>x.no===no); if(!s)return;
+ document.getElementById("drawer").innerHTML=`
+  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">Klarifikasi — ${s.no}</div><div class="muted small" style="margin-top:4px">Catatan dikirim ke Requester (${s.requester||s.req}) lewat Reminder</div></div>
+  <div class="db">
+    <div class="card pad" style="background:#f8fafd;font-size:12.5px">${s.item} · Rp ${s.nilai} M · ${s.requester||s.req}</div>
+    <div class="field" style="margin-top:10px"><label>Catatan klarifikasi</label><textarea id="clar-note" rows="4" placeholder="Apa yang perlu diperjelas dari requester?"></textarea></div>
+    <button class="btn-act" style="width:100%;margin-top:8px" onclick="sendClarify('${no}')">Kirim ke Requester</button>
+  </div>`;
+ document.getElementById("ovl").classList.add("show");
+}
+function sendClarify(no){
+ var s=SO.find(x=>x.no===no); if(!s)return;
+ var note=(document.getElementById("clar-note").value||"").trim();
+ if(!note){ alert("Isi catatan klarifikasi dulu."); return; }
+ s.clarify={ note:note, by:(gUser?gUser.name:"PIC Procurement"), date:nowStamp(), answer:"", answered:false };
+ closeDrawer(); renderApprovals(); renderReminder(); buildNav(); updateBell();
+ alert("📨 Klarifikasi terkirim ke "+(s.requester||s.req)+". Muncul di Reminder mereka.");
+}
+function openClarifyAnswer(no){
+ var s=SO.find(x=>x.no===no); if(!s||!s.clarify)return;
+ document.getElementById("drawer").innerHTML=`
+  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">Jawab Klarifikasi — ${s.no}</div><div class="muted small" style="margin-top:4px">Dari ${s.clarify.by}</div></div>
+  <div class="db">
+    <div class="card pad" style="background:#fff7e6;font-size:12.5px"><b>📝 ${s.clarify.by}:</b> ${s.clarify.note}</div>
+    <div class="field" style="margin-top:10px"><label>Jawaban Anda</label><textarea id="clar-ans" rows="4" placeholder="Tulis jawaban / penjelasan…"></textarea></div>
+    <button class="btn-act" style="width:100%;margin-top:8px" onclick="submitClarifyAnswer('${no}')">Submit Jawaban ke PIC Procurement</button>
+  </div>`;
+ document.getElementById("ovl").classList.add("show");
+}
+function submitClarifyAnswer(no){
+ var s=SO.find(x=>x.no===no); if(!s||!s.clarify)return;
+ var ans=(document.getElementById("clar-ans").value||"").trim();
+ if(!ans){ alert("Isi jawaban dulu."); return; }
+ s.clarify.answer=ans; s.clarify.answered=true; s.clarify.ansDate=nowStamp();
+ closeDrawer(); renderReminder(); renderApprovals(); buildNav(); updateBell();
+ alert("✅ Jawaban terkirim. SO "+no+" kembali ke review PIC Procurement.");
+}
+function myClarifySO(){ const me=gUser?gUser.name:""; return SO.filter(s=>s.clarify&&!s.clarify.answered&&((s.requester||"")===me||(s.req||"")===me)); }
+function myClarifyCount(){ return myClarifySO().length; }
+function clarifyReminderHTML(){
+ const list=myClarifySO(); if(!list.length)return '';
+ return `<div class="card sec" style="margin-bottom:18px"><div class="sec-h">${secIc('#fff7e6','#c2740a','reminder')}<div><h2>📝 Klarifikasi SO — perlu jawaban Anda</h2><div class="d">${list.length} SO menunggu jawaban Anda dari PIC Procurement</div></div></div>
+   <div class="sec-body">${list.map(s=>`<div class="due-row"><div><div class="dj">${s.no} · ${s.item}</div><div class="dm">📝 ${s.clarify.by}: ${s.clarify.note}</div></div><button class="btn-act" style="padding:6px 12px;font-size:12px" onclick="openClarifyAnswer('${s.no}')">Jawab &amp; Submit</button></div>`).join("")}</div>
+ </div>`;
 }
 function setTier(t){ gTier=t; renderApprovals(); buildNav(); }
 function actApproval(id,decision){
@@ -1651,19 +2248,32 @@ function actApproval(id,decision){
  renderApprovals(); renderReminder(); renderAssigned(); buildNav(); updateBell();
 }
 function soApprovalCard(s){
- const gate=gTier==="Budget"?"budget":gTier==="Procurement"?"proc":"dept";
+ const g=soGateTier(s), tier=gTier, esc=!!s.escalated;
+ const head=`<div><b class="sono">${s.no}</b> · <span style="font-weight:600;color:var(--ink)">${s.item}</span></div>
+   <div class="muted small" style="margin-top:4px">Requester: ${s.requester||s.req} · ${s.jenis||"—"} · Est. <b style="color:var(--ink)">Rp ${s.nilai} M</b>${s.budgetFlag?` · Budget: ${s.budgetFlag}`:""}${esc?` · <span class="badge bd-warn">Eskalasi (budget tdk ada)</span>`:""}${s.spec?`<br>Spec: ${s.spec}${s.qty?` · Qty: ${s.qty}`:""}`:""}</div>`;
+ const clarBox = s.clarify ? `<div class="card pad" style="background:#f8fafd;margin-top:8px;font-size:12.5px"><b>📝 Klarifikasi (${s.clarify.by}):</b> ${s.clarify.note}${s.clarify.answered?`<br><b style="color:var(--green)">Jawaban ${s.requester||s.req}:</b> ${s.clarify.answer}`:` <span class="badge bd-info" style="margin-left:4px">menunggu jawaban requester</span>`}</div>` : "";
+ let right="";
+ if(tier==="Budget"){
+   right=`<button class="btn-act" onclick="approveSO('${s.no}','budget','Approved')">Approve Budget</button>
+          <button class="btn-out" onclick="approveSO('${s.no}','budget','Escalate')">Ekskalasi → Dept Head</button>`;
+ } else if(tier==="Procurement"){
+   if(esc && g==="Dept Head"){
+     right=`<span class="badge bd-warn" style="text-align:center;padding:8px">Waiting Approval Dept Head</span><div class="muted small" style="text-align:center">Tombol aksi muncul setelah Dept Head approve.</div>`;
+   } else if(s.clarify && !s.clarify.answered){
+     right=`<span class="badge bd-info" style="text-align:center;padding:8px">Menunggu jawaban Requester</span><div class="muted small" style="text-align:center">Terkirim ke ${s.requester||s.req} (Reminder).</div>`;
+   } else {
+     right=`<select id="assign-${s.no}" style="border:1px solid var(--line);border-radius:9px;padding:9px;font-family:var(--ff);font-size:13px"><option value="">— Pilih Staff Procurement —</option>${STAFF_PROC.map(n=>`<option ${s.staffPIC===n?'selected':''}>${n}</option>`).join("")}</select>
+            <button class="btn-act" onclick="approveSO('${s.no}','proc','Approved')">Approve &amp; Assign</button>
+            <button class="btn-out" onclick="openClarify('${s.no}')">Klarifikasi</button>`;
+   }
+ } else { // Dept Head
+   right=`<button class="btn-act" onclick="approveSO('${s.no}','dept','Approved')">Approve</button>
+          <button class="btn-out" onclick="approveSO('${s.no}','dept','Rejected')">Reject</button>`;
+ }
  return `<div class="card pad" style="margin-bottom:12px;border:1px solid var(--line)">
    <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
-     <div style="flex:1;min-width:240px">
-       <div><b class="sono">${s.no}</b> · <span style="font-weight:600;color:var(--ink)">${s.item}</span></div>
-       <div class="muted small" style="margin-top:4px">Requester: ${s.requester||s.req} · ${s.jenis||"—"} · Est. <b style="color:var(--ink)">Rp ${s.nilai} M</b>${s.budgetFlag?` · Budget: ${s.budgetFlag}`:""}${s.spec?`<br>Spec: ${s.spec}${s.qty?` · Qty: ${s.qty}`:""}`:""}</div>
-       ${gate==="dept"?`<div class="small" style="margin-top:6px;color:var(--green)">Budget ✓ · Procurement ✓ · Assigned PIC: <b style="color:var(--ink)">${s.staffPIC||'—'}</b> — nothing to change, just approve.</div>`:""}
-     </div>
-     <div style="display:flex;flex-direction:column;gap:8px;min-width:230px">
-       ${gate==="proc"?`<select id="assign-${s.no}" style="border:1px solid var(--line);border-radius:9px;padding:9px;font-family:var(--ff);font-size:13px"><option value="">— Assign Staff Procurement —</option>${STAFF_PROC.map(n=>`<option>${n}</option>`).join("")}</select>`:""}
-       <button class="btn-act" onclick="approveSO('${s.no}','${gate}','Approved')">${gate==="proc"?"Approve & Assign":gate==="dept"?"Final Approve":"Approve Budget"}</button>
-       <button class="btn-out" onclick="approveSO('${s.no}','${gate}','Rejected')">Reject</button>
-     </div>
+     <div style="flex:1;min-width:240px">${head}${clarBox}</div>
+     <div style="display:flex;flex-direction:column;gap:8px;min-width:230px">${right}</div>
    </div>
  </div>`;
 }
@@ -1716,7 +2326,7 @@ function soStep(no){
 }
 function renderAssigned(){
  const me=gUser?gUser.name:"";
- const mine=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprDept==="Approved");
+ const mine=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprProc==="Approved" && s.apprDept==="Approved");
  const el=document.getElementById("page-assigned"); if(!el)return;
  el.innerHTML=`
   <div class="card" style="padding:16px 20px;margin-bottom:18px">
@@ -1830,116 +2440,134 @@ function openCopilot(){
 /* Approval sebenarnya berjalan di SAP (tak diakses AGAVA). AGAVA hanya melacak
    4 status + hitung aging (hari kerja) vs SLA per klasifikasi nominal + reminder. */
 function payWaitDays(s){ return Math.floor((new Date(TODAY_STR)-new Date(s.bastDate||TODAY_STR))/86400000); }
-const INV_STATUSES=["Invoice Masuk","Invoice Diterima","Invoice Di Proses","Pembayaran Release"];
+const PIPE=["Invoice Diterima","Invoice di Proses","Invoice Proses BPH","Pembayaran Release"];
 /* Klasifikasi nominal (Rp juta) → tier approval (di SAP) + SLA hari kerja. */
 function invClass(n){ n=+n||0; if(n<=10) return {tier:"Dept Head", sla:5}; if(n<=100) return {tier:"Division Head", sla:7}; if(n<=300) return {tier:"Chief CHCD", sla:15}; return {tier:"Director In Charge", sla:21}; }
 function workdays(from,to){ let d=new Date(from+"T00:00:00"), end=new Date(to+"T00:00:00"), n=0; if(isNaN(d)||isNaN(end)||end<=d)return 0; while(d<end){ d.setDate(d.getDate()+1); const w=d.getDay(); if(w!==0&&w!==6)n++; } return n; }
-function invAging(s){ return workdays(s.invInDate||TODAY_STR, s.invReleaseDate||TODAY_STR); }
+function invNom(s){ return s.invNominal||s.nilai||0; }
+function invWaitHK(s){ return workdays(s.bastDate||TODAY_STR, TODAY_STR); }
+function invBphEst(s){ return s.invProcDate? addWorkdays(s.invProcDate, invClass(invNom(s)).sla) : null; }
+function invRelEst(s){ return invBphEst(s); }   /* est release = mulai di-Proses + HK approval per nominal (tanpa treasury tambahan) */
+function invReleaseOverdue(s){ return s.invProcessed && !s.invReleased && TODAY_STR > invRelEst(s); }
 function addWorkdays(dateStr,n){ let d=new Date((dateStr||TODAY_STR)+"T00:00:00"); if(isNaN(d))return dateStr; let a=0; while(a<n){ d.setDate(d.getDate()+1); const w=d.getDay(); if(w!==0&&w!==6)a++; } return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
-/* Anchor = tanggal klik Invoice Masuk (s.invInDate). Estimasi rilis = anchor + SLA
-   hari kerja (≤10jt +5, ≤100jt +7, ≤300jt +15, >300jt +21). Titik tunggu berjalan
-   jadi MERAH hanya bila hari ini sudah lewat estimasi rilis. */
-function invEstRelease(s){ return addWorkdays(s.invInDate||TODAY_STR, invClass(s.invNominal||s.nilai).sla); }
-function invSlaState(s){ const cls=invClass(s.invNominal||s.nilai), est=invEstRelease(s);
- if(s.invStep>=3){ const onTime=!s.invReleaseDate||s.invReleaseDate<=est; return {state:onTime?'met':'late', sla:cls.sla, tier:cls.tier, est}; }
- if(TODAY_STR>est) return {state:'overdue', sla:cls.sla, tier:cls.tier, est};
- if(workdays(TODAY_STR,est)<=1) return {state:'warn', sla:cls.sla, tier:cls.tier, est};
- return {state:'ontrack', sla:cls.sla, tier:cls.tier, est}; }
-function paymentReminders(){ return SO.filter(s=>s.invStep!=null&&s.invStep<3).map(s=>({s,st:invSlaState(s)})).filter(x=>x.st.state==='overdue'||x.st.state==='warn'); }
-function payRemRole(){ return ['admin','budget','finance','section'].includes(gRole); }   // notif ditujukan ke PIC/staff Budget
-function openInvoice(no){
- const s=SO.find(x=>x.no===no); if(!s)return; const cls=invClass(s.nilai);
- document.getElementById("drawer").innerHTML=`
-  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">Invoice Masuk — ${s.no}</div><div class="muted small" style="margin-top:4px">${s.vendor||'Vendor'} · ${s.item}</div></div>
-  <div class="db">
-    <div class="field"><label>Nominal invoice (Rp juta)</label><input id="inv-nominal" type="number" value="${s.nilai}" oninput="invPrev(this.value)"/></div>
-    <div class="card pad" style="background:#f8fafd;font-size:12.5px"><div>Klasifikasi (approval s/d): <b id="inv-prev-tier">${cls.tier}</b></div><div style="margin-top:3px">SLA pembayaran: <b id="inv-prev-sla">${cls.sla}</b> hari kerja</div></div>
-    <div class="muted small" style="margin-top:8px">Approval berjalan di <b>SAP</b>. Di AGAVA cukup update status: <b>Invoice Masuk → Diterima → Di Proses → Pembayaran Release</b>. Aging dihitung otomatis vs SLA + reminder.</div>
-    <button class="btn-act" style="width:100%;margin-top:12px" onclick="startInvoice('${s.no}')">Konfirmasi Invoice Masuk</button>
-  </div>`;
- document.getElementById("ovl").classList.add("show");
+/* payState: status pipeline. Estimasi rilis = (Invoice di Proses + HK approval per nominal) + HK treasury. */
+function payState(s){
+ if(s.invReleased) return {state:'released'};
+ if(!s.invReceived) return {state:'waiting'};
+ if(!s.invProcessed) return {state:'process'};
+ const est=invRelEst(s);
+ if(TODAY_STR>est) return {state:'overdue', est};
+ if(workdays(TODAY_STR,est)<=1) return {state:'warn', est};
+ return {state:'ontrack', est};
 }
-function invPrev(v){ const cls=invClass(parseFloat(v)||0); const t=document.getElementById('inv-prev-tier'),sl=document.getElementById('inv-prev-sla'); if(t)t.textContent=cls.tier; if(sl)sl.textContent=cls.sla; }
-function startInvoice(no){ const s=SO.find(x=>x.no===no); if(!s)return; s.invNominal=parseFloat(document.getElementById('inv-nominal').value)||s.nilai; s.invStep=0; s.invInDate=TODAY_STR; s.invTs={0:nowStamp()}; s.invStatus=INV_STATUSES[0]; delete s.invReleaseDate; closeDrawer(); renderPayment(); renderProc(); }
-function invNext(no){ const s=SO.find(x=>x.no===no); if(!s||s.invStep==null||s.invStep>=3)return; s.invStep++; s.invTs=s.invTs||{}; s.invTs[s.invStep]=nowStamp(); s.invStatus=INV_STATUSES[s.invStep]; if(s.invStep>=3)s.invReleaseDate=TODAY_STR; renderPayment(); renderReminder(); updateBell(); }
-function invBack(no){ const s=SO.find(x=>x.no===no); if(!s||!s.invStep)return; s.invStep--; s.invStatus=INV_STATUSES[s.invStep]; delete s.invReleaseDate; renderPayment(); renderReminder(); updateBell(); }
+/* Reminder ke Staff Budget: (a) Menunggu Invoice ≥5 HK, (b) Release lewat estimasi → f-up treasury. */
+function paymentReminders(){
+ const wait=SO.filter(s=>s.wstep>=4 && !s.invReceived && invWaitHK(s)>=5).map(s=>({s,kind:'wait'}));
+ const rel=SO.filter(s=>invReleaseOverdue(s)).map(s=>({s,kind:'release'}));
+ return wait.concat(rel);
+}
+function payRemRole(){ return ['admin','budget','finance','section'].includes(gRole); }   // notif ditujukan ke PIC/staff Budget
+function payCanAct(){ return gRole==="finance"||gRole==="admin"; }   // Staff Budget (Salsa) + Administrator; non-admin lain view/monitor
+function invReceive(no){ const s=SO.find(x=>x.no===no); if(!s)return; s.invReceived=true; s.invNominal=invNom(s); s.invRecvDate=TODAY_STR; s.invStep=0; if(typeof closeDrawer==="function")closeDrawer(); renderPayment(); if(typeof renderProc==="function")renderProc(); renderReminder(); updateBell();
+ alert("✅ Invoice DITERIMA dicatat ("+TODAY_STR+").\nMasuk Invoice Payment Pipeline — kelompok nominal: "+invClass(invNom(s)).tier+"."); }
+function invProcess(no){ const s=SO.find(x=>x.no===no); if(!s||!s.invReceived||s.invProcessed)return; s.invProcessed=true; s.invProcDate=TODAY_STR; s.invStep=1; renderPayment(); renderReminder(); updateBell();
+ alert("✅ Invoice DI PROSES — BPH dibuat di SAP ("+TODAY_STR+").\nEst Pembayaran Release: "+fmtDay(invRelEst(s))+" (+"+invClass(invNom(s)).sla+" HK, s/d "+invClass(invNom(s)).tier+")"); }
+function invConfirmRelease(no){ const s=SO.find(x=>x.no===no); if(!s||!s.invProcessed||s.invReleased)return; s.invReleased=true; s.invReleaseDate=TODAY_STR; s.invStep=3; renderPayment(); renderReminder(); updateBell();
+ alert("🏁 Pembayaran RELEASE dikonfirmasi ke vendor ("+TODAY_STR+")."); }
+function invUndo(no){ const s=SO.find(x=>x.no===no); if(!s)return; if(s.invReleased){s.invReleased=false;delete s.invReleaseDate;s.invStep=1;} else if(s.invProcessed){s.invProcessed=false;delete s.invProcDate;s.invStep=0;} else if(s.invReceived){s.invReceived=false;delete s.invRecvDate;delete s.invStep;} renderPayment(); renderReminder(); updateBell(); }
 function invStepper(s){
- const est=invEstRelease(s), overdue=s.invStep<3 && TODAY_STR>est;
- return '<div class="inv-steps">'+INV_STATUSES.map((st,i)=>{
-   const done=i<s.invStep||(s.invStep>=3&&i===3), cur=i===s.invStep&&s.invStep<3;
-   const late=cur&&overdue;                       // titik tunggu yang sedang berjalan & lewat estimasi
-   const cls=late?'late':done?'done':cur?'cur':'wait';
-   const sub = cur ? (late?('⚠ lewat '+fmtDay(est)):('est rilis '+fmtDay(est)))
-     : (done&&i===3&&s.invReleaseDate?fmtDay(s.invReleaseDate):'');
-   return `<div class="inv-step ${cls}"><div class="inv-dot">${done?'✓':late?'!':(i+1)}</div><div class="inv-lbl">${st}</div><div class="inv-ts ${late?'late':''}">${sub}</div></div>`;
+ const recv=s.invRecvDate, proc=s.invProcDate, bph=invBphEst(s), rel=invRelEst(s), over=invReleaseOverdue(s);
+ const def=[
+   {done:!!recv, cur:false, late:false, sub: recv?fmtDay(recv):''},
+   {done:!!proc, cur:(s.invReceived&&!proc), late:false, sub: proc?fmtDay(proc):(s.invReceived?'klik bila BPH dibuat':'')},
+   {done:!!s.invReleased, cur:(proc&&!s.invReleased), late:false, sub: (proc&&!s.invReleased)?'BPH diproses':''},
+   {done:!!s.invReleased, cur:(proc&&!s.invReleased&&!over), late:over, sub: s.invReleased?fmtDay(s.invReleaseDate):(proc?((over?'⚠ lewat ':'est ')+fmtDay(rel)):'')}
+ ];
+ return '<div class="inv-steps">'+def.map((d,i)=>{
+   const cls=d.late?'late':d.done?'done':d.cur?'cur':'wait';
+   const dot=d.done?'✓':d.late?'!':(i+1);
+   return `<div class="inv-step ${cls}"><div class="inv-dot">${dot}</div><div class="inv-lbl">${PIPE[i]}</div><div class="inv-ts ${d.late?'late':''}">${d.sub||''}</div></div>`;
  }).join('<div class="inv-bar"></div>')+'</div>';
 }
 function invCard(s){
- const sla=invSlaState(s), released=s.invStep>=3;
- const badge = sla.state==='met'?'<span class="badge bd-ok">On time</span>'
-   : sla.state==='late'?'<span class="badge bd-crit">Lewat SLA</span>'
-   : sla.state==='overdue'?'<span class="badge bd-crit">Overdue SLA</span>'
-   : sla.state==='warn'?'<span class="badge bd-warn">Mendekati SLA</span>'
+ const cls=invClass(invNom(s)), st=payState(s), canAct=payCanAct();
+ const badge = st.state==='released'?'<span class="badge bd-ok">Released</span>'
+   : st.state==='overdue'?'<span class="badge bd-crit">Lewat estimasi</span>'
+   : st.state==='warn'?'<span class="badge bd-warn">Mendekati estimasi</span>'
+   : st.state==='process'?'<span class="badge bd-info">Menunggu di-Proses</span>'
    : '<span class="badge bd-ok">On track</span>';
- const canAct=(gRole==="finance"||gRole==="admin"||gRole==="budget");
- return `<div class="card pad" style="margin:14px 0 0;border:1px solid var(--line)${sla.state==='overdue'?';border-left:4px solid var(--red)':''}">
+ let act='';
+ if(canAct){
+   if(!s.invProcessed) act=`<button class="btn-act" style="padding:6px 13px;font-size:12px" onclick="invProcess('${s.no}')">Klik bila BPH dibuat di SAP → Invoice di Proses</button>`;
+   else if(!s.invReleased) act=`<button class="btn-act" style="padding:6px 13px;font-size:12px${st.state==='overdue'?';background:var(--red)':''}" onclick="invConfirmRelease('${s.no}')">✅ Konfirmasi Release</button>${st.state==='overdue'?' <span style="color:var(--red);font-weight:700;font-size:12px">lewat estimasi → f-up manual ke treasury</span>':''}`;
+   else act=`<span class="muted small">✅ Pembayaran release ke vendor (${s.invReleaseDate}).</span>`;
+   act+=` <button class="btn-out" style="padding:5px 9px;font-size:11px;margin-left:4px" onclick="invUndo('${s.no}')">↩</button>`;
+ } else act=`<span class="muted small">Status: <b>${s.invReleased?'Pembayaran Release':PIPE[s.invStep||0]}</b></span>`;
+ const estRight = s.invReleased?('release '+s.invReleaseDate)
+   : s.invProcessed?('🎯 est release: <b style="color:'+(st.state==='overdue'?'var(--red)':'var(--ink)')+'">'+fmtDay(invRelEst(s))+'</b>')
+   : 'menunggu di-Proses (BPH)';
+ return `<div class="card pad" style="margin:12px 0 0;border:1px solid var(--line)${st.state==='overdue'?';border-left:4px solid var(--red)':''}">
    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
      <div><b class="sono">${s.no}</b> · <span style="color:var(--ink);font-weight:600">${s.vendor||'Vendor'}</span>
-       <div class="muted small" style="margin-top:3px">${s.spkNo||''} · Rp ${s.invNominal||s.nilai} jt · approval s/d <b>${sla.tier}</b> · SLA ${sla.sla} hk · masuk ${s.invInDate||'—'}</div></div>
-     <div style="text-align:right">${badge}<div class="muted small" style="margin-top:3px">🎯 estimasi rilis: <b style="color:${sla.state==='overdue'||sla.state==='late'?'var(--red)':'var(--ink)'}">${fmtDay(sla.est)}</b> <span style="opacity:.7">(masuk +${sla.sla} hk)</span>${released?' · release '+(s.invReleaseDate||''):''}</div></div>
+       <div class="muted small" style="margin-top:3px">${s.spkNo||''} · <b>Rp ${invNom(s)} jt</b> · approval s/d <b>${cls.tier}</b> · ${cls.sla} HK · diterima ${s.invRecvDate||'—'}</div></div>
+     <div style="text-align:right">${badge}<div class="muted small" style="margin-top:3px">${estRight}</div></div>
    </div>
    ${invStepper(s)}
-   <div style="margin-top:12px">${ released?`<span class="muted small">✅ Pembayaran release ke vendor (${s.invReleaseDate}) — ${sla.state==='met'?'tepat waktu ✔':'lewat target ⚠'}.</span>${canAct?` <button class="btn-out" style="padding:5px 10px;font-size:11.5px;margin-left:6px" onclick="invBack('${s.no}')">↩ undo</button>`:''}`
-     : canAct?`<button class="btn-act" style="padding:6px 13px;font-size:12px" onclick="invNext('${s.no}')">→ Set: ${INV_STATUSES[s.invStep+1]}</button> ${s.invStep>0?`<button class="btn-out" style="padding:6px 10px;font-size:12px" onclick="invBack('${s.no}')">↩</button> `:''}<span class="muted small">status: <b>${INV_STATUSES[s.invStep]}</b>${sla.state==='overdue'?` · <span style="color:var(--red);font-weight:700">lewat estimasi → notif Budget</span>`:''}</span>`
-     : `<span class="muted small">Status: <b>${INV_STATUSES[s.invStep]}</b></span>` }</div>
+   <div style="margin-top:12px">${act}</div>
  </div>`;
 }
 function seedInvoices(){
- [{no:"SO-202606-0037",in:"2026-06-16",step:1},
-  {no:"SO-202606-0036",in:"2026-06-10",step:3,rel:"2026-06-16"},
-  {no:"SO-202606-0035",in:"2026-06-02",step:1}].forEach(z=>{
-   const s=SO.find(x=>x.no===z.no); if(!s)return;
-   s.invNominal=s.nilai; s.invInDate=z.in; s.invStep=z.step; s.invTs={0:z.in};
-   for(let i=1;i<=z.step&&i<4;i++) s.invTs[i]=z.in;
-   s.invStatus=INV_STATUSES[Math.min(z.step,3)];
-   if(z.step>=3) s.invReleaseDate=z.rel||z.in;
- });
+ const set=(no,f)=>{ const s=SO.find(x=>x.no===no); if(s)Object.assign(s,f); };
+ // SO-0035 (24jt, Division Head): MENUNGGU INVOICE — aging ≥5 HK → reminder ke Staff Budget
+ set("SO-202606-0035",{bastDate:"2026-06-11"});
+ // SO-0037 (8.5jt, Dept Head): Invoice DITERIMA, belum di-Proses
+ set("SO-202606-0037",{invNominal:8.5,invReceived:true,invRecvDate:"2026-06-17",invStep:0});
+ // SO-0036 (6.2jt, Dept Head): DI PROSES & LEWAT estimasi release → reminder f-up treasury
+ set("SO-202606-0036",{invNominal:6.2,invReceived:true,invRecvDate:"2026-06-04",invProcessed:true,invProcDate:"2026-06-05",invStep:1});
+ // SO-0005 (128jt, Chief CHCD): RELEASED
+ set("SO-202606-0005",{invNominal:128,invReceived:true,invRecvDate:"2026-06-02",invProcessed:true,invProcDate:"2026-06-03",invReleased:true,invReleaseDate:"2026-06-16",invStep:3});
 }
 function renderPayment(){
  const el=document.getElementById("page-payment"); if(!el)return;
  const rows=SO.filter(s=>s.wstep>=4);
- const awaiting=rows.filter(s=>s.invStep==null);
- const pipeline=rows.filter(s=>s.invStep!=null&&s.invStep<3);
- const released=rows.filter(s=>s.invStep>=3);
- const slaOver=pipeline.filter(s=>invSlaState(s).state==='overdue');
- const slaWarn=pipeline.filter(s=>invSlaState(s).state==='warn');
- const isFin=(gRole==="finance"||gRole==="admin"||gRole==="budget");
+ const waiting=rows.filter(s=>!s.invReceived);
+ const inPipe=rows.filter(s=>s.invReceived&&!s.invReleased);
+ const released=rows.filter(s=>s.invReleased);
+ const rems=paymentReminders(), remWait=rems.filter(r=>r.kind==='wait'), remRel=rems.filter(r=>r.kind==='release');
+ const isFin=payCanAct();
+ const TG=[{t:"Dept Head",r:"≤10"},{t:"Division Head",r:">10–100"},{t:"Chief CHCD",r:">100–300"},{t:"Director In Charge",r:">300"}];
+ const groups=TG.map(g=>{ const items=inPipe.concat(released).filter(s=>invClass(invNom(s)).tier===g.t); if(!items.length)return'';
+   const sla=invClass(g.t==="Dept Head"?10:g.t==="Division Head"?100:g.t==="Chief CHCD"?300:500).sla;
+   return `<div class="pay-grp"><div class="pay-grp-h">💰 Nominal ${g.r} jt — approval s/d <b>${g.t}</b> <span class="muted small">(release +${sla} HK sejak di Proses)</span> · ${items.length}</div>${items.map(invCard).join("")}</div>`;
+ }).join("");
  el.innerHTML=`
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin-bottom:18px">
     <div class="card kpi"><div class="l">BAST done</div><div class="v">${rows.length}</div></div>
-    <div class="card kpi amber"><div class="l">Awaiting invoice</div><div class="v">${awaiting.length}</div></div>
-    <div class="card kpi"><div class="l">In process</div><div class="v" style="color:var(--blue)">${pipeline.length}</div></div>
-    <div class="card kpi"><div class="l">Payment released</div><div class="v" style="color:var(--green)">${released.length}</div></div>
-    <div class="card kpi red"><div class="l">Over SLA</div><div class="v">${slaOver.length}</div></div>
+    <div class="card kpi amber"><div class="l">Menunggu Invoice</div><div class="v">${waiting.length}</div></div>
+    <div class="card kpi"><div class="l">Dalam pipeline</div><div class="v" style="color:var(--blue)">${inPipe.length}</div></div>
+    <div class="card kpi"><div class="l">Released</div><div class="v" style="color:var(--green)">${released.length}</div></div>
+    <div class="card kpi red"><div class="l">Lewat estimasi</div><div class="v">${remRel.length}</div></div>
   </div>
-  ${(slaOver.length||slaWarn.length)?`<div class="card pad" style="border-left:4px solid var(--${slaOver.length?'red':'amber'});background:${slaOver.length?'#fef8f8':'#fdf9f0'};margin-bottom:18px">
-    <div style="font-weight:700;color:var(--${slaOver.length?'red':'amber'})">⏰ Reminder pembayaran (notif ke PIC/staff Budget) — ${slaOver.length} lewat estimasi, ${slaWarn.length} mendekati</div>
-    <div class="muted small" style="margin-top:5px">${pipeline.filter(s=>['overdue','warn'].includes(invSlaState(s).state)).map(s=>{const x=invSlaState(s);return s.no+" ("+(s.vendor||'vendor')+", est rilis "+fmtDay(x.est)+")";}).join(" · ")}</div>
+  ${(remWait.length||remRel.length)?`<div class="card pad" style="border-left:4px solid var(--${remRel.length?'red':'amber'});background:${remRel.length?'#fef8f8':'#fdf9f0'};margin-bottom:18px">
+    <div style="font-weight:700;color:var(--${remRel.length?'red':'amber'})">⏰ Reminder ke Staff Budget</div>
+    ${remWait.length?`<div class="muted small" style="margin-top:5px">📨 <b>${remWait.length}</b> Menunggu Invoice ≥5 HK — tagih invoice ke vendor: ${remWait.map(r=>r.s.no+" ("+(r.s.vendor||'vendor')+", "+invWaitHK(r.s)+" HK)").join(" · ")}</div>`:''}
+    ${remRel.length?`<div class="muted small" style="margin-top:5px">🏦 <b>${remRel.length}</b> lewat estimasi rilis — f-up manual ke treasury: ${remRel.map(r=>r.s.no+" ("+(r.s.vendor||'vendor')+", est "+fmtDay(invRelEst(r.s))+")").join(" · ")}</div>`:''}
   </div>`:''}
-  ${awaiting.length?`<div class="card" style="overflow:hidden;margin-bottom:18px">
-    <div style="padding:14px 18px 4px"><div class="panel-t" style="margin:0">Awaiting Invoice <span style="font-weight:400;color:var(--muted)">· vendor belum kirim invoice</span></div></div>
-    <table><thead><tr><th>SO / SPK</th><th>Vendor</th><th>BAST</th><th>Wait</th><th>${isFin?'Action':''}</th></tr></thead><tbody>
-    ${awaiting.map(s=>`<tr>
+  ${waiting.length?`<div class="card" style="overflow:hidden;margin-bottom:18px">
+    <div style="padding:14px 18px 4px"><div class="panel-t" style="margin:0">📋 List SO/SPK Sudah BAST — Menunggu Invoice <span style="font-weight:400;color:var(--muted)">· auto-listing dari Procurement · aging berjalan s/d invoice diterima</span></div></div>
+    <table><thead><tr><th>SO / SPK</th><th>Vendor</th><th>Nominal</th><th>BAST</th><th>Aging</th><th>${isFin?'Konfirmasi':''}</th></tr></thead><tbody>
+    ${waiting.map(s=>{ const aging=invWaitHK(s); return `<tr>
       <td><div class="sono">${s.no}</div><div class="muted small">${s.spkNo||'—'}</div></td>
-      <td>${s.vendor||'—'}<div class="muted small" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.item}</div></td>
+      <td>${s.vendor||'—'}<div class="muted small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.item}</div></td>
+      <td>Rp ${invNom(s)} jt</td>
       <td>${s.bastDate||'—'}</td>
-      <td><span class="badge ${payWaitDays(s)>5?'bd-crit':'bd-warn'}">${payWaitDays(s)}d</span></td>
-      <td>${isFin?`<button class="btn-act" style="padding:6px 11px;font-size:12px" onclick="openInvoice('${s.no}')">Invoice Masuk</button>`:'<span class="muted small">—</span>'}</td>
-    </tr>`).join("")}
+      <td><span class="badge ${aging>=5?'bd-crit':'bd-warn'}">${aging} HK</span></td>
+      <td>${isFin?`<button class="btn-act" style="padding:6px 11px;font-size:12px" onclick="invReceive('${s.no}')">Invoice Diterima</button>`:'<span class="muted small">—</span>'}</td>
+    </tr>`; }).join("")}
     </tbody></table></div>`:''}
   <div class="card pad">
-    <div class="panel-t">Invoice Payment Pipeline <span style="font-weight:400;color:var(--muted)">· Invoice Masuk → Diterima → Di Proses → Pembayaran Release</span></div>
-    ${(pipeline.concat(released)).length?(pipeline.concat(released)).map(invCard).join(""):'<div class="muted small" style="padding:24px;text-align:center">Belum ada invoice diproses. Klik <b>Invoice Masuk</b> di atas untuk memulai.</div>'}
+    <div class="panel-t">Invoice Payment Pipeline <span style="font-weight:400;color:var(--muted)">· dikelompokkan per nominal · ${PIPE.join(" → ")}</span></div>
+    ${groups||'<div class="muted small" style="padding:24px;text-align:center">Belum ada invoice diterima. Klik <b>Invoice Diterima</b> di list BAST untuk memulai.</div>'}
   </div>`;
 }
 
@@ -2042,8 +2670,8 @@ function renderVendor(){
    ${FLOWLIST.map(([k,lbl])=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:7px;flex-wrap:wrap">
      <span class="live-dot" style="background:${FLOW.endpoints[k]?'var(--green)':'#9aa7b8'};flex:0 0 8px"></span>
      <span style="min-width:158px;font-size:12.5px;font-weight:600">${lbl}</span>
-     <input id="fl-${k}" value="${esc(FLOW.endpoints[k])}" placeholder="https://prod-..../triggers/manual/paths/invoke?..." onchange="setFlowEndpoint('${k}',this.value)" style="flex:1;min-width:240px;font-size:12px"/>
-     <button class="btn-out" style="padding:6px 11px;font-size:12px" onclick="testFlow('${k}')">Test</button>
+     <input id="fl-${k}" value="${esc(FLOW.endpoints[k])}" placeholder="https://prod-..../triggers/manual/paths/invoke?..." onchange="setFlowEndpoint('${k}',this.value)" style="flex:1;min-width:240px;font-size:12px" ${viewerOnly()?'readonly disabled':''}/>
+     ${viewerOnly()?'':`<button class="btn-out" style="padding:6px 11px;font-size:12px" onclick="testFlow('${k}')">Test</button>`}
    </div>`).join('')}
    <div class="panel-t" style="margin-top:14px">Activity log</div>
    <div style="font-size:12px;max-height:150px;overflow:auto">${FLOW.log.length?FLOW.log.map(l=>`<div class="trow" style="padding:4px 0"><span style="font-family:monospace">${l.dir} ${l.name}</span><span class="muted small">${l.t} · ${l.info||''}</span></div>`).join(""):'<div class="muted small" style="padding:10px 0">No flow activity yet. Create a ticket/SO to see the round-trip.</div>'}</div>
@@ -2067,7 +2695,7 @@ function renderVendor(){
         <div><div class="muted small">${fmtDay(c.start)} → ${fmtDay(c.end)}</div><div class="rc-track" style="margin-top:4px"><i style="width:${pp}%;background:${st==='Expired'?'var(--red)':pp>=80?'var(--amber)':'var(--green)'}"></i></div></div>
         <div style="font-weight:700;color:var(--ink)">Rp ${c.value>=1000?(c.value/1000).toFixed(2)+' B':c.value+' M'}</div>
         <div>${band?`<b>${c.sla.toFixed(2)}</b> <span class="vtier ${band.c}">${band.n}</span>`:'<span class="muted small">not assessed</span>'}</div>
-        <div><button class="btn-out" style="padding:6px 10px;font-size:12px" onclick="openSLA(${i})">SLA Form</button></div>
+        <div>${viewerOnly()?'':`<button class="btn-out" style="padding:6px 10px;font-size:12px" onclick="openSLA(${i})">SLA Form</button>`}</div>
       </div>`;
     }).join("")}</div>
   </div>
@@ -2399,7 +3027,40 @@ function liveStatus(state,name){
 
 /* init */
 (function(){var li=document.querySelector('.login-img'),si=document.querySelector('.logo-img');if(li&&si&&si.src)li.src=si.src;})();
-loadFlowConfig();normalizeSO();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");fetchSOSummary();updateBell();liveStatus("off","");
+/* ===================== AGAVA DATABASE — Firebase Firestore =====================
+   Reuse proyek Firebase "query-chcd" (CHCD Q&A Live); koleksi AGAVA pakai prefix
+   agava_* agar tak bentrok. Online + rules terbuka → tiket sinkron REAL-TIME antar
+   perangkat/browser. Offline / rules tertutup → app tetap jalan dengan data lokal. */
+const AGDB={on:false,db:null,pill:null};
+function dbPill(txt,ok){
+ if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
+   AGDB.pill.style.cssText="position:fixed;right:14px;bottom:12px;z-index:80;background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 13px;font-size:11.5px;font-weight:600;color:var(--muted);box-shadow:0 2px 10px rgba(15,40,80,.08);font-family:var(--ff)";
+   document.body.appendChild(AGDB.pill); }
+ AGDB.pill.innerHTML=(ok?'<span style="color:#15a34a">●</span> ':'<span style="color:#9aa7b8">●</span> ')+txt;
+}
+function dbInit(){
+ try{
+  if(typeof firebase==="undefined"||!firebase.initializeApp){ dbPill("Database: offline — mode lokal",false); return; }
+  firebase.initializeApp({apiKey:"AIzaSyADeuHLNMAs6DoeCMUClXQ77Hc8fs0IGac",authDomain:"query-chcd.firebaseapp.com",projectId:"query-chcd",storageBucket:"query-chcd.firebasestorage.app",messagingSenderId:"224504788",appId:"1:224504788:web:369b7f9c739679ed37c441"});
+  AGDB.db=firebase.firestore();
+  dbPill("Database: menghubungkan…",false);
+  AGDB.db.collection("agava_tickets").orderBy("created","desc").limit(300).onSnapshot(snap=>{
+    AGDB.on=true; dbPill("Database: Firebase live · "+snap.size+" tiket",true);
+    let changed=false;
+    snap.docChanges().forEach(ch=>{
+      const d=ch.doc.data(); d.no=d.no||ch.doc.id;
+      const i=TICKETS.findIndex(t=>t.no===d.no);
+      if(ch.type==="removed"){ if(i>=0){TICKETS.splice(i,1);changed=true;} }
+      else if(i>=0){ Object.assign(TICKETS[i],d); changed=true; }
+      else { TICKETS.unshift(d); changed=true; }
+    });
+    if(changed){ renderService(); renderOverview(); updateBell(); }
+  },err=>{ AGDB.on=false; dbPill("Database: rules tertutup — mode lokal",false); console.warn("AGDB rules/err:",err&&err.code); });
+ }catch(e){ dbPill("Database: offline — mode lokal",false); console.warn("AGDB init:",e); }
+}
+function dbSaveTicket(t){ if(!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
+
+loadFlowConfig();normalizeSO();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");fetchSOSummary();updateBell();liveStatus("off","");dbInit();
 </script>
 </body>
 </html>

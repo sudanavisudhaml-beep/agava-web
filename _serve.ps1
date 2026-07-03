@@ -1,7 +1,7 @@
 # Minimal static file server for AGAVA-Web preview (no Node/Python needed)
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$port = 8123
+$port = if ($env:PORT) { [int]$env:PORT } else { 8124 }
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://localhost:$port/")
 $listener.Start()
