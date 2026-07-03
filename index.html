@@ -3028,9 +3028,9 @@ function liveStatus(state,name){
 /* init */
 (function(){var li=document.querySelector('.login-img'),si=document.querySelector('.logo-img');if(li&&si&&si.src)li.src=si.src;})();
 /* ===================== AGAVA DATABASE — Firebase Firestore =====================
-   Reuse proyek Firebase "query-chcd" (CHCD Q&A Live); koleksi AGAVA pakai prefix
-   agava_* agar tak bentrok. Online + rules terbuka → tiket sinkron REAL-TIME antar
-   perangkat/browser. Offline / rules tertutup → app tetap jalan dengan data lokal. */
+   Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
+   terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
+   tertutup → app tetap jalan dengan data lokal (mock). */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -3041,7 +3041,7 @@ function dbPill(txt,ok){
 function dbInit(){
  try{
   if(typeof firebase==="undefined"||!firebase.initializeApp){ dbPill("Database: offline — mode lokal",false); return; }
-  firebase.initializeApp({apiKey:"AIzaSyADeuHLNMAs6DoeCMUClXQ77Hc8fs0IGac",authDomain:"query-chcd.firebaseapp.com",projectId:"query-chcd",storageBucket:"query-chcd.firebasestorage.app",messagingSenderId:"224504788",appId:"1:224504788:web:369b7f9c739679ed37c441"});
+  firebase.initializeApp({apiKey:"AIzaSyCS8QGySkAcjd-49CdjElhgeMJqBtBcY48",authDomain:"agava-astra.firebaseapp.com",projectId:"agava-astra",storageBucket:"agava-astra.firebasestorage.app",messagingSenderId:"157492176112",appId:"1:157492176112:web:00f66a9aa9d4e7df650e35"});
   AGDB.db=firebase.firestore();
   dbPill("Database: menghubungkan…",false);
   AGDB.db.collection("agava_tickets").orderBy("created","desc").limit(300).onSnapshot(snap=>{
