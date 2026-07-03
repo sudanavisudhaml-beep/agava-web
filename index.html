@@ -439,6 +439,8 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .kd-bar{height:6px;background:#edf1f6;border-radius:4px;overflow:hidden;margin:4px 0 9px}
 .kd-bar i{display:block;height:100%;background:#15a34a;border-radius:4px}
 .kd-tile.warn .kd-bar i{background:#eab308}.kd-tile.bad .kd-bar i{background:#dc2626}
+.kd-foot{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+.kd-src{font-size:10.5px;color:var(--muted);white-space:nowrap}
 .kchip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px}
 .kchip.ok{background:#e9f8ef;color:#15803d}.kchip.warn{background:#fdf6e3;color:#b45309}.kchip.bad{background:#fdecec;color:#dc2626}
 @media(max-width:1100px){.kd-grid{grid-template-columns:repeat(2,1fr)}}
@@ -966,32 +968,57 @@ function roleTitle(u){ if(u&&u.pic==="transport")return "PIC Transport"; return 
    satu-satunya aksi = approval di gate Dept Head (soApprovalCard). Admin tidak termasuk (god-mode). */
 function viewerOnly(){ return gRole==="dept"; }
 /* ===================== CODEC — KPI GA Dept (alignment anchor) =====================
-   CODEC = Collaborative Deck General Affair. Panel paling atas: SEMUA KPI Dept —
-   parameter, target, achievement — visual ramah agar tiap member GA langsung paham. */
-const KPI_DEPT=[
- {ic:"🎫",name:"SLA Response Tiket",param:"Tiket direspons ≤ 15 menit",target:"≥ 95%",ach:"97.2%",pct:97,st:"ok"},
- {ic:"⭐",name:"Rating Layanan GA",param:"Survei kepuasan user (skala 5)",target:"≥ 4.0",ach:"4.3",pct:86,st:"ok"},
- {ic:"⚡",name:"Efisiensi Energi",param:"Konsumsi vs baseline 2019 (ERSUS)",target:"−10%",ach:"−12.4%",pct:100,st:"ok"},
- {ic:"🏢",name:"Uptime Utilitas",param:"Listrik · air · lift · AC",target:"≥ 99%",ach:"99.6%",pct:99,st:"ok"},
- {ic:"🛒",name:"Lead Time Procurement",param:"SO → SPK (hari kerja)",target:"≤ 14 HK",ach:"16 HK",pct:70,st:"warn"},
- {ic:"💰",name:"Payment On-Time",param:"Invoice release sesuai SLA",target:"≥ 95%",ach:"91%",pct:91,st:"warn"},
- {ic:"🦺",name:"Zero Accident",param:"LTI di area kelolaan GA",target:"0 kasus",ach:"0 kasus",pct:100,st:"ok"},
- {ic:"📄",name:"Compliance Perizinan",param:"Izin & sertifikat aktif",target:"100%",ach:"96%",pct:96,st:"warn"}
-];
+   CODEC = Collaborative Deck General Affair — SINGLE SOURCE OF TRUTH.
+   SEMUA KPI di bawah DIHITUNG LIVE dari data modul AGAVA (bukan angka statis):
+   Service (TICKETS), Procurement (SO), Payment Tracker, Vendor Mgmt, Energy/ERSUS,
+   HSE (IZIN), Transportation. Data berubah di modul → KPI CODEC ikut berubah. */
+function kpiDeptData(){
+ const K=[];
+ // 1. SLA Response Tiket — dari modul Service (TICKETS.resp)
+ const resp=TICKETS.map(t=>parseInt(t.resp)).filter(n=>!isNaN(n));
+ const slaOk=resp.filter(n=>n<=15).length, slaPct=resp.length?Math.round(slaOk/resp.length*100):100;
+ K.push({ic:"🎫",name:"SLA Response Tiket",param:resp.length+" tiket direspons · target ≤ 15 mnt",target:"≥ 95%",ach:slaPct+"%",pct:slaPct,st:slaPct>=95?"ok":slaPct>=85?"warn":"bad",src:"Service"});
+ // 2. Rating Layanan GA — dari rating tiket closed (gaServiceRating)
+ const r=gaServiceRating(), rv=parseFloat(r.score);
+ K.push({ic:"⭐",name:"Rating Layanan GA",param:r.count+" responden · tiket selesai",target:"≥ 4.0",ach:r.score,pct:Math.round(rv/5*100),st:rv>=4?"ok":rv>=3.5?"warn":"bad",src:"Service"});
+ // 3. Efisiensi Energi — dari data ERSUS (GRK 2026 vs baseline 2019)
+ const avg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, avg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length;
+ const red=Math.round((1-avg26/avg19)*1000)/10;
+ K.push({ic:"⚡",name:"Efisiensi Energi",param:"Emisi vs baseline 2019 · "+ENERGY_MONTHS.length+" bln",target:"−10%",ach:"−"+red+"%",pct:Math.min(100,Math.round(red/10*100)),st:red>=10?"ok":red>=7?"warn":"bad",src:"Energy · ERSUS"});
+ // 4. SO On-Track — dari modul Procurement (SO.aging)
+ const soOk=SO.filter(s=>s.aging==="On Track").length, soPct=SO.length?Math.round(soOk/SO.length*100):100;
+ K.push({ic:"🛒",name:"SO On-Track",param:soOk+" dari "+SO.length+" SO berjalan",target:"≥ 90%",ach:soPct+"%",pct:soPct,st:soPct>=90?"ok":soPct>=75?"warn":"bad",src:"Procurement"});
+ // 5. Payment On-Time — dari Payment Tracker (release vs estimasi)
+ const rel=SO.filter(s=>s.invReleased), relOk=rel.filter(s=>!invRelEst(s)||(s.invReleaseDate&&s.invReleaseDate<=invRelEst(s))).length;
+ const late=SO.filter(s=>invReleaseOverdue(s)).length, den=rel.length+late;
+ const payPct=den?Math.round(relOk/den*100):100;
+ K.push({ic:"💰",name:"Payment On-Time",param:rel.length+" released · "+late+" lewat estimasi",target:"≥ 95%",ach:payPct+"%",pct:payPct,st:payPct>=95?"ok":payPct>=80?"warn":"bad",src:"Payment Tracker"});
+ // 6. Vendor SLA — dari Vendor Management (skor SLA kontrak, skala 3)
+ const sl=VENDOR_CONTRACTS.filter(c=>c.sla!=null), slAvg=sl.length?sl.reduce((a,c)=>a+c.sla,0)/sl.length:0;
+ K.push({ic:"🏢",name:"Vendor SLA",param:sl.length?(sl.length+" vendor ternilai dari "+VENDOR_CONTRACTS.length):("0 dari "+VENDOR_CONTRACTS.length+" vendor — isi SLA Form"),target:"≥ 2.50",ach:sl.length?slAvg.toFixed(2):"belum dinilai",pct:sl.length?Math.round(slAvg/3*100):0,st:!sl.length?"warn":slAvg>=2.5?"ok":slAvg>=2.2?"warn":"bad",src:"Vendor Mgmt"});
+ // 7. Compliance Perizinan — dari HSE (IZIN yang belum jatuh tempo)
+ const izOk=IZIN.filter(z=>z.due>=TODAY_STR).length, izPct=IZIN.length?Math.round(izOk/IZIN.length*100):100;
+ K.push({ic:"📄",name:"Compliance Perizinan",param:izOk+" dari "+IZIN.length+" izin masih aktif",target:"100%",ach:izPct+"%",pct:izPct,st:izPct>=100?"ok":izPct>=90?"warn":"bad",src:"HSE & Sustain"});
+ // 8. Transport Terlayani — dari modul Transportation
+ const trH=TRANSPORT_REQ.filter(x=>(x.status||"Diajukan")!=="Diajukan").length, trPct=TRANSPORT_REQ.length?Math.round(trH/TRANSPORT_REQ.length*100):100;
+ K.push({ic:"🚗",name:"Transport Terlayani",param:trH+" dari "+TRANSPORT_REQ.length+" permintaan ditindaklanjuti",target:"≥ 90%",ach:trPct+"%",pct:trPct,st:trPct>=90?"ok":trPct>=70?"warn":"bad",src:"Transportation"});
+ return K;
+}
 function kpiChip(st){ return st==="ok"?'<span class="kchip ok">🟢 Tercapai</span>':st==="warn"?'<span class="kchip warn">🟡 Perlu Perhatian</span>':'<span class="kchip bad">🔴 Off Track</span>'; }
 function kpiDeptHTML(){
- const ok=KPI_DEPT.filter(k=>k.st==="ok").length;
+ const KPI=kpiDeptData();
+ const ok=KPI.filter(k=>k.st==="ok").length;
  return `<div class="card pad kpi-dept">
   <div class="kd-head">
-    <div class="panel-t" style="margin:0">🎯 KPI GA Dept 2026 <span style="font-weight:400;color:var(--muted);font-size:12.5px">— Alignment · anchor seluruh member GA</span></div>
-    <div class="kd-score">${ok}<small>/${KPI_DEPT.length} tercapai</small></div>
+    <div class="panel-t" style="margin:0">🎯 KPI GA Dept 2026 <span style="font-weight:400;color:var(--muted);font-size:12.5px">— Alignment · dihitung <b>live</b> dari data seluruh modul AGAVA (single source of truth)</span></div>
+    <div class="kd-score">${ok}<small>/${KPI.length} tercapai</small></div>
   </div>
   <div class="kd-grid">
-  ${KPI_DEPT.map(k=>`<div class="kd-tile ${k.st}">
+  ${KPI.map(k=>`<div class="kd-tile ${k.st}">
      <div class="kd-top"><span class="kd-ic">${k.ic}</span><div><div class="kd-name">${k.name}</div><div class="kd-param">${k.param}</div></div></div>
      <div class="kd-nums"><div><small>Target</small><b>${k.target}</b></div><div class="kd-ach"><small>Achievement</small><b>${k.ach}</b></div></div>
      <div class="kd-bar"><i style="width:${Math.min(k.pct,100)}%"></i></div>
-     ${kpiChip(k.st)}
+     <div class="kd-foot">${kpiChip(k.st)}<span class="kd-src">🔄 ${k.src}</span></div>
    </div>`).join("")}
   </div></div>`;
 }
