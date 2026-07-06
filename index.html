@@ -318,8 +318,10 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .copilot-btn:hover{border-color:#bcd3f5;box-shadow:0 3px 12px rgba(37,99,235,.14)}
 .cp-mark{width:20px;height:20px;flex:0 0 20px}
 .cp-label{font-size:13.5px;color:var(--muted);opacity:.65;font-style:italic}
-.cp-ava{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;color:#fff;background:linear-gradient(135deg,#2563eb,#39a0ff,#7a4fd0);flex:0 0 26px}
-.cp-ava.lg{width:34px;height:34px;font-size:16px}
+.cp-ava{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#fff;background:linear-gradient(180deg,var(--navy),var(--navy2));flex:0 0 26px}
+.cp-ava svg{width:14px;height:14px}
+.cp-ava.lg{width:36px;height:36px;border-radius:10px}
+.cp-ava.lg svg{width:19px;height:19px}
 .cp-body{flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:6px 0 8px}
 .cp-msg{display:flex;gap:9px;align-items:flex-start}
 .cp-msg.user{justify-content:flex-end}
@@ -587,6 +589,69 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .sec-h .chev{margin-left:auto;font-size:20px;line-height:1;color:var(--muted);transition:transform .2s;flex:0 0 auto;user-select:none}
 .sec.collapsed .sec-body{display:none}
 .sec.collapsed .chev{transform:rotate(-90deg)}
+
+/* ============ MOBILE RESPONSIVE (≤820px) — rapi & profesional di HP ============ */
+@media (max-width:820px){
+  /* Sidebar → rail ikon tetap (seperti mode collapsed) */
+  .side{position:fixed;left:0;top:0;bottom:0;z-index:60;width:62px;flex:0 0 62px;transition:none}
+  .side .logo-wrap{display:none}
+  .side .logo-mini{display:grid;width:38px;height:38px;margin:12px auto 2px;font-size:18px}
+  .side .sec-label{font-size:0;padding:6px 0}
+  .side .nav{padding:2px 8px}
+  .side .nav a{justify-content:center;padding:10px 0;gap:0}
+  .side .nav-txt{display:none}
+  .side .nav-badge{position:absolute;right:4px;top:5px;transform:none;min-width:15px;height:15px;font-size:9px;padding:0 3px}
+  .side .side-user{justify-content:center;padding:10px 6px}
+  .side .side-user>div:last-child{display:none}
+  .rail-toggle{display:none!important}
+  .main{margin-left:62px}
+  /* Topbar ringkas */
+  .top{flex-wrap:wrap;gap:8px;padding:12px 12px 10px}
+  #pgTitle{font-size:17px;line-height:1.25}
+  .sub{font-size:11px}
+  .acts{gap:6px;flex-wrap:wrap}
+  .cp-label{display:none}
+  .live-chip span:last-child{display:none}
+  /* Konten */
+  .wrap{padding:12px}
+  .card.pad,.sec-body{padding-left:14px;padding-right:14px}
+  /* Grid → tumpuk 1–2 kolom */
+  .kd-grid{grid-template-columns:1fr 1fr;gap:9px}
+  .hl-grid{grid-template-columns:1fr}
+  .hl-headrow{display:none}
+  .funnel{grid-template-columns:1fr 1fr;gap:9px}
+  .ga-svc-bar{grid-template-columns:1fr 1fr;gap:9px}
+  .rating-card{flex-direction:column;gap:12px}
+  .two{grid-template-columns:1fr}
+  [style*="grid-template-columns:repeat(5"]{grid-template-columns:1fr 1fr!important}
+  [style*="grid-template-columns:repeat(4"]{grid-template-columns:1fr 1fr!important}
+  [style*="grid-template-columns:repeat(3"]{grid-template-columns:1fr!important}
+  /* Tabel & list panjang → scroll halus di dalam kartu, tak ada yang terpotong */
+  .card{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .card table{min-width:600px}
+  .sec-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .svc-head,.svc-row{min-width:620px}
+  .nlog-head,.nlog-row{min-width:620px}
+  .inv-steps{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:6px}
+  .cp-headrow{display:none}
+  .cp-row{grid-template-columns:1fr 1fr;gap:6px}
+  /* Papan & panel */
+  .kd-head{align-items:flex-start}
+  .kd-score{font-size:20px}
+  /* Drawer & copilot penuh layar */
+  .drawer{width:100%}
+  /* Denah room booking */
+  .rb-plan-wrap{overflow-x:auto}
+  /* Pill DB kecil */
+  #dbPill{font-size:10px;right:8px;bottom:8px;padding:4px 9px}
+}
+@media (max-width:480px){
+  .kd-grid{grid-template-columns:1fr}
+  .funnel{grid-template-columns:1fr}
+  .ga-svc-bar{grid-template-columns:1fr}
+  [style*="grid-template-columns:repeat(4"]{grid-template-columns:1fr!important}
+  [style*="grid-template-columns:repeat(5"]{grid-template-columns:1fr 1fr!important}
+}
 </style>
 </head>
 <body>
@@ -2622,7 +2687,8 @@ function copilotReply(q){
  if(/(payment|budget|bph|invoice)/.test(q)) return `Budget repair-maintenance: <b>68% used</b> (Rp 1.36 B of 2.0 B). <b>2 payment proofs overdue</b> — follow up with Finance.`;
  return "I'm AGAVA Copilot (simulated for this mockup). I can summarize <b>SO, tickets, approvals, energy alerts, vendor performance, payments</b> and <b>reminders</b>. Once wired to live data + an AI model, I'll answer in real time. Try: \"how many SO are ongoing?\"";
 }
-function cpPush(role,text){ gCpMsgs.push({role,text}); const b=document.getElementById("cpBody"); if(b){ b.innerHTML=gCpMsgs.map(m=>`<div class="cp-msg ${m.role}">${m.role==='bot'?'<span class="cp-ava">✦</span>':''}<span class="cp-bubble">${m.text}</span></div>`).join(""); b.scrollTop=b.scrollHeight; } }
+const CP_AVA_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L12 5l8 15"/></svg>';
+function cpPush(role,text){ gCpMsgs.push({role,text}); const b=document.getElementById("cpBody"); if(b){ b.innerHTML=gCpMsgs.map(m=>`<div class="cp-msg ${m.role}">${m.role==='bot'?('<span class="cp-ava">'+CP_AVA_SVG+'</span>'):''}<span class="cp-bubble">${m.text}</span></div>`).join(""); b.scrollTop=b.scrollHeight; } }
 function askCopilot(t){ const i=document.getElementById("cpInput"); if(i)i.value=t; sendCopilot(); }
 function sendCopilot(){ const i=document.getElementById("cpInput"); const q=(i.value||"").trim(); if(!q)return; cpPush('user',q); i.value="";
  if(gCpDraft){
@@ -2636,7 +2702,7 @@ function sendCopilot(){ const i=document.getElementById("cpInput"); const q=(i.v
 function openCopilot(){
  document.getElementById("drawer").innerHTML=`
   <div class="dh" style="display:flex;align-items:center;gap:11px">
-    <span class="cp-ava lg">✦</span>
+    <span class="cp-ava lg">${CP_AVA_SVG}</span>
     <div style="flex:1"><div style="font-weight:700;color:var(--ink)">AGAVA Copilot</div><div class="muted small">AI assistant for General Affairs · simulated</div></div>
     <button class="x" onclick="closeDrawer()">✕</button>
   </div>
