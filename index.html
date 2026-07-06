@@ -328,6 +328,14 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .cp-msg.user .cp-bubble{background:var(--blue);color:#fff;border-top-right-radius:4px}
 .cp-suggest{display:flex;gap:8px;flex-wrap:wrap;padding:8px 0}
 .cp-chip{font-size:12px;color:var(--blue);background:var(--blue-s);border:1px solid #cfe0fb;border-radius:16px;padding:6px 12px;cursor:pointer}
+/* chat-to-ticket */
+.cp-tkt{background:#f7f9fc;border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:8px 0;display:grid;gap:5px}
+.cp-tkt small{display:inline-block;width:74px;color:var(--muted);font-size:11px}
+.cp-tkt b{font-weight:600;color:var(--ink);font-size:12.5px}
+.cp-actrow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.cp-act{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--ff)}
+.cp-act.ok{background:var(--blue);border-color:var(--blue);color:#fff}
+.cp-act:hover{filter:brightness(.96)}
 .cp-chip:hover{background:#dceafe}
 .cp-input{display:flex;gap:8px;border-top:1px solid var(--line);padding-top:10px}
 .cp-input input{flex:1;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font-size:13.5px;font-family:var(--ff);outline:none}
@@ -2537,8 +2545,70 @@ function sendBAST(no){
  alert("✅ BAST submitted & dikirim balik ke "+(s.vendor||"vendor")+".\nMuncul di Payment Tracker — status: Menunggu Invoice (SLA 5 hari kerja).");
 }
 
-/* ============ AGAVA COPILOT (simulated AI) ============ */
-let gCpMsgs=[];
+/* ============ AGAVA COPILOT (simulated AI + CHAT-TO-TICKET) ============
+   Chat-to-ticket = simulasi Fase 2 (Copilot Studio di Teams): Copilot mengenali
+   INTENSI dari bahasa natural, mengekstrak ENTITAS (kategori/lokasi/priority),
+   konfirmasi, lalu MEMBUAT TIKET SUNGGUHAN — payload sama persis dgn form &
+   flow Power Automate, tersimpan ke Firestore, tampil di Service, KPI ikut. */
+let gCpMsgs=[], gCpDraft=null;
+function cpEsc(s){ return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function cpDetectTicket(raw){
+ const q=raw.toLowerCase();
+ const explicit=/\b(buat(kan)?\s+tiket|bikin\s+tiket|create\s+ticket|open\s+ticket|lapor(kan)?)\b/.test(q);
+ const problem=/(rusak|mati|bocor|macet|jebol|padam|panas|tidak dingin|nggak dingin|gak dingin|kotor|banjir|berisik|error|bau|tersumbat|pecah|patah|konslet|redup|rembes|menetes|lambat|hilang|penuh|tidak berfungsi|ngadat|jjson)/.test(q);
+ if(!explicit&&!problem) return null;
+ let cat="Building & Utility";
+ if(/(bersih|kotor|sampah|cleaning|housekeep)/.test(q)) cat="Tenant & General Services";
+ else if(/(mobil|kendaraan|transport|taksi|taxi|voucher|logistik|dokumen|kurir|surat)/.test(q)) cat="Transport, Logistic & Document";
+ else if(/(catering|makan|snack|kopi|galon|minum|tamu|hospitality)/.test(q)) cat="Hospitality";
+ else if(/(safety|k3|apar|limbah|b3|hydrant|kebakaran)/.test(q)) cat="HSE & Sustainability";
+ else if(/(booking|event|acara)/.test(q)) cat="Room & Event";
+ else if(/(aset|inventaris)/.test(q)) cat="Asset Management";
+ else if(/(renovasi|proyek|project)/.test(q)) cat="Project Development";
+ const site=/menara astra|\bma\b/.test(q)?"MA":/bsd/.test(q)?"ABC BSD":/bandung|bdg/.test(q)?"ABC BDG":"AMDI";
+ const fl=q.match(/(?:lantai|lt\.?|floor|fl\.?)\s*(\d+)/);
+ let loc=site+(fl?(" Fl."+fl[1]):"");
+ const room=q.match(/ruang(?:an)?\s+([a-z0-9 ]{3,24}?)(?:\s+(?:di|lantai|lt|yang|mati|rusak|bocor|panas)\b|[,.!]|$)/);
+ if(room) loc+=" · R. "+room[1].trim().replace(/\b\w/g,c=>c.toUpperCase());
+ const prio=/(darurat|emergency|critical|kritis)/.test(q)?"Critical":/(urgent|segera|penting|asap|high)/.test(q)?"High":"Medium";
+ let title=raw.replace(/^(tolong|mohon|halo|hai|min|please)[,! ]*/i,"").replace(/\b(buat(kan)?\s+tiket|bikin\s+tiket|create\s+ticket|lapor(kan)?)\b[:,! ]*/i,"").trim()||raw.trim();
+ title=title.charAt(0).toUpperCase()+title.slice(1);
+ if(title.length>70) title=title.slice(0,70)+"…";
+ return {title,cat,prio,loc,desc:raw};
+}
+function cpDraftCard(d){
+ return `🎫 <b>Saya kenali ini sebagai permintaan tiket.</b> Ini pemahaman saya:
+ <div class="cp-tkt">
+   <div><small>Judul</small><b>${cpEsc(d.title)}</b></div>
+   <div><small>Kategori</small><b>${d.cat}</b></div>
+   <div><small>Lokasi</small><b>${cpEsc(d.loc)}</b></div>
+   <div><small>Priority</small><b>${d.prio==='Critical'?'🔴':d.prio==='High'?'🟠':'🟡'} ${d.prio}</b></div>
+   <div><small>Pemohon</small><b>${gUser?cpEsc(gUser.name):'—'} <span class="muted">(otomatis dari akun)</span></b></div>
+ </div>
+ Buat tiket sekarang?
+ <div class="cp-actrow"><button class="cp-act ok" onclick="cpConfirmTicket()">✅ Ya, buat tiket</button><button class="cp-act" onclick="cpCancelTicket()">✏️ Batal / ubah</button></div>`;
+}
+async function cpConfirmTicket(){
+ const d=gCpDraft; if(!d)return; gCpDraft=null;
+ cpPush('bot','⏳ Membuat tiket… <span class="muted small">(payload sama dgn form → flow Power Automate → database)</span>');
+ let res={};
+ try{ res=await triggerFlow("createTicket",{title:d.title,cat:d.cat,priority:d.prio,lokasi:d.loc,description:d.desc,requester:(gUser?gUser.name:""),requesterEmail:(gUser&&gUser.email)||"",created:TODAY_STR})||{}; }catch(e){}
+ const no=res.ticketNo||("GA-202606-"+String(++ticketSeq).padStart(4,"0"));
+ TICKETS.unshift({no,judul:d.title,team:"BM",cat:d.cat,lokasi:d.loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:(gUser?gUser.name:""),ts:{0:nowStamp()}});
+ try{ dbSaveTicket(TICKETS[0]); }catch(e){}
+ try{ renderService(); renderOverview(); updateBell(); }catch(e){}
+ const dbOn=(typeof AGDB!=="undefined"&&AGDB.on);
+ setTimeout(()=>cpPush('bot',`✅ <b>Tiket berhasil dibuat!</b>
+  <div class="cp-tkt">
+    <div><small>No. Tiket</small><b>${no}</b></div>
+    <div><small>Status</small><b>${res.status||"Submitted"}</b></div>
+    <div><small>PIC</small><b>${res.pic||"— (auto-assign oleh flow RPA)"}</b></div>
+    <div><small>Database</small><b>${dbOn?"🟢 tersimpan di Firestore (live)":"⚪ lokal (offline)"}</b></div>
+  </div>
+  Tiket sudah tampil di modul <b>Service</b> & terhitung di KPI <b>CODEC</b>.
+  <div class="cp-actrow"><button class="cp-act ok" onclick="closeDrawer();go('service')">📋 Lihat di Service</button></div>`),450);
+}
+function cpCancelTicket(){ gCpDraft=null; cpPush('bot','Baik, tidak jadi dibuat. Silakan tulis ulang keluhannya dengan detail lokasi & urgensinya — saya siap 👍'); }
 function copilotReply(q){
  q=q.toLowerCase();
  if(/(hello|hi|hai|help|bantu)/.test(q)) return "Hi! I can summarize anything in AGAVA — try: <b>ongoing SO</b>, <b>escalated tickets</b>, <b>my approvals</b>, <b>energy alerts</b>, <b>vendor performance</b>, or <b>reminders</b>.";
@@ -2554,7 +2624,15 @@ function copilotReply(q){
 }
 function cpPush(role,text){ gCpMsgs.push({role,text}); const b=document.getElementById("cpBody"); if(b){ b.innerHTML=gCpMsgs.map(m=>`<div class="cp-msg ${m.role}">${m.role==='bot'?'<span class="cp-ava">✦</span>':''}<span class="cp-bubble">${m.text}</span></div>`).join(""); b.scrollTop=b.scrollHeight; } }
 function askCopilot(t){ const i=document.getElementById("cpInput"); if(i)i.value=t; sendCopilot(); }
-function sendCopilot(){ const i=document.getElementById("cpInput"); const q=(i.value||"").trim(); if(!q)return; cpPush('user',q); i.value=""; const r=copilotReply(q); setTimeout(()=>cpPush('bot',r),400); }
+function sendCopilot(){ const i=document.getElementById("cpInput"); const q=(i.value||"").trim(); if(!q)return; cpPush('user',q); i.value="";
+ if(gCpDraft){
+   if(/^(ya|y|yes|ok|oke|okey|buat|gas|lanjut|confirm|setuju)\b/i.test(q)){ cpConfirmTicket(); return; }
+   if(/^(batal|cancel|tidak|no|gak|nggak|jangan)\b/i.test(q)){ cpCancelTicket(); return; }
+   gCpDraft=null; // teks lain = permintaan baru
+ }
+ const t=cpDetectTicket(q);
+ if(t){ gCpDraft=t; setTimeout(()=>cpPush('bot',cpDraftCard(t)),500); return; }
+ const r=copilotReply(q); setTimeout(()=>cpPush('bot',r),400); }
 function openCopilot(){
  document.getElementById("drawer").innerHTML=`
   <div class="dh" style="display:flex;align-items:center;gap:11px">
@@ -2564,11 +2642,11 @@ function openCopilot(){
   </div>
   <div class="db" style="display:flex;flex-direction:column;height:calc(100% - 88px)">
     <div id="cpBody" class="cp-body"></div>
-    <div class="cp-suggest">${["Ongoing SO?","Escalated tickets?","My approvals?","Any alerts?"].map(s=>`<span class="cp-chip" onclick="askCopilot('${s}')">${s}</span>`).join("")}</div>
+    <div class="cp-suggest">${["AC ruang meeting lantai 6 mati, urgent!","Ongoing SO?","Escalated tickets?","Any alerts?"].map(s=>`<span class="cp-chip" onclick="askCopilot('${s}')">${s}</span>`).join("")}</div>
     <div class="cp-input"><input id="cpInput" placeholder="Ask Copilot about GA…" onkeydown="if(event.key==='Enter')sendCopilot()"/><button onclick="sendCopilot()">➤</button></div>
   </div>`;
  gCpMsgs=[];
- cpPush('bot',`Hi ${gUser?gUser.name.split(' ')[0]:'there'} 👋 I'm <b>AGAVA Copilot</b>. Ask me anything about SO, tickets, approvals, energy, vendors, or reminders.`);
+ cpPush('bot',`Hi ${gUser?gUser.name.split(' ')[0]:'there'} 👋 I'm <b>AGAVA Copilot</b>. Tanya apa saja soal SO, tiket, approval, energy, vendor — atau <b>langsung ceritakan keluhan Anda</b> dan saya buatkan tiketnya. Coba: <i>"AC ruang meeting lantai 6 mati, urgent!"</i>`);
  document.getElementById("ovl").classList.add("show");
  setTimeout(()=>{const i=document.getElementById("cpInput");if(i)i.focus();},100);
 }
