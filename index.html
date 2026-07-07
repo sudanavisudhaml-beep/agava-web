@@ -338,6 +338,10 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .cp-act{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--ff)}
 .cp-act.ok{background:var(--blue);border-color:var(--blue);color:#fff}
 .cp-act:hover{filter:brightness(.96)}
+.cp-edit{display:grid;gap:8px;margin:8px 0}
+.cp-edit label{display:grid;gap:3px;font-size:11px;color:var(--muted);font-weight:600}
+.cp-in{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:var(--ff);color:var(--ink);background:#fff;width:100%;box-sizing:border-box}
+.cp-in:focus{outline:none;border-color:var(--blue)}
 .cp-chip:hover{background:#dceafe}
 .cp-input{display:flex;gap:8px;border-top:1px solid var(--line);padding-top:10px}
 .cp-input input{flex:1;border:1px solid var(--line);border-radius:20px;padding:10px 14px;font-size:13.5px;font-family:var(--ff);outline:none}
@@ -2616,7 +2620,7 @@ function sendBAST(no){
    konfirmasi, lalu MEMBUAT TIKET SUNGGUHAN — payload sama persis dgn form &
    flow Power Automate, tersimpan ke Firestore, tampil di Service, KPI ikut. */
 let gCpMsgs=[], gCpDraft=null;
-function cpEsc(s){ return String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function cpEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function cpDetectTicket(raw){
  const q=raw.toLowerCase();
  const explicit=/\b(buat(kan)?\s+tiket|bikin\s+tiket|create\s+ticket|open\s+ticket|lapor(kan)?)\b/.test(q);
@@ -2641,17 +2645,36 @@ function cpDetectTicket(raw){
  if(title.length>70) title=title.slice(0,70)+"…";
  return {title,cat,prio,loc,desc:raw};
 }
-function cpDraftCard(d){
- return `🎫 <b>Saya kenali ini sebagai permintaan tiket.</b> Ini pemahaman saya:
+function cpDraftCard(d,edited){
+ return `${edited?'✅ <b>Detail tiket diperbarui.</b> Sudah sesuai?':'🎫 <b>Saya kenali ini sebagai permintaan tiket.</b> Ini pemahaman saya:'}
  <div class="cp-tkt">
    <div><small>Judul</small><b>${cpEsc(d.title)}</b></div>
-   <div><small>Kategori</small><b>${d.cat}</b></div>
+   <div><small>Kategori</small><b>${cpEsc(d.cat)}</b></div>
    <div><small>Lokasi</small><b>${cpEsc(d.loc)}</b></div>
-   <div><small>Priority</small><b>${d.prio==='Critical'?'🔴':d.prio==='High'?'🟠':'🟡'} ${d.prio}</b></div>
+   <div><small>Priority</small><b>${d.prio==='Critical'?'🔴':d.prio==='High'?'🟠':d.prio==='Low'?'⚪':'🟡'} ${d.prio}</b></div>
    <div><small>Pemohon</small><b>${gUser?cpEsc(gUser.name):'—'} <span class="muted">(otomatis dari akun)</span></b></div>
  </div>
- Buat tiket sekarang?
- <div class="cp-actrow"><button class="cp-act ok" onclick="cpConfirmTicket()">✅ Ya, buat tiket</button><button class="cp-act" onclick="cpCancelTicket()">✏️ Batal / ubah</button></div>`;
+ ${edited?'Buat tiket sekarang?':'Buat tiket sekarang, atau sesuaikan dulu?'}
+ <div class="cp-actrow"><button class="cp-act ok" onclick="cpConfirmTicket()">✅ Ya, buat tiket</button><button class="cp-act" onclick="cpEditTicket()">✏️ Ubah / Sesuaikan</button><button class="cp-act" onclick="cpCancelTicket()">✖️ Batal</button></div>`;
+}
+function cpEditTicket(){
+ const d=gCpDraft; if(!d)return;
+ const cats=KATEGORI8.map(c=>`<option ${c===d.cat?'selected':''}>${cpEsc(c)}</option>`).join("");
+ const prios=["Low","Medium","High","Critical"].map(p=>`<option ${p===d.prio?'selected':''}>${p}</option>`).join("");
+ cpPush('bot',`✏️ <b>Silakan sesuaikan detail tiket:</b>
+  <div class="cp-edit">
+    <label>Judul<input class="cp-in" value="${cpEsc(d.title)}" oninput="if(gCpDraft)gCpDraft.title=this.value"/></label>
+    <label>Kategori<select class="cp-in" onchange="if(gCpDraft)gCpDraft.cat=this.value">${cats}</select></label>
+    <label>Lokasi<input class="cp-in" value="${cpEsc(d.loc)}" placeholder="Gedung / lantai / ruang" oninput="if(gCpDraft)gCpDraft.loc=this.value"/></label>
+    <label>Priority<select class="cp-in" onchange="if(gCpDraft)gCpDraft.prio=this.value">${prios}</select></label>
+  </div>
+  <div class="cp-actrow"><button class="cp-act ok" onclick="cpReviewEdited()">💾 Simpan & tinjau</button><button class="cp-act" onclick="cpCancelTicket()">✖️ Batal</button></div>`);
+}
+function cpReviewEdited(){
+ if(!gCpDraft)return;
+ gCpDraft.title=(gCpDraft.title||'').trim(); gCpDraft.loc=(gCpDraft.loc||'').trim()||'—';
+ if(!gCpDraft.title){ cpPush('bot','⚠️ Judul tidak boleh kosong — klik <b>Ubah / Sesuaikan</b> lagi untuk melengkapinya.'); return; }
+ cpPush('bot',cpDraftCard(gCpDraft,true));
 }
 async function cpConfirmTicket(){
  const d=gCpDraft; if(!d)return; gCpDraft=null;
