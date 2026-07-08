@@ -913,7 +913,15 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 [style*="border-left:4px solid var(--red)"]{animation:agAlertPulse 1.8s ease-in-out infinite}
 .badge.bd-crit,.pj-badge.warn,.kchip.bad{animation:agBadgePulse 1.6s ease-in-out infinite}
 .pj-odot{animation:agBadgePulse 1.4s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){.gc-alert,.pj-warn,.gc-ps.over,.kd-tile.bad,.insight.crit,.gc-stat.bad,.gc-perm-row.overdue,.cp-row.cpb,.gc-cell.conf.dbl,[style*="border-left:4px solid var(--red)"],.badge.bd-crit,.pj-badge.warn,.kchip.bad,.pj-odot{animation:none}}
+/* wipe merah menyapu kiri → kanan (scanning) di permukaan alert */
+@keyframes agSweep{0%{transform:translateX(-130%) skewX(-18deg)}55%,100%{transform:translateX(340%) skewX(-18deg)}}
+.gc-alert,.pj-warn,.gc-ps.over,.kd-tile.bad,.insight.crit,.gc-stat.bad,.gc-perm-row.overdue,.cp-row.cpb,[style*="border-left:4px solid var(--red)"]{position:relative;overflow:hidden}
+.gc-alert::after,.pj-warn::after,.gc-ps.over::after,.kd-tile.bad::after,.insight.crit::after,.gc-stat.bad::after,.gc-perm-row.overdue::after,.cp-row.cpb::after,[style*="border-left:4px solid var(--red)"]::after{
+  content:"";position:absolute;top:0;bottom:0;left:0;width:36%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(220,38,38,.13) 32%,rgba(220,38,38,.30) 50%,rgba(220,38,38,.13) 68%,transparent);
+  animation:agSweep 2.6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.gc-alert,.pj-warn,.gc-ps.over,.kd-tile.bad,.insight.crit,.gc-stat.bad,.gc-perm-row.overdue,.cp-row.cpb,.gc-cell.conf.dbl,[style*="border-left:4px solid var(--red)"],.badge.bd-crit,.pj-badge.warn,.kchip.bad,.pj-odot{animation:none}
+.gc-alert::after,.pj-warn::after,.gc-ps.over::after,.kd-tile.bad::after,.insight.crit::after,.gc-stat.bad::after,.gc-perm-row.overdue::after,.cp-row.cpb::after,[style*="border-left:4px solid var(--red)"]::after{animation:none;display:none}}
 
 /* ============ MOBILE RESPONSIVE — kompak & profesional di HP ============ */
 .mob-menu{display:none;background:transparent;border:none;color:var(--ink);font-size:22px;line-height:1;padding:2px 6px;cursor:pointer;flex:0 0 auto}
