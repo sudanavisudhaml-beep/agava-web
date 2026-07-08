@@ -839,6 +839,35 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .sec.collapsed .sec-body{display:none}
 .sec.collapsed .chev{transform:rotate(-90deg)}
 
+/* ===================== GLOBAL BUTTON STYLE — lift hover + frame gradasi ===================== */
+.btn-act,.btn-out,.icon-btn,.copilot-btn,.live-chip,.btn-mini,.cp-act,.gc-new,.gc-navbtn,.gc-todaybtn,.gc-mtab,.ptab,.gc-chip,.cp-chip,.gc-newitem,.pj-tab,.rb-chip{
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease,border-color .16s ease}
+.btn-act:hover:not(:disabled),.btn-out:hover:not(:disabled),.icon-btn:hover,.copilot-btn:hover,.live-chip:hover,
+.btn-mini:hover,.cp-act:hover,.gc-new:hover,.gc-navbtn:hover:not(:disabled),.gc-todaybtn:hover,.gc-mtab:hover,
+.ptab:hover,.gc-chip:hover,.cp-chip:hover,.gc-newitem:hover{
+  transform:translateY(-2px);box-shadow:0 8px 18px rgba(37,99,235,.16)}
+/* frame gradasi utk tombol putih/outline (dual-background: isi putih + border gradien) */
+.btn-out,.icon-btn,.gc-navbtn,.gc-todaybtn,.gc-mtab:not(.on),.cp-act:not(.ok),.btn-mini:not(.ok):not(.no){
+  border:1.5px solid transparent;
+  background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#9db9f0,#c3b2f2,#96dcc0) border-box}
+/* tombol primer → isi gradasi */
+.btn-act,.gc-new,.cp-act.ok{background:linear-gradient(135deg,var(--blue),#4f46e5);border:none;color:#fff}
+.btn-act:hover:not(:disabled),.gc-new:hover{filter:brightness(1.07)}
+
+/* ===================== GLOBAL ALERT STYLE — blinking gradasi merah ===================== */
+@keyframes agAlertPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.28);background-position:0% 50%}
+  50%{box-shadow:0 0 16px 4px rgba(220,38,38,.20);background-position:100% 50%}}
+@keyframes agBadgePulse{0%,100%{opacity:1}50%{opacity:.55}}
+.gc-alert,.pj-warn,.gc-ps.over,.kd-tile.bad,.insight.crit,.gc-stat.bad,.gc-perm-row.overdue,.cp-row.cpb{
+  background-image:linear-gradient(120deg,#fdecec,#fff6f6,#fdecec)!important;background-size:200% 200%!important;
+  border-color:#f0a8a8!important;animation:agAlertPulse 1.8s ease-in-out infinite}
+.gc-cell.conf.dbl{animation:agAlertPulse 1.8s ease-in-out infinite}
+[style*="border-left:4px solid var(--red)"]{animation:agAlertPulse 1.8s ease-in-out infinite}
+.badge.bd-crit,.pj-badge.warn,.kchip.bad{animation:agBadgePulse 1.6s ease-in-out infinite}
+.pj-odot{animation:agBadgePulse 1.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.gc-alert,.pj-warn,.gc-ps.over,.kd-tile.bad,.insight.crit,.gc-stat.bad,.gc-perm-row.overdue,.cp-row.cpb,.gc-cell.conf.dbl,[style*="border-left:4px solid var(--red)"],.badge.bd-crit,.pj-badge.warn,.kchip.bad,.pj-odot{animation:none}}
+
 /* ============ MOBILE RESPONSIVE — kompak & profesional di HP ============ */
 .mob-menu{display:none;background:transparent;border:none;color:var(--ink);font-size:22px;line-height:1;padding:2px 6px;cursor:pointer;flex:0 0 auto}
 #mobBackdrop{display:none}
