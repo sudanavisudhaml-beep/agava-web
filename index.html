@@ -1460,10 +1460,12 @@ function renderOverview(){
          <div class="box amber"><div class="v">9</div><div class="l">Pending</div></div>
          <div class="box red"><div class="v">2</div><div class="l">Overdue</div></div>
        </div></div>
-     <div><div class="panel-t">Budget Repair & Maintenance</div>
-       <div class="sl" style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span class="muted">Used · Rp 1.36 B of Rp 2.0 B</span><b style="color:var(--ink)">68%</b></div>
+     <div><div class="panel-t">Persentase Pemakaian Budget GA</div>
+       <div class="sl" style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px"><span class="muted">Budget <b style="color:var(--ink)">OPEX</b> GA</span><b style="color:var(--ink)">68%</b></div>
        <div class="bar"><i style="width:68%;background:var(--green)"></i></div>
-       <div style="font-size:12px;color:var(--muted);margin-top:9px">Remaining Rp 640 M · YTD on budget</div>
+       <div class="sl" style="display:flex;justify-content:space-between;font-size:12.5px;margin:14px 0 6px"><span class="muted">Budget <b style="color:var(--ink)">CAPEX</b> GA</span><b style="color:var(--ink)">54%</b></div>
+       <div class="bar"><i style="width:54%;background:#2563eb"></i></div>
+       <div style="font-size:12px;color:var(--muted);margin-top:9px">YTD on budget · pemakaian vs alokasi 2026</div>
      </div>
    </div></div>
  </div>
@@ -2876,7 +2878,7 @@ function copilotReply(q){
  if(/(vendor|housekeep|cleaning|bm)/.test(q)) return `Top vendor: <b>BSD Housekeeping 2.9 (Platinum)</b>. Lowest: <b>Bandung HK 2.1 (Silver)</b>. Scores are the avg of Housekeeping & BM per site (scale 0–3).`;
  if(/(stnk|pbb|permit|izin|reminder|expir|due)/.test(q)) return `<b>1 vehicle STNK overdue</b>, Lift SLO permit due in 4 days. In total <b>${activeNotifs().length+pendingApprovals().length} items</b> need action in <b>Reminder</b>.`;
  if(/(room|event|booking|meeting)/.test(q)) return `3 rooms in use now (Auditorium, R. William S., Executive Lounge). Upcoming: <b>Townhall Q2</b> (23 Jun) & <b>Leadership Forum</b> (26 Jun).`;
- if(/(payment|budget|bph|invoice)/.test(q)) return `Budget repair-maintenance: <b>68% used</b> (Rp 1.36 B of 2.0 B). <b>2 payment proofs overdue</b> — follow up with Finance.`;
+ if(/(payment|budget|bph|invoice)/.test(q)) return `Pemakaian budget GA: <b>OPEX 68%</b> · <b>CAPEX 54%</b> — YTD on budget. <b>2 payment proofs overdue</b> — follow up with Finance.`;
  return "I'm AGAVA Copilot (simulated for this mockup). I can summarize <b>SO, tickets, approvals, energy alerts, vendor performance, payments</b> and <b>reminders</b>. Once wired to live data + an AI model, I'll answer in real time. Try: \"how many SO are ongoing?\"";
 }
 const CP_AVA_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L12 5l8 15"/></svg>';
