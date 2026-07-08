@@ -839,6 +839,53 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .sec.collapsed .sec-body{display:none}
 .sec.collapsed .chev{transform:rotate(-90deg)}
 
+/* ===================== TODAY'S LOG & UPCOMING v2 — dramatis & catchy ===================== */
+.hl2{border-radius:18px;overflow:hidden;border:1.5px solid #d8e2f2;background:#fff;box-shadow:0 3px 14px rgba(20,40,80,.07)}
+.hl2-band{display:flex;align-items:center;gap:12px;padding:14px 18px;color:#fff}
+.hl2.t .hl2-band{background:linear-gradient(120deg,#1d4ed8,#2563eb 55%,#0e9f8f)}
+.hl2.u .hl2-band{background:linear-gradient(120deg,#6d28d9,#7a4fd0 55%,#2563eb)}
+.hl2-bic{font-size:19px;background:rgba(255,255,255,.18);width:38px;height:38px;border-radius:10px;display:grid;place-items:center;flex:0 0 38px}
+.hl2-bt h3{font-size:15px;letter-spacing:.12em;font-weight:800;margin:0;line-height:1.2}
+.hl2-bt small{font-size:11px;opacity:.85}
+.hl2-livechip,.hl2-cnt{margin-left:auto;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);padding:4px 12px;border-radius:16px;font-size:10.5px;font-weight:800;letter-spacing:.08em;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.hl2-livechip i{width:7px;height:7px;border-radius:50%;background:#5CE08A;box-shadow:0 0 8px #5CE08A;animation:agBadgePulse 1.4s infinite}
+.hl2-body{padding:16px 18px}
+.hl2-st{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:11px}
+.hl2-st span{font-weight:400;font-size:11px;color:var(--muted);margin-left:6px}
+.ev2-list{display:grid;gap:10px}
+.ev2{display:flex;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fbfcfe;transition:.15s}
+.ev2:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(37,99,235,.13);border-color:#bcd3f5}
+.ev2-time{flex:0 0 76px;background:linear-gradient(160deg,#eef4ff,#e5f4f0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-right:1px solid var(--line)}
+.ev2-time b{font-size:15px;color:var(--blue);font-weight:800}
+.ev2-live{background:#dc2626;color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:9px;display:flex;align-items:center;gap:4px;animation:agBadgePulse 1.5s infinite}
+.ev2-live i{width:5px;height:5px;background:#fff;border-radius:50%}
+.ev2-main{flex:1;padding:10px 14px;min-width:0}
+.ev2-room{font-weight:800;color:var(--ink);font-size:13.5px}
+.ev2-name{font-size:12.5px;color:var(--blue);font-weight:600;margin:2px 0 8px}
+.ev2-meta{display:flex;gap:7px;flex-wrap:wrap}
+.ev2-meta span{font-size:11px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:3px 10px;color:var(--muted)}
+.ev2-meta span.hot{color:#dc2626;border-color:#f2b8b8;background:#fdecec;font-weight:700}
+.hl2-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.hl2-tile{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fbfcfe}
+.hl2-tile.a-blue{border-top:3px solid #2563eb}.hl2-tile.a-green{border-top:3px solid #15a34a}.hl2-tile.a-amber{border-top:3px solid #eab308}
+.ht-h{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:7px}
+.up2{border:1px solid var(--line);border-left-width:4px;border-radius:14px;padding:13px 15px;margin-bottom:12px;background:#fbfcfe}
+.up2:last-child{margin-bottom:0}
+.up2.g-blue{border-left-color:#2563eb}.up2.g-vio{border-left-color:#7a4fd0}.up2.g-amb{border-left-color:#eab308}
+.up2-h{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.up2-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:17px;flex:0 0 36px}
+.up2-h b{font-size:13.5px;color:var(--ink)}
+.up2-h small{display:block;font-size:10.5px;color:var(--muted)}
+.up2-n{margin-left:auto;font-size:26px;font-weight:800;line-height:1}
+.up-item2{display:flex;align-items:center;gap:11px;padding:6px 0;border-top:1px dashed var(--line)}
+.up-date{flex:0 0 42px;height:42px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.up-date b{font-size:15px}.up-date small{font-size:9px;font-weight:700;text-transform:uppercase;opacity:.8}
+.up-t{font-size:12.5px;color:var(--ink);font-weight:500}
+.g-blue .up-date{background:#eef4ff;color:#2563eb}
+.g-vio .up-date{background:#f3eefe;color:#7a4fd0}
+.g-amb .up-date{background:#fdf3e3;color:#c2740a}
+@media(max-width:820px){.hl2-stats{grid-template-columns:1fr}.ev2-time{flex-basis:62px}.hl2-body{padding:12px 13px}}
+
 /* ===================== GLOBAL BUTTON STYLE — lift hover + frame gradasi ===================== */
 .btn-act,.btn-out,.icon-btn,.copilot-btn,.live-chip,.btn-mini,.cp-act,.gc-new,.gc-navbtn,.gc-todaybtn,.gc-mtab,.ptab,.gc-chip,.cp-chip,.gc-newitem,.pj-tab,.rb-chip{
   transition:transform .16s ease,box-shadow .16s ease,filter .16s ease,border-color .16s ease}
@@ -1933,56 +1980,48 @@ function renderOverview(){
  ${codecIncomeHTML()}
  ${codecTransportHTML()}
  ${ratingCard()}
- <div class="hl-headrow">
-   <div class="hl-tag">📋 TODAY'S LOG</div>
-   <div class="hl-tag up">🗓️ UPCOMING</div>
- </div>
  <div class="hl-grid">
-   <div class="card pad">
-     <div class="hl-sub">Today's activity · Thursday, 18 June 2026</div>
-     <div class="mini-panel" style="margin-bottom:14px">
-       <div class="mp-h">Live Events · by room</div>
-       <div class="evroom-note">Top 3 — most attendees, 07:00–12:00</div>
-       ${topEvents().slice(0,3).map(eventRow).join("")}
-       <a class="see-more" onclick="go('service')">+ ${Math.max(EVENTS.length-3,0)} more events · See More →</a>
-     </div>
-     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-       <div class="mini-panel"><div class="mp-h">Progress Project</div>
-         ${statLine("Ongoing","7","")}
-         ${statLine("Avg progress","42%","blue")}
-         ${statLine("Deviation","−8%","amber")}
-         <div class="mini-note">• Lab EHS — tender delayed<br>• 1C Rejuvenation — awaiting drawing approval</div>
-       </div>
-       <div class="mini-panel"><div class="mp-h">Supply Order</div>
-         ${statLine("Ongoing",SO_SUMMARY.berjalan,"blue")}
-         ${statLine("UPR",SO_SUMMARY.upr,"")}
-         ${statLine("SPK",SO_SUMMARY.spk,"green")}
-       </div>
-       <div class="mini-panel"><div class="mp-h">Ticket Service</div>
-         ${statLine("Ongoing",TIKET_SUMMARY.berjalan,"amber")}
-         ${statLine("Resolved",TIKET_SUMMARY.selesai,"green")}
-         <div class="mini-note">⏱️ Avg response time<br><b style="color:var(--ink);font-size:13px">${TIKET_SUMMARY.resp}</b></div>
+   <div class="hl2 t">
+     <div class="hl2-band"><span class="hl2-bic">📋</span><div class="hl2-bt"><h3>TODAY'S LOG</h3><small>Kamis, 18 Juni 2026 · aktivitas hari ini</small></div><span class="hl2-livechip"><i></i>LIVE</span></div>
+     <div class="hl2-body">
+       <div class="hl2-st">🎪 Live Events — by room <span>Top 3 peserta terbanyak · 07:00–12:00</span></div>
+       <div class="ev2-list">${topEvents().slice(0,3).map(eventRow).join("")}</div>
+       <a class="see-more" onclick="go('gacal')">+ ${Math.max(EVENTS.length-3,0)} more events · buka GA Calendar →</a>
+       <div class="hl2-st" style="margin-top:18px">⚡ Ringkasan Operasional</div>
+       <div class="hl2-stats">
+         <div class="hl2-tile a-blue"><div class="ht-h">🏗️ Progress Project</div>
+           ${statLine("Ongoing","7","")}
+           ${statLine("Avg progress","42%","blue")}
+           ${statLine("Deviation","−8%","amber")}
+         </div>
+         <div class="hl2-tile a-green"><div class="ht-h">🛒 Supply Order</div>
+           ${statLine("Ongoing",SO_SUMMARY.berjalan,"blue")}
+           ${statLine("UPR",SO_SUMMARY.upr,"")}
+           ${statLine("SPK",SO_SUMMARY.spk,"green")}
+         </div>
+         <div class="hl2-tile a-amber"><div class="ht-h">🎫 Ticket Service</div>
+           ${statLine("Ongoing",TIKET_SUMMARY.berjalan,"amber")}
+           ${statLine("Resolved",TIKET_SUMMARY.selesai,"green")}
+           ${statLine("Avg response",TIKET_SUMMARY.resp,"blue")}
+         </div>
        </div>
      </div>
    </div>
-   <div class="card pad">
-     <div class="hl-sub">Upcoming agenda</div>
-     <div class="ucol">
-       <div class="mini-panel"><div class="mp-h">Events — next 7 days</div>
-         <div class="up-count">4 <small>events</small></div>
+   <div class="hl2 u">
+     <div class="hl2-band"><span class="hl2-bic">🗓️</span><div class="hl2-bt"><h3>UPCOMING</h3><small>Agenda 7–30 hari ke depan</small></div><span class="hl2-cnt">12 agenda</span></div>
+     <div class="hl2-body">
+       <div class="up2 g-blue"><div class="up2-h"><span class="up2-ic" style="background:#eef4ff">🎤</span><div><b>Events</b><small>next 7 days</small></div><span class="up2-n" style="color:#2563eb">4</span></div>
          ${upItem("17 Jun","IR Talk Batch II · Auditorium")}
          ${upItem("17 Jun","Diversity for Leaders · R. William S.")}
          ${upItem("18 Jun","Sharing CFA · Auditorium")}
          ${upItem("19 Jun","PKAG · Auditorium")}
        </div>
-       <div class="mini-panel"><div class="mp-h">Renovation — next 30 days</div>
-         <div class="up-count">3 <small>scheduled</small></div>
+       <div class="up2 g-vio"><div class="up2-h"><span class="up2-ic" style="background:#f3eefe">🏗️</span><div><b>Renovation</b><small>next 30 days</small></div><span class="up2-n" style="color:#7a4fd0">3</span></div>
          ${upItem("24 Jun","Auditorium Renovation — start")}
          ${upItem("28 Jun","Corridor & Toilet 8A — next phase")}
          ${upItem("05 Jul","1C Rejuvenation — phase 2")}
        </div>
-       <div class="mini-panel"><div class="mp-h">Maintenance — next 30 days</div>
-         <div class="up-count">5 <small>scheduled</small></div>
+       <div class="up2 g-amb"><div class="up2-h"><span class="up2-ic" style="background:#fdf3e3">🔧</span><div><b>Maintenance</b><small>next 30 days</small></div><span class="up2-n" style="color:#c2740a">5</span></div>
          ${upItem("20 Jun","AC service — all buildings")}
          ${upItem("23 Jun","Genset monthly test — AMDI")}
          ${upItem("26 Jun","Fire system check — ABC BSD")}
@@ -2113,7 +2152,7 @@ function renderOverview(){
  });
 }
 function statLine(lab,n,c){return `<div class="stat-line"><span class="lab">${lab}</span><span class="n ${c}">${n}</span></div>`;}
-function upItem(d,t){return `<div class="up-item"><span class="ud">${d}</span><span class="un">${t}</span></div>`;}
+function upItem(d,t){const p=d.split(' ');return `<div class="up-item2"><span class="up-date"><b>${p[0]}</b><small>${p[1]||''}</small></span><span class="up-t">${t}</span></div>`;}
 const EVENTS=[
  {room:"Auditorium",ev:"IR Talk Batch II · Running",start:"08:00",pax:180,temp:23.5,hot:false,sr:"Catering: Sajian Nusantara"},
  {room:"R. William Soeryadjaja",ev:"Diversity for Leaders",start:"09:30",pax:60,temp:24.1,hot:false,sr:"Catering: Dapur Astra"},
@@ -2124,10 +2163,15 @@ const EVENTS=[
 // anchor = ruangan; top 3 by peserta dalam jendela 07.00–12.00 (5 jam sejak 07.00)
 function topEvents(){ return EVENTS.filter(e=>{const h=parseInt(e.start,10);return h>=7&&h<12;}).sort((a,b)=>b.pax-a.pax); }
 function eventRow(e){
- return `<div class="evroom">
-   <div class="evroom-top"><span class="evroom-room">📍 ${e.room}</span><span class="evroom-time">🕐 ${e.start}</span></div>
-   <div class="evroom-ev">${e.ev}</div>
-   <div class="evroom-meta"><span class="${e.hot?'hot':''}">🌡️ ${e.temp}°C</span><span>👥 ${e.pax} pax</span><span>🍽️ ${e.sr}</span></div>
+ const running=/·\s*Running/i.test(e.ev);
+ const evName=e.ev.replace(/\s*·\s*Running/i,'');
+ return `<div class="ev2">
+   <div class="ev2-time"><b>${e.start}</b>${running?'<span class="ev2-live"><i></i>LIVE</span>':''}</div>
+   <div class="ev2-main">
+     <div class="ev2-room">📍 ${e.room}</div>
+     <div class="ev2-name">${evName}</div>
+     <div class="ev2-meta"><span class="${e.hot?'hot':''}">🌡️ ${e.temp}°C</span><span>👥 ${e.pax} pax</span><span>🍽️ ${e.sr}</span></div>
+   </div>
  </div>`;
 }
 function agenda(d,t,s,tg){return `<div class="row-item"><div class="date">${d}</div><div class="ti"><b>${t}</b><span>${s}</span></div><div class="st"><span class="tag ${tg[0]}">${tg[1]}</span></div></div>`;}
