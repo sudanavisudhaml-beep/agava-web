@@ -435,6 +435,48 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .tr-stat{background:#f6f8fb;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--muted)}
 .pay-grp{margin-top:14px}
 .pay-grp-h{font-size:13px;font-weight:600;color:var(--ink);background:#f3f6fa;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+/* CODEC DECK v2 — hero & breakdown (tema gelap ala mockup) */
+.cd-hero{background:linear-gradient(135deg,#0b1830,#0e2140 55%,#0b2a38);border:1px solid #17325c;border-radius:16px;padding:18px 20px;margin-bottom:14px}
+.cd-hero-t{color:#5ea4ff;font-weight:800;font-size:15px;margin-bottom:12px}
+.cd-hero-t span{color:#7f93b4;font-weight:600;font-size:12px}
+.cd-hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cd-big{background:rgba(13,30,58,.75);border:1px solid #1b3a66;border-radius:13px;padding:14px;text-align:center}
+.cd-big .v{font-size:30px;font-weight:800;letter-spacing:-.01em}
+.cd-big .l{font-size:11.5px;color:#8ea3c4;margin-top:3px}
+.cd-chip{display:inline-block;margin-top:7px;font-size:10.5px;font-weight:700;padding:3px 10px;border-radius:11px;background:#14304f;color:#9fc1ea}
+.cd-chip.up{background:#0f3b2e;color:#4be3a0}
+.cd-wrap2{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-bottom:18px}
+.cd-panel{background:#0d1b33;border:1px solid #17325c;border-radius:16px;padding:16px 18px}
+.cd-panel-t{color:#8ea3c4;font-size:11px;font-weight:800;letter-spacing:.12em;margin-bottom:10px}
+.cd-row{padding:9px 0;border-bottom:1px solid #14264a}.cd-row:last-child{border-bottom:none;padding-bottom:2px}
+.cd-row-h{display:flex;align-items:center;gap:8px}
+.cd-row-h b{color:#e8eefb;font-size:13px;flex:1}
+.cd-ic{font-size:15px}
+.cd-pct{font-weight:800;font-size:14px}
+.cd-pct.ok{color:#4be3a0}.cd-pct.warn{color:#ffcf6b}.cd-pct.bad{color:#ff6b81}
+.cd-bar{position:relative;height:7px;border-radius:5px;background:#14264a;margin:7px 0 5px}
+.cd-bar i{display:block;height:100%;border-radius:5px}
+.cd-bar i.ok{background:linear-gradient(90deg,#19b789,#4be3a0)}
+.cd-bar i.warn{background:linear-gradient(90deg,#d99a2b,#ffcf6b)}
+.cd-bar i.bad{background:linear-gradient(90deg,#d64560,#ff6b81)}
+.cd-bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:#8ea3c4;border-radius:2px}
+.cd-sub{font-size:10.5px;color:#54688c}.cd-sub span{color:#8ea3c4}
+.cd-side{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:start}
+.cd-side .cd-panel-t{grid-column:1/-1;margin-bottom:0}
+.cd-mini{background:#0d1b33;border:1px solid #17325c;border-radius:13px;padding:12px}
+.cd-mini .t{font-size:9.5px;font-weight:800;letter-spacing:.1em;color:#8ea3c4}
+.cd-mini .v{font-size:25px;font-weight:800;margin-top:4px;display:inline-block}
+.cd-tag{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:9px;margin-left:6px;vertical-align:2px}
+.cd-mini .d{font-size:10.5px;color:#54688c;margin-top:4px}
+@media(max-width:820px){
+ .cd-hero{padding:13px 14px}
+ .cd-hero-grid{grid-template-columns:repeat(3,1fr);gap:7px}
+ .cd-big{padding:9px 6px}.cd-big .v{font-size:19px}.cd-big .l{font-size:9px}.cd-chip{font-size:8.5px;padding:2px 7px}
+ .cd-wrap2{grid-template-columns:1fr;gap:10px}
+ .cd-panel{padding:12px 13px}
+ .cd-side{grid-template-columns:1fr 1fr}
+ .cd-mini .v{font-size:20px}
+}
 /* CODEC — KPI GA Dept */
 .kpi-dept{margin-bottom:18px}
 .kd-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px}
@@ -1166,6 +1208,79 @@ function codecProjectsHTML(){
   </div>`).join("")}
  </div>`;
 }
+/* ===== CODEC DECK v2 — Highlight KPI GA Dept + Breakdown per Sub-Function =====
+   Mengikuti mockup "CODEC DECK CONCEPT": hero gelap (highlight pencapaian) +
+   breakdown 6 sub-function (bar vs target) + kartu Progress Bulanan.
+   SEMUA angka DERIVED live dari data modul — derive don't duplicate. */
+const CODEC_SUBFN=[
+ {ic:"🔧",name:"General Facilities Management",kpi:"Building Maintenance KPI",target:90},
+ {ic:"🛎️",name:"General Services Management",kpi:"Service Rating & Hospitality KPI",target:85},
+ {ic:"📋",name:"General Administration",kpi:"Payment & Asset Management KPI",target:85},
+ {ic:"🏗️",name:"Project & System Development",kpi:"Project KPI",target:90},
+ {ic:"🤝",name:"External Relation",kpi:"Perizinan & Stakeholder KPI",target:90},
+ {ic:"🌿",name:"Environment Health & Safety",kpi:"Energy & Safety KPI (ERSUS)",target:90}
+];
+function codecSubFnData(){
+ const resp=TICKETS.map(t=>parseInt(t.resp)).filter(n=>!isNaN(n));
+ const gfm=resp.length?Math.round(resp.filter(n=>n<=15).length/resp.length*100):100;
+ const gsm=Math.round(parseFloat(gaServiceRating().score)/5*100);
+ const rel=SO.filter(s=>s.invReleased), relOk=rel.filter(s=>!invRelEst(s)||(s.invReleaseDate&&s.invReleaseDate<=invRelEst(s))).length;
+ const late=SO.filter(s=>invReleaseOverdue(s)).length, den=rel.length+late;
+ const adm=den?Math.round(relOk/den*100):100;
+ const blocked=CODEC_PROJECTS.filter(p=>p.st==="blocked").length;
+ const psd=CODEC_PROJECTS.length?Math.round((CODEC_PROJECTS.length-blocked)/CODEC_PROJECTS.length*100):100;
+ const ext=IZIN.length?Math.round(IZIN.filter(z=>z.due>=TODAY_STR).length/IZIN.length*100):100;
+ const avg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, avg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length;
+ const red=Math.round((1-avg26/avg19)*1000)/10;
+ const ehs=Math.min(100,Math.round(red/10*100));
+ const vals=[gfm,gsm,adm,psd,ext,ehs];
+ const notes=["SLA respons tiket ≤15 mnt · dari modul Service",
+   "rating layanan "+gaServiceRating().score+"/5 · dari modul Service",
+   (late?late+" payment lewat estimasi · dari Payment Tracker":"payment on-time · dari Payment Tracker"),
+   (blocked?blocked+" project blocked · dari Project Board":"semua project berjalan · dari Project Board"),
+   "izin & sertifikat aktif · dari modul HSE",
+   "efisiensi energi −"+red+"% vs 2019 · dari ERSUS"];
+ return CODEC_SUBFN.map((f,i)=>({...f,ach:vals[i],note:notes[i],st:vals[i]>=f.target?"ok":vals[i]>=f.target-15?"warn":"bad"}));
+}
+function codecMonthID(){ const m=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"]; const d=new Date(TODAY_STR+"T00:00:00"); return m[d.getMonth()]+" "+d.getFullYear(); }
+function codecHeroHTML(){
+ const S=codecSubFnData();
+ const avg=Math.round(S.reduce((a,x)=>a+x.ach,0)/S.length);
+ const hit=S.filter(x=>x.ach>=x.target).length;
+ const kOk=kpiDeptData().filter(k=>k.st==="ok").length;
+ return `<div class="cd-hero">
+   <div class="cd-hero-t">Highlight Pencapaian KPI GA Dept <span>— ${codecMonthID()} · derive live dari seluruh modul AGAVA</span></div>
+   <div class="cd-hero-grid">
+     <div class="cd-big"><div class="v" style="color:#39e0c8">${avg}%</div><div class="l">Avg. KPI Achievement</div><span class="cd-chip up">▲ rata-rata 6 sub-function</span></div>
+     <div class="cd-big"><div class="v" style="color:#b18cff">${hit}/6</div><div class="l">Sub-Function capai target</div><span class="cd-chip ${hit>=5?'up':''}">${hit>=5?"Excellent":hit>=4?"Good":"Perlu Perhatian"}</span></div>
+     <div class="cd-big"><div class="v" style="color:#6ea8ff">${kOk}/8</div><div class="l">KPI modul on-target</div><span class="cd-chip">single source of truth</span></div>
+   </div></div>`;
+}
+function codecBreakdownHTML(){
+ const S=codecSubFnData();
+ const rows=S.map(f=>`<div class="cd-row">
+   <div class="cd-row-h"><span class="cd-ic">${f.ic}</span><b>${f.name}</b><span class="cd-pct ${f.st}">${f.ach}%</span></div>
+   <div class="cd-bar"><i class="${f.st}" style="width:${Math.min(f.ach,100)}%"></i><em style="left:${f.target}%"></em></div>
+   <div class="cd-sub">Target: ${f.target}% | ${f.kpi} · <span>${f.note}</span></div>
+ </div>`).join("");
+ const prj=CODEC_PROJECTS.length, prjAvg=Math.round(CODEC_PROJECTS.reduce((a,p)=>a+p.prog,0)/Math.max(prj,1));
+ const closed=TICKETS.filter(t=>t.stg===4).length, toProc=TICKETS.filter(t=>t.stg===3).length;
+ const pipe=SO.filter(s=>s.invReceived&&!s.invReleased).length, relN=SO.filter(s=>s.invReleased).length;
+ const avg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, avg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length;
+ const red=Math.round((1-avg26/avg19)*1000)/10;
+ return `<div class="cd-wrap2">
+  <div class="cd-panel">
+    <div class="cd-panel-t">KPI ACHIEVEMENT PER SUB-FUNCTION</div>
+    ${rows}
+  </div>
+  <div class="cd-side">
+    <div class="cd-panel-t">PROGRESS BULANAN</div>
+    <div class="cd-mini"><div class="t">PROJECT PLAN & ACTUAL</div><div class="v" style="color:#39e0c8">${prj}</div><span class="cd-tag" style="background:#123f33;color:#4be3a0">avg ${prjAvg}%</span><div class="d">${CODEC_PROJECTS.filter(p=>p.st==='ok').length} on-track · ${CODEC_PROJECTS.filter(p=>p.st==='blocked').length} blocked</div></div>
+    <div class="cd-mini"><div class="t">TIKET SELESAI</div><div class="v" style="color:#ff6b81">${closed}</div><span class="cd-tag" style="background:#3f1230;color:#ff8aa8">dari ${TICKETS.length}</span><div class="d">+${toProc} lanjut ke procurement</div></div>
+    <div class="cd-mini"><div class="t">PAYMENT PROGRESS</div><div class="v" style="color:#ffb84d">${pipe}</div><span class="cd-tag" style="background:#3f2a12;color:#ffcf87">pipeline aktif</span><div class="d">${relN} released · dari Payment Tracker</div></div>
+    <div class="cd-mini"><div class="t">KONSUMSI ENERGI</div><div class="v" style="color:#6ea8ff">−${red}%</div><span class="cd-tag" style="background:#12283f;color:#8ec2ff">${ENERGY_MONTHS[ENERGY_MONTHS.length-1]} 2026</span><div class="d">vs baseline 2019 · dari ERSUS</div></div>
+  </div></div>`;
+}
 function renderOverview(){
  const el=document.getElementById("page-overview");
  if(isEndUser()){
@@ -1178,7 +1293,8 @@ function renderOverview(){
    return;
  }
  el.innerHTML=`
- ${kpiDeptHTML()}
+ ${codecHeroHTML()}
+ ${codecBreakdownHTML()}
  ${codecProjectsHTML()}
  ${ratingCard()}
  <div class="hl-headrow">
