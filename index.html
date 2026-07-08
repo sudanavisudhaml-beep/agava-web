@@ -461,6 +461,10 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .cd-bar i.bad{background:linear-gradient(90deg,#d64560,#ff6b81)}
 .cd-bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:#8ea3c4;border-radius:2px}
 .cd-sub{font-size:10.5px;color:#54688c}.cd-sub span{color:#8ea3c4}
+.cd-row.cd-click{cursor:pointer;border-radius:9px;margin:0 -8px;padding-left:8px;padding-right:8px;transition:background .15s}
+.cd-row.cd-click:hover{background:#12234a}
+.cd-go{color:#54688c;font-size:16px;font-weight:800;margin-right:2px}
+.cd-row.cd-click:hover .cd-go{color:#8ec2ff}
 .cd-side{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-content:start}
 .cd-side .cd-panel-t{grid-column:1/-1;margin-bottom:0}
 .cd-mini{background:#0d1b33;border:1px solid #17325c;border-radius:13px;padding:12px}
@@ -1183,13 +1187,13 @@ const CODEC_PROJECTS=[
  {name:"Smart meter air — 3 gedung",sec:"EN",pic:"Stevano",prog:70,plan:70,due:"Agu 2026",st:"ok",need:"BU",note:"Jadwal shutdown instalasi dikoordinasikan BU"}
 ];
 /* Data P2K3L (modul HSE) — AGC · MKA · Safety Golden Rules; nanti ditarik dari flow HSE */
-const HSE_P2K3L={ agc:{score:84,target:80,label:"AGC (Astra Green Company)"}, mka:{score:92,target:95,label:"MKA"}, sgr:{score:97,target:100,label:"Safety Golden Rules"} };
+const HSE_P2K3L={ agc:{score:92,target:90,label:"AGC (Astra Green Company)"}, mka:{score:88,target:90,label:"MKA (Mandatory Key Action)"}, sgr:{score:95,target:100,label:"Safety Golden Rules"} };  /* selaras dgn kotak compliance HSE di CODEC */
 function codecSecChip(k){ const s=CODEC_SECTIONS[k]; return s?`<span class="cp-sec" style="background:${s.bg};color:${s.c}">${s.n}</span>`:''; }
 function codecProjectsHTML(){
  const blocked=CODEC_PROJECTS.filter(p=>p.st==="blocked").length;
  const waiting=CODEC_PROJECTS.filter(p=>p.need).length;
  const stChip=(st)=> st==="ok"?'<span class="kchip ok">🟢 On Track</span>':st==="warn"?'<span class="kchip warn">🟡 At Risk</span>':'<span class="kchip bad">🔴 Blocked</span>';
- return `<div class="card pad kpi-dept">
+ return `<div class="card pad kpi-dept" id="codec-board">
   <div class="kd-head">
     <div class="panel-t" style="margin:0">🤝 Project Progress — Papan Kolaborasi Lintas Section <span style="font-weight:400;color:var(--muted);font-size:12.5px">— semua section, satu papan · dependensi terlihat semua orang</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -1215,13 +1219,18 @@ function codecProjectsHTML(){
    breakdown 6 sub-function (bar vs target) + kartu Progress Bulanan.
    SEMUA angka DERIVED live dari data modul — derive don't duplicate. */
 const CODEC_SUBFN=[
- {ic:"🔧",name:"General Facilities Management",kpi:"Energy KPI — GRK · Water · REM · Waste",target:90},
- {ic:"🛎️",name:"General Services Management",kpi:"Vendor Assessment per Site",target:85},
- {ic:"📋",name:"General Administration",kpi:"Payment & Asset Management KPI",target:85},
- {ic:"🏗️",name:"Project & System Development",kpi:"Plan vs Actual — Project & System Dev",target:90},
- {ic:"🤝",name:"External Relation",kpi:"Perizinan KPI",target:90},
- {ic:"🌿",name:"Environment Health & Safety (P2K3L)",kpi:"AGC · MKA · Safety Golden Rules",target:90}
+ {ic:"🔧",name:"General Facilities Management",kpi:"Energy KPI — GRK · Water · REM · Waste",target:90,nav:"energy"},
+ {ic:"🛎️",name:"General Services Management",kpi:"Vendor Assessment per Site",target:85,nav:"service"},
+ {ic:"📋",name:"General Administration",kpi:"Payment & Asset Management KPI",target:85,nav:"payment"},
+ {ic:"🏗️",name:"Project & System Development",kpi:"Plan vs Actual — Project & System Dev",target:90,nav:"board"},
+ {ic:"🤝",name:"External Relation",kpi:"Perizinan KPI",target:90,nav:"hse"},
+ {ic:"🌿",name:"Environment Health & Safety (P2K3L)",kpi:"AGC · MKA · Safety Golden Rules",target:90,nav:"hse"}
 ];
+/* Klik bar sub-function → langsung ke modul sumbernya (board = scroll ke Papan Kolaborasi) */
+function codecGoSub(nav){
+ if(nav==="board"){ const el=document.getElementById("codec-board"); if(el)el.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+ go(nav);
+}
 function codecSubFnData(){
  const avgA=a=>a.reduce((x,y)=>x+y,0)/a.length;
  // 1. GFM ← modul ENERGY: rekap pencapaian GRK, Water, REM, Waste (attainment vs target masing-masing)
@@ -1278,8 +1287,8 @@ function codecHeroHTML(){
 }
 function codecBreakdownHTML(){
  const S=codecSubFnData();
- const rows=S.map(f=>`<div class="cd-row">
-   <div class="cd-row-h"><span class="cd-ic">${f.ic}</span><b>${f.name}</b><span class="cd-pct ${f.st}">${f.ach}%</span></div>
+ const rows=S.map(f=>`<div class="cd-row cd-click" onclick="codecGoSub('${f.nav}')" title="Buka modul terkait">
+   <div class="cd-row-h"><span class="cd-ic">${f.ic}</span><b>${f.name}</b><span class="cd-go">›</span><span class="cd-pct ${f.st}">${f.ach}%</span></div>
    <div class="cd-bar"><i class="${f.st}" style="width:${Math.min(f.ach,100)}%"></i><em style="left:${f.target}%"></em></div>
    <div class="cd-sub">Target: ${f.target}% | ${f.kpi} · <span>${f.note}</span></div>
  </div>`).join("");
@@ -1457,11 +1466,6 @@ function renderOverview(){
        <div style="font-size:12px;color:var(--muted);margin-top:9px">Remaining Rp 640 M · YTD on budget</div>
      </div>
    </div></div>
- </div>
-
- <div class="card sec">
-   <div class="sec-h">${secIc('#e1f5ee','#0f6e56','energy')}<div><h2>Energy & Sustainability</h2><div class="d">GRK · Water · Renewable · Waste — progress vs 2026 target</div></div></div>
-   <div class="sec-body">${esgScorecard()}</div>
  </div>
 
  <div class="card sec">
@@ -1971,6 +1975,10 @@ function renderService(){
     <div style="padding:16px 16px 14px;display:flex;gap:8px;flex-wrap:wrap">${pills.map(p=>`<div class="ptab ${svcFilter===p[0]?'on':''}" onclick="svcFilter='${p[0]}';renderService()">${p[1]} <b style="opacity:.7">${p[2]}</b></div>`).join("")}</div>
     <div class="svc-head"><span></span><span>Ticket</span><span style="text-align:center">Response</span><span>PIC</span><span>Status</span></div>
     <div class="svc-list">${list.length?list.map(ticketRow).join(""):'<div class="muted small" style="padding:30px;text-align:center">No tickets in this filter.</div>'}</div>
+  </div>
+  <div class="card sec" id="svc-energy" style="margin-top:18px">
+    <div class="sec-h">${secIc('#e1f5ee','#0f6e56','energy')}<div><h2>Energy & Sustainability</h2><div class="d">GRK · Water · Renewable · Waste — progress vs 2026 target</div></div></div>
+    <div class="sec-body">${esgScorecard()}</div>
   </div>`;
 }
 let ticketSeq=143;
