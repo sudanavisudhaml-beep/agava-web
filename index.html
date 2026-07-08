@@ -475,6 +475,43 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .gc-ev{font-size:10px;padding:2px 6px;border-radius:5px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid;font-weight:600}
 .gc-more{font-size:9px;color:var(--muted);padding:1px 5px;cursor:pointer}
 .gc-more:hover{color:var(--blue)}
+/* GA Calendar — Outlook-style toolbar */
+.gc-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:2px 0 14px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.gc-newwrap{position:relative}
+.gc-new{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--ff);display:flex;align-items:center;gap:5px;box-shadow:0 1px 3px rgba(37,99,235,.3)}
+.gc-new:hover{filter:brightness(1.06)}
+.gc-newmenu{display:none;position:absolute;top:calc(100% + 5px);left:0;z-index:30;background:#fff;border:1px solid var(--line);border-radius:11px;box-shadow:0 12px 34px rgba(15,40,80,.18);padding:6px;min-width:230px}
+.gc-newmenu.open{display:block}
+.gc-newitem{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer}
+.gc-newitem:hover{background:var(--blue-s)}
+.gc-newitem small{display:block;font-size:10px;color:var(--muted);font-weight:400}
+.gc-newsep{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:9px 11px 4px;border-top:1px solid var(--line);margin-top:4px}
+.gc-navbtn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;font-size:18px;line-height:1}
+.gc-navbtn:disabled{opacity:.35;cursor:default}
+.gc-todaybtn{height:34px;padding:0 13px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;font-size:12.5px;font-weight:600}
+.gc-todaybtn:hover,.gc-navbtn:hover{border-color:var(--line2,#c2cdda)}
+.gc-toolbar .gc-m{font-size:17px;font-weight:800;color:var(--ink)}
+.gc-toolbar .gc-m small{font-size:12px;color:var(--muted);font-weight:500;margin-left:5px}
+.gc-viewseg{margin-left:auto;display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.gc-viewseg button{border:none;background:#fff;color:var(--muted);font-size:12.5px;padding:8px 15px;cursor:pointer;font-family:var(--ff)}
+.gc-viewseg button.on{background:var(--blue-s);color:var(--blue);font-weight:600}
+/* GA Calendar — Izin operasional */
+.gc-permits{background:#fbfcfe;border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:14px}
+.gc-perm-h{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:11px}
+.gc-perm-h span{font-weight:400;font-size:11.5px;color:var(--muted)}
+.gc-perm-stat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.gc-ps{border-radius:10px;padding:11px 13px;border:1px solid var(--line)}
+.gc-ps b{display:block;font-size:23px;font-weight:800;line-height:1}
+.gc-ps span{font-size:10.5px;color:var(--muted)}
+.gc-ps.ok{background:#eafaf0;border-color:#bfe6cd}.gc-ps.ok b{color:#15803d}
+.gc-ps.near{background:#fef6e6;border-color:#f3dca4}.gc-ps.near b{color:#b45309}
+.gc-ps.over{background:#fdecec;border-color:#f2c2c2}.gc-ps.over b{color:#dc2626}
+.gc-perm-list{display:grid;gap:5px}
+.gc-perm-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;padding:6px 10px;border-radius:8px;background:#fff;border:1px solid var(--line)}
+.gc-perm-row.near{border-left:3px solid #eab308}.gc-perm-row.overdue{border-left:3px solid #dc2626}
+.gc-pn{color:var(--ink);font-weight:600}.gc-pn small{color:var(--muted);font-weight:400}
+.gc-pd{color:var(--muted);white-space:nowrap;font-size:11px}
+@media(max-width:820px){.gc-perm-stat{grid-template-columns:1fr}.gc-viewseg{margin-left:0}.gc-toolbar .gc-m{font-size:15px}}
 @media(max-width:820px){.gc-top{grid-template-columns:1fr 1fr}.gc-grid{gap:3px}.gc-cell{min-height:70px;padding:4px}.gc-ev{font-size:8.5px}.gc-dow{font-size:8px}}
 /* PROJECT DEVELOPMENT — Gantt timeline (dark shell) */
 .pj-shell{background:#10162a;border-radius:14px;color:#eaf0ff;overflow:hidden;border:1px solid #222e4a}
@@ -1483,10 +1520,31 @@ const GACAL_TYPES={
  'room':{label:'Booking Ruang Meeting',color:'#2563eb',ic:'▦'},
  'proj-start':{label:'Project Mulai',color:'#7a4fd0',ic:'▶'},
  'proj-end':{label:'Project Selesai',color:'#15a34a',ic:'✓'},
+ 'maint':{label:'Maintenance / Izin',color:'#c2740a',ic:'🔧'},
  'ticket':{label:'Tiket Masuk',color:'#dc2626',ic:'⚠'}
 };
 /* lokasi event → project renovasi yang menaunginya (Auditorium & Lt.8) */
 const GACAL_LOCPROJ={ 'Auditorium':'G.  RENOVASI AUDITORIUM', 'Exlounge':'E.  RENOVASI KORIDOR & TOILET 8A' };
+/* Izin operasional (jatuh tempo → status) */
+const IZIN_OPS=[
+ {name:"Izin K3 Sistem Kebakaran (Hydrant & Fire Alarm)",site:"AMDI",due:"2026-08-15"},
+ {name:"Izin Operasional Lift (SLO)",site:"AMDI",due:"2026-06-22"},
+ {name:"Izin Operasional Genset (SLO)",site:"AMDI",due:"2026-09-01"},
+ {name:"Izin Instalasi Listrik (SLO TM/TR)",site:"AMDI",due:"2026-10-10"},
+ {name:"Izin Penangkal Petir",site:"AMDI",due:"2026-07-30"},
+ {name:"Izin Bejana Tekan / Kompresor Angin",site:"AMDI",due:"2026-11-05"},
+ {name:"Izin TPS Limbah B3",site:"AMDI",due:"2026-06-25"},
+ {name:"Sertifikat Laik Fungsi (SLF) Gedung",site:"AMDI",due:"2027-05-01"},
+ {name:"Izin Operasional Eskalator",site:"MA",due:"2026-08-20"},
+ {name:"Izin Operasional Boiler",site:"MA",due:"2026-06-10"},
+ {name:"Izin K3 Proteksi Kebakaran",site:"ABC BSD",due:"2026-12-15"},
+ {name:"Izin Lingkungan (UKL-UPL)",site:"AMDI",due:"2027-02-01"}
+];
+function izinStatus(due){ const d=Math.floor((new Date(due)-new Date(TODAY_STR))/86400000); return d<0?{k:'overdue',d}:d<=90?{k:'near',d}:{k:'ok',d}; }
+/* Ruang meeting utk "Acara Baru → Meeting" (tersambung ke Room Booking) */
+const MEETING_ROOMS=["Mahoni","Ebony","Trembesi","Akasia","Angsana","Auditorium","Executive Lounge","R. William Soeryadjaja","Meeting Room 6B","Training Room 2"];
+/* Agenda buatan user (Acara Baru) — ikut tampil di kalender & deteksi benturan */
+let GACAL_CUSTOM=[];
 let gacalMonth=5;  /* diinit ke bulan TODAY_STR saat renderGACal pertama (hindari TDZ di top-level) */
 let gacalMonthInit=false;
 let gacalFilters={'resv':true,'room':true,'proj-start':true,'proj-end':true,'ticket':true};
@@ -1496,6 +1554,8 @@ function gacalEvents(){
  (typeof ROOM_BOOKINGS!=='undefined'?ROOM_BOOKINGS:[]).forEach((b,i)=>{ if(b.date)evs.push({date:b.date,type:'room',loc:b.room,title:b.event,sub:b.room+' · '+b.start+'–'+b.end,status:b.status,src:'ROOM',idx:i}); });
  (typeof PJ_P!=='undefined'?PJ_P:[]).forEach((a,i)=>{ evs.push({date:a.s,type:'proj-start',loc:a.p,title:pjShort(a.p)+' — '+a.a,sub:'Mulai fase',src:'PJ_P',idx:i}); evs.push({date:a.e,type:'proj-end',loc:a.p,title:pjShort(a.p)+' — '+a.a,sub:'Selesai fase',src:'PJ_P',idx:i}); });
  (typeof TICKETS!=='undefined'?TICKETS:[]).forEach((t,i)=>{ if(t.created)evs.push({date:t.created,type:'ticket',loc:t.lokasi,title:t.judul,sub:(t.cat||'')+' · '+(t.lokasi||''),status:t.status,src:'TICKET',idx:i}); });
+ IZIN_OPS.forEach((z,i)=>{ evs.push({date:z.due,type:'maint',loc:z.site,title:'Izin: '+z.name,sub:'Jatuh tempo izin · '+z.site,status:izinStatus(z.due).k,src:'IZIN',idx:i}); });
+ GACAL_CUSTOM.forEach((e,i)=>evs.push({...e,idx:i}));
  return evs;
 }
 function gacalConflicts(){
@@ -1511,9 +1571,61 @@ function gacalConflicts(){
 function gacalSetMonth(delta){ gacalMonth=Math.max(0,Math.min(11,gacalMonth+delta)); renderGACal(); }
 function gacalToday(){ gacalMonth=+TODAY_STR.split('-')[1]-1; renderGACal(); }
 function gacalToggle(k){ gacalFilters[k]=!gacalFilters[k]; renderGACal(); }
+function gacalPermitsHTML(){
+ const ok=IZIN_OPS.filter(z=>izinStatus(z.due).k==='ok').length;
+ const near=IZIN_OPS.filter(z=>izinStatus(z.due).k==='near');
+ const over=IZIN_OPS.filter(z=>izinStatus(z.due).k==='overdue');
+ const watch=over.concat(near).sort((a,b)=>a.due.localeCompare(b.due));
+ return `<div class="gc-permits">
+   <div class="gc-perm-h">📄 Izin Operasional <span>K3 kebakaran · Lift · Genset · Listrik · dll · ${IZIN_OPS.length} izin</span></div>
+   <div class="gc-perm-stat">
+     <div class="gc-ps ok"><b>${ok}</b><span>✅ Done / Aktif</span></div>
+     <div class="gc-ps near"><b>${near.length}</b><span>🟠 Near overdue (≤90 hari)</span></div>
+     <div class="gc-ps over"><b>${over.length}</b><span>🔴 Overdue</span></div>
+   </div>
+   ${watch.length?`<div class="gc-perm-list">${watch.slice(0,6).map(z=>{const s=izinStatus(z.due);return `<div class="gc-perm-row ${s.k}"><span class="gc-pn">${esc(z.name)} <small>· ${z.site}</small></span><span class="gc-pd">${fmtDay(z.due)} · ${s.k==='overdue'?('lewat '+Math.abs(s.d)+'h'):(s.d+' hari lagi')}</span></div>`;}).join('')}</div>`:''}
+ </div>`;
+}
+function gacalNewToggle(){ const m=document.getElementById('gcNewMenu'); if(m)m.classList.toggle('open'); }
+function gacalOpenCreate(type){
+ const m=document.getElementById('gcNewMenu'); if(m)m.classList.remove('open');
+ const T={project:'Project',event:'Event',maint:'Maintenance',meeting:'Meeting'}[type]||type;
+ let extra='';
+ if(type==='event') extra=`<div class="field"><label>Lokasi</label><select id="ga-loc">${['Auditorium','Executive Lounge','R. William Soeryadjaja','WSH','Lainnya'].map(x=>`<option>${x}</option>`).join('')}</select></div><div class="field"><label>Jam</label><input id="ga-time" type="time" value="09:00"/></div>`;
+ else if(type==='project') extra=`<div class="field"><label>Project / Lokasi</label><input id="ga-loc" placeholder="mis. Renovasi Koridor Lt.7A"/></div>`;
+ else if(type==='maint') extra=`<div class="field"><label>Aset / Area</label><input id="ga-loc" placeholder="mis. Genset AMDI / AHU Lt.5"/></div><div class="field"><label>Jam</label><input id="ga-time" type="time" value="08:00"/></div>`;
+ else if(type==='meeting') extra=`<div class="field"><label>Ruang Meeting <span class="muted small">(dari Room Booking)</span></label><select id="ga-room">${MEETING_ROOMS.map(x=>`<option>${x}</option>`).join('')}</select></div><div class="two" style="gap:0 12px"><div class="field"><label>Mulai</label><input id="ga-start" type="time" value="09:00"/></div><div class="field"><label>Selesai</label><input id="ga-end" type="time" value="10:00"/></div></div>`;
+ document.getElementById('drawer').innerHTML=`
+  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">➕ Acara Baru — ${T}</div><div class="muted small" style="margin-top:4px">Tambah agenda ke GA Calendar${type==='meeting'?' & Room Booking':''}</div></div>
+  <div class="db">
+   <div class="field"><label>Judul</label><input id="ga-title" placeholder="Nama ${T.toLowerCase()}…"/></div>
+   <div class="field"><label>Tanggal</label><input id="ga-date" type="date" value="${TODAY_STR}"/></div>
+   ${extra}
+   <button class="btn-act" style="width:100%;margin-top:12px" onclick="gacalSaveEvent('${type}')">Simpan ke Kalender</button>
+  </div>`;
+ document.getElementById('ovl').classList.add('show');
+}
+function gacalSaveEvent(type){
+ const title=(document.getElementById('ga-title').value||'').trim()||('Acara '+type);
+ const date=document.getElementById('ga-date').value||TODAY_STR;
+ if(type==='meeting'){
+   const room=document.getElementById('ga-room').value, st=document.getElementById('ga-start').value||'09:00', en=document.getElementById('ga-end').value||'10:00';
+   if(typeof ROOM_BOOKINGS!=='undefined') ROOM_BOOKINGS.unshift({room:room,event:title,date:date,start:st,end:en,status:'Booked'});
+   GACAL_CUSTOM.push({date:date,type:'room',loc:room,title:title,sub:room+' · '+st+'–'+en,status:'Booked',src:'CUSTOM'});
+ } else {
+   const loc=(document.getElementById('ga-loc')||{}).value||'';
+   const time=(document.getElementById('ga-time')||{}).value||'';
+   const t=type==='project'?'proj-start':type==='event'?'resv':'maint';
+   GACAL_CUSTOM.push({date:date,type:t,loc:loc,title:title,sub:(loc||'—')+(time?' · '+time:''),src:'CUSTOM'});
+ }
+ gacalMonth=+date.split('-')[1]-1; gacalMonthInit=true;
+ closeDrawer(); renderGACal();
+ alert('✅ "'+title+'" ditambahkan ke GA Calendar ('+fmtDay(date)+').'+(type==='meeting'?'\nJuga tercatat di Room Booking (Service).':''));
+}
 function renderGACal(){
  const el=document.getElementById('page-gacal'); if(!el)return;
  if(!gacalMonthInit){ gacalMonth=+TODAY_STR.split('-')[1]-1; gacalMonthInit=true; }
+ if(!window._gcMenuBound){ document.addEventListener('click',ev=>{ const mn=document.getElementById('gcNewMenu'); if(mn&&mn.classList.contains('open')&&!ev.target.closest('.gc-newwrap'))mn.classList.remove('open'); }); window._gcMenuBound=true; }
  const m=gacalMonth, year=2026, all=gacalEvents(), conf=gacalConflicts();
  const active=Object.keys(gacalFilters).filter(k=>gacalFilters[k]);
  const evs=all.filter(e=>e.date&&(+e.date.split('-')[1]-1===m)&&active.includes(e.type));
@@ -1526,12 +1638,30 @@ function renderGACal(){
  const confMonth=conf.filter(c=>+c.date.split('-')[1]-1===m);
  const crossN=confMonth.filter(c=>c.kind==='cross').length, dblN=confMonth.filter(c=>c.kind==='double').length;
  let h=`<div class="gc-shell">
+  <div class="gc-toolbar">
+    <div class="gc-newwrap">
+      <button class="gc-new" onclick="event.stopPropagation();gacalNewToggle()">➕ Acara Baru <span style="opacity:.75;font-size:11px">▾</span></button>
+      <div class="gc-newmenu" id="gcNewMenu">
+        <div class="gc-newitem" onclick="gacalOpenCreate('project')">📐 <span>Project</span></div>
+        <div class="gc-newitem" onclick="gacalOpenCreate('event')">🎤 <span>Event</span></div>
+        <div class="gc-newitem" onclick="gacalOpenCreate('maint')">🔧 <span>Maintenance</span></div>
+        <div class="gc-newsep">Dari modul lain</div>
+        <div class="gc-newitem" onclick="gacalOpenCreate('meeting')">▦ <span>Meeting <small>Room Booking · Service</small></span></div>
+      </div>
+    </div>
+    <button class="gc-navbtn" onclick="gacalSetMonth(-1)" ${m===0?'disabled':''} title="Bulan sebelumnya">‹</button>
+    <button class="gc-navbtn" onclick="gacalSetMonth(1)" ${m===11?'disabled':''} title="Bulan berikutnya">›</button>
+    <button class="gc-todaybtn" onclick="gacalToday()">Hari Ini</button>
+    <div class="gc-m">${GACAL_MON[m]} <small>2026</small></div>
+    <div class="gc-viewseg"><button class="on">Bulan</button></div>
+  </div>
   <div class="gc-top">
    <div class="gc-stat"><b>${evs.length}</b><span>agenda ${GACAL_MON[m]}</span></div>
    <div class="gc-stat"><b style="color:#0f6e56">${cnt('resv')+cnt('room')}</b><span>reservasi & booking</span></div>
    <div class="gc-stat"><b style="color:#7a4fd0">${cnt('proj-start')+cnt('proj-end')}</b><span>milestone project</span></div>
    <div class="gc-stat ${crossN+dblN?'bad':''}"><b style="color:${crossN+dblN?'#dc2626':'#15a34a'}">${crossN+dblN}</b><span>benturan bulan ini</span></div>
   </div>
+  ${gacalPermitsHTML()}
   ${confMonth.length?`<div class="gc-alert"><div class="gc-alert-h">⚠ ${confMonth.length} potensi benturan terdeteksi di ${GACAL_MON[m]} — ${crossN} project×event, ${dblN} double-booking ruang</div>
    <div class="gc-alert-list">${confMonth.slice(0,6).map(c=>c.kind==='cross'
      ? `<div class="gc-cf cross"><b>${fmtDay(c.date)}</b> · ⚡ <b>${esc(c.event)}</b> di <b>${c.loc}</b> berbarengan fase konstruksi <b>${esc(c.phase)}</b> (${esc(c.project)})</div>`
@@ -1539,8 +1669,6 @@ function renderGACal(){
      ${confMonth.length>6?`<div class="gc-cf" style="opacity:.6">… +${confMonth.length-6} benturan lain</div>`:''}</div></div>`:''}
   <div class="gc-filters">${Object.entries(GACAL_TYPES).map(([k,t])=>`<span class="gc-chip ${gacalFilters[k]?'':'off'}" onclick="gacalToggle('${k}')"><i style="background:${t.color}"></i>${t.label} <b>${all.filter(e=>e.type===k&&+e.date.split('-')[1]-1===m).length}</b></span>`).join('')}
    <span class="gc-hint">Klik tanggal untuk detail agenda</span></div>
-  <div class="gc-nav"><div class="gc-m">${GACAL_MON[m]} <small>2026</small></div>
-   <div class="gc-btns"><button onclick="gacalSetMonth(-1)" ${m===0?'disabled':''}>‹</button><button class="gc-tbtn" onclick="gacalToday()">Hari ini</button><button onclick="gacalSetMonth(1)" ${m===11?'disabled':''}>›</button></div></div>
   <div class="gc-grid">${['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(d=>`<div class="gc-dow">${d}</div>`).join('')}`;
  for(let i=0;i<first;i++)h+=`<div class="gc-cell empty"></div>`;
  for(let d=1;d<=days;d++){
