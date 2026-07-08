@@ -519,6 +519,26 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .ci-obody small{display:block;font-size:10.5px;color:var(--muted)}
 .ci-orev{font-size:14px;font-weight:800;color:#15a34a;white-space:nowrap}
 @media(max-width:820px){.ci-rooms{grid-template-columns:1fr}.ci-others{grid-template-columns:1fr}}
+/* CODEC — Transport cost (dark card) */
+.ct-card{background:#0d1b33;border:1px solid #17325c;border-radius:16px;padding:16px 18px;margin-bottom:18px;color:#eaf0ff}
+.ct-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.ct-title{font-weight:800;font-size:14.5px;color:#eaf0ff}
+.ct-title span{font-weight:500;font-size:12px;color:#7f93b4}
+.ct-total{font-size:19px;font-weight:800;color:#39e0c8;text-align:right}
+.ct-total small{display:block;font-size:10px;color:#7f93b4;font-weight:600}
+.ct-wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.ct-h{font-size:12.5px;font-weight:700;color:#eaf0ff;margin-bottom:12px}
+.ct-h span{display:block;font-size:10.5px;font-weight:400;color:#54688c;margin-top:2px}
+.ct-row{margin-bottom:13px}
+.ct-row.sm{margin-bottom:9px}
+.ct-rh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.ct-rh b{font-size:12.5px;font-weight:600;color:#eaf0ff}
+.ct-row.sm .ct-rh b{font-size:11.5px;font-weight:500;color:#c8cfe0}
+.ct-rh span{font-size:11.5px;font-weight:700;color:#eaf0ff;font-family:'JetBrains Mono',ui-monospace,monospace}
+.ct-bar{height:7px;background:#14264a;border-radius:5px;overflow:hidden}
+.ct-row.sm .ct-bar{height:6px}
+.ct-bar i{display:block;height:100%;border-radius:5px}
+@media(max-width:820px){.ct-wrap{grid-template-columns:1fr;gap:16px}}
 /* CODEC DECK v2 — hero & breakdown (tema gelap ala mockup) */
 .cd-hero{background:linear-gradient(135deg,#0b1830,#0e2140 55%,#0b2a38);border:1px solid #17325c;border-radius:16px;padding:18px 20px;margin-bottom:14px}
 .cd-hero-t{color:#5ea4ff;font-weight:800;font-size:15px;margin-bottom:12px}
@@ -1519,6 +1539,40 @@ const CODEC_INCOME={
  ]
 };
 function ciFmt(v){ return v>=1?('Rp '+v.toFixed(2)+' B'):('Rp '+Math.round(v*1000)+' Jt'); }
+/* ===== CODEC — Pemakaian Biaya Transport (per jenis armada & per divisi) ===== */
+const CODEC_TRANSPORT={
+ byType:[
+  {name:"Kendaraan VIP (BOD)",cost:27.0,grad:"linear-gradient(90deg,#f59e0b,#34d399)"},
+  {name:"Bluebird",cost:10.8,grad:"linear-gradient(90deg,#7c3aed,#22d3ee)"},
+  {name:"Trac Management System",cost:6.0,grad:"linear-gradient(90deg,#2563eb,#22d3ee)"},
+  {name:"Gocorp",cost:4.2,grad:"linear-gradient(90deg,#14b8a6,#5eead4)"}
+ ],
+ byDiv:[
+  {name:"GANRA",cost:9.5},{name:"Corporate Planning",cost:8.8},{name:"CHCD",cost:7.9},
+  {name:"Corporate Secretary",cost:7.7},{name:"Corporate Accounting",cost:5.9},
+  {name:"Corporate Affairs",cost:4.6},{name:"Corporate Development",cost:3.5}
+ ]
+};
+function codecTransportHTML(){
+ const T=CODEC_TRANSPORT.byType, D=CODEC_TRANSPORT.byDiv;
+ const maxT=Math.max(...T.map(x=>x.cost)), maxD=Math.max(...D.map(x=>x.cost));
+ const tot=T.reduce((a,x)=>a+x.cost,0);
+ const f=v=>'Rp '+(Number.isInteger(v)?v:v.toFixed(1))+'jt';
+ return `<div class="ct-card">
+  <div class="ct-head"><div class="ct-title">🚗 Pemakaian Biaya Transport GA <span>— total pengeluaran armada 2026</span></div><div class="ct-total"><small>Total</small>${f(tot)}</div></div>
+  <div class="ct-wrap">
+   <div class="ct-col">
+     <div class="ct-h">Biaya per Jenis Transportasi <span>Total pengeluaran per armada</span></div>
+     ${T.map(x=>`<div class="ct-row"><div class="ct-rh"><b>${x.name}</b><span>${f(x.cost)}</span></div><div class="ct-bar"><i style="width:${Math.round(x.cost/maxT*100)}%;background:${x.grad}"></i></div></div>`).join("")}
+   </div>
+   <div class="ct-col">
+     <div class="ct-h">Biaya per Divisi <span>Penggunaan tertinggi</span></div>
+     ${D.map(x=>`<div class="ct-row sm"><div class="ct-rh"><b>${x.name}</b><span>${f(x.cost)}</span></div><div class="ct-bar"><i style="width:${Math.round(x.cost/maxD*100)}%;background:linear-gradient(90deg,#4f46e5,#818cf8)"></i></div></div>`).join("")}
+   </div>
+  </div>
+  <div style="font-size:10.5px;color:#54688c;margin-top:4px">Angka biaya = estimasi · sambungkan ke data Transport/Finance untuk nilai aktual.</div>
+ </div>`;
+}
 function codecIncomeHTML(){
  const R=CODEC_INCOME.rooms, O=CODEC_INCOME.other;
  const roomTot=R.reduce((a,x)=>a+x.rev,0), tot=roomTot+O.reduce((a,x)=>a+x.rev,0);
@@ -1558,6 +1612,7 @@ function renderOverview(){
  ${codecHeroHTML()}
  ${codecBreakdownHTML()}
  ${codecIncomeHTML()}
+ ${codecTransportHTML()}
  ${codecProjectsHTML()}
  ${ratingCard()}
  <div class="hl-headrow">
