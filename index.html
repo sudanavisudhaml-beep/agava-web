@@ -495,6 +495,16 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .gc-viewseg{margin-left:auto;display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .gc-viewseg button{border:none;background:#fff;color:var(--muted);font-size:12.5px;padding:8px 15px;cursor:pointer;font-family:var(--ff)}
 .gc-viewseg button.on{background:var(--blue-s);color:var(--blue);font-weight:600}
+/* GA Calendar — month strip (sticky, Jan–Des) */
+.gc-monthstrip{position:sticky;top:0;z-index:18;background:#fff;display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);margin-bottom:10px;flex-wrap:wrap}
+.gc-mlabel{font-size:16px;font-weight:800;color:var(--ink);white-space:nowrap}
+.gc-mlabel b{color:var(--muted);font-weight:600}
+.gc-mtabs{display:flex;gap:4px;overflow-x:auto;flex:1;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding-bottom:2px}
+.gc-mtab{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;font-family:var(--ff);flex:0 0 auto}
+.gc-mtab.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.gc-mtab:hover:not(.on){border-color:var(--blue);color:var(--blue)}
+.gc-swipehint{font-size:10px;color:var(--muted);white-space:nowrap}
+@media(max-width:820px){.gc-mlabel{font-size:14px}.gc-swipehint{display:none}}
 /* GA Calendar — Izin operasional */
 .gc-permits{background:#fbfcfe;border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:14px}
 .gc-perm-h{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:11px}
@@ -1569,6 +1579,7 @@ function gacalConflicts(){
  return out.sort((a,b)=>a.date.localeCompare(b.date));
 }
 function gacalSetMonth(delta){ gacalMonth=Math.max(0,Math.min(11,gacalMonth+delta)); renderGACal(); }
+function gacalGoMonth(i){ gacalMonth=Math.max(0,Math.min(11,i)); renderGACal(); }
 function gacalToday(){ gacalMonth=+TODAY_STR.split('-')[1]-1; renderGACal(); }
 function gacalToggle(k){ gacalFilters[k]=!gacalFilters[k]; renderGACal(); }
 function gacalPermitsHTML(){
@@ -1669,7 +1680,12 @@ function renderGACal(){
      ${confMonth.length>6?`<div class="gc-cf" style="opacity:.6">… +${confMonth.length-6} benturan lain</div>`:''}</div></div>`:''}
   <div class="gc-filters">${Object.entries(GACAL_TYPES).map(([k,t])=>`<span class="gc-chip ${gacalFilters[k]?'':'off'}" onclick="gacalToggle('${k}')"><i style="background:${t.color}"></i>${t.label} <b>${all.filter(e=>e.type===k&&+e.date.split('-')[1]-1===m).length}</b></span>`).join('')}
    <span class="gc-hint">Klik tanggal untuk detail agenda</span></div>
-  <div class="gc-grid">${['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(d=>`<div class="gc-dow">${d}</div>`).join('')}`;
+  <div class="gc-monthstrip">
+    <div class="gc-mlabel">📅 ${GACAL_MON[m]} <b>2026</b></div>
+    <div class="gc-mtabs">${GACAL_MON.map((mm,i)=>`<button class="gc-mtab ${i===m?'on':''}" onclick="gacalGoMonth(${i})">${mm.slice(0,3)}</button>`).join('')}</div>
+    <span class="gc-swipehint">‹ geser / klik bulan ›</span>
+  </div>
+  <div class="gc-grid" ontouchstart="window._gcTX=event.touches[0].clientX" ontouchend="var dx=event.changedTouches[0].clientX-(window._gcTX||0); if(dx<-60)gacalSetMonth(1); else if(dx>60)gacalSetMonth(-1);">${['Min','Sen','Sel','Rab','Kam','Jum','Sab'].map(d=>`<div class="gc-dow">${d}</div>`).join('')}`;
  for(let i=0;i<first;i++)h+=`<div class="gc-cell empty"></div>`;
  for(let d=1;d<=days;d++){
    const list=(byDay[d]||[]).sort((a,b)=>Object.keys(GACAL_TYPES).indexOf(a.type)-Object.keys(GACAL_TYPES).indexOf(b.type));
