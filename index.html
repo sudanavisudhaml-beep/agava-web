@@ -1435,15 +1435,12 @@ const CODEC_SUBFN=[
  {ic:"🔧",name:"General Facilities Management",kpi:"Energy KPI — GRK · Water · REM · Waste",target:90,nav:"energy"},
  {ic:"🛎️",name:"General Services Management",kpi:"Vendor Assessment per Site",target:85,nav:"service"},
  {ic:"📋",name:"General Administration",kpi:"Payment & Asset Management KPI",target:85,nav:"payment"},
- {ic:"🏗️",name:"Project & System Development",kpi:"Plan vs Actual — Project & System Dev",target:90,nav:"board"},
+ {ic:"🏗️",name:"Project & System Development",kpi:"Plan vs Actual — Project & System Dev",target:90,nav:"project"},
  {ic:"🤝",name:"External Relation",kpi:"Perizinan KPI",target:90,nav:"hse"},
  {ic:"🌿",name:"Environment Health & Safety (P2K3L)",kpi:"AGC · MKA · Safety Golden Rules",target:90,nav:"hse"}
 ];
 /* Klik bar sub-function → langsung ke modul sumbernya (board = scroll ke Papan Kolaborasi) */
-function codecGoSub(nav){
- if(nav==="board"){ const el=document.getElementById("codec-board"); if(el)el.scrollIntoView({behavior:"smooth",block:"start"}); return; }
- go(nav);
-}
+function codecGoSub(nav){ go(nav); }
 function codecSubFnData(){
  const avgA=a=>a.reduce((x,y)=>x+y,0)/a.length;
  // 1. GFM ← modul ENERGY: rekap pencapaian GRK, Water, REM, Waste (attainment vs target masing-masing)
@@ -1613,7 +1610,6 @@ function renderOverview(){
  ${codecBreakdownHTML()}
  ${codecIncomeHTML()}
  ${codecTransportHTML()}
- ${codecProjectsHTML()}
  ${ratingCard()}
  <div class="hl-headrow">
    <div class="hl-tag">📋 TODAY'S LOG</div>
@@ -1722,11 +1718,6 @@ function renderOverview(){
        <div class="boxes" style="grid-template-columns:1fr 1fr">${VENDOR_PERF.map(vendorCard).join("")}</div>
      </div>
    </div></div>
- </div>
-
- <div class="card sec">
-   <div class="sec-h">${secIc('#eef4ff','#2563eb','project')}<div><h2>Ticket Trend by Category</h2><div class="d">8 service categories · last 2 months (May–June)</div></div></div>
-   <div class="sec-body">${lineChart()}</div>
  </div>
 
  <div class="card sec">
