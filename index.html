@@ -1173,15 +1173,17 @@ function kpiDeptHTML(){
    EKSPLISIT: siapa menunggu siapa, untuk apa. */
 const CODEC_SECTIONS={ "BU":{n:"Building & Utility",c:"#2563eb",bg:"#eef4ff"}, "PROC":{n:"Procurement",c:"#c2740a",bg:"#fdf3e3"}, "HSE":{n:"HSE & Sustain",c:"#15a34a",bg:"#e9f8ef"}, "EN":{n:"Energy (ERSUS)",c:"#0f6e56",bg:"#e1f5ee"}, "PD":{n:"Project Dev",c:"#7a4fd0",bg:"#f3eefe"}, "GS":{n:"General Services",c:"#be3a76",bg:"#fdeef5"} };
 const CODEC_PROJECTS=[
- {name:"Lab EHS — renovasi & sertifikasi",sec:"PD",pic:"Khalilul R.",prog:35,due:"Sep 2026",st:"blocked",need:"PROC",note:"Tender vendor tertunda — menunggu UPR release"},
- {name:"Rejuvenation Lt.1C AMDI",sec:"PD",pic:"Didi S.",prog:48,due:"Agu 2026",st:"warn",need:"BU",note:"Menunggu approval drawing ME dari BU"},
- {name:"Modernisasi Lift Gedung A",sec:"BU",pic:"Endang M.",prog:62,due:"Okt 2026",st:"ok",need:null,note:""},
- {name:"PLTS Rooftop fase 2",sec:"EN",pic:"Stevano",prog:55,due:"Nov 2026",st:"warn",need:"HSE",note:"Izin kerja ketinggian — dokumen di HSE"},
- {name:"Kontrak payung housekeeping 2027",sec:"PROC",pic:"Alma T.",prog:20,due:"Des 2026",st:"ok",need:"GS",note:"Butuh data beban kerja per site dari GS"},
- {name:"TPS Limbah B3 — perpanjangan izin",sec:"HSE",pic:"Sugianto",prog:80,due:"Jul 2026",st:"ok",need:null,note:""},
- {name:"Relayout Presdir Room",sec:"PD",pic:"Khalilul R.",prog:15,due:"Sep 2026",st:"blocked",need:"PROC",note:"SPK furniture belum terbit"},
- {name:"Smart meter air — 3 gedung",sec:"EN",pic:"Stevano",prog:70,due:"Agu 2026",st:"ok",need:"BU",note:"Jadwal shutdown instalasi dikoordinasikan BU"}
+ {name:"Lab EHS — renovasi & sertifikasi",sec:"PD",pic:"Khalilul R.",prog:35,plan:50,due:"Sep 2026",st:"blocked",need:"PROC",note:"Tender vendor tertunda — menunggu UPR release"},
+ {name:"Rejuvenation Lt.1C AMDI",sec:"PD",pic:"Didi S.",prog:48,plan:55,due:"Agu 2026",st:"warn",need:"BU",note:"Menunggu approval drawing ME dari BU"},
+ {name:"Modernisasi Lift Gedung A",sec:"BU",pic:"Endang M.",prog:62,plan:60,due:"Okt 2026",st:"ok",need:null,note:""},
+ {name:"PLTS Rooftop fase 2",sec:"EN",pic:"Stevano",prog:55,plan:65,due:"Nov 2026",st:"warn",need:"HSE",note:"Izin kerja ketinggian — dokumen di HSE"},
+ {name:"Kontrak payung housekeeping 2027",sec:"PROC",pic:"Alma T.",prog:20,plan:25,due:"Des 2026",st:"ok",need:"GS",note:"Butuh data beban kerja per site dari GS"},
+ {name:"TPS Limbah B3 — perpanjangan izin",sec:"HSE",pic:"Sugianto",prog:80,plan:75,due:"Jul 2026",st:"ok",need:null,note:""},
+ {name:"Relayout Presdir Room",sec:"PD",pic:"Khalilul R.",prog:15,plan:40,due:"Sep 2026",st:"blocked",need:"PROC",note:"SPK furniture belum terbit"},
+ {name:"Smart meter air — 3 gedung",sec:"EN",pic:"Stevano",prog:70,plan:70,due:"Agu 2026",st:"ok",need:"BU",note:"Jadwal shutdown instalasi dikoordinasikan BU"}
 ];
+/* Data P2K3L (modul HSE) — AGC · MKA · Safety Golden Rules; nanti ditarik dari flow HSE */
+const HSE_P2K3L={ agc:{score:84,target:80,label:"AGC (Astra Green Company)"}, mka:{score:92,target:95,label:"MKA"}, sgr:{score:97,target:100,label:"Safety Golden Rules"} };
 function codecSecChip(k){ const s=CODEC_SECTIONS[k]; return s?`<span class="cp-sec" style="background:${s.bg};color:${s.c}">${s.n}</span>`:''; }
 function codecProjectsHTML(){
  const blocked=CODEC_PROJECTS.filter(p=>p.st==="blocked").length;
@@ -1213,33 +1215,51 @@ function codecProjectsHTML(){
    breakdown 6 sub-function (bar vs target) + kartu Progress Bulanan.
    SEMUA angka DERIVED live dari data modul — derive don't duplicate. */
 const CODEC_SUBFN=[
- {ic:"🔧",name:"General Facilities Management",kpi:"Building Maintenance KPI",target:90},
- {ic:"🛎️",name:"General Services Management",kpi:"Service Rating & Hospitality KPI",target:85},
+ {ic:"🔧",name:"General Facilities Management",kpi:"Energy KPI — GRK · Water · REM · Waste",target:90},
+ {ic:"🛎️",name:"General Services Management",kpi:"Vendor Assessment per Site",target:85},
  {ic:"📋",name:"General Administration",kpi:"Payment & Asset Management KPI",target:85},
- {ic:"🏗️",name:"Project & System Development",kpi:"Project KPI",target:90},
- {ic:"🤝",name:"External Relation",kpi:"Perizinan & Stakeholder KPI",target:90},
- {ic:"🌿",name:"Environment Health & Safety",kpi:"Energy & Safety KPI (ERSUS)",target:90}
+ {ic:"🏗️",name:"Project & System Development",kpi:"Plan vs Actual — Project & System Dev",target:90},
+ {ic:"🤝",name:"External Relation",kpi:"Perizinan KPI",target:90},
+ {ic:"🌿",name:"Environment Health & Safety (P2K3L)",kpi:"AGC · MKA · Safety Golden Rules",target:90}
 ];
 function codecSubFnData(){
- const resp=TICKETS.map(t=>parseInt(t.resp)).filter(n=>!isNaN(n));
- const gfm=resp.length?Math.round(resp.filter(n=>n<=15).length/resp.length*100):100;
- const gsm=Math.round(parseFloat(gaServiceRating().score)/5*100);
+ const avgA=a=>a.reduce((x,y)=>x+y,0)/a.length;
+ // 1. GFM ← modul ENERGY: rekap pencapaian GRK, Water, REM, Waste (attainment vs target masing-masing)
+ const grkRed=(1-avgA(GRK_2026)/avgA(GRK_2019))*100;                    // target turun 15%
+ const grkAtt=Math.min(100,grkRed/15*100);
+ const watRed=(1-avgA(WATER_INT_2026)/avgA(WATER_INT_2019))*100;        // target turun 13%
+ const watAtt=Math.max(0,Math.min(100,watRed/13*100));
+ const remAtt=Math.min(100,avgA(REM_PCT)/8*100);                        // target 8%
+ const wOk=WASTE_OK.reduce((a,b)=>a+b,0), wTot=WASTE_OK.reduce((a,b,i)=>a+b+WASTE_NO[i],0);
+ const wstAtt=Math.min(100,(wOk/wTot*100)/99*100);                      // target 99% terolah
+ const gfm=Math.round(avgA([grkAtt,watAtt,remAtt,wstAtt]));
+ // 2. GSM ← modul SERVICE: penilaian vendor per site (skor 0–3 → tier Platinum/Gold/Silver)
+ const siteScores=VENDOR_PERF.map(v=>(v.hk+v.bm)/2);
+ const gsm=Math.round(avgA(siteScores)/3*100);
+ const tierCount={Platinum:0,Gold:0,Silver:0}; siteScores.forEach(s=>tierCount[vendorTier(s).n]++);
+ // 3. GA Administration ← Payment Tracker (on-time release)
  const rel=SO.filter(s=>s.invReleased), relOk=rel.filter(s=>!invRelEst(s)||(s.invReleaseDate&&s.invReleaseDate<=invRelEst(s))).length;
  const late=SO.filter(s=>invReleaseOverdue(s)).length, den=rel.length+late;
  const adm=den?Math.round(relOk/den*100):100;
- const blocked=CODEC_PROJECTS.filter(p=>p.st==="blocked").length;
- const psd=CODEC_PROJECTS.length?Math.round((CODEC_PROJECTS.length-blocked)/CODEC_PROJECTS.length*100):100;
- const ext=IZIN.length?Math.round(IZIN.filter(z=>z.due>=TODAY_STR).length/IZIN.length*100):100;
- const avg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, avg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length;
- const red=Math.round((1-avg26/avg19)*1000)/10;
- const ehs=Math.min(100,Math.round(red/10*100));
+ // 4. P&SD ← plan vs actual progress project (Project Board)
+ const att=CODEC_PROJECTS.map(p=>Math.min(100,(p.prog/Math.max(p.plan||p.prog,1))*100));
+ const psd=Math.round(avgA(att));
+ const delayed=CODEC_PROJECTS.filter(p=>p.prog<(p.plan||0)).length;
+ // 5. External Relation ← KPI Perizinan (IZIN aktif)
+ const izOk=IZIN.filter(z=>z.due>=TODAY_STR).length;
+ const ext=IZIN.length?Math.round(izOk/IZIN.length*100):100;
+ // 6. EHS (P2K3L) ← AGC · MKA · Safety Golden Rules
+ const p=HSE_P2K3L;
+ const ehs=Math.round(avgA([Math.min(100,p.agc.score/p.agc.target*100),Math.min(100,p.mka.score/p.mka.target*100),Math.min(100,p.sgr.score/p.sgr.target*100)]));
  const vals=[gfm,gsm,adm,psd,ext,ehs];
- const notes=["SLA respons tiket ≤15 mnt · dari modul Service",
-   "rating layanan "+gaServiceRating().score+"/5 · dari modul Service",
+ const notes=[
+   "GRK −"+(Math.round(grkRed*10)/10)+"% ✓ · Water −"+(Math.round(watRed*10)/10)+"% · REM "+(Math.round(avgA(REM_PCT)*10)/10)+"% · Waste "+(Math.round(wOk/wTot*1000)/10)+"% · dari modul Energy",
+   tierCount.Platinum+" Platinum · "+tierCount.Gold+" Gold · "+tierCount.Silver+" Silver ("+VENDOR_PERF.length+" site) · dari modul Service",
    (late?late+" payment lewat estimasi · dari Payment Tracker":"payment on-time · dari Payment Tracker"),
-   (blocked?blocked+" project blocked · dari Project Board":"semua project berjalan · dari Project Board"),
-   "izin & sertifikat aktif · dari modul HSE",
-   "efisiensi energi −"+red+"% vs 2019 · dari ERSUS"];
+   (delayed?delayed+" project di bawah plan · plan vs actual":"semua project sesuai plan")+" · dari Project Board",
+   izOk+" dari "+IZIN.length+" izin aktif · KPI Perizinan · dari modul HSE",
+   "AGC "+p.agc.score+" · MKA "+p.mka.score+"% · SGR "+p.sgr.score+"% · data P2K3L"
+ ];
  return CODEC_SUBFN.map((f,i)=>({...f,ach:vals[i],note:notes[i],st:vals[i]>=f.target?"ok":vals[i]>=f.target-15?"warn":"bad"}));
 }
 function codecMonthID(){ const m=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"]; const d=new Date(TODAY_STR+"T00:00:00"); return m[d.getMonth()]+" "+d.getFullYear(); }
