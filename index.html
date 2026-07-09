@@ -843,7 +843,7 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .hl-grid{align-items:stretch}
 .hl2{border-radius:18px;overflow:hidden;border:1.5px solid #d8e2f2;background:#fff;box-shadow:0 3px 14px rgba(20,40,80,.07);display:flex;flex-direction:column}
 .hl2 .hl2-body{flex:1;display:flex;flex-direction:column}
-.hl2.u .up2:last-child{flex:1}
+.hl2.u .up2{flex:1}
 .hl2-band{display:flex;align-items:center;gap:12px;padding:14px 18px;color:#fff}
 .hl2.t .hl2-band{background:linear-gradient(120deg,#1d4ed8,#2563eb 55%,#0e9f8f)}
 .hl2.u .hl2-band{background:linear-gradient(120deg,#6d28d9,#7a4fd0 55%,#2563eb)}
@@ -855,14 +855,14 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .hl2-body{padding:16px 18px}
 .hl2-st{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:11px}
 .hl2-st span{font-weight:400;font-size:11px;color:var(--muted);margin-left:6px}
-.ev2-list{display:grid;gap:10px}
+.ev2-list{display:grid;gap:8px}
 .ev2{display:flex;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fbfcfe;transition:.15s}
 .ev2:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(37,99,235,.13);border-color:#bcd3f5}
 .ev2-time{flex:0 0 76px;background:linear-gradient(160deg,#eef4ff,#e5f4f0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-right:1px solid var(--line)}
 .ev2-time b{font-size:15px;color:var(--blue);font-weight:800}
 .ev2-live{background:#dc2626;color:#fff;font-size:8.5px;font-weight:800;letter-spacing:.08em;padding:2px 8px;border-radius:9px;display:flex;align-items:center;gap:4px;animation:agBadgePulse 1.5s infinite}
 .ev2-live i{width:5px;height:5px;background:#fff;border-radius:50%}
-.ev2-main{flex:1;padding:10px 14px;min-width:0}
+.ev2-main{flex:1;padding:8px 13px;min-width:0}
 .ev2-room{font-weight:800;color:var(--ink);font-size:13.5px}
 .ev2-name{font-size:12.5px;color:var(--blue);font-weight:600;margin:2px 0 8px}
 .ev2-meta{display:flex;gap:7px;flex-wrap:wrap}
@@ -2017,26 +2017,8 @@ function renderOverview(){
      <div class="hl2-band"><span class="hl2-bic">📋</span><div class="hl2-bt"><h3>TODAY'S LOG</h3><small>Kamis, 18 Juni 2026 · aktivitas hari ini</small></div><span class="hl2-livechip"><i></i>LIVE</span></div>
      <div class="hl2-body">
        <div class="hl2-st">🎪 Live Events — hari ini <span>urut jam mulai · ${EVENTS.length} acara</span></div>
-       <div class="ev2-list">${EVENTS.slice().sort((a,b)=>a.start.localeCompare(b.start)).slice(0,4).map(eventRow).join("")}</div>
-       <a class="see-more" onclick="go('gacal')">+ ${Math.max(EVENTS.length-4,0)} acara lainnya · buka GA Calendar →</a>
-       <div class="hl2-st" style="margin-top:16px">⚡ Ringkasan Operasional</div>
-       <div class="hl2-stats">
-         <div class="hl2-tile a-blue"><div class="ht-h">🏗️ Progress Project</div>
-           ${statLine("Ongoing","7","")}
-           ${statLine("Avg progress","42%","blue")}
-           ${statLine("Deviation","−8%","amber")}
-         </div>
-         <div class="hl2-tile a-green"><div class="ht-h">🛒 Supply Order</div>
-           ${statLine("Ongoing",SO_SUMMARY.berjalan,"blue")}
-           ${statLine("UPR",SO_SUMMARY.upr,"")}
-           ${statLine("SPK",SO_SUMMARY.spk,"green")}
-         </div>
-         <div class="hl2-tile a-amber"><div class="ht-h">🎫 Ticket Service</div>
-           ${statLine("Ongoing",TIKET_SUMMARY.berjalan,"amber")}
-           ${statLine("Resolved",TIKET_SUMMARY.selesai,"green")}
-           ${statLine("Avg resp",TIKET_SUMMARY.resp,"blue")}
-         </div>
-       </div>
+       <div class="ev2-list">${EVENTS.slice().sort((a,b)=>a.start.localeCompare(b.start)).slice(0,10).map(eventRow).join("")}</div>
+       <a class="see-more" onclick="go('gacal')">${EVENTS.length>10?('+ '+(EVENTS.length-10)+' acara lainnya · '):''}buka GA Calendar →</a>
        <div class="hl2-st" style="margin-top:16px">🔔 Prioritas Hari Ini <span>derive live · klik untuk membuka modulnya</span></div>
        <div class="pr-list">
          ${prioRow('🚨','Tiket eskalasi', TICKETS.filter(t=>t.esc&&t.stg<4).length, 'service', 'butuh perhatian PIC')}
@@ -2203,7 +2185,12 @@ const EVENTS=[
  {room:"R. William Soeryadjaja",ev:"Diversity for Leaders",start:"09:30",pax:60,temp:24.1,hot:false,sr:"Catering: Dapur Astra"},
  {room:"Executive Lounge",ev:"HCD — Human Capital Dev",start:"07:30",pax:25,temp:26.8,hot:true,sr:"Coffee & tea station"},
  {room:"R. Meeting 6A",ev:"PKAG",start:"10:00",pax:18,temp:23.0,hot:false,sr:"Snack box"},
- {room:"Auditorium",ev:"Sharing CFA",start:"13:00",pax:90,temp:23.5,hot:false,sr:"Catering: Sajian Nusantara"}
+ {room:"Auditorium",ev:"Sharing CFA",start:"13:00",pax:90,temp:23.5,hot:false,sr:"Catering: Sajian Nusantara"},
+ {room:"WSH",ev:"Diversity for Leaders 52 · Running",start:"08:30",pax:45,temp:23.8,hot:false,sr:"Coffee break 2x"},
+ {room:"Training Room 2",ev:"New Hire Onboarding",start:"09:00",pax:25,temp:23.2,hot:false,sr:"Snack box"},
+ {room:"R. Meeting 5B",ev:"Vendor Review — HK Kontrak 2027",start:"10:30",pax:12,temp:24.5,hot:false,sr:"Coffee & tea"},
+ {room:"Mahoni Meeting Room",ev:"Sprint Review CIS&T",start:"11:00",pax:15,temp:23.6,hot:false,sr:"—"},
+ {room:"Executive Lounge",ev:"Tamu BOD — Mitra Perbankan",start:"14:00",pax:10,temp:24.0,hot:false,sr:"VIP set menu"}
 ];
 // anchor = ruangan; top 3 by peserta dalam jendela 07.00–12.00 (5 jam sejak 07.00)
 function topEvents(){ return EVENTS.filter(e=>{const h=parseInt(e.start,10);return h>=7&&h<12;}).sort((a,b)=>b.pax-a.pax); }
