@@ -839,6 +839,141 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .sec.collapsed .sec-body{display:none}
 .sec.collapsed .chev{transform:rotate(-90deg)}
 
+/* ===================== CODEC v3 — ref ga-dashboard.html (light · nav sticky · jam live) ===================== */
+@keyframes gdBlink{0%,100%{opacity:1}50%{opacity:.3}}
+.gd{max-width:1400px}
+.gd .card{border-radius:14px;box-shadow:0 1px 3px rgba(15,23,42,.04),0 4px 14px rgba(15,23,42,.03)}
+.gd-head{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;margin-bottom:10px;flex-wrap:wrap;gap:10px}
+.gd-hl{display:flex;align-items:center;gap:13px}
+.gd-logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#2563EB,#60A5FA);display:grid;place-items:center;color:#fff;font-size:15px;font-weight:800}
+.gd-ht{font-size:16px;font-weight:800;color:#0F172A}
+.gd-hs{font-size:11px;color:#94A3B8}
+.gd-clockarea{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.gd-cdate{font-size:13px;color:#94A3B8}
+.gd-ctime{background:linear-gradient(135deg,#2563EB,#3B82F6);color:#fff;border-radius:10px;padding:6px 16px;font-family:ui-monospace,monospace;font-size:19px;font-weight:700;letter-spacing:2px}
+.gd-blink{animation:gdBlink 1s infinite}
+.gd-nav{background:#fff;border:1px solid var(--line);border-radius:12px;padding:2px 10px;display:flex;gap:2px;overflow-x:auto;position:sticky;top:8px;z-index:28;box-shadow:0 2px 10px rgba(15,23,42,.06)}
+.gd-nav a{padding:10px 13px;font-size:12px;font-weight:500;color:#64748B;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer;transition:.15s}
+.gd-nav a.on{font-weight:700;color:#2563EB;border-bottom-color:#2563EB}
+.gd-sec{display:flex;align-items:center;gap:10px;margin:30px 0 12px;scroll-margin-top:70px}
+.gd-sec i{width:4px;height:22px;border-radius:2px;background:linear-gradient(180deg,#2563EB,#60A5FA)}
+.gd-sec{font-size:15px;font-weight:800;color:#0F172A;letter-spacing:.4px}
+.gd-ch{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid #F1F5F9;flex-wrap:wrap}
+.gd-chi{font-size:17px}
+.gd-cht{font-size:14px;font-weight:700;color:#1E293B}
+.gd-chs{font-size:11px;color:#94A3B8;margin-top:1px}
+.gd-ch>div:nth-child(2){flex:1;min-width:0}
+.gd-live{font-size:9px;background:var(--red);color:#fff;padding:2px 9px;border-radius:10px;font-weight:700;animation:agBadgePulse 1.5s infinite}
+.gd-cells3,.gd-cells2,.gd-cells4{display:grid;gap:1px;background:#F1F5F9}
+.gd-cells3{grid-template-columns:repeat(3,1fr)}.gd-cells2{grid-template-columns:1fr 1fr}.gd-cells4{grid-template-columns:repeat(4,1fr)}
+.gd-cell{background:#fff;padding:18px 14px;text-align:center}
+.gd-cv{font-size:36px;font-weight:900;line-height:1}
+.gd-cl{font-size:12px;color:#64748B;margin:6px 0 8px}
+.gd-cv2{font-size:27px;font-weight:800;line-height:1}
+.gd-cv2 small{font-size:13px;color:#94A3B8;font-weight:400}
+.gd-cl2{font-size:11px;color:#64748B;margin-top:6px}
+.gd-cl3{font-size:10px;color:#94A3B8;margin-top:2px}
+.gd-pad{padding:6px 20px 16px}
+.gd-pad2{padding:16px 20px}
+.gd-sub{font-size:12px;font-weight:700;color:#334155;margin-bottom:12px}
+.gd-sub2{font-size:12px;font-weight:600;color:#334155;margin-bottom:8px}
+.gd-g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.gd-g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.gd-g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.gd-g75{display:grid;grid-template-columns:7fr 5fr;gap:16px}
+.gd-g57{display:grid;grid-template-columns:5fr 7fr;gap:16px}
+.gd-g543{display:grid;grid-template-columns:5fr 4fr 3fr;gap:16px}
+.mt16{margin-top:16px}
+.gd-pbar{background:#F1F5F9;border-radius:6px;overflow:hidden;flex:1}
+.gd-pbar i{display:block;height:100%;border-radius:6px;transition:width .5s}
+.gd-krow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F1F5F9;cursor:pointer;transition:.14s}
+.gd-krow:hover{background:#F8FAFC;margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:8px}
+.gd-kic{font-size:15px}
+.gd-kinfo{flex:1;min-width:0}
+.gd-kname{font-size:13px;font-weight:600;color:#1E293B}
+.gd-kdet{font-size:10px;color:#94A3B8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gd-kbar{width:130px;display:flex;align-items:center;gap:6px;flex:0 0 130px}
+.gd-kpct{font-size:13px;font-weight:800;min-width:38px;text-align:right}
+.gd-rating{display:flex;align-items:center;padding:20px;gap:28px;flex-wrap:wrap}
+.gd-rbig{font-size:46px;font-weight:900;color:#0F172A;line-height:1}
+.gd-rstars{color:#F59E0B;font-size:17px;letter-spacing:2px}
+.gd-rsub{font-size:11px;color:#94A3B8;margin-top:2px}
+.gd-rt{font-size:13px;font-weight:700;color:#1E293B;margin-bottom:9px}
+.gd-rrow{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.gd-rrow span{font-size:12px;color:#64748B;min-width:12px;text-align:right}
+.gd-rrow b{font-size:11px;color:#64748B;min-width:30px;font-weight:500}
+.gd-rtrack{flex:1;height:8px;background:#F1F5F9;border-radius:4px;overflow:hidden}
+.gd-rtrack i{display:block;height:100%;background:#F59E0B;border-radius:4px}
+.gd-erow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F1F5F9;align-items:flex-start}
+.gd-etime{font-size:12px;font-weight:700;color:#2563EB;min-width:40px}
+.gd-livedot{font-size:7.5px;background:var(--red);color:#fff;padding:1px 6px;border-radius:10px;font-weight:700;animation:agBadgePulse 1.5s infinite}
+.gd-eroom{font-size:12px;font-weight:700;color:#1E293B}
+.gd-ename{font-size:11px;color:#64748B}
+.gd-emeta{display:flex;gap:8px;margin-top:3px;flex-wrap:wrap;font-size:10px;color:#94A3B8}
+.gd-uprow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #F1F5F9}
+.gd-updte{text-align:center;background:#EFF6FF;border-radius:8px;padding:5px 9px;min-width:44px}
+.gd-updte b{display:block;font-size:15px;font-weight:800;color:#2563EB;line-height:1.1}
+.gd-updte small{font-size:8.5px;font-weight:700;color:#60A5FA}
+.gd-uptx{font-size:12px;color:#334155}
+.gd-pri{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid #F1F5F9;cursor:pointer;transition:.14s}
+.gd-pri:hover{background:#F8FAFC}
+.gd-pric{font-size:18px}
+.gd-prit{font-size:12px;font-weight:600;color:#1E293B}
+.gd-prid{font-size:10px;color:#94A3B8}
+.gd-prin{font-size:20px;font-weight:800}
+.gd-income{border:1px solid #E2E8F0;border-radius:10px;padding:15px}
+.gd-inm{font-size:13px;font-weight:700;color:#1E293B}
+.gd-irm{font-size:10px;color:#94A3B8}
+.gd-inum{font-size:24px;font-weight:800;color:#0F172A;margin-top:8px}
+.gd-inum small{font-size:11px;font-weight:400;color:#94A3B8}
+.gd-irev{font-size:14px;font-weight:700;color:var(--green)}
+.gd-stream{display:flex;align-items:center;gap:10px;padding:12px;background:#F8FAFC;border-radius:10px}
+.gd-sic{font-size:21px}
+.gd-snm{font-size:12px;font-weight:600;color:#1E293B}
+.gd-sds{font-size:10px;color:#94A3B8}
+.gd-svl{font-size:12.5px;font-weight:800;color:var(--green);white-space:nowrap}
+.gd-blab{display:flex;justify-content:space-between;margin-bottom:6px;font-size:12.5px;color:#334155}
+.gd-blab b{font-size:14px}
+.gd-hbar{margin-bottom:11px}
+.gd-hlab{display:flex;justify-content:space-between;margin-bottom:3px}
+.gd-hlab span{font-size:11px;color:#334155}
+.gd-hlab b{font-size:11px;color:#1E293B}
+.gd-htrack{height:5px;background:#F1F5F9;border-radius:4px;overflow:hidden}
+.gd-htrack i{display:block;height:100%;border-radius:4px;transition:width .5s}
+.gd-vgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 20px}
+.gd-vcard{border:1px solid #E2E8F0;border-radius:10px;overflow:hidden}
+.gd-vhead{background:linear-gradient(135deg,#2563EB,#3B82F6);padding:7px 13px;color:#fff;font-size:11px;font-weight:800;letter-spacing:1px}
+.gd-vbody{padding:10px 13px}
+.gd-vnm{font-size:11px;font-weight:600;color:#334155;margin-bottom:7px}
+.gd-vrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:11px;color:#64748B}
+.gd-vrow b{font-size:13px;color:#1E293B;margin-right:4px}
+.gd-tiles3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 20px}
+.gd-tile{text-align:center;padding:14px;border-radius:10px}
+.gd-tile b{display:block;font-size:26px;font-weight:800;line-height:1}
+.gd-tile span{display:block;font-size:10.5px;color:#64748B;margin-top:5px}
+.gd-tile.sm{padding:10px}
+.gd-tile.sm b{font-size:21px}
+.gd-tile.sm span{font-size:9px}
+.gd-util{text-align:center;padding:14px;border:1px solid #E2E8F0;border-radius:10px}
+.gd-util b{display:block;font-size:25px;font-weight:800}
+.gd-util span{font-size:11px;color:#64748B}
+.gd-reprow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F1F5F9}
+.gd-repn{font-size:12px;font-weight:600;color:#1E293B}
+.gd-repv{font-size:10px;color:#94A3B8}
+.gd-alert{padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:8px;border-left:3px solid}
+.gd-alert.crit{border-left-color:var(--red)}
+.gd-alert.warn{border-left-color:#F59E0B;background:#FEF3C7}
+.gd-alt{font-size:12px;font-weight:700;color:#1E293B}
+.gd-ald{font-size:11px;color:#64748B;margin-top:3px}
+@media(max-width:900px){
+ .gd-g2,.gd-g3,.gd-g75,.gd-g57,.gd-g543{grid-template-columns:1fr}
+ .gd-g4{grid-template-columns:1fr 1fr}
+ .gd-cells3,.gd-cells4{grid-template-columns:1fr 1fr}
+ .gd-vgrid{grid-template-columns:1fr}
+ .gd-ctime{font-size:15px}
+ .gd-cv{font-size:28px}
+}
+
 /* ===================== TODAY'S LOG & UPCOMING v2 — dramatis & catchy ===================== */
 .hl-grid{align-items:stretch}
 .hl2{border-radius:18px;overflow:hidden;border:1.5px solid #d8e2f2;background:#fff;box-shadow:0 3px 14px rgba(20,40,80,.07);display:flex;flex-direction:column}
@@ -1995,6 +2130,18 @@ function codecIncomeHTML(){
   <div class="muted small" style="margin-top:11px">Reservasi ruang = data aktual · nilai revenue = estimasi (sambungkan ke data Finance untuk nilai riil).</div>
  </div>`;
 }
+/* CODEC v3 helpers — jam live + nav scroll-spy (ref: ga-dashboard.html) */
+function gdGo(id,a){ const el=document.getElementById(id); if(el)el.scrollIntoView({behavior:'smooth',block:'start'}); document.querySelectorAll('#gdNav a').forEach(x=>x.classList.remove('on')); if(a)a.classList.add('on'); }
+function gdInit(){
+ const days=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"], mon=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+ const upd=()=>{ const d=new Date(); const de=document.getElementById('gdDate'), te=document.getElementById('gdTime'); if(!de||!te)return;
+   de.textContent=days[d.getDay()]+", "+d.getDate()+" "+mon[d.getMonth()]+" "+d.getFullYear();
+   te.innerHTML=String(d.getHours()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getMinutes()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getSeconds()).padStart(2,'0'); };
+ upd(); if(!window._gdClock) window._gdClock=setInterval(upd,1000);
+ if(window._gdObs) window._gdObs.disconnect();
+ window._gdObs=new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting){ document.querySelectorAll('#gdNav a').forEach(a=>a.classList.remove('on')); const a=document.querySelector('#gdNav a[data-sec="'+e.target.id+'"]'); if(a)a.classList.add('on'); } }); },{rootMargin:'-90px 0px -65% 0px',threshold:0.05});
+ document.querySelectorAll('#page-overview .gd-sec').forEach(s=>window._gdObs.observe(s));
+}
 function renderOverview(){
  const el=document.getElementById("page-overview");
  if(isEndUser()){
@@ -2006,6 +2153,189 @@ function renderOverview(){
    </div>`;
    return;
  }
+ /* ====== CODEC v3 — layout ref: ga-dashboard.html (light, nav sticky, jam live) ====== */
+ const S=codecSubFnData(), avgK=Math.round(S.reduce((a,x)=>a+x.ach,0)/S.length), hitK=S.filter(x=>x.ach>=x.target).length, kOk=kpiDeptData().filter(k=>k.st==="ok").length;
+ const R=gaServiceRating();
+ const prjN=CODEC_PROJECTS.length, prjAvg=Math.round(CODEC_PROJECTS.reduce((a,p)=>a+p.prog,0)/Math.max(prjN,1)), prjBlk=CODEC_PROJECTS.filter(p=>p.st==='blocked').length;
+ const tkTot=TICKETS.length, tkUn=TICKETS.filter(t=>t.stg===0).length, tkIp=TICKETS.filter(t=>t.stg===1||t.stg===2).length, tkFu=TICKETS.filter(t=>t.stg===3).length, tkRes=TICKETS.filter(t=>t.stg===4).length;
+ const soTot=SO.length, soUpr=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=2).length, soSpk=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=3).length, soBast=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=4).length;
+ const pipeN=SO.filter(s=>s.invReceived&&!s.invReleased).length, relN=SO.filter(s=>s.invReleased).length;
+ const eAvg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, eAvg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length, eRed=Math.round((1-eAvg26/eAvg19)*1000)/10;
+ const dueD=x=>Math.floor((new Date(x)-new Date(TODAY_STR))/86400000);
+ const stnkO=STNK.filter(v=>dueD(v.due)<0).length, stnk30=STNK.filter(v=>{const d=dueD(v.due);return d>=0&&d<=30;}).length, stnkOK=STNK.length-stnkO-stnk30;
+ const pbbO=PBB.filter(v=>dueD(v.due)<0).length, pbb30=PBB.filter(v=>{const d=dueD(v.due);return d>=0&&d<=30;}).length, pbbOK=PBB.length-pbbO-pbb30;
+ const gdBar=(v,max,c,h)=>`<div class="gd-pbar" style="height:${h||6}px"><i style="width:${Math.min(v/max*100,100)}%;background:${c}"></i></div>`;
+ const gdKpiRows=S.map(f=>{ const c=f.ach>=f.target?'var(--green)':f.ach>=f.target*0.8?'#F59E0B':'var(--red)';
+   return `<div class="gd-krow" onclick="codecGoSub('${f.nav}')"><span class="gd-kic">${f.ic}</span><div class="gd-kinfo"><div class="gd-kname">${f.name}</div><div class="gd-kdet">${f.note}</div></div><div class="gd-kbar">${gdBar(f.ach,100,c,5)}<span class="gd-kpct" style="color:${c}">${f.ach}%</span></div></div>`; }).join("");
+ const gdRating=[5,4,3,2,1].map((s,i)=>`<div class="gd-rrow"><span>${s}</span><div class="gd-rtrack"><i style="width:${R.dist[i]}%"></i></div><b>${R.dist[i]}%</b></div>`).join("");
+ const gdEvents=EVENTS.slice().sort((a,b)=>a.start.localeCompare(b.start)).slice(0,8).map(e=>{ const live=/·\s*Running/i.test(e.ev); const nm=e.ev.replace(/\s*·\s*Running/i,'');
+   return `<div class="gd-erow"><span class="gd-etime">${e.start}</span><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px">${live?'<span class="gd-livedot">LIVE</span>':''}<b class="gd-eroom">${e.room}</b></div><div class="gd-ename">${nm}</div><div class="gd-emeta"><span style="color:${e.hot?'var(--red)':'#3B82F6'}">🌡 ${e.temp}°C</span><span>👥 ${e.pax}</span><span>🍽 ${e.sr}</span></div></div></div>`; }).join("");
+ const gdUp=(d,t)=>{const p=d.split(' ');return `<div class="gd-uprow"><span class="gd-updte"><b>${p[0]}</b><small>${(p[1]||'').toUpperCase()}</small></span><span class="gd-uptx">${t}</span></div>`;};
+ const gdPri=(ic,t,d,n,nav)=>{const c=n===0?'var(--green)':n<=2?'#F59E0B':'var(--red)';return `<div class="gd-pri" onclick="go('${nav}')"><span class="gd-pric">${ic}</span><div style="flex:1"><div class="gd-prit">${t}</div><div class="gd-prid">${n===0?'semua aman':d}</div></div><span class="gd-prin" style="color:${c}">${n}</span></div>`;};
+ const gdHbar=(l,v,max,c)=>`<div class="gd-hbar"><div class="gd-hlab"><span>${l}</span><b>Rp ${v}jt</b></div><div class="gd-htrack"><i style="width:${Math.min(v/max*100,100)}%;background:${c}"></i></div></div>`;
+ const gdTierB=(s)=>{const t=vendorTier(s);const m=t.n==='Platinum'?['#7C3AED','#EDE9FE']:t.n==='Gold'?['#B45309','#FEF3C7']:['#64748B','#F1F5F9'];return `<span class="badge" style="background:${m[1]};color:${m[0]}">${t.n}</span>`;};
+ el.innerHTML=`
+ <div class="gd">
+  <div class="gd-head card">
+    <div class="gd-hl"><span class="gd-logo">GA</span><div><div class="gd-ht">Collaborative Deck</div><div class="gd-hs">General Affair · Dashboard Monitoring</div></div></div>
+    <div class="gd-clockarea"><span class="gd-cdate" id="gdDate"></span><span class="gd-ctime" id="gdTime"></span></div>
+  </div>
+  <div class="gd-nav" id="gdNav">
+    ${[['gd-kpi','KPI & Progress'],['gd-hot','Hot Topic'],['gd-rev','Revenue'],['gd-bud','Budget & Transport'],['gd-svc','Service & Vendor'],['gd-proc','Procurement & Payment'],['gd-bld','Building & Utility'],['gd-hse','HSE & Permit']].map(([id,l],i)=>`<a class="${i===0?'on':''}" data-sec="${id}" onclick="gdGo('${id}',this)">${l}</a>`).join('')}
+  </div>
+
+  <div class="gd-sec" id="gd-kpi"><i></i>KPI & Progress</div>
+  <div class="card">
+    <div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Highlight Pencapaian KPI GA Dept</div><div class="gd-chs">— ${codecMonthID()} · derive live dari seluruh modul AGAVA</div></div></div>
+    <div class="gd-cells3">
+      <div class="gd-cell"><div class="gd-cv" style="color:var(--green)">${avgK}%</div><div class="gd-cl">Avg. KPI Achievement</div><span class="badge" style="background:#FEF3C7;color:#B45309">▲ rata-rata 6 sub-function</span></div>
+      <div class="gd-cell"><div class="gd-cv" style="color:#2563EB">${hitK}/6</div><div class="gd-cl">Sub-Function capai target</div><span class="badge" style="background:#FEF3C7;color:#B45309">${hitK>=5?'Excellent':hitK>=4?'Good':'Perlu Perhatian'}</span></div>
+      <div class="gd-cell"><div class="gd-cv" style="color:var(--red)">${kOk}/8</div><div class="gd-cl">KPI modul on-target</div><span class="badge" style="background:#DBEAFE;color:#2563EB">single source of truth</span></div>
+    </div>
+  </div>
+  <div class="gd-g75 mt16">
+    <div class="card"><div class="gd-ch"><span class="gd-chi">📈</span><div><div class="gd-cht">KPI Achievement per Sub-Function</div><div class="gd-chs">Target vs Actual YTD · klik untuk buka modul</div></div></div>
+      <div class="gd-pad">${gdKpiRows}</div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">📅</span><div><div class="gd-cht">Progress Bulanan</div><div class="gd-chs">Update otomatis dari modul AGAVA</div></div></div>
+      <div class="gd-cells2">
+        <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${prjN}</div><span class="badge" style="background:#FEF3C7;color:#B45309">avg ${prjAvg}%</span><div class="gd-cl2">Project Plan & Actual</div><div class="gd-cl3">${CODEC_PROJECTS.filter(p=>p.st==='ok').length} on-track · ${prjBlk} blocked</div></div>
+        <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${tkRes} <small>dari ${tkTot}</small></div><div class="gd-cl2">Tiket Selesai</div><div class="gd-cl3">+${tkFu} lanjut ke procurement</div></div>
+        <div class="gd-cell"><div class="gd-cv2" style="color:#8B5CF6">${pipeN}</div><span class="badge" style="background:#EDE9FE;color:#8B5CF6">pipeline aktif</span><div class="gd-cl2">Payment Progress</div><div class="gd-cl3">${relN} released · dari Payment Tracker</div></div>
+        <div class="gd-cell"><div class="gd-cv2" style="color:var(--green)">−${eRed}%</div><div class="gd-cl2">Konsumsi Energi</div><div class="gd-cl3">vs baseline 2019 · ${ENERGY_MONTHS[ENERGY_MONTHS.length-1]} 2026</div></div>
+      </div></div>
+  </div>
+  <div class="card mt16"><div class="gd-rating">
+    <div style="text-align:center"><div class="gd-rbig">${R.score}</div><div class="gd-rstars">★★★★★</div><div class="gd-rsub">${R.count} responden</div></div>
+    <div style="flex:1;min-width:220px"><div class="gd-rt">Rating Layanan GA Dept</div>${gdRating}</div>
+    <span class="badge" style="background:#FEF3C7;color:#B45309">⭐ Sangat Baik</span>
+  </div></div>
+
+  <div class="gd-sec" id="gd-hot"><i></i>Hot Topic</div>
+  <div class="gd-g543">
+    <div class="card"><div class="gd-ch"><span class="gd-chi">📋</span><div><div class="gd-cht">Today's Log</div><div class="gd-chs">aktivitas hari ini</div></div><span class="gd-live">● LIVE</span></div>
+      <div class="gd-pad">${gdEvents}<a class="see-more" onclick="go('gacal')">buka GA Calendar →</a></div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">📆</span><div><div class="gd-cht">Upcoming</div><div class="gd-chs">Agenda 7–30 hari ke depan</div></div><span class="badge" style="background:#DBEAFE;color:#2563EB">12 agenda</span></div>
+      <div class="gd-pad">
+        ${gdUp("17 Jun","IR Talk Batch II · Auditorium")}${gdUp("17 Jun","Diversity for Leaders · R. William S.")}${gdUp("18 Jun","Sharing CFA · Auditorium")}${gdUp("19 Jun","PKAG · Auditorium")}
+        ${gdUp("20 Jun","AC service — all buildings")}${gdUp("23 Jun","Genset monthly test — AMDI")}${gdUp("24 Jun","Auditorium Renovation — start")}${gdUp("26 Jun","Fire system check — ABC BSD")}
+        ${gdUp("28 Jun","Corridor & Toilet 8A — next phase")}${gdUp("30 Jun","Lift maintenance — Tower")}${gdUp("05 Jul","1C Rejuvenation — phase 2")}${gdUp("08 Jul","Water tank cleaning — MA")}
+      </div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Prioritas Hari Ini</div><div class="gd-chs">klik untuk membuka modulnya</div></div></div>
+      <div>
+        ${gdPri('🚨','Tiket eskalasi','butuh perhatian PIC',TICKETS.filter(t=>t.esc&&t.stg<4).length,'service')}
+        ${gdPri('✅','Approval menunggu','antrian semua gate',pendingApprovals().length,'approvals')}
+        ${gdPri('🔔','Payment lewat estimasi','f-up treasury',SO.filter(s=>invReleaseOverdue(s)).length,'payment')}
+        ${gdPri('📄','Izin overdue / near','≤90 hari jatuh tempo',IZIN_OPS.filter(z=>izinStatus(z.due).k!=='ok').length,'gacal')}
+      </div></div>
+  </div>
+
+  <div class="gd-sec" id="gd-rev"><i></i>Revenue GA</div>
+  <div class="card">
+    <div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Income Stream GA — Revenue 2026</div><div class="gd-chs">pemanfaatan aset & ruang jadi pendapatan</div></div>
+      <div style="text-align:right"><div class="gd-chs">Total YTD</div><div style="font-size:22px;font-weight:900;color:var(--green)">${ciFmt(CODEC_INCOME.rooms.reduce((a,x)=>a+x.rev,0)+CODEC_INCOME.other.reduce((a,x)=>a+x.rev,0))}</div></div></div>
+    <div class="gd-pad2">
+      <div class="gd-sub">🏢 Sewa Ruang Meeting Besar · ${CODEC_INCOME.rooms.reduce((a,x)=>a+x.resv,0)} reservasi · ${ciFmt(CODEC_INCOME.rooms.reduce((a,x)=>a+x.rev,0))}</div>
+      <div class="gd-g3">${CODEC_INCOME.rooms.map(r=>`<div class="gd-income"><div class="gd-inm">${r.name}</div><div class="gd-irm">${r.code}</div><div class="gd-inum">${r.resv} <small>reservasi</small></div><div class="gd-irev">${ciFmt(r.rev)}</div></div>`).join('')}</div>
+      <div class="gd-sub" style="margin-top:20px">🔗 Stream Income Lainnya</div>
+      <div class="gd-g4">${CODEC_INCOME.other.map(o=>`<div class="gd-stream"><span class="gd-sic">${o.ic}</span><div style="flex:1;min-width:0"><div class="gd-snm">${o.name}</div><div class="gd-sds">${o.note}</div></div><span class="gd-svl">${ciFmt(o.rev)}</span></div>`).join('')}</div>
+    </div>
+  </div>
+
+  <div class="gd-sec" id="gd-bud"><i></i>Budget & Transport</div>
+  <div class="gd-g3">
+    <div class="card"><div class="gd-ch"><span class="gd-chi">💳</span><div><div class="gd-cht">Pemakaian Budget GA</div><div class="gd-chs">YTD · pemakaian vs alokasi 2026</div></div></div>
+      <div class="gd-pad2">
+        <div class="gd-blab"><span>Budget <b style="color:var(--green)">OPEX</b></span><b style="color:var(--green)">68%</b></div>${gdBar(68,100,'var(--green)',10)}
+        <div class="gd-blab" style="margin-top:18px"><span>Budget <b style="color:#2563EB">CAPEX</b></span><b style="color:#2563EB">54%</b></div>${gdBar(54,100,'#2563EB',10)}
+      </div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">🚗</span><div><div class="gd-cht">Biaya per Jenis Transportasi</div><div class="gd-chs">pengeluaran armada 2026</div></div><b style="color:var(--green);font-size:15px">Rp ${CODEC_TRANSPORT.byType.reduce((a,x)=>a+x.cost,0)}jt</b></div>
+      <div class="gd-pad2">${CODEC_TRANSPORT.byType.map(t=>gdHbar(t.name,t.cost,30,'#3B82F6')).join('')}</div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">🏢</span><div><div class="gd-cht">Biaya per Divisi</div><div class="gd-chs">Penggunaan tertinggi</div></div></div>
+      <div class="gd-pad2">${CODEC_TRANSPORT.byDiv.map(d=>gdHbar(d.name,d.cost,10,'#60A5FA')).join('')}</div></div>
+  </div>
+
+  <div class="gd-sec" id="gd-svc"><i></i>Service & Vendor</div>
+  <div class="gd-g57">
+    <div class="card"><div class="gd-ch"><span class="gd-chi">🎧</span><div><div class="gd-cht">Complaint Tickets</div><div class="gd-chs">Status tiket komplain · ${tkTot} total</div></div></div>
+      <div class="gd-pad2">
+        ${[['Unassigned',tkUn,'var(--red)'],['In progress',tkIp,'#3B82F6'],['Follow-up / To Procurement',tkFu,'#F59E0B'],['Resolved',tkRes,'var(--green)']].map(([l,v,c])=>`<div style="margin-bottom:13px"><div class="gd-blab"><span style="color:${c};font-weight:600">${l}</span><b>${v}</b></div>${gdBar(v,tkTot,c,5)}</div>`).join('')}
+      </div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">📊</span><div><div class="gd-cht">Vendor Performance by Site</div><div class="gd-chs">Avg Housekeeping & BM Technician · scale 0–3</div></div></div>
+      <div class="gd-vgrid">${VENDOR_PERF.map(v=>`<div class="gd-vcard"><div class="gd-vhead">${v.site}</div><div class="gd-vbody"><div class="gd-vnm">${v.name}</div><div class="gd-vrow"><span>Housekeeping</span><span><b>${v.hk}</b> ${gdTierB(v.hk)}</span></div><div class="gd-vrow"><span>BM · Technician</span><span><b>${v.bm}</b> ${gdTierB(v.bm)}</span></div></div></div>`).join('')}</div></div>
+  </div>
+
+  <div class="gd-sec" id="gd-proc"><i></i>Procurement & Payment</div>
+  <div class="gd-g2">
+    <div class="card"><div class="gd-ch"><span class="gd-chi">🛒</span><div><div class="gd-cht">Procurement</div><div class="gd-chs">SO lifecycle — SO → UPR → SPK → BAST</div></div><a class="see-more" style="margin:0" onclick="go('procurement')">Open →</a></div>
+      <div class="gd-cells4">
+        <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${soTot}</div><div class="gd-cl2">SO Ongoing</div></div>
+        <div class="gd-cell"><div class="gd-cv2" style="color:#334155">${soUpr}</div><div class="gd-cl2">UPR Done</div></div>
+        <div class="gd-cell"><div class="gd-cv2" style="color:#F59E0B">${soSpk}</div><div class="gd-cl2">SPK Done</div></div>
+        <div class="gd-cell"><div class="gd-cv2" style="color:var(--green)">${soBast}</div><div class="gd-cl2">BAST Done</div></div>
+      </div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">💳</span><div><div class="gd-cht">Payment Tracker</div><div class="gd-chs">Payment proof status & repair-maintenance budget</div></div><a class="see-more" style="margin:0" onclick="go('payment')">Open →</a></div>
+      <div class="gd-tiles3">
+        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">24</b><span>Processing</span></div>
+        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">9</b><span>Pending</span></div>
+        <div class="gd-tile" style="background:#FEE2E2"><b style="color:var(--red)">2</b><span>Overdue</span></div>
+      </div></div>
+  </div>
+
+  <div class="gd-sec" id="gd-bld"><i></i>Building & Utility</div>
+  <div class="gd-g2">
+    <div class="card"><div class="gd-ch"><span class="gd-chi">🏗</span><div><div class="gd-cht">Building & Utility</div><div class="gd-chs">Ongoing works, utility status & alerts</div></div></div>
+      <div class="gd-pad2">
+        <div class="gd-sub">🔧 Repair Works in Progress</div>
+        ${WORKS.map(w=>`<div class="gd-reprow"><div><div class="gd-repn">${w.job}</div><div class="gd-repv">${w.pt} · ${w.orang} people</div></div><span class="badge" style="background:${w.izin?'#D1FAE5':'#FEF3C7'};color:${w.izin?'#047857':'#B45309'}">Work Permit ${w.izin?'OK':'PENDING'}</span></div>`).join('')}
+        <div class="gd-sub" style="margin-top:16px">⚙️ Main Utility Status</div>
+        <div class="gd-g2" style="gap:10px">
+          <div class="gd-util"><b style="color:#2563EB">2/3</b><span>Chillers running</span></div>
+          <div class="gd-util"><b style="color:var(--green)">5/5</b><span>Pumps running</span></div>
+        </div>
+      </div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">🚨</span><div><div class="gd-cht">Alerts · Needs Attention</div><div class="gd-chs">Stays visible until resolved via ERSUS</div></div></div>
+      <div class="gd-pad2">${ERSUS_ALERTS.filter(a=>a.sev!=='info').slice(0,3).map(a=>`<div class="gd-alert insight ${a.sev==='crit'?'crit':'warn'}"><div class="gd-alt">${a.sev==='crit'?'🔴':'⚠️'} ${a.t}</div><div class="gd-ald">${a.d}</div></div>`).join('')}
+      <a class="see-more" onclick="go('building')">Open Building & Utility →</a></div></div>
+  </div>
+
+  <div class="gd-sec" id="gd-hse"><i></i>HSE & Sustainability · Permit</div>
+  <div class="card">
+    <div class="gd-ch"><span class="gd-chi">🛡</span><div><div class="gd-cht">HSE & Sustainability</div><div class="gd-chs">Compliance, work permit & safety</div></div></div>
+    <div class="gd-pad2">
+      <div class="gd-sub">Compliance Status</div>
+      <div class="gd-g3" style="margin-bottom:20px">
+        <div class="gd-tile" style="background:#F8FAFC"><b style="color:var(--green)">${HSE_P2K3L.agc.score}%</b><span>AGC · Astra Green Company</span></div>
+        <div class="gd-tile" style="background:#F8FAFC"><b style="color:#F59E0B">${HSE_P2K3L.mka.score}%</b><span>MKA · Mandatory Key Action</span></div>
+        <div class="gd-tile" style="background:#F8FAFC"><b style="color:var(--green)">${HSE_P2K3L.sgr.score}%</b><span>SGR · Safety Golden Rules</span></div>
+      </div>
+      <div class="gd-sub">Work Permit & Safety</div>
+      <div class="gd-g4" style="margin-bottom:20px">
+        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">14</b><span>Active work permits</span></div>
+        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">2</b><span>Pending permits</span></div>
+        <div class="gd-tile" style="background:#D1FAE5"><b style="color:var(--green)">0</b><span>Lost time injury</span></div>
+        <div class="gd-tile" style="background:#FEE2E2"><b style="color:var(--red)">3</b><span>Safety violations</span></div>
+      </div>
+      <div class="gd-sub">🔔 Permit Reminder — Document & Permit Compliance</div>
+      <div class="gd-g2" style="gap:20px">
+        <div><div class="gd-sub2">🚗 Vehicle Registration (STNK)</div>
+          <div class="gd-g3" style="gap:8px">
+            <div class="gd-tile sm" style="background:#FEF3C7"><b style="color:#F59E0B">${stnk30}</b><span>≤30 days</span></div>
+            <div class="gd-tile sm" style="background:#FEE2E2"><b style="color:var(--red)">${stnkO}</b><span>Overdue</span></div>
+            <div class="gd-tile sm" style="background:#D1FAE5"><b style="color:var(--green)">${stnkOK}</b><span>OK</span></div>
+          </div></div>
+        <div><div class="gd-sub2">🏠 Property Tax (PBB) & permits</div>
+          <div class="gd-g3" style="gap:8px">
+            <div class="gd-tile sm" style="background:#FEF3C7"><b style="color:#F59E0B">${pbb30}</b><span>≤30 days</span></div>
+            <div class="gd-tile sm" style="background:#FEE2E2"><b style="color:var(--red)">${pbbO}</b><span>Overdue</span></div>
+            <div class="gd-tile sm" style="background:#EFF6FF"><b style="color:#2563EB">${pbbOK}</b><span>OK</span></div>
+          </div></div>
+      </div>
+    </div>
+  </div>
+ </div>`;
+ gdInit();
+ return;
+ /* (markup lama di bawah tidak terpakai lagi) */
  el.innerHTML=`
  ${codecHeroHTML()}
  ${codecBreakdownHTML()}
@@ -4187,7 +4517,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.09-1";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.09-2";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
