@@ -840,7 +840,10 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .sec.collapsed .chev{transform:rotate(-90deg)}
 
 /* ===================== TODAY'S LOG & UPCOMING v2 — dramatis & catchy ===================== */
-.hl2{border-radius:18px;overflow:hidden;border:1.5px solid #d8e2f2;background:#fff;box-shadow:0 3px 14px rgba(20,40,80,.07)}
+.hl-grid{align-items:stretch}
+.hl2{border-radius:18px;overflow:hidden;border:1.5px solid #d8e2f2;background:#fff;box-shadow:0 3px 14px rgba(20,40,80,.07);display:flex;flex-direction:column}
+.hl2 .hl2-body{flex:1;display:flex;flex-direction:column}
+.hl2.u .up2:last-child{flex:1}
 .hl2-band{display:flex;align-items:center;gap:12px;padding:14px 18px;color:#fff}
 .hl2.t .hl2-band{background:linear-gradient(120deg,#1d4ed8,#2563eb 55%,#0e9f8f)}
 .hl2.u .hl2-band{background:linear-gradient(120deg,#6d28d9,#7a4fd0 55%,#2563eb)}
@@ -868,7 +871,28 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .hl2-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
 .hl2-tile{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fbfcfe}
 .hl2-tile.a-blue{border-top:3px solid #2563eb}.hl2-tile.a-green{border-top:3px solid #15a34a}.hl2-tile.a-amber{border-top:3px solid #eab308}
-.ht-h{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:7px}
+.ht-h{font-size:12px;font-weight:800;color:var(--ink);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hl2-tile .stat-line{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.hl2-tile .stat-line:last-child{border-bottom:none;padding-bottom:0}
+.hl2-tile .stat-line .lab{font-size:11px;color:var(--muted);white-space:nowrap}
+.hl2-tile .stat-line .n{font-size:16px;font-weight:800;white-space:nowrap}
+/* Prioritas Hari Ini */
+.pr-list{display:grid;gap:8px}
+.pr-row{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:12px;padding:9px 13px;background:#fbfcfe;cursor:pointer;transition:.15s}
+.pr-row:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(37,99,235,.12);border-color:#bcd3f5}
+.pr-row.hot{border-left:4px solid #dc2626}
+.pr-row.ok{border-left:4px solid #15a34a;opacity:.82}
+.pr-ic{font-size:17px;flex:0 0 auto}
+.pr-tx{flex:1;min-width:0}
+.pr-tx b{display:block;font-size:12.5px;color:var(--ink)}
+.pr-tx small{font-size:10.5px;color:var(--muted)}
+.pr-n{font-size:20px;font-weight:800;color:#dc2626}
+.pr-n.ok{color:#15a34a}
+.pr-go{color:#c3cfe2;font-size:17px;font-weight:800}
+.pr-row:hover .pr-go{color:var(--blue)}
+/* polish "hidup" lintas modul — kartu ringkas ikut terangkat saat hover */
+.box,.card.kpi,.mini-panel,.up2,.hl2-tile,.gc-stat,.cd-mini,.kd-tile,.ci-room,.ci-other,.gc-ps{transition:transform .15s ease,box-shadow .15s ease}
+.box:hover,.card.kpi:hover,.mini-panel:hover,.up2:hover,.hl2-tile:hover,.gc-stat:hover,.cd-mini:hover,.kd-tile:hover,.ci-room:hover,.ci-other:hover,.gc-ps:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(20,40,80,.10)}
 .up2{border:1px solid var(--line);border-left-width:4px;border-radius:14px;padding:13px 15px;margin-bottom:12px;background:#fbfcfe}
 .up2:last-child{margin-bottom:0}
 .up2.g-blue{border-left-color:#2563eb}.up2.g-vio{border-left-color:#7a4fd0}.up2.g-amb{border-left-color:#eab308}
@@ -1992,10 +2016,10 @@ function renderOverview(){
    <div class="hl2 t">
      <div class="hl2-band"><span class="hl2-bic">📋</span><div class="hl2-bt"><h3>TODAY'S LOG</h3><small>Kamis, 18 Juni 2026 · aktivitas hari ini</small></div><span class="hl2-livechip"><i></i>LIVE</span></div>
      <div class="hl2-body">
-       <div class="hl2-st">🎪 Live Events — by room <span>Top 3 peserta terbanyak · 07:00–12:00</span></div>
-       <div class="ev2-list">${topEvents().slice(0,3).map(eventRow).join("")}</div>
-       <a class="see-more" onclick="go('gacal')">+ ${Math.max(EVENTS.length-3,0)} more events · buka GA Calendar →</a>
-       <div class="hl2-st" style="margin-top:18px">⚡ Ringkasan Operasional</div>
+       <div class="hl2-st">🎪 Live Events — hari ini <span>urut jam mulai · ${EVENTS.length} acara</span></div>
+       <div class="ev2-list">${EVENTS.slice().sort((a,b)=>a.start.localeCompare(b.start)).slice(0,4).map(eventRow).join("")}</div>
+       <a class="see-more" onclick="go('gacal')">+ ${Math.max(EVENTS.length-4,0)} acara lainnya · buka GA Calendar →</a>
+       <div class="hl2-st" style="margin-top:16px">⚡ Ringkasan Operasional</div>
        <div class="hl2-stats">
          <div class="hl2-tile a-blue"><div class="ht-h">🏗️ Progress Project</div>
            ${statLine("Ongoing","7","")}
@@ -2010,8 +2034,15 @@ function renderOverview(){
          <div class="hl2-tile a-amber"><div class="ht-h">🎫 Ticket Service</div>
            ${statLine("Ongoing",TIKET_SUMMARY.berjalan,"amber")}
            ${statLine("Resolved",TIKET_SUMMARY.selesai,"green")}
-           ${statLine("Avg response",TIKET_SUMMARY.resp,"blue")}
+           ${statLine("Avg resp",TIKET_SUMMARY.resp,"blue")}
          </div>
+       </div>
+       <div class="hl2-st" style="margin-top:16px">🔔 Prioritas Hari Ini <span>derive live · klik untuk membuka modulnya</span></div>
+       <div class="pr-list">
+         ${prioRow('🚨','Tiket eskalasi', TICKETS.filter(t=>t.esc&&t.stg<4).length, 'service', 'butuh perhatian PIC')}
+         ${prioRow('✅','Approval menunggu', pendingApprovals().length, 'approvals', 'antrian semua gate')}
+         ${prioRow('💰','Payment lewat estimasi', SO.filter(s=>invReleaseOverdue(s)).length, 'payment', 'f-up treasury')}
+         ${prioRow('📄','Izin overdue / near', IZIN_OPS.filter(z=>izinStatus(z.due).k!=='ok').length, 'gacal', '≤90 hari jatuh tempo')}
        </div>
      </div>
    </div>
@@ -2160,6 +2191,12 @@ function renderOverview(){
  });
 }
 function statLine(lab,n,c){return `<div class="stat-line"><span class="lab">${lab}</span><span class="n ${c}">${n}</span></div>`;}
+function prioRow(ic,label,n,nav,note){ const ok=(n===0);
+ return `<div class="pr-row ${ok?'ok':'hot'}" onclick="go('${nav}')">
+   <span class="pr-ic">${ic}</span>
+   <span class="pr-tx"><b>${label}</b><small>${ok?'semua aman':note}</small></span>
+   <span class="pr-n ${ok?'ok':''}">${n}</span><span class="pr-go">›</span>
+ </div>`;}
 function upItem(d,t){const p=d.split(' ');return `<div class="up-item2"><span class="up-date"><b>${p[0]}</b><small>${p[1]||''}</small></span><span class="up-t">${t}</span></div>`;}
 const EVENTS=[
  {room:"Auditorium",ev:"IR Talk Batch II · Running",start:"08:00",pax:180,temp:23.5,hot:false,sr:"Catering: Sajian Nusantara"},
