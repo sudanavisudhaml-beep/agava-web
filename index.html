@@ -852,6 +852,13 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .gd-cdate{font-size:13px;color:#94A3B8}
 .gd-ctime{background:linear-gradient(135deg,#2563EB,#3B82F6);color:#fff;border-radius:10px;padding:6px 16px;font-family:ui-monospace,monospace;font-size:19px;font-weight:700;letter-spacing:2px}
 .gd-blink{animation:gdBlink 1s infinite}
+/* jam topbar — dramatis: gradasi mengalir + glow berdenyut */
+@keyframes gdFlow{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+@keyframes gdGlow{0%,100%{box-shadow:0 4px 16px rgba(37,99,235,.35),0 0 0 0 rgba(59,130,246,.35)}50%{box-shadow:0 4px 22px rgba(124,58,237,.45),0 0 0 6px rgba(59,130,246,.10)}}
+.gd-topclock{display:flex;align-items:center;gap:11px}
+.gd-topclock .d{font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+.gd-ctime2{background:linear-gradient(120deg,#1d4ed8,#3b82f6,#7c3aed,#0ea5a3,#1d4ed8);background-size:300% 100%;animation:gdFlow 7s linear infinite,gdGlow 2.4s ease-in-out infinite;color:#fff;border-radius:12px;padding:8px 17px;font-family:ui-monospace,monospace;font-size:19px;font-weight:800;letter-spacing:2.5px;white-space:nowrap}
+@media(max-width:820px){.gd-topclock .d{display:none}.gd-ctime2{font-size:14px;padding:6px 11px;letter-spacing:1.5px}}
 .gd-nav{background:#fff;border:1px solid var(--line);border-radius:12px;padding:2px 10px;display:flex;gap:2px;overflow-x:auto;position:sticky;top:8px;z-index:28;box-shadow:0 2px 10px rgba(15,23,42,.06)}
 .gd-nav a{padding:10px 13px;font-size:12px;font-weight:500;color:#64748B;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer;transition:.15s}
 .gd-nav a.on{font-weight:700;color:#2563EB;border-bottom-color:#2563EB}
@@ -1203,6 +1210,7 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
         <div class="sub" id="pgSub">Rekap seluruh section · Thursday, 18 June 2026</div>
       </div>
       <div class="acts">
+        <div class="gd-topclock" id="gdTopClock" style="display:none"><span class="d" id="gdDate"></span><span class="gd-ctime2" id="gdTime"></span></div>
         <button class="live-chip" id="liveChip" onclick="liveToggle()" title="Click to connect a local Excel workbook"><span class="live-dot" id="liveDot"></span><span id="liveTxt">Connect Excel</span></button>
         <button class="copilot-btn" onclick="openCopilot()" title="Ask Copilot"><svg class="cp-mark" viewBox="0 0 24 24"><defs><linearGradient id="cpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset=".5" stop-color="#39a0ff"/><stop offset="1" stop-color="#7a4fd0"/></linearGradient></defs><path fill="url(#cpg)" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/><path fill="url(#cpg)" opacity=".8" d="M19 14l.85 2.25L22 17.1l-2.15.85L19 20l-.85-2.05L16 17.1l2.15-.85z"/></svg><span class="cp-label">Ask Copilot</span></button>
         <button class="icon-btn" onclick="go('reminder')" title="Notifications" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span id="bellBadge" class="bell-badge hide">0</span></button>
@@ -1359,7 +1367,7 @@ function go(id){
   active=(id==="ersus")?"energy":id; buildNav();
   ["page-overview","page-procurement","page-building","page-project","page-gacal","page-service","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
-  if(id==="overview"){document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Welcome, "+(gUser?gUser.name:"there")+" · Thursday, 18 June 2026";}
+  if(id==="overview"){document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="procurement"){document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
   else if(id==="building"){document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
   else if(id==="project"){renderProject();document.getElementById("page-project").classList.remove("hide");t.textContent="Project Development";s.textContent="Project Timeline × Calendar of Event 2026 — radar overlap konstruksi vs reservasi";}
@@ -1380,6 +1388,7 @@ function go(id){
   else if(id==="ersus"){document.getElementById("page-ersus").classList.remove("hide");t.textContent="ERSUS · Energy Intelligence";s.textContent="Insights & notifications that need action";}
   else{const sb=document.getElementById("page-stub");sb.classList.remove("hide");const m=MENU.find(x=>x.id===id);t.textContent=m.label;s.textContent="This module is coming soon.";
     sb.innerHTML=`<div class="card" style="padding:60px;text-align:center;color:var(--muted)"><div style="font-size:40px;opacity:.3">🚧</div><div style="margin-top:12px;font-size:15px">The <b style="color:var(--ink)">${m.label}</b> module is not built in this mockup yet.</div><div style="font-size:13px;margin-top:6px">Try <b style="color:var(--blue)">Procurement</b> or <b style="color:var(--blue)">Energy</b>.</div></div>`;}
+  const _tc=document.getElementById("gdTopClock"); if(_tc)_tc.style.display=(active==="overview")?"flex":"none";
   window.scrollTo(0,0);
 }
 
@@ -2176,10 +2185,6 @@ function renderOverview(){
  const gdTierB=(s)=>{const t=vendorTier(s);const m=t.n==='Platinum'?['#7C3AED','#EDE9FE']:t.n==='Gold'?['#B45309','#FEF3C7']:['#64748B','#F1F5F9'];return `<span class="badge" style="background:${m[1]};color:${m[0]}">${t.n}</span>`;};
  el.innerHTML=`
  <div class="gd">
-  <div class="gd-head card">
-    <div class="gd-hl"><span class="gd-logo">GA</span><div><div class="gd-ht">Collaborative Deck</div><div class="gd-hs">General Affair · Dashboard Monitoring</div></div></div>
-    <div class="gd-clockarea"><span class="gd-cdate" id="gdDate"></span><span class="gd-ctime" id="gdTime"></span></div>
-  </div>
   <div class="gd-nav" id="gdNav">
     ${[['gd-kpi','KPI & Progress'],['gd-hot','Hot Topic'],['gd-rev','Revenue'],['gd-bud','Budget & Transport'],['gd-svc','Service & Vendor'],['gd-proc','Procurement & Payment'],['gd-bld','Building & Utility'],['gd-hse','HSE & Permit']].map(([id,l],i)=>`<a class="${i===0?'on':''}" data-sec="${id}" onclick="gdGo('${id}',this)">${l}</a>`).join('')}
   </div>
@@ -4517,7 +4522,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.09-2";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.09-3";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
