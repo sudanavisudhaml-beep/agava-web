@@ -43,8 +43,14 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .top{display:flex;align-items:flex-start;gap:16px;padding:26px 34px 8px}
 .top h1{font-size:24px;color:var(--ink);font-weight:800;letter-spacing:-.3px}
 .top .sub{font-size:13px;color:var(--muted);margin-top:5px}
-.top .acts{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:9px}
+.top .acts{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .acts-btns{display:flex;align-items:center;gap:10px}
+/* semua tombol info bar tinggi seragam & sejajar rapi */
+.acts-btns .live-chip,.acts-btns .copilot-btn,.acts-btns .icon-btn{height:40px}
+.acts-btns .copilot-btn{padding-top:0;padding-bottom:0}
+.acts-btns .icon-btn{width:40px}
+/* jam selebar baris tombol → tepi kanan lurus, terlihat sebagai satu info bar */
+.acts .gd-topclock{justify-content:flex-end}
 .icon-btn{width:40px;height:40px;border-radius:11px;background:#fff;border:1px solid var(--line);
   display:grid;place-items:center;cursor:pointer;color:var(--muted);box-shadow:0 1px 2px rgba(16,32,54,.04)}
 .icon-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9}
@@ -4551,7 +4557,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-1";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-2";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
