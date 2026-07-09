@@ -43,7 +43,8 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .top{display:flex;align-items:flex-start;gap:16px;padding:26px 34px 8px}
 .top h1{font-size:24px;color:var(--ink);font-weight:800;letter-spacing:-.3px}
 .top .sub{font-size:13px;color:var(--muted);margin-top:5px}
-.top .acts{margin-left:auto;display:flex;gap:10px}
+.top .acts{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:9px}
+.acts-btns{display:flex;align-items:center;gap:10px}
 .icon-btn{width:40px;height:40px;border-radius:11px;background:#fff;border:1px solid var(--line);
   display:grid;place-items:center;cursor:pointer;color:var(--muted);box-shadow:0 1px 2px rgba(16,32,54,.04)}
 .icon-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.9}
@@ -224,7 +225,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .inv-lbl{font-size:11px;font-weight:600;color:var(--text);margin-top:5px;max-width:104px;line-height:1.25}
 .inv-step.wait .inv-lbl{color:var(--muted)}
 .inv-ts{font-size:10px;color:var(--muted);margin-top:2px}
-.inv-bar{flex:1;height:2px;background:var(--line);margin-top:13px;min-width:16px}
+.inv-bar{flex:1;height:3px;background:var(--line);margin-top:13px;min-width:16px;border-radius:2px;position:relative;overflow:hidden}
+.inv-bar.fill{background:var(--green)}
+.inv-bar.flow{background:linear-gradient(90deg,var(--green),var(--blue))}
+.inv-bar.flow::after{content:"";position:absolute;top:0;left:0;height:100%;width:45%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.92),transparent);animation:invWipe 1.3s linear infinite}
+@keyframes invWipe{0%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
+.inv-note{font-size:9.5px;color:#c2740a;margin-top:3px;font-weight:700;max-width:104px;line-height:1.2}
+@media(prefers-reduced-motion:reduce){.inv-bar.flow::after{animation:none;display:none}}
 .inv-opt{display:block;border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;font-size:12.5px;cursor:pointer}
 .inv-opt:hover{border-color:#cfdaeb}
 .inv-opt input{margin-right:6px}
@@ -1210,10 +1217,12 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
         <div class="sub" id="pgSub">Rekap seluruh section · Thursday, 18 June 2026</div>
       </div>
       <div class="acts">
-        <div class="gd-topclock" id="gdTopClock" style="display:none"><span class="d" id="gdDate"></span><span class="gd-ctime2" id="gdTime"></span></div>
-        <button class="live-chip" id="liveChip" onclick="liveToggle()" title="Click to connect a local Excel workbook"><span class="live-dot" id="liveDot"></span><span id="liveTxt">Connect Excel</span></button>
-        <button class="copilot-btn" onclick="openCopilot()" title="Ask Copilot"><svg class="cp-mark" viewBox="0 0 24 24"><defs><linearGradient id="cpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset=".5" stop-color="#39a0ff"/><stop offset="1" stop-color="#7a4fd0"/></linearGradient></defs><path fill="url(#cpg)" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/><path fill="url(#cpg)" opacity=".8" d="M19 14l.85 2.25L22 17.1l-2.15.85L19 20l-.85-2.05L16 17.1l2.15-.85z"/></svg><span class="cp-label">Ask Copilot</span></button>
-        <button class="icon-btn" onclick="go('reminder')" title="Notifications" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span id="bellBadge" class="bell-badge hide">0</span></button>
+        <div class="gd-topclock" id="gdTopClock"><span class="d" id="gdDate"></span><span class="gd-ctime2" id="gdTime"></span></div>
+        <div class="acts-btns">
+          <button class="live-chip" id="liveChip" onclick="liveToggle()" title="Click to connect a local Excel workbook"><span class="live-dot" id="liveDot"></span><span id="liveTxt">Connect Excel</span></button>
+          <button class="copilot-btn" onclick="openCopilot()" title="Ask AGAVA Copilot"><svg class="cp-mark" viewBox="0 0 24 24"><defs><linearGradient id="cpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset=".5" stop-color="#39a0ff"/><stop offset="1" stop-color="#7a4fd0"/></linearGradient></defs><path fill="url(#cpg)" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/><path fill="url(#cpg)" opacity=".8" d="M19 14l.85 2.25L22 17.1l-2.15.85L19 20l-.85-2.05L16 17.1l2.15-.85z"/></svg><span class="cp-label">Ask AGAVA Copilot</span></button>
+          <button class="icon-btn" onclick="go('reminder')" title="Notifications" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span id="bellBadge" class="bell-badge hide">0</span></button>
+        </div>
       </div>
     </div>
     <div class="wrap">
@@ -1388,7 +1397,6 @@ function go(id){
   else if(id==="ersus"){document.getElementById("page-ersus").classList.remove("hide");t.textContent="ERSUS · Energy Intelligence";s.textContent="Insights & notifications that need action";}
   else{const sb=document.getElementById("page-stub");sb.classList.remove("hide");const m=MENU.find(x=>x.id===id);t.textContent=m.label;s.textContent="This module is coming soon.";
     sb.innerHTML=`<div class="card" style="padding:60px;text-align:center;color:var(--muted)"><div style="font-size:40px;opacity:.3">🚧</div><div style="margin-top:12px;font-size:15px">The <b style="color:var(--ink)">${m.label}</b> module is not built in this mockup yet.</div><div style="font-size:13px;margin-top:6px">Try <b style="color:var(--blue)">Procurement</b> or <b style="color:var(--blue)">Energy</b>.</div></div>`;}
-  const _tc=document.getElementById("gdTopClock"); if(_tc)_tc.style.display=(active==="overview")?"flex":"none";
   window.scrollTo(0,0);
 }
 
@@ -2048,7 +2056,7 @@ function codecBreakdownHTML(){
    <div class="cd-sub">Target: ${f.target}% | ${f.kpi} · <span>${f.note}</span></div>
  </div>`).join("");
  const prj=CODEC_PROJECTS.length, prjAvg=Math.round(CODEC_PROJECTS.reduce((a,p)=>a+p.prog,0)/Math.max(prj,1));
- const closed=TICKETS.filter(t=>t.stg===4).length, toProc=TICKETS.filter(t=>t.stg===3).length;
+ const closed=TICKETS.filter(t=>t.stg===3).length, toProc=TICKETS.filter(t=>t.toProc).length;
  const pipe=SO.filter(s=>s.invReceived&&!s.invReleased).length, relN=SO.filter(s=>s.invReleased).length;
  const avg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, avg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length;
  const red=Math.round((1-avg26/avg19)*1000)/10;
@@ -2141,12 +2149,16 @@ function codecIncomeHTML(){
 }
 /* CODEC v3 helpers — jam live + nav scroll-spy (ref: ga-dashboard.html) */
 function gdGo(id,a){ const el=document.getElementById(id); if(el)el.scrollIntoView({behavior:'smooth',block:'start'}); document.querySelectorAll('#gdNav a').forEach(x=>x.classList.remove('on')); if(a)a.classList.add('on'); }
-function gdInit(){
+/* jam topbar — LOCKED di semua modul; jalan sekali saat load */
+function startTopClock(){
  const days=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"], mon=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
  const upd=()=>{ const d=new Date(); const de=document.getElementById('gdDate'), te=document.getElementById('gdTime'); if(!de||!te)return;
    de.textContent=days[d.getDay()]+", "+d.getDate()+" "+mon[d.getMonth()]+" "+d.getFullYear();
    te.innerHTML=String(d.getHours()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getMinutes()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getSeconds()).padStart(2,'0'); };
  upd(); if(!window._gdClock) window._gdClock=setInterval(upd,1000);
+}
+function gdInit(){
+ startTopClock();
  if(window._gdObs) window._gdObs.disconnect();
  window._gdObs=new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting){ document.querySelectorAll('#gdNav a').forEach(a=>a.classList.remove('on')); const a=document.querySelector('#gdNav a[data-sec="'+e.target.id+'"]'); if(a)a.classList.add('on'); } }); },{rootMargin:'-90px 0px -65% 0px',threshold:0.05});
  document.querySelectorAll('#page-overview .gd-sec').forEach(s=>window._gdObs.observe(s));
@@ -2166,7 +2178,7 @@ function renderOverview(){
  const S=codecSubFnData(), avgK=Math.round(S.reduce((a,x)=>a+x.ach,0)/S.length), hitK=S.filter(x=>x.ach>=x.target).length, kOk=kpiDeptData().filter(k=>k.st==="ok").length;
  const R=gaServiceRating();
  const prjN=CODEC_PROJECTS.length, prjAvg=Math.round(CODEC_PROJECTS.reduce((a,p)=>a+p.prog,0)/Math.max(prjN,1)), prjBlk=CODEC_PROJECTS.filter(p=>p.st==='blocked').length;
- const tkTot=TICKETS.length, tkUn=TICKETS.filter(t=>t.stg===0).length, tkIp=TICKETS.filter(t=>t.stg===1||t.stg===2).length, tkFu=TICKETS.filter(t=>t.stg===3).length, tkRes=TICKETS.filter(t=>t.stg===4).length;
+ const tkTot=TICKETS.length, tkUn=TICKETS.filter(t=>t.stg===0).length, tkAsg=TICKETS.filter(t=>t.stg===1).length, tkIp=TICKETS.filter(t=>t.stg===2).length, tkFu=TICKETS.filter(t=>t.toProc).length, tkRes=TICKETS.filter(t=>t.stg===3).length;
  const soTot=SO.length, soUpr=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=2).length, soSpk=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=3).length, soBast=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=4).length;
  const pipeN=SO.filter(s=>s.invReceived&&!s.invReleased).length, relN=SO.filter(s=>s.invReleased).length;
  const eAvg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, eAvg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length, eRed=Math.round((1-eAvg26/eAvg19)*1000)/10;
@@ -2227,7 +2239,7 @@ function renderOverview(){
       </div></div>
     <div class="card"><div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Prioritas Hari Ini</div><div class="gd-chs">klik untuk membuka modulnya</div></div></div>
       <div>
-        ${gdPri('🚨','Tiket eskalasi','butuh perhatian PIC',TICKETS.filter(t=>t.esc&&t.stg<4).length,'service')}
+        ${gdPri('🚨','Tiket eskalasi','butuh perhatian PIC',TICKETS.filter(t=>t.esc&&t.stg<3).length,'service')}
         ${gdPri('✅','Approval menunggu','antrian semua gate',pendingApprovals().length,'approvals')}
         ${gdPri('🔔','Payment lewat estimasi','f-up treasury',SO.filter(s=>invReleaseOverdue(s)).length,'payment')}
         ${gdPri('📄','Izin overdue / near','≤90 hari jatuh tempo',IZIN_OPS.filter(z=>izinStatus(z.due).k!=='ok').length,'gacal')}
@@ -2263,7 +2275,8 @@ function renderOverview(){
   <div class="gd-g57">
     <div class="card"><div class="gd-ch"><span class="gd-chi">🎧</span><div><div class="gd-cht">Complaint Tickets</div><div class="gd-chs">Status tiket komplain · ${tkTot} total</div></div></div>
       <div class="gd-pad2">
-        ${[['Unassigned',tkUn,'var(--red)'],['In progress',tkIp,'#3B82F6'],['Follow-up / To Procurement',tkFu,'#F59E0B'],['Resolved',tkRes,'var(--green)']].map(([l,v,c])=>`<div style="margin-bottom:13px"><div class="gd-blab"><span style="color:${c};font-weight:600">${l}</span><b>${v}</b></div>${gdBar(v,tkTot,c,5)}</div>`).join('')}
+        ${[['Unassigned',tkUn,'var(--red)'],['Assigned',tkAsg,'#c2740a'],['In Progress',tkIp,'#3B82F6'],['Resolved',tkRes,'var(--green)']].map(([l,v,c])=>`<div style="margin-bottom:13px"><div class="gd-blab"><span style="color:${c};font-weight:600">${l}</span><b>${v}</b></div>${gdBar(v,tkTot,c,5)}</div>`).join('')}
+        <div style="font-size:11px;color:#94A3B8;margin-top:2px">↳ ${tkFu} tiket In Progress perlu masuk Procurement dulu</div>
       </div></div>
     <div class="card"><div class="gd-ch"><span class="gd-chi">📊</span><div><div class="gd-cht">Vendor Performance by Site</div><div class="gd-chs">Avg Housekeeping & BM Technician · scale 0–3</div></div></div>
       <div class="gd-vgrid">${VENDOR_PERF.map(v=>`<div class="gd-vcard"><div class="gd-vhead">${v.site}</div><div class="gd-vbody"><div class="gd-vnm">${v.name}</div><div class="gd-vrow"><span>Housekeeping</span><span><b>${v.hk}</b> ${gdTierB(v.hk)}</span></div><div class="gd-vrow"><span>BM · Technician</span><span><b>${v.bm}</b> ${gdTierB(v.bm)}</span></div></div></div>`).join('')}</div></div>
@@ -2356,7 +2369,7 @@ function renderOverview(){
        <a class="see-more" onclick="go('gacal')">${EVENTS.length>10?('+ '+(EVENTS.length-10)+' acara lainnya · '):''}buka GA Calendar →</a>
        <div class="hl2-st" style="margin-top:16px">🔔 Prioritas Hari Ini <span>derive live · klik untuk membuka modulnya</span></div>
        <div class="pr-list">
-         ${prioRow('🚨','Tiket eskalasi', TICKETS.filter(t=>t.esc&&t.stg<4).length, 'service', 'butuh perhatian PIC')}
+         ${prioRow('🚨','Tiket eskalasi', TICKETS.filter(t=>t.esc&&t.stg<3).length, 'service', 'butuh perhatian PIC')}
          ${prioRow('✅','Approval menunggu', pendingApprovals().length, 'approvals', 'antrian semua gate')}
          ${prioRow('💰','Payment lewat estimasi', SO.filter(s=>invReleaseOverdue(s)).length, 'payment', 'f-up treasury')}
          ${prioRow('📄','Izin overdue / near', IZIN_OPS.filter(z=>izinStatus(z.due).k!=='ok').length, 'gacal', '≤90 hari jatuh tempo')}
@@ -2893,39 +2906,47 @@ function renderErsus(){
 
 /* ============ SERVICE PAGE ============ */
 let svcFilter="all";
-const TSTAGES=["Submitted","Assigned","In Progress","To Procurement","Resolved"];
-function svcPip(s){ return s==="Resolved"?"#15a34a":s==="To Procurement"?"#7a4fd0":s==="In Progress"?"#2563eb":s==="Assigned"?"#c2740a":"#9aa7b8"; }
-function svcBadge(s){ const m={"Submitted":"bd-neu","Assigned":"bd-warn","In Progress":"bd-info","To Procurement":"bd-proc","Resolved":"bd-ok"}; return `<span class="badge ${m[s]||'bd-neu'}">${s}</span>`; }
+const TSTAGES=["Submitted","Assigned","In Progress","Resolved"];
+function svcPip(s){ return s==="Resolved"?"#15a34a":s==="In Progress"?"#2563eb":s==="Assigned"?"#c2740a":"#9aa7b8"; }
+function svcBadge(s){ const m={"Submitted":"bd-neu","Assigned":"bd-warn","In Progress":"bd-info","Resolved":"bd-ok"}; return `<span class="badge ${m[s]||'bd-neu'}">${s}</span>`; }
+/* normalisasi tiket ke model 4-step: status lama "To Procurement" → In Progress (stg 2) + flag toProc; Resolved lama (stg 4) → stg 3 */
+function normalizeTickets(){ TICKETS.forEach(t=>{
+  if(t._norm4)return;
+  if(t.status==="To Procurement"||t.stg===3){ t.status="In Progress"; t.stg=2; t.toProc=true; }
+  else if(t.stg>=4){ t.stg=3; t.status="Resolved"; }
+  t._norm4=true;
+}); }
 function ticketRow(t){
- const bar=[0,1,2,3,4].map(i=>`<i class="${t.stg>=i?(i>=3?'on so':'on'):''}"></i>`).join("");
+ const bar=[0,1,2,3].map(i=>`<i class="${t.stg>=i?'on':''}"></i>`).join("");
  return `<div class="svc-row" onclick="openTicket('${t.no}')" style="cursor:pointer">
    <span class="svc-pip" style="background:${svcPip(t.status)}"></span>
-   <div><div class="svc-no">${t.no}${t.esc?' <span class="badge bd-crit">Escalated</span>':''}${t.stg===3?' <span class="muted small">· SO created → Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${t.cat} · ${t.lokasi} · ${t.team}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div></div>
+   <div><div class="svc-no">${t.no}${t.esc?' <span class="badge bd-crit">Escalated</span>':''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${t.cat} · ${t.lokasi} · ${t.team}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div></div>
    <div class="svc-resp"><div class="svc-lbl">Response</div><b>${t.resp}</b></div>
    <div class="svc-pic">${t.pic?`<span class="avt">${ini(t.pic)}</span>${t.pic}`:'<span class="muted small">Unassigned</span>'}</div>
    <div>${svcBadge(t.status)}${(t.status==="Resolved"&&!t.rating)?`<button class="btn-out" style="margin-top:6px;padding:4px 9px;font-size:11px" onclick="event.stopPropagation();openRate('${t.no}')">★ Rate</button>`:(t.rating?`<div class="small" style="margin-top:4px;color:#f5a623;white-space:nowrap">${'★'.repeat(Math.round(t.rating))}${'☆'.repeat(5-Math.round(t.rating))}</div>`:'')}</div>
  </div>`;
 }
 function svcRating(){
- const closed=TICKETS.filter(t=>t.stg===4&&t.rating).sort((a,b)=>(b.closed||'').localeCompare(a.closed||'')).slice(0,5);
+ const closed=TICKETS.filter(t=>t.stg===3&&t.rating).sort((a,b)=>(b.closed||'').localeCompare(a.closed||'')).slice(0,5);
  const avg=closed.length?closed.reduce((s,t)=>s+t.rating,0)/closed.length:0;
  return {avg,n:closed.length,list:closed};
 }
 function openTicket(no){
  const t=TICKETS.find(x=>x.no===no); if(!t)return;
- const tsArr=[0,1,2,3,4].map(i=>(t.ts&&t.ts[i]!=null)?t.ts[i]:(i===0?t.created:''));
+ const tsArr=[0,1,2,3].map(i=>(t.ts&&t.ts[i]!=null)?t.ts[i]:(i===0?t.created:''));
  const canSvc=['admin','section','proc','staff','analyst'].includes(gRole);
- const next=t.stg<4?TSTAGES[t.stg+1]:null;
+ const next=t.stg<3?TSTAGES[t.stg+1]:null;
+ const tNotes=t.toProc?{2:'↳ perlu masuk Procurement dulu'}:null;
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div class="sono" style="font-size:15px">${t.no}${t.esc?' <span class="badge bd-crit">Escalated</span>':''}</div><div style="font-size:14.5px;color:var(--ink);font-weight:700;margin-top:5px">${t.judul}</div><div class="muted small" style="margin-top:3px">${t.cat} · ${t.lokasi} · ${t.team} · PIC ${t.pic||'—'}</div></div>
   <div class="db">
     <div class="panel-t">Lifecycle — timestamp per step</div>
-    ${tsStepper(TSTAGES, t.stg+1, tsArr)}
+    ${tsStepper(TSTAGES, t.stg+1, tsArr, tNotes)}
     <div style="margin-top:14px">${next?(canSvc?`<button class="btn-act" onclick="svcAdvance('${t.no}')">→ Set: ${next}</button> <span class="muted small">status: <b>${t.status}</b></span>`:`<span class="muted small">Status: <b>${t.status}</b></span>`):(t.rating?`<span class="muted small">✅ Resolved · rating ${'★'.repeat(Math.round(t.rating))}</span>`:`<button class="btn-act" onclick="closeDrawer();openRate('${t.no}')">★ Beri rating</button>`)}</div>
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
-function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=4)return; t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; if(t.stg===4)t.closed=TODAY_STR; dbSaveTicket(t); openTicket(no); renderService(); renderOverview(); updateBell(); }
+function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)return; t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; if(t.stg===3)t.closed=TODAY_STR; dbSaveTicket(t); openTicket(no); renderService(); renderOverview(); updateBell(); }
 function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
 function gaServiceButtons(){
  if(viewerOnly()) return '';
@@ -3711,12 +3732,17 @@ function renderApprovals(){
 /* ============ ASSIGNED SO PAGE (Staff Procurement) ============ */
 /* Reusable timestamped stepper — steps before doneCount are ✓ with their
    timestamp (set when the button was clicked); the doneCount-th is current. */
-function tsStepper(labels,doneCount,tsArr){
- return '<div class="inv-steps">'+labels.map((lb,i)=>{
+/* shared stepper — LOCKED animasi wipe berjalan pada garis menuju step berikutnya (dipakai semua proses step-to-step di AGAVA) */
+function tsStepper(labels,doneCount,tsArr,notes){
+ let h='<div class="inv-steps">';
+ labels.forEach((lb,i)=>{
+   if(i>0){ const bi=i-1; const bcls=(bi<doneCount-1)?'fill':(bi===doneCount-1?'flow':''); h+='<div class="inv-bar '+bcls+'"></div>'; }
    const done=i<doneCount, cur=i===doneCount, cls=done?'done':cur?'cur':'wait';
    const ts=(tsArr&&tsArr[i]!=null&&tsArr[i]!=='')?('🕐 '+tsArr[i]):(cur?'in progress':'');
-   return `<div class="inv-step ${cls}"><div class="inv-dot">${done?'✓':(i+1)}</div><div class="inv-lbl">${lb}</div><div class="inv-ts">${ts}</div></div>`;
- }).join('<div class="inv-bar"></div>')+'</div>';
+   const note=(notes&&notes[i])?('<div class="inv-note">'+notes[i]+'</div>'):'';
+   h+='<div class="inv-step '+cls+'"><div class="inv-dot">'+(done?'✓':(i+1))+'</div><div class="inv-lbl">'+lb+'</div><div class="inv-ts">'+ts+'</div>'+note+'</div>';
+ });
+ return h+'</div>';
 }
 function soStep(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
@@ -3974,11 +4000,14 @@ function invStepper(s){
    {done:!!s.invReleased, cur:(proc&&!s.invReleased), late:false, sub: (proc&&!s.invReleased)?'BPH diproses':''},
    {done:!!s.invReleased, cur:(proc&&!s.invReleased&&!over), late:over, sub: s.invReleased?fmtDay(s.invReleaseDate):(proc?((over?'⚠ lewat ':'est ')+fmtDay(rel)):'')}
  ];
- return '<div class="inv-steps">'+def.map((d,i)=>{
+ let h='<div class="inv-steps">';
+ def.forEach((d,i)=>{
+   if(i>0){ const p=def[i-1]; const bcls=(d.cur||d.late)?'flow':(p.done&&d.done?'fill':''); h+='<div class="inv-bar '+bcls+'"></div>'; }
    const cls=d.late?'late':d.done?'done':d.cur?'cur':'wait';
    const dot=d.done?'✓':d.late?'!':(i+1);
-   return `<div class="inv-step ${cls}"><div class="inv-dot">${dot}</div><div class="inv-lbl">${PIPE[i]}</div><div class="inv-ts ${d.late?'late':''}">${d.sub||''}</div></div>`;
- }).join('<div class="inv-bar"></div>')+'</div>';
+   h+=`<div class="inv-step ${cls}"><div class="inv-dot">${dot}</div><div class="inv-lbl">${PIPE[i]}</div><div class="inv-ts ${d.late?'late':''}">${d.sub||''}</div></div>`;
+ });
+ return h+'</div>';
 }
 function invCard(s){
  const cls=invClass(invNom(s)), st=payState(s), canAct=payCanAct();
@@ -4522,7 +4551,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.09-3";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-1";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -4552,7 +4581,7 @@ function dbInit(){
 }
 function dbSaveTicket(t){ if(!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
 
-loadFlowConfig();normalizeSO();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");fetchSOSummary();updateBell();liveStatus("off","");dbInit();
+loadFlowConfig();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");fetchSOSummary();updateBell();liveStatus("off","");dbInit();startTopClock();
 </script>
 </body>
 </html>
