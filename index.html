@@ -974,6 +974,48 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .gd-rbars{flex:1;min-width:230px}
 .gd-rrow em{font-style:normal;font-size:10px;color:#94A3B8;min-width:34px}
 .gd-rrow span{letter-spacing:-1px;color:#F59E0B;font-size:11px}
+/* ===== clickable section card ===== */
+.gd-clickcard{cursor:pointer;transition:.15s}
+.gd-clickcard:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(20,40,80,.12)}
+/* ===== red blink — tiket/permit belum solve / overdue ===== */
+@keyframes gdRedBlink{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.0);background-color:#FEE2E2}50%{box-shadow:0 0 0 4px rgba(220,38,38,.18);background-color:#fecaca}}
+.gd-escblink{animation:gdRedBlink 1.2s ease-in-out infinite;border-radius:10px}
+@media(prefers-reduced-motion:reduce){.gd-escblink{animation:none}}
+/* ===== count bar (service status / area) ===== */
+.gd-cbar{margin-bottom:11px;padding:3px 5px;border-radius:8px}
+.gd-clab{display:flex;justify-content:space-between;margin-bottom:4px}
+.gd-clab span{font-size:11.5px;color:#334155}
+.gd-clab b{font-size:14px}
+.gd-ctrack{height:8px;background:#F1F5F9;border-radius:5px;overflow:hidden}
+.gd-ctrack i{display:block;height:100%;border-radius:5px;transform-origin:left;animation:rGrow .9s cubic-bezier(.2,.8,.2,1)}
+/* ===== procurement funnel ===== */
+.gd-funnel{display:flex;flex-direction:column;gap:12px}
+.gd-fn .gd-fnt{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.gd-fn .gd-fnt b{font-size:22px;font-weight:800}
+.gd-fn .gd-fnt span{font-size:12px;color:#64748B}
+.gd-ftrack{height:10px;background:#F1F5F9;border-radius:6px;overflow:hidden}
+.gd-ftrack i{display:block;height:100%;border-radius:6px;transform-origin:left;animation:rGrow .9s cubic-bezier(.2,.8,.2,1)}
+/* ===== energy sparkline ===== */
+.gd-spark{display:flex;align-items:flex-end;gap:8px;height:96px;padding:8px 4px 0;border-bottom:1px solid var(--line)}
+.gd-sp{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px}
+.gd-sp i{width:70%;max-width:34px;border-radius:5px 5px 0 0;min-height:4px;transition:height .5s}
+.gd-sp small{font-size:10px;color:#94A3B8}
+/* ===== project weekly grouped bars ===== */
+.gd-wk{display:flex;align-items:flex-end;gap:10px;height:110px;padding:6px 2px 0}
+.gd-wkc{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end}
+.gd-wkbars{display:flex;align-items:flex-end;gap:3px;height:100%;width:100%;justify-content:center}
+.gd-wkbars i{width:11px;border-radius:4px 4px 0 0;min-height:3px}
+.gd-wkbars i.pl{background:#cbd5e1}
+.gd-wkbars i.ac{background:#2563EB}
+.gd-wkc small{font-size:10px;color:#94A3B8}
+/* ===== project plan-vs-actual rows ===== */
+.gd-pjrow{display:flex;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #F1F5F9}
+.gd-pjn{flex:1;min-width:0;font-size:12px;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gd-pjn em{font-style:normal;font-size:9px;background:#f1f5f9;color:#64748B;padding:1px 6px;border-radius:8px;margin-left:4px}
+.gd-pjbars{width:160px;flex:0 0 160px;display:flex;flex-direction:column;gap:3px}
+.gd-pjb{height:6px;background:#F1F5F9;border-radius:4px;overflow:hidden}
+.gd-pjb i{display:block;height:100%;border-radius:4px;transform-origin:left;animation:rGrow .9s cubic-bezier(.2,.8,.2,1)}
+@media(max-width:900px){.gd-pjbars{width:110px;flex-basis:110px}.gd-spark,.gd-wk{height:90px}}
 @media(max-width:900px){.gd-krow2 .gd-kbar{width:110px;flex-basis:110px}.gd-kside{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){.gd-rtrack i{animation:none}}
 .gd-erow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F1F5F9;align-items:flex-start}
@@ -2183,6 +2225,35 @@ const CODEC_INCOME={
  ]
 };
 function ciFmt(v){ return v>=1?('Rp '+v.toFixed(2)+' B'):('Rp '+Math.round(v*1000)+' Jt'); }
+/* ===== CODEC Revenue GA — income stream per sumber (rupiah) · sinkron data revenue GA ===== */
+const CODEC_REVENUE=[
+ {name:"William Soeryadjaya Hall",ic:"🏛️",rev:0.62},
+ {name:"Executive Lounge",ic:"🛋️",rev:0.19},
+ {name:"Auditorium Lt.3 · AMDI A",ic:"🎭",rev:0.44},
+ {name:"Astra Biz Center BSD",ic:"🏢",rev:0.85},
+ {name:"Astra Biz Center Bandung",ic:"🏙️",rev:0.53},
+ {name:"EVCS — EV Charging Station",ic:"🔌",rev:0.12},
+ {name:"Massage Chair",ic:"💺",rev:0.04}
+];
+/* ===== CODEC Project Development — plan vs actual, fase, mingguan (sinkron modul Project) ===== */
+const CODEC_PROJ=[
+ {n:"Multipurpose Space — Lab EHS",plan:50,actual:35,phase:"Construction"},
+ {n:"Rejuvenate AMDI C",plan:55,actual:48,phase:"Construction"},
+ {n:"Rejuvenate Corridor & Toilet",plan:60,actual:56,phase:"Construction"},
+ {n:"Rejuvenate Auditorium",plan:30,actual:12,phase:"Tender"},
+ {n:"Foundation Advisory & Enablement",plan:60,actual:64,phase:"Construction"},
+ {n:"Expand Sport Facilities AIHO",plan:40,actual:28,phase:"Getting Requirement"},
+ {n:"ERSUS — Energy Intelligence",plan:75,actual:70,phase:"Construction"},
+ {n:"GAVA (AGAVA)",plan:80,actual:82,phase:"Serah Terima"},
+ {n:"Digital Meal Coupon",plan:50,actual:45,phase:"Tender"}
+];
+const CODEC_PROJ_PHASES=["Getting Requirement","Tender","Construction","Serah Terima"];
+const CODEC_PROJ_WEEKLY={ wk:["W1","W2","W3","W4","W5","W6"], plan:[20,32,44,54,62,70], actual:[18,28,39,47,53,58] };
+const CODEC_PROJ_OVERLAP=2;   // titik project×event bersinggungan (dari GA Calendar)
+/* ===== CODEC Building & Utility — maintenance rutin & work permit ===== */
+const CODEC_MAINT={done:18,total:24};       // maintenance rutin bulan ini
+const WORK_PERMIT={active:14,pending:2,overdue:1};
+const ENERGY_MONTHLY_CAP=285000;            // batas emisi bulanan (kg CO2e) — untuk peringatan merah
 /* ===== CODEC — Pemakaian Biaya Transport (per jenis armada & per divisi) ===== */
 const CODEC_TRANSPORT={
  byType:[
@@ -2300,10 +2371,31 @@ function renderOverview(){
  const gdPri=(ic,t,d,n,nav)=>{const c=n===0?'var(--green)':n<=2?'#F59E0B':'var(--red)';return `<div class="gd-pri" onclick="go('${nav}')"><span class="gd-pric">${ic}</span><div style="flex:1"><div class="gd-prit">${t}</div><div class="gd-prid">${n===0?'semua aman':d}</div></div><span class="gd-prin" style="color:${c}">${n}</span></div>`;};
  const gdHbar=(l,v,max,c)=>`<div class="gd-hbar"><div class="gd-hlab"><span>${l}</span><b>Rp ${v}jt</b></div><div class="gd-htrack"><i style="width:${Math.min(v/max*100,100)}%;background:${c}"></i></div></div>`;
  const gdTierB=(s)=>{const t=vendorTier(s);const m=t.n==='Platinum'?['#7C3AED','#EDE9FE']:t.n==='Gold'?['#B45309','#FEF3C7']:['#64748B','#F1F5F9'];return `<span class="badge" style="background:${m[1]};color:${m[0]}">${t.n}</span>`;};
+ /* ---- Service (3): per-area, resolved minggu ini, escalated ---- */
+ const svcArea=l=>{l=(l||'').toLowerCase(); if(l.indexOf('bsd')>=0)return'ABC BSD'; if(l.indexOf('bandung')>=0||l.indexOf('bdg')>=0)return'ABC Bandung'; if(l.indexOf('tower')>=0)return'Tower'; if(l==='ma'||l.indexOf('menara')>=0)return'Menara Astra'; if(l.indexOf('amdi')>=0||l.indexOf('auditorium')>=0)return'AMDI'; return'Lainnya';};
+ const weekAgo=(()=>{const d=new Date(TODAY_STR);d.setDate(d.getDate()-7);return d.toISOString().slice(0,10);})();
+ const tkResWeek=TICKETS.filter(t=>t.stg===3&&t.closed&&t.closed>=weekAgo).length;
+ const tkOngoing=TICKETS.filter(t=>t.stg<3).length, tkEsc=TICKETS.filter(t=>t.esc&&t.stg<3).length;
+ const areaMap={}; TICKETS.forEach(t=>{const a=svcArea(t.lokasi); areaMap[a]=(areaMap[a]||0)+1;});
+ const areaArr=Object.entries(areaMap).sort((a,b)=>b[1]-a[1]); const areaMax=Math.max(...areaArr.map(x=>x[1]),1);
+ const gdCbar=(l,v,max,c,blink)=>`<div class="gd-cbar ${blink?'gd-escblink':''}"><div class="gd-clab"><span>${l}</span><b style="color:${c}">${v}</b></div><div class="gd-ctrack"><i style="width:${Math.max(v/max*100,3)}%;background:${c}"></i></div></div>`;
+ /* ---- Energy (10) ---- */
+ const remMix=Math.round(REM_PCT.reduce((a,b)=>a+b,0)/REM_PCT.length);
+ const wOk2=WASTE_OK.reduce((a,b)=>a+b,0), wAll2=WASTE_OK.reduce((a,b,i)=>a+b+WASTE_NO[i],0), wasteRec=Math.round(wOk2/wAll2*1000)/10;
+ const watRed2=Math.round((1-(WATER_INT_2026.reduce((a,b)=>a+b,0))/(WATER_INT_2019.reduce((a,b)=>a+b,0)))*1000)/10;
+ const eLatest=GRK_2026[GRK_2026.length-1], eOverMonths=GRK_2026.filter(v=>v>ENERGY_MONTHLY_CAP).length, eOver=eLatest>ENERGY_MONTHLY_CAP;
+ const eYTDpct=Math.round(GRK_2026.reduce((a,b)=>a+b,0)/(ENERGY_MONTHLY_CAP*GRK_2026.length)*100);
+ const eMax=Math.max(...GRK_2026);
+ /* ---- Project (11) ---- */
+ const pjPlan=Math.round(CODEC_PROJ.reduce((a,p)=>a+p.plan,0)/CODEC_PROJ.length), pjAct=Math.round(CODEC_PROJ.reduce((a,p)=>a+p.actual,0)/CODEC_PROJ.length);
+ const pjPhase=CODEC_PROJ_PHASES.map(ph=>({ph,n:CODEC_PROJ.filter(p=>p.phase===ph).length}));
+ /* ---- Building (9b) ---- */
+ const maintDonePct=Math.round(CODEC_MAINT.done/CODEC_MAINT.total*100), maintPend=CODEC_MAINT.total-CODEC_MAINT.done;
+ const wpInProg=WORKS.filter(w=>w.izin).length, wpOverdue=WORK_PERMIT.overdue;
  el.innerHTML=`
  <div class="gd">
   <div class="gd-nav" id="gdNav">
-    ${[['gd-kpi','KPI & Progress'],['gd-hot','Hot Topic'],['gd-rev','Revenue'],['gd-bud','Budget & Transport'],['gd-svc','Service & Vendor'],['gd-proc','Procurement & Payment'],['gd-bld','Building & Utility'],['gd-hse','HSE & Permit']].map(([id,l],i)=>`<a class="${i===0?'on':''}" data-sec="${id}" onclick="gdGo('${id}',this)">${l}</a>`).join('')}
+    ${[['gd-kpi','KPI & Progress'],['gd-svc','Service'],['gd-proc','Procurement & Payment'],['gd-hot','Hot Topic'],['gd-rev','Revenue'],['gd-bud','Budget'],['gd-trans','Transport'],['gd-permit','Permit'],['gd-bld','Building & Utility'],['gd-energy','Energy'],['gd-project','Project'],['gd-hse','HSE']].map(([id,l],i)=>`<a class="${i===0?'on':''}" data-sec="${id}" onclick="gdGo('${id}',this)">${l}</a>`).join('')}
   </div>
 
   <div class="gd-sec" id="gd-kpi"><i></i>KPI & Progress</div>
@@ -2343,17 +2435,59 @@ function renderOverview(){
     </div>
   </div>
 
+  <div class="gd-sec" id="gd-svc"><i></i>Service — Complaint Tickets</div>
+  <div class="card gd-clickcard" onclick="go('service')" title="klik → Service · Jumlah Complaint Tiket">
+    <div class="gd-ch"><span class="gd-chi">🎫</span><div><div class="gd-cht">Jumlah Complaint Tickets</div><div class="gd-chs">sinkron dari modul Service · klik → buka modul</div></div><span class="gd-rgo">buka Service →</span></div>
+    <div class="gd-pad2">
+      <div class="gd-cells3" style="border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px">
+        <div class="gd-cell"><div class="gd-cv" style="color:var(--green)">${tkResWeek}</div><div class="gd-cl">Solved minggu ini</div></div>
+        <div class="gd-cell"><div class="gd-cv" style="color:#2563EB">${tkOngoing}</div><div class="gd-cl">Sedang berjalan</div></div>
+        <div class="gd-cell gd-escblink"><div class="gd-cv" style="color:var(--red)">${tkEsc}</div><div class="gd-cl">🔴 Belum solve · Tereskalasi</div></div>
+      </div>
+      <div class="gd-g2">
+        <div><div class="gd-sub">Status Tiket — jumlah per kategori</div>
+          ${gdCbar('Submitted',tkUn,tkTot,'#94A3B8')}
+          ${gdCbar('Assigned',tkAsg,tkTot,'#c2740a')}
+          ${gdCbar('In Progress',tkIp,tkTot,'#2563EB')}
+          ${gdCbar('Resolved',tkRes,tkTot,'#15a34a')}
+          ${gdCbar('Tereskalasi — belum solve',tkEsc,tkTot,'var(--red)',true)}
+        </div>
+        <div><div class="gd-sub">Jumlah Tiket per Area Bangunan</div>
+          ${areaArr.map(([a,n])=>gdCbar(a,n,areaMax,'#3B82F6')).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gd-sec" id="gd-proc"><i></i>Procurement & Payment</div>
+  <div class="gd-g2">
+    <div class="card gd-clickcard" onclick="go('procurement')" title="klik → Procurement"><div class="gd-ch"><span class="gd-chi">🛒</span><div><div class="gd-cht">Procurement — SO Lifecycle</div><div class="gd-chs">SO → UPR → SPK → BAST · sinkron modul Procurement</div></div><span class="gd-rgo">buka →</span></div>
+      <div class="gd-pad2"><div class="gd-funnel">
+        <div class="gd-fn"><div class="gd-fnt"><b style="color:#2563EB">${soTot}</b><span>SO Ongoing</span></div><div class="gd-ftrack"><i style="width:100%;background:#2563EB"></i></div></div>
+        <div class="gd-fn"><div class="gd-fnt"><b style="color:#334155">${soUpr}</b><span>UPR Done</span></div><div class="gd-ftrack"><i style="width:${Math.round(soUpr/Math.max(soTot,1)*100)}%;background:#64748B"></i></div></div>
+        <div class="gd-fn"><div class="gd-fnt"><b style="color:#F59E0B">${soSpk}</b><span>SPK Done</span></div><div class="gd-ftrack"><i style="width:${Math.round(soSpk/Math.max(soTot,1)*100)}%;background:#F59E0B"></i></div></div>
+        <div class="gd-fn"><div class="gd-fnt"><b style="color:#15a34a">${soBast}</b><span>BAST Done</span></div><div class="gd-ftrack"><i style="width:${Math.round(soBast/Math.max(soTot,1)*100)}%;background:#15a34a"></i></div></div>
+      </div></div></div>
+    <div class="card gd-clickcard" onclick="go('payment')" title="klik → Payment"><div class="gd-ch"><span class="gd-chi">💳</span><div><div class="gd-cht">Payment Tracker — BPH Status</div><div class="gd-chs">payment proof status · sinkron Payment Tracker</div></div><span class="gd-rgo">buka →</span></div>
+      <div class="gd-tiles3">
+        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">24</b><span>Processing</span></div>
+        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">9</b><span>Pending</span></div>
+        <div class="gd-tile" style="background:#FEE2E2"><b style="color:var(--red)">2</b><span>Overdue</span></div>
+      </div></div>
+  </div>
+
   <div class="gd-sec" id="gd-hot"><i></i>Hot Topic</div>
   <div class="gd-g543">
-    <div class="card"><div class="gd-ch"><span class="gd-chi">📋</span><div><div class="gd-cht">Today's Log</div><div class="gd-chs">aktivitas hari ini</div></div><span class="gd-live">● LIVE</span></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">📋</span><div><div class="gd-cht">Today's Log</div><div class="gd-chs">pekerjaan hari ini · dari GA Calendar</div></div><span class="gd-live">● LIVE</span></div>
       <div class="gd-pad">${gdEvents}<a class="see-more" onclick="go('gacal')">buka GA Calendar →</a></div></div>
-    <div class="card"><div class="gd-ch"><span class="gd-chi">📆</span><div><div class="gd-cht">Upcoming</div><div class="gd-chs">Agenda 7–30 hari ke depan</div></div><span class="badge" style="background:#DBEAFE;color:#2563EB">12 agenda</span></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">📆</span><div><div class="gd-cht">Upcoming</div><div class="gd-chs">pekerjaan esok & 7–30 hari</div></div><span class="badge" style="background:#DBEAFE;color:#2563EB">12 agenda</span></div>
       <div class="gd-pad">
         ${gdUp("17 Jun","IR Talk Batch II · Auditorium")}${gdUp("17 Jun","Diversity for Leaders · R. William S.")}${gdUp("18 Jun","Sharing CFA · Auditorium")}${gdUp("19 Jun","PKAG · Auditorium")}
         ${gdUp("20 Jun","AC service — all buildings")}${gdUp("23 Jun","Genset monthly test — AMDI")}${gdUp("24 Jun","Auditorium Renovation — start")}${gdUp("26 Jun","Fire system check — ABC BSD")}
         ${gdUp("28 Jun","Corridor & Toilet 8A — next phase")}${gdUp("30 Jun","Lift maintenance — Tower")}${gdUp("05 Jul","1C Rejuvenation — phase 2")}${gdUp("08 Jul","Water tank cleaning — MA")}
+        <a class="see-more" onclick="go('gacal')">buka GA Calendar →</a>
       </div></div>
-    <div class="card"><div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Prioritas Hari Ini</div><div class="gd-chs">klik untuk membuka modulnya</div></div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Prioritas Hari Ini</div><div class="gd-chs">urgent & belum selesai · klik buka modul</div></div></div>
       <div>
         ${gdPri('🚨','Tiket eskalasi','butuh perhatian PIC',TICKETS.filter(t=>t.esc&&t.stg<3).length,'service')}
         ${gdPri('✅','Approval menunggu','antrian semua gate',pendingApprovals().length,'approvals')}
@@ -2364,106 +2498,122 @@ function renderOverview(){
 
   <div class="gd-sec" id="gd-rev"><i></i>Revenue GA</div>
   <div class="card">
-    <div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Income Stream GA — Revenue 2026</div><div class="gd-chs">pemanfaatan aset & ruang jadi pendapatan</div></div>
-      <div style="text-align:right"><div class="gd-chs">Total YTD</div><div style="font-size:22px;font-weight:900;color:var(--green)">${ciFmt(CODEC_INCOME.rooms.reduce((a,x)=>a+x.rev,0)+CODEC_INCOME.other.reduce((a,x)=>a+x.rev,0))}</div></div></div>
-    <div class="gd-pad2">
-      <div class="gd-sub">🏢 Sewa Ruang Meeting Besar · ${CODEC_INCOME.rooms.reduce((a,x)=>a+x.resv,0)} reservasi · ${ciFmt(CODEC_INCOME.rooms.reduce((a,x)=>a+x.rev,0))}</div>
-      <div class="gd-g3">${CODEC_INCOME.rooms.map(r=>`<div class="gd-income"><div class="gd-inm">${r.name}</div><div class="gd-irm">${r.code}</div><div class="gd-inum">${r.resv} <small>reservasi</small></div><div class="gd-irev">${ciFmt(r.rev)}</div></div>`).join('')}</div>
-      <div class="gd-sub" style="margin-top:20px">🔗 Stream Income Lainnya</div>
-      <div class="gd-g4">${CODEC_INCOME.other.map(o=>`<div class="gd-stream"><span class="gd-sic">${o.ic}</span><div style="flex:1;min-width:0"><div class="gd-snm">${o.name}</div><div class="gd-sds">${o.note}</div></div><span class="gd-svl">${ciFmt(o.rev)}</span></div>`).join('')}</div>
-    </div>
+    <div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Income Stream GA — Revenue 2026</div><div class="gd-chs">pemanfaatan aset & ruang jadi pendapatan · sinkron data revenue GA</div></div>
+      <div style="text-align:right"><div class="gd-chs">Total Revenue GA</div><div style="font-size:24px;font-weight:900;color:var(--green)">${ciFmt(CODEC_REVENUE.reduce((a,x)=>a+x.rev,0))}</div></div></div>
+    <div class="gd-pad2"><div class="gd-g4">
+      ${CODEC_REVENUE.map(r=>`<div class="gd-stream"><span class="gd-sic">${r.ic}</span><div style="flex:1;min-width:0"><div class="gd-snm">${r.name}</div></div><span class="gd-svl">${ciFmt(r.rev)}</span></div>`).join('')}
+    </div></div>
   </div>
 
-  <div class="gd-sec" id="gd-bud"><i></i>Budget & Transport</div>
-  <div class="gd-g3">
-    <div class="card"><div class="gd-ch"><span class="gd-chi">💳</span><div><div class="gd-cht">Pemakaian Budget GA</div><div class="gd-chs">YTD · pemakaian vs alokasi 2026</div></div></div>
-      <div class="gd-pad2">
-        <div class="gd-blab"><span>Budget <b style="color:var(--green)">OPEX</b></span><b style="color:var(--green)">68%</b></div>${gdBar(68,100,'var(--green)',10)}
-        <div class="gd-blab" style="margin-top:18px"><span>Budget <b style="color:#2563EB">CAPEX</b></span><b style="color:#2563EB">54%</b></div>${gdBar(54,100,'#2563EB',10)}
-      </div></div>
-    <div class="card"><div class="gd-ch"><span class="gd-chi">🚗</span><div><div class="gd-cht">Biaya per Jenis Transportasi</div><div class="gd-chs">pengeluaran armada 2026</div></div><b style="color:var(--green);font-size:15px">Rp ${CODEC_TRANSPORT.byType.reduce((a,x)=>a+x.cost,0)}jt</b></div>
+  <div class="gd-sec" id="gd-bud"><i></i>Budget GA</div>
+  <div class="card"><div class="gd-ch"><span class="gd-chi">💳</span><div><div class="gd-cht">Pemakaian Budget GA</div><div class="gd-chs">hanya persentase budget keluar · per bulan terupdate (${codecMonthID()})</div></div></div>
+    <div class="gd-pad2"><div class="gd-g2">
+      <div><div class="gd-blab"><span>Budget <b style="color:var(--green)">OPEX</b> keluar</span><b style="color:var(--green);font-size:18px">68%</b></div>${gdBar(68,100,'var(--green)',13)}<div class="gd-cl3" style="margin-top:7px">progress pemakaian OPEX · ${codecMonthID()}</div></div>
+      <div><div class="gd-blab"><span>Budget <b style="color:#2563EB">CAPEX</b> keluar</span><b style="color:#2563EB;font-size:18px">54%</b></div>${gdBar(54,100,'#2563EB',13)}<div class="gd-cl3" style="margin-top:7px">progress pemakaian CAPEX · ${codecMonthID()}</div></div>
+    </div></div>
+  </div>
+
+  <div class="gd-sec" id="gd-trans"><i></i>Biaya Transport GA</div>
+  <div class="gd-g2">
+    <div class="card gd-clickcard" onclick="go('transport')" title="klik → Biaya Transportasi GA"><div class="gd-ch"><span class="gd-chi">🚗</span><div><div class="gd-cht">Biaya per Jenis Transportasi</div><div class="gd-chs">pengeluaran armada 2026 · rupiah</div></div><b style="color:var(--green);font-size:15px">Rp ${CODEC_TRANSPORT.byType.reduce((a,x)=>a+x.cost,0)}jt</b></div>
       <div class="gd-pad2">${CODEC_TRANSPORT.byType.map(t=>gdHbar(t.name,t.cost,30,'#3B82F6')).join('')}</div></div>
-    <div class="card"><div class="gd-ch"><span class="gd-chi">🏢</span><div><div class="gd-cht">Biaya per Divisi</div><div class="gd-chs">Penggunaan tertinggi</div></div></div>
+    <div class="card gd-clickcard" onclick="go('transport')" title="klik → Biaya Transportasi GA"><div class="gd-ch"><span class="gd-chi">🏢</span><div><div class="gd-cht">Biaya per Divisi</div><div class="gd-chs">penggunaan tertinggi · rupiah</div></div><span class="gd-rgo">buka →</span></div>
       <div class="gd-pad2">${CODEC_TRANSPORT.byDiv.map(d=>gdHbar(d.name,d.cost,10,'#60A5FA')).join('')}</div></div>
   </div>
 
-  <div class="gd-sec" id="gd-svc"><i></i>Service & Vendor</div>
-  <div class="gd-g57">
-    <div class="card"><div class="gd-ch"><span class="gd-chi">🎧</span><div><div class="gd-cht">Complaint Tickets</div><div class="gd-chs">Status tiket komplain · ${tkTot} total</div></div></div>
-      <div class="gd-pad2">
-        ${[['Unassigned',tkUn,'var(--red)'],['Assigned',tkAsg,'#c2740a'],['In Progress',tkIp,'#3B82F6'],['Resolved',tkRes,'var(--green)']].map(([l,v,c])=>`<div style="margin-bottom:13px"><div class="gd-blab"><span style="color:${c};font-weight:600">${l}</span><b>${v}</b></div>${gdBar(v,tkTot,c,5)}</div>`).join('')}
-        <div style="font-size:11px;color:#94A3B8;margin-top:2px">↳ ${tkFu} tiket In Progress perlu masuk Procurement dulu</div>
-      </div></div>
-    <div class="card"><div class="gd-ch"><span class="gd-chi">📊</span><div><div class="gd-cht">Vendor Performance by Site</div><div class="gd-chs">Avg Housekeeping & BM Technician · scale 0–3</div></div></div>
-      <div class="gd-vgrid">${VENDOR_PERF.map(v=>`<div class="gd-vcard"><div class="gd-vhead">${v.site}</div><div class="gd-vbody"><div class="gd-vnm">${v.name}</div><div class="gd-vrow"><span>Housekeeping</span><span><b>${v.hk}</b> ${gdTierB(v.hk)}</span></div><div class="gd-vrow"><span>BM · Technician</span><span><b>${v.bm}</b> ${gdTierB(v.bm)}</span></div></div></div>`).join('')}</div></div>
-  </div>
-
-  <div class="gd-sec" id="gd-proc"><i></i>Procurement & Payment</div>
-  <div class="gd-g2">
-    <div class="card"><div class="gd-ch"><span class="gd-chi">🛒</span><div><div class="gd-cht">Procurement</div><div class="gd-chs">SO lifecycle — SO → UPR → SPK → BAST</div></div><a class="see-more" style="margin:0" onclick="go('procurement')">Open →</a></div>
-      <div class="gd-cells4">
-        <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${soTot}</div><div class="gd-cl2">SO Ongoing</div></div>
-        <div class="gd-cell"><div class="gd-cv2" style="color:#334155">${soUpr}</div><div class="gd-cl2">UPR Done</div></div>
-        <div class="gd-cell"><div class="gd-cv2" style="color:#F59E0B">${soSpk}</div><div class="gd-cl2">SPK Done</div></div>
-        <div class="gd-cell"><div class="gd-cv2" style="color:var(--green)">${soBast}</div><div class="gd-cl2">BAST Done</div></div>
-      </div></div>
-    <div class="card"><div class="gd-ch"><span class="gd-chi">💳</span><div><div class="gd-cht">Payment Tracker</div><div class="gd-chs">Payment proof status & repair-maintenance budget</div></div><a class="see-more" style="margin:0" onclick="go('payment')">Open →</a></div>
-      <div class="gd-tiles3">
-        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">24</b><span>Processing</span></div>
-        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">9</b><span>Pending</span></div>
-        <div class="gd-tile" style="background:#FEE2E2"><b style="color:var(--red)">2</b><span>Overdue</span></div>
-      </div></div>
+  <div class="gd-sec" id="gd-permit"><i></i>Permit — Work Permit & Reminder</div>
+  <div class="card gd-clickcard" onclick="go('reminder')" title="klik → modul Perizinan"><div class="gd-ch"><span class="gd-chi">📄</span><div><div class="gd-cht">Work Permit & Safety</div><div class="gd-chs">status izin kerja · sinkron modul Perizinan · klik → buka</div></div><span class="gd-rgo">buka →</span></div>
+    <div class="gd-pad2">
+      <div class="gd-g3" style="margin-bottom:18px">
+        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">${WORK_PERMIT.active}</b><span>Active work permit</span></div>
+        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">${WORK_PERMIT.pending}</b><span>Pending permit</span></div>
+        <div class="gd-tile ${wpOverdue?'gd-escblink':''}" style="background:#FEE2E2"><b style="color:var(--red)">${WORK_PERMIT.overdue}</b><span>Overdue</span></div>
+      </div>
+      <div class="gd-sub">🔔 Permit Reminder — STNK & PBB</div>
+      <div class="gd-g2" style="gap:20px">
+        <div><div class="gd-sub2">🚗 Vehicle Registration (STNK)</div>
+          <div class="gd-g3" style="gap:8px">
+            <div class="gd-tile sm" style="background:#FEF3C7"><b style="color:#F59E0B">${stnk30}</b><span>≤30 days</span></div>
+            <div class="gd-tile sm ${stnkO?'gd-escblink':''}" style="background:#FEE2E2"><b style="color:var(--red)">${stnkO}</b><span>Overdue</span></div>
+            <div class="gd-tile sm" style="background:#D1FAE5"><b style="color:var(--green)">${stnkOK}</b><span>OK</span></div>
+          </div></div>
+        <div><div class="gd-sub2">🏠 Property Tax (PBB)</div>
+          <div class="gd-g3" style="gap:8px">
+            <div class="gd-tile sm" style="background:#FEF3C7"><b style="color:#F59E0B">${pbb30}</b><span>≤30 days</span></div>
+            <div class="gd-tile sm ${pbbO?'gd-escblink':''}" style="background:#FEE2E2"><b style="color:var(--red)">${pbbO}</b><span>Overdue</span></div>
+            <div class="gd-tile sm" style="background:#EFF6FF"><b style="color:#2563EB">${pbbOK}</b><span>OK</span></div>
+          </div></div>
+      </div>
+    </div>
   </div>
 
   <div class="gd-sec" id="gd-bld"><i></i>Building & Utility</div>
   <div class="gd-g2">
-    <div class="card"><div class="gd-ch"><span class="gd-chi">🏗</span><div><div class="gd-cht">Building & Utility</div><div class="gd-chs">Ongoing works, utility status & alerts</div></div></div>
+    <div class="card gd-clickcard" onclick="go('building')" title="klik → Building & Utility"><div class="gd-ch"><span class="gd-chi">🏗</span><div><div class="gd-cht">Building & Utility</div><div class="gd-chs">maintenance rutin, work permit & utility · klik → buka</div></div><span class="gd-rgo">buka →</span></div>
       <div class="gd-pad2">
-        <div class="gd-sub">🔧 Repair Works in Progress</div>
-        ${WORKS.map(w=>`<div class="gd-reprow"><div><div class="gd-repn">${w.job}</div><div class="gd-repv">${w.pt} · ${w.orang} people</div></div><span class="badge" style="background:${w.izin?'#D1FAE5':'#FEF3C7'};color:${w.izin?'#047857':'#B45309'}">Work Permit ${w.izin?'OK':'PENDING'}</span></div>`).join('')}
-        <div class="gd-sub" style="margin-top:16px">⚙️ Main Utility Status</div>
+        <div class="gd-sub">🔧 Maintenance Rutin — ${codecMonthID()}</div>
+        <div class="gd-blab"><span>Sudah dikerjakan</span><b style="color:var(--green)">${CODEC_MAINT.done}/${CODEC_MAINT.total} · ${maintDonePct}%</b></div>${gdBar(CODEC_MAINT.done,CODEC_MAINT.total,'var(--green)',11)}
+        <div class="gd-blab" style="margin-top:10px"><span>Belum dikerjakan</span><b style="color:#F59E0B">${maintPend} pekerjaan</b></div>${gdBar(maintPend,CODEC_MAINT.total,'#F59E0B',11)}
+        <div class="gd-sub" style="margin-top:15px">🔨 Work Permit in Progress · <b style="color:#2563EB">${wpInProg}</b>${wpOverdue?` · <b class="gd-escblink" style="color:var(--red);padding:2px 8px;border-radius:8px">${wpOverdue} overdue</b>`:''}</div>
+        <div class="gd-sub" style="margin-top:15px">⚙️ Main Utility Status</div>
         <div class="gd-g2" style="gap:10px">
           <div class="gd-util"><b style="color:#2563EB">2/3</b><span>Chillers running</span></div>
           <div class="gd-util"><b style="color:var(--green)">5/5</b><span>Pumps running</span></div>
         </div>
       </div></div>
-    <div class="card"><div class="gd-ch"><span class="gd-chi">🚨</span><div><div class="gd-cht">Alerts · Needs Attention</div><div class="gd-chs">Stays visible until resolved via ERSUS</div></div></div>
-      <div class="gd-pad2">${ERSUS_ALERTS.filter(a=>a.sev!=='info').slice(0,3).map(a=>`<div class="gd-alert insight ${a.sev==='crit'?'crit':'warn'}"><div class="gd-alt">${a.sev==='crit'?'🔴':'⚠️'} ${a.t}</div><div class="gd-ald">${a.d}</div></div>`).join('')}
+    <div class="card"><div class="gd-ch"><span class="gd-chi">🚨</span><div><div class="gd-cht">Perlu Segera Dikerjakan / Overdue</div><div class="gd-chs">notifikasi maintenance mendesak · via ERSUS</div></div></div>
+      <div class="gd-pad2">${ERSUS_ALERTS.filter(a=>a.sev!=='info').slice(0,3).map(a=>`<div class="gd-alert insight ${a.sev==='crit'?'crit':'warn'} ${a.sev==='crit'?'gd-escblink':''}"><div class="gd-alt">${a.sev==='crit'?'🔴':'⚠️'} ${a.t}</div><div class="gd-ald">${a.d}</div></div>`).join('')}
       <a class="see-more" onclick="go('building')">Open Building & Utility →</a></div></div>
   </div>
 
-  <div class="gd-sec" id="gd-hse"><i></i>HSE & Sustainability · Permit</div>
-  <div class="card">
-    <div class="gd-ch"><span class="gd-chi">🛡</span><div><div class="gd-cht">HSE & Sustainability</div><div class="gd-chs">Compliance, work permit & safety</div></div></div>
+  <div class="gd-sec" id="gd-energy"><i></i>Energy — Monitoring Penggunaan</div>
+  <div class="card gd-clickcard" onclick="go('energy')" title="klik → modul Energy"><div class="gd-ch"><span class="gd-chi">⚡</span><div><div class="gd-cht">Energy Dashboard GA</div><div class="gd-chs">penggunaan energi & keberlanjutan · sinkron modul Energy · klik → buka</div></div><span class="gd-rgo">buka →</span></div>
+    <div class="gd-pad2"><div class="gd-g2">
+      <div>
+        <div class="gd-sub">Progress Penggunaan Energi YTD vs Target Maksimum</div>
+        <div class="gd-blab"><span>Emisi YTD vs batas</span><b class="${eOver?'gd-escblink':''}" style="color:${eOver?'var(--red)':'var(--green)'};font-size:17px;padding:${eOver?'2px 8px':'0'};border-radius:8px">${eYTDpct}%</b></div>${gdBar(eYTDpct,100,eOver?'var(--red)':'var(--green)',13)}
+        <div class="gd-cl3" style="margin-top:7px">${eOverMonths?('🔴 '+eOverMonths+' bulan MELEBIHI batas '+fmtN(ENERGY_MONTHLY_CAP)+' kg CO₂e'):'semua bulan di bawah batas '+fmtN(ENERGY_MONTHLY_CAP)+' kg CO₂e'}</div>
+        <div class="gd-sub" style="margin-top:15px">Grafik Penggunaan Energi — ${ENERGY_MONTHS.length} bulan</div>
+        <div class="gd-spark">${GRK_2026.map((v,i)=>`<div class="gd-sp"><i style="height:${Math.round(v/eMax*100)}%;background:${v>ENERGY_MONTHLY_CAP?'var(--red)':'#2563EB'}" title="${fmtN(v)}"></i><small>${ENERGY_MONTHS[i]}</small></div>`).join('')}</div>
+      </div>
+      <div>
+        <div class="gd-sub">Indikator Keberlanjutan</div>
+        <div class="gd-g2" style="gap:10px">
+          <div class="gd-tile" style="background:#e9f8ef"><b style="color:var(--green)">−${eRed}%</b><span>GRK / Emisi</span></div>
+          <div class="gd-tile" style="background:#eff6ff"><b style="color:#2563EB">−${watRed2}%</b><span>Water Withdrawal</span></div>
+          <div class="gd-tile" style="background:#e1f5ee"><b style="color:#0f6e56">${remMix}%</b><span>Renewable Mix</span></div>
+          <div class="gd-tile" style="background:#f3eefe"><b style="color:#7a4fd0">${wasteRec}%</b><span>Waste Recycle</span></div>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="gd-sec" id="gd-project"><i></i>Progress Proyek</div>
+  <div class="card gd-clickcard" onclick="go('project')" title="klik → Project Development"><div class="gd-ch"><span class="gd-chi">🏗</span><div><div class="gd-cht">Progress Proyek — Plan vs Actual</div><div class="gd-chs">sinkron modul Project Development · klik → buka</div></div>${CODEC_PROJ_OVERLAP?`<span class="gd-rgo gd-escblink" style="color:var(--red)">⚠ ${CODEC_PROJ_OVERLAP} overlap</span>`:''}<span class="gd-rgo">buka →</span></div>
     <div class="gd-pad2">
-      <div class="gd-sub">Compliance Status</div>
-      <div class="gd-g3" style="margin-bottom:20px">
-        <div class="gd-tile" style="background:#F8FAFC"><b style="color:var(--green)">${HSE_P2K3L.agc.score}%</b><span>AGC · Astra Green Company</span></div>
-        <div class="gd-tile" style="background:#F8FAFC"><b style="color:#F59E0B">${HSE_P2K3L.mka.score}%</b><span>MKA · Mandatory Key Action</span></div>
-        <div class="gd-tile" style="background:#F8FAFC"><b style="color:var(--green)">${HSE_P2K3L.sgr.score}%</b><span>SGR · Safety Golden Rules</span></div>
+      <div class="gd-g2">
+        <div>
+          <div class="gd-sub">Total Plan vs Actual — semua project</div>
+          <div class="gd-blab"><span>Plan</span><b style="color:#94A3B8">${pjPlan}%</b></div>${gdBar(pjPlan,100,'#cbd5e1',11)}
+          <div class="gd-blab" style="margin-top:8px"><span>Actual</span><b style="color:#2563EB">${pjAct}%</b></div>${gdBar(pjAct,100,'#2563EB',11)}
+          <div class="gd-sub" style="margin-top:15px">Fase Project</div>
+          <div class="gd-g4">${pjPhase.map(p=>`<div class="gd-tile" style="background:#f8fafc"><b style="color:#7a4fd0">${p.n}</b><span>${p.ph}</span></div>`).join('')}</div>
+        </div>
+        <div>
+          <div class="gd-sub">Progress Mingguan — Plan vs Actual</div>
+          <div class="gd-wk">${CODEC_PROJ_WEEKLY.wk.map((w,i)=>`<div class="gd-wkc"><div class="gd-wkbars"><i class="pl" style="height:${CODEC_PROJ_WEEKLY.plan[i]}%" title="Plan ${CODEC_PROJ_WEEKLY.plan[i]}%"></i><i class="ac" style="height:${CODEC_PROJ_WEEKLY.actual[i]}%" title="Actual ${CODEC_PROJ_WEEKLY.actual[i]}%"></i></div><small>${w}</small></div>`).join('')}</div>
+          <div class="gd-cl3" style="margin-top:8px"><span style="color:#cbd5e1">▮</span> Plan &nbsp; <span style="color:#2563EB">▮</span> Actual &nbsp;·&nbsp; ⚠ ${CODEC_PROJ_OVERLAP} titik overlap project×event <a class="gd-kopen" onclick="event.stopPropagation();go('gacal')">GA Calendar →</a></div>
+        </div>
       </div>
-      <div class="gd-sub">Work Permit & Safety</div>
-      <div class="gd-g4" style="margin-bottom:20px">
-        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">14</b><span>Active work permits</span></div>
-        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">2</b><span>Pending permits</span></div>
-        <div class="gd-tile" style="background:#D1FAE5"><b style="color:var(--green)">0</b><span>Lost time injury</span></div>
-        <div class="gd-tile" style="background:#FEE2E2"><b style="color:var(--red)">3</b><span>Safety violations</span></div>
-      </div>
-      <div class="gd-sub">🔔 Permit Reminder — Document & Permit Compliance</div>
-      <div class="gd-g2" style="gap:20px">
-        <div><div class="gd-sub2">🚗 Vehicle Registration (STNK)</div>
-          <div class="gd-g3" style="gap:8px">
-            <div class="gd-tile sm" style="background:#FEF3C7"><b style="color:#F59E0B">${stnk30}</b><span>≤30 days</span></div>
-            <div class="gd-tile sm" style="background:#FEE2E2"><b style="color:var(--red)">${stnkO}</b><span>Overdue</span></div>
-            <div class="gd-tile sm" style="background:#D1FAE5"><b style="color:var(--green)">${stnkOK}</b><span>OK</span></div>
-          </div></div>
-        <div><div class="gd-sub2">🏠 Property Tax (PBB) & permits</div>
-          <div class="gd-g3" style="gap:8px">
-            <div class="gd-tile sm" style="background:#FEF3C7"><b style="color:#F59E0B">${pbb30}</b><span>≤30 days</span></div>
-            <div class="gd-tile sm" style="background:#FEE2E2"><b style="color:var(--red)">${pbbO}</b><span>Overdue</span></div>
-            <div class="gd-tile sm" style="background:#EFF6FF"><b style="color:#2563EB">${pbbOK}</b><span>OK</span></div>
-          </div></div>
-      </div>
+      <div class="gd-sub" style="margin-top:15px">Plan vs Actual per Project</div>
+      ${CODEC_PROJ.map(p=>`<div class="gd-pjrow"><span class="gd-pjn">${p.n} <em>${p.phase}</em></span><div class="gd-pjbars"><div class="gd-pjb"><i style="width:${p.plan}%;background:#cbd5e1"></i></div><div class="gd-pjb"><i style="width:${p.actual}%;background:${p.actual>=p.plan?'#15a34a':'#F59E0B'}"></i></div></div><b style="color:${p.actual>=p.plan?'#15a34a':'#F59E0B'};min-width:38px;text-align:right">${p.actual}%</b></div>`).join('')}
+    </div>
+  </div>
+
+  <div class="gd-sec" id="gd-hse"><i></i>HSE — Compliance Status</div>
+  <div class="card gd-clickcard" onclick="go('hse')" title="klik → HSE & Sustainability"><div class="gd-ch"><span class="gd-chi">🛡</span><div><div class="gd-cht">HSE & Sustainability — Compliance</div><div class="gd-chs">AGC · MKA · SGR per bulan (${codecMonthID()}) · klik → buka</div></div><span class="gd-rgo">buka →</span></div>
+    <div class="gd-pad2">
+      ${[['AGC — Astra Green Company',HSE_P2K3L.agc.score,'#15a34a'],['MKA — Mandatory Key Action',HSE_P2K3L.mka.score,'#F59E0B'],['SGR — Safety Golden Rules',HSE_P2K3L.sgr.score,'#2563EB']].map(([l,v,c])=>`<div class="gd-blab"><span>${l}</span><b style="color:${c}">${v}%</b></div>${gdBar(v,100,c,12)}<div style="height:12px"></div>`).join('')}
     </div>
   </div>
  </div>`;
@@ -4668,7 +4818,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-3";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-4";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
