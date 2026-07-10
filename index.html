@@ -922,8 +922,60 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .gd-rrow{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 .gd-rrow span{font-size:12px;color:#64748B;min-width:12px;text-align:right}
 .gd-rrow b{font-size:11px;color:#64748B;min-width:30px;font-weight:500}
-.gd-rtrack{flex:1;height:8px;background:#F1F5F9;border-radius:4px;overflow:hidden}
-.gd-rtrack i{display:block;height:100%;background:#F59E0B;border-radius:4px}
+.gd-rtrack{flex:1;height:9px;background:#F1F5F9;border-radius:5px;overflow:hidden}
+.gd-rtrack i{display:block;height:100%;background:linear-gradient(90deg,#F59E0B,#fbbf24);border-radius:5px;transform-origin:left;animation:rGrow 1s cubic-bezier(.2,.8,.2,1)}
+@keyframes rGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+/* ===== KPI hero (a/b/c/d) ===== */
+.gd-kherowrap{overflow:visible}
+.gd-khero{display:flex;gap:16px;padding:16px 20px;flex-wrap:wrap}
+.gd-kbig{flex:1.4;min-width:230px;border-radius:14px;padding:20px 22px;cursor:pointer;color:#fff;background:linear-gradient(120deg,#1d4ed8,#2563eb 55%,#0e9f8f);box-shadow:0 6px 18px rgba(37,99,235,.28);transition:.15s;position:relative}
+.gd-kbig:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(37,99,235,.34)}
+.gd-kbig-v{font-size:56px;font-weight:900;line-height:1}
+.gd-kbig-l{font-size:14px;font-weight:700;margin-top:4px;opacity:.96}
+.gd-kbig-h{font-size:11px;opacity:.82;margin-top:8px}
+.gd-kside{flex:1;min-width:230px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px}
+.gd-kmini{border:1px solid var(--line);border-radius:13px;padding:14px 16px;cursor:pointer;background:#fbfcfe;transition:.15s;display:flex;flex-direction:column;justify-content:center}
+.gd-kmini:first-child{grid-column:1/3}
+.gd-kmini:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(20,40,80,.10);border-color:#bcd3f5}
+.gd-kmv{font-size:30px;font-weight:900;line-height:1}
+.gd-kmv small{font-size:16px;color:#94A3B8;font-weight:700}
+.gd-kml{font-size:11.5px;color:#64748B;margin-top:4px;font-weight:600}
+.gd-kpop{max-height:0;overflow:hidden;opacity:0;transition:.28s;margin:0 20px;font-size:12px;color:#334155;line-height:1.55;border-left:3px solid #2563EB;padding-left:0}
+.gd-kpop.show{max-height:260px;opacity:1;padding:12px 14px;margin:0 20px 16px;background:#f4f8ff;border-radius:0 10px 10px 0}
+.gd-kpop b{color:#0F172A}
+/* ===== 6 KPI utama — bar + komponen expand ===== */
+.gd-krow2{border:1px solid var(--line);border-radius:12px;margin-bottom:9px;overflow:hidden;background:#fff;transition:.15s}
+.gd-krow2:hover{border-color:#cdd9ee}
+.gd-krh{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer}
+.gd-krow2 .gd-kic{font-size:16px;flex:0 0 auto}
+.gd-krow2 .gd-kinfo{flex:1;min-width:0}
+.gd-kname{font-size:13px;font-weight:700;color:#1E293B;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.gd-kdet{font-size:10px;color:#94A3B8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gd-krow2 .gd-kbar{width:150px;flex:0 0 150px;display:flex;align-items:center;gap:7px}
+.gd-krow2 .gd-kpct{font-size:14px;font-weight:800;min-width:40px;text-align:right}
+.gd-kchev{color:#c3cfe2;font-weight:800;font-size:15px;transition:.2s}
+.gd-krow2.open .gd-kchev{transform:rotate(180deg);color:#2563EB}
+.gd-ktag{font-size:8.5px;font-weight:800;letter-spacing:.03em;padding:2px 7px;border-radius:10px;text-transform:uppercase}
+.gd-ktag.rt{background:#D1FAE5;color:#047857}.gd-ktag.nr{background:#EDE9FE;color:#7C3AED}.gd-ktag.mx{background:#DBEAFE;color:#2563EB}
+.gd-kbody{max-height:0;overflow:hidden;transition:.3s;background:#f8fafc}
+.gd-krow2.open .gd-kbody{max-height:420px}
+.gd-kbody-h{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#64748B;padding:10px 14px 6px;flex-wrap:wrap;gap:6px}
+.gd-kopen{color:#2563EB;font-weight:700;cursor:pointer;white-space:nowrap}
+.gd-kcomp{display:flex;align-items:center;gap:10px;padding:6px 14px}
+.gd-kcn{flex:1;min-width:0;font-size:11.5px;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gd-kcbar{width:130px;flex:0 0 130px;display:flex;align-items:center;gap:6px}
+.gd-kcbar b{font-size:11px;min-width:34px;text-align:right}
+.gd-kbody .gd-kcomp:last-child{padding-bottom:12px}
+/* ===== rating card ===== */
+.gd-ratcard{cursor:pointer;transition:.15s}
+.gd-ratcard:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(20,40,80,.12)}
+.gd-rgo{margin-left:auto;font-size:12px;font-weight:700;color:#2563EB;white-space:nowrap}
+.gd-rleft{text-align:center;flex:0 0 auto}
+.gd-rbars{flex:1;min-width:230px}
+.gd-rrow em{font-style:normal;font-size:10px;color:#94A3B8;min-width:34px}
+.gd-rrow span{letter-spacing:-1px;color:#F59E0B;font-size:11px}
+@media(max-width:900px){.gd-krow2 .gd-kbar{width:110px;flex-basis:110px}.gd-kside{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){.gd-rtrack i{animation:none}}
 .gd-erow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F1F5F9;align-items:flex-start}
 .gd-etime{font-size:12px;font-weight:700;color:#2563EB;min-width:40px}
 .gd-livedot{font-size:7.5px;background:var(--red);color:#fff;padding:1px 6px;border-radius:10px;font-weight:700;animation:agBadgePulse 1.5s infinite}
@@ -1990,55 +2042,91 @@ function gacalOpenDay(m,d){
    Mengikuti mockup "CODEC DECK CONCEPT": hero gelap (highlight pencapaian) +
    breakdown 6 sub-function (bar vs target) + kartu Progress Bulanan.
    SEMUA angka DERIVED live dari data modul — derive don't duplicate. */
+/* ===== CODEC KPI model — sumber: draft KPI 2026 · sheet 'Total Pencapaian YTD' =====
+   Komponen yang punya modul live (GFM←Energy, GSM←Vendor, GA-Admin payment←Payment Tracker,
+   EHS←HSE, Rating←Service) DI-DERIVE live & sinkron; komponen tanpa modul (Asset STO,
+   Procurement Hub, named projects) memakai angka sheet YTD. */
+const CODEC_ASSET_STO={ach:78,target:85};   // KPI Asset STO — Asset Maintenance Develop AIHO Land Bank & STO (non-routine)
+const CODEC_PROC_HUB={ach:72,target:80};     // External Relation — Procurement Hub across Astra Group (non-routine)
+const CODEC_PD_REJUV=[                        // Project Development · Rejuvenation on AMDI
+ {n:"Multipurpose Space — Lab EHS",v:35},{n:"Rejuvenate AMDI C",v:48},{n:"Rejuvenate Corridor & Toilet",v:56},
+ {n:"Rejuvenate Auditorium",v:12},{n:"Foundation Advisory & Enablement",v:64},{n:"Expand Sport Facilities in AIHO",v:28}
+];
+const CODEC_PD_ABS=[                          // Project Development · Advanced Building System
+ {n:"ERSUS — Energy Intelligence",v:70},{n:"GAVA (AGAVA)",v:82},{n:"Digital Meal Coupon",v:45}
+];
 const CODEC_SUBFN=[
- {ic:"🔧",name:"General Facilities Management",kpi:"Energy KPI — GRK · Water · REM · Waste",target:90,nav:"energy"},
- {ic:"🛎️",name:"General Services Management",kpi:"Vendor Assessment per Site",target:85,nav:"service"},
- {ic:"📋",name:"General Administration",kpi:"Payment & Asset Management KPI",target:85,nav:"payment"},
- {ic:"🏗️",name:"Project & System Development",kpi:"Plan vs Actual — Project & System Dev",target:90,nav:"project"},
- {ic:"🤝",name:"External Relation",kpi:"Perizinan KPI",target:90,nav:"hse"},
- {ic:"🌿",name:"Environment Health & Safety (P2K3L)",kpi:"AGC · MKA · Safety Golden Rules",target:90,nav:"hse"}
+ {ic:"🔧",name:"General Facilities Management",sub:"Maintenance & Utilities (ESG)",kpi:"Contribute to ASTRA ESG Program 2030",target:90,nav:"energy",type:"routine"},
+ {ic:"🛎️",name:"General Services Management",sub:"Penilaian Vendor",kpi:"Enhance Shuttle Experience",target:85,nav:"service",type:"routine"},
+ {ic:"📋",name:"General Administration",sub:"Payment BPH & Asset STO",kpi:"Asset Maintenance · AIHO Land Bank & STO",target:85,nav:"payment",type:"mixed"},
+ {ic:"🏗️",name:"Project Development",sub:"Rejuvenation AMDI & Advanced Building System",kpi:"Rejuvenation · Advanced Building System",target:90,nav:"project",type:"nonroutine"},
+ {ic:"🤝",name:"External Relation",sub:"Procurement Hub across Astra Group",kpi:"Procurement Hub across Astra Group",target:80,nav:"procurement",type:"nonroutine"},
+ {ic:"🌿",name:"Environment Health & Safety (P2K3L)",sub:"AGC · MKA · Safety Golden Rules",kpi:"Compliance with Safety Standard AIHO",target:90,nav:"hse",type:"routine"}
 ];
 /* Klik bar sub-function → langsung ke modul sumbernya (board = scroll ke Papan Kolaborasi) */
 function codecGoSub(nav){ go(nav); }
+/* Agregat KPI utk hero: total GA · routine · non-routine · tercapai */
+function codecKPI(){
+ const S=codecSubFnData();
+ const total=Math.round(S.reduce((a,x)=>a+x.ach,0)/S.length);
+ const achieved=S.filter(x=>x.ach>=x.target).length;
+ const allComp=S.flatMap(x=>x.comp);
+ const rout=allComp.filter(c=>c.type==='routine'), nonr=allComp.filter(c=>c.type==='nonroutine');
+ const routPct=rout.length?Math.round(rout.reduce((a,c)=>a+c.v,0)/rout.length):0;
+ const nonPct=nonr.length?Math.round(nonr.reduce((a,c)=>a+c.v,0)/nonr.length):0;
+ return {total,achieved,tot:S.length,routPct,nonPct,rout,nonr,S};
+}
+/* klik angka hero → tampilkan dari data apa (toggle popover) */
+function codecKpiPop(which){
+ const el=document.getElementById('gdKpiPop'); if(!el)return;
+ if(el.dataset.on===which){ el.classList.remove('show'); el.dataset.on=''; return; }
+ const K=codecKPI(); let h='';
+ if(which==='total') h='<b>Total Achievement KPI GA = '+K.total+'%</b> — rata-rata 6 KPI utama: '+K.S.map(s=>s.name+' '+s.ach+'%').join(' · ')+'. Sumber: <i>Total Pencapaian YTD</i>, tersinkron live dari modul AGAVA.';
+ else if(which==='achieved') h='<b>'+K.achieved+' dari '+K.tot+' KPI utama mencapai target</b> — '+K.S.map(s=>(s.ach>=s.target?'✅ ':'⏳ ')+s.name+' ('+s.ach+'/'+s.target+'%)').join(' · ');
+ else if(which==='nonroutine') h='<b>◆ KPI Non-Routine = '+K.nonPct+'%</b> — inisiatif strategis: '+K.nonr.map(c=>c.n+' '+c.v+'%').join(' · ');
+ else if(which==='routine') h='<b>● KPI Routine = '+K.routPct+'%</b> — operasional BAU: '+K.rout.map(c=>c.n+' '+c.v+'%').join(' · ');
+ el.innerHTML=h; el.classList.add('show'); el.dataset.on=which;
+}
+function codecSubToggle(i){ const r=document.getElementById('gdk-'+i); if(r)r.classList.toggle('open'); }
 function codecSubFnData(){
- const avgA=a=>a.reduce((x,y)=>x+y,0)/a.length;
- // 1. GFM ← modul ENERGY: rekap pencapaian GRK, Water, REM, Waste (attainment vs target masing-masing)
- const grkRed=(1-avgA(GRK_2026)/avgA(GRK_2019))*100;                    // target turun 15%
- const grkAtt=Math.min(100,grkRed/15*100);
- const watRed=(1-avgA(WATER_INT_2026)/avgA(WATER_INT_2019))*100;        // target turun 13%
- const watAtt=Math.max(0,Math.min(100,watRed/13*100));
- const remAtt=Math.min(100,avgA(REM_PCT)/8*100);                        // target 8%
- const wOk=WASTE_OK.reduce((a,b)=>a+b,0), wTot=WASTE_OK.reduce((a,b,i)=>a+b+WASTE_NO[i],0);
- const wstAtt=Math.min(100,(wOk/wTot*100)/99*100);                      // target 99% terolah
- const gfm=Math.round(avgA([grkAtt,watAtt,remAtt,wstAtt]));
- // 2. GSM ← modul SERVICE: penilaian vendor per site (skor 0–3 → tier Platinum/Gold/Silver)
- const siteScores=VENDOR_PERF.map(v=>(v.hk+v.bm)/2);
- const gsm=Math.round(avgA(siteScores)/3*100);
- const tierCount={Platinum:0,Gold:0,Silver:0}; siteScores.forEach(s=>tierCount[vendorTier(s).n]++);
- // 3. GA Administration ← Payment Tracker (on-time release)
+ const avgA=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+ // 1. GFM ← ENERGY: GRK · Water · REM · Waste (routine · ESG 2030)
+ const grkRed=(1-avgA(GRK_2026)/avgA(GRK_2019))*100, grkAtt=Math.min(100,grkRed/15*100);
+ const watRed=(1-avgA(WATER_INT_2026)/avgA(WATER_INT_2019))*100, watAtt=Math.max(0,Math.min(100,watRed/13*100));
+ const remAtt=Math.min(100,avgA(REM_PCT)/8*100);
+ const wOk=WASTE_OK.reduce((a,b)=>a+b,0), wTot=WASTE_OK.reduce((a,b,i)=>a+b+WASTE_NO[i],0), wstAtt=Math.min(100,(wOk/wTot*100)/99*100);
+ const gfmComp=[{n:"GRK / Emisi — ESG 2030",v:Math.round(grkAtt),type:"routine"},{n:"Water Intensity",v:Math.round(watAtt),type:"routine"},{n:"REM — Renewable/Efficiency",v:Math.round(remAtt),type:"routine"},{n:"Waste terolah",v:Math.round(wstAtt),type:"routine"}];
+ const gfm=Math.round(avgA(gfmComp.map(c=>c.v)));
+ // 2. GSM ← SERVICE: penilaian vendor per site (routine · shuttle experience)
+ const gsmComp=VENDOR_PERF.map(v=>{const sc=(v.hk+v.bm)/2;return {n:v.site+" · "+vendorTier(sc).n,v:Math.round(sc/3*100),type:"routine"};});
+ const gsm=Math.round(avgA(gsmComp.map(c=>c.v)));
+ // 3. GA Administration ← Payment BPH (routine, live) + Asset STO (non-routine, sheet)
  const rel=SO.filter(s=>s.invReleased), relOk=rel.filter(s=>!invRelEst(s)||(s.invReleaseDate&&s.invReleaseDate<=invRelEst(s))).length;
  const late=SO.filter(s=>invReleaseOverdue(s)).length, den=rel.length+late;
- const adm=den?Math.round(relOk/den*100):100;
- // 4. P&SD ← plan vs actual progress project (Project Board)
- const att=CODEC_PROJECTS.map(p=>Math.min(100,(p.prog/Math.max(p.plan||p.prog,1))*100));
- const psd=Math.round(avgA(att));
- const delayed=CODEC_PROJECTS.filter(p=>p.prog<(p.plan||0)).length;
- // 5. External Relation ← KPI Perizinan (IZIN aktif)
- const izOk=IZIN.filter(z=>z.due>=TODAY_STR).length;
- const ext=IZIN.length?Math.round(izOk/IZIN.length*100):100;
- // 6. EHS (P2K3L) ← AGC · MKA · Safety Golden Rules
+ const payBPH=den?Math.round(relOk/den*100):100;
+ const admComp=[{n:"Payment BPH terbayar (on-time)",v:payBPH,type:"routine"},{n:"Asset STO — AIHO Land Bank & STO",v:CODEC_ASSET_STO.ach,type:"nonroutine"}];
+ const adm=Math.round(avgA(admComp.map(c=>c.v)));
+ // 4. Project Development ← Rejuvenation + Advanced Building System (non-routine)
+ const pdComp=[...CODEC_PD_REJUV.map(p=>({n:"Rejuv · "+p.n,v:p.v,type:"nonroutine"})),...CODEC_PD_ABS.map(p=>({n:"ABS · "+p.n,v:p.v,type:"nonroutine"}))];
+ const psd=Math.round(avgA(pdComp.map(c=>c.v)));
+ // 5. External Relation ← Procurement Hub across Astra Group (non-routine)
+ const extComp=[{n:"Procurement Hub across Astra Group",v:CODEC_PROC_HUB.ach,type:"nonroutine"}];
+ const ext=CODEC_PROC_HUB.ach;
+ // 6. EHS (P2K3L) ← AGC · MKA · SGR — Compliance safety AIHO (routine)
  const p=HSE_P2K3L;
- const ehs=Math.round(avgA([Math.min(100,p.agc.score/p.agc.target*100),Math.min(100,p.mka.score/p.mka.target*100),Math.min(100,p.sgr.score/p.sgr.target*100)]));
- const vals=[gfm,gsm,adm,psd,ext,ehs];
+ const ehsComp=[{n:"AGC — Astra Green Company",v:p.agc.score,type:"routine"},{n:"MKA — Mandatory Key Action",v:p.mka.score,type:"routine"},{n:"SGR — Safety Golden Rules",v:p.sgr.score,type:"routine"}];
+ const ehs=Math.round(avgA(ehsComp.map(c=>c.v)));
+ const vals=[gfm,gsm,adm,psd,ext,ehs], comps=[gfmComp,gsmComp,admComp,pdComp,extComp,ehsComp];
+ const delayed=CODEC_PD_REJUV.concat(CODEC_PD_ABS).filter(p=>p.v<50).length;
  const notes=[
    "GRK −"+(Math.round(grkRed*10)/10)+"% ✓ · Water −"+(Math.round(watRed*10)/10)+"% · REM "+(Math.round(avgA(REM_PCT)*10)/10)+"% · Waste "+(Math.round(wOk/wTot*1000)/10)+"% · dari modul Energy",
-   tierCount.Platinum+" Platinum · "+tierCount.Gold+" Gold · "+tierCount.Silver+" Silver ("+VENDOR_PERF.length+" site) · dari modul Service",
-   (late?late+" payment lewat estimasi · dari Payment Tracker":"payment on-time · dari Payment Tracker"),
-   (delayed?delayed+" project di bawah plan · plan vs actual":"semua project sesuai plan")+" · dari Project Board",
-   izOk+" dari "+IZIN.length+" izin aktif · KPI Perizinan · dari modul HSE",
-   "AGC "+p.agc.score+" · MKA "+p.mka.score+"% · SGR "+p.sgr.score+"% · data P2K3L"
+   VENDOR_PERF.length+" site dinilai · avg "+gsm+"% · dari modul Service",
+   (late?late+" payment lewat estimasi":"payment BPH on-time")+" · Asset STO "+CODEC_ASSET_STO.ach+"% · Payment Tracker",
+   CODEC_PD_REJUV.length+" Rejuvenation + "+CODEC_PD_ABS.length+" Advanced Building System · "+delayed+" di bawah 50%",
+   "Procurement Hub "+CODEC_PROC_HUB.ach+"% menuju target "+CODEC_PROC_HUB.target+"% · across Astra Group",
+   "AGC "+p.agc.score+"% · MKA "+p.mka.score+"% · SGR "+p.sgr.score+"% · Compliance AIHO"
  ];
- return CODEC_SUBFN.map((f,i)=>({...f,ach:vals[i],note:notes[i],st:vals[i]>=f.target?"ok":vals[i]>=f.target-15?"warn":"bad"}));
+ return CODEC_SUBFN.map((f,i)=>({...f,ach:vals[i],comp:comps[i],note:notes[i],st:vals[i]>=f.target?"ok":vals[i]>=f.target-15?"warn":"bad"}));
 }
 function codecMonthID(){ const m=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"]; const d=new Date(TODAY_STR+"T00:00:00"); return m[d.getMonth()]+" "+d.getFullYear(); }
 function codecHeroHTML(){
@@ -2192,9 +2280,20 @@ function renderOverview(){
  const stnkO=STNK.filter(v=>dueD(v.due)<0).length, stnk30=STNK.filter(v=>{const d=dueD(v.due);return d>=0&&d<=30;}).length, stnkOK=STNK.length-stnkO-stnk30;
  const pbbO=PBB.filter(v=>dueD(v.due)<0).length, pbb30=PBB.filter(v=>{const d=dueD(v.due);return d>=0&&d<=30;}).length, pbbOK=PBB.length-pbbO-pbb30;
  const gdBar=(v,max,c,h)=>`<div class="gd-pbar" style="height:${h||6}px"><i style="width:${Math.min(v/max*100,100)}%;background:${c}"></i></div>`;
- const gdKpiRows=S.map(f=>{ const c=f.ach>=f.target?'var(--green)':f.ach>=f.target*0.8?'#F59E0B':'var(--red)';
-   return `<div class="gd-krow" onclick="codecGoSub('${f.nav}')"><span class="gd-kic">${f.ic}</span><div class="gd-kinfo"><div class="gd-kname">${f.name}</div><div class="gd-kdet">${f.note}</div></div><div class="gd-kbar">${gdBar(f.ach,100,c,5)}<span class="gd-kpct" style="color:${c}">${f.ach}%</span></div></div>`; }).join("");
- const gdRating=[5,4,3,2,1].map((s,i)=>`<div class="gd-rrow"><span>${s}</span><div class="gd-rtrack"><i style="width:${R.dist[i]}%"></i></div><b>${R.dist[i]}%</b></div>`).join("");
+ const KPI=codecKPI();
+ const typeBadge=t=>t==='routine'?'<span class="gd-ktag rt">Routine</span>':t==='nonroutine'?'<span class="gd-ktag nr">Non-Routine</span>':'<span class="gd-ktag mx">Mixed</span>';
+ const gdKpiRows=S.map((f,i)=>{ const c=f.ach>=f.target?'var(--green)':f.ach>=f.target*0.8?'#F59E0B':'var(--red)';
+   const comps=f.comp.map(cc=>{const cc2=cc.v>=85?'var(--green)':cc.v>=65?'#F59E0B':'var(--red)';return `<div class="gd-kcomp"><span class="gd-kcn">${cc.type==='nonroutine'?'◆':'●'} ${cc.n}</span><div class="gd-kcbar">${gdBar(cc.v,100,cc2,4)}<b style="color:${cc2}">${cc.v}%</b></div></div>`;}).join('');
+   return `<div class="gd-krow2" id="gdk-${i}">
+     <div class="gd-krh" onclick="codecSubToggle(${i})">
+       <span class="gd-kic">${f.ic}</span>
+       <div class="gd-kinfo"><div class="gd-kname">${f.name} ${typeBadge(f.type)}</div><div class="gd-kdet">${f.sub} · ${f.note}</div></div>
+       <div class="gd-kbar">${gdBar(f.ach,100,c,6)}<span class="gd-kpct" style="color:${c}">${f.ach}%</span></div>
+       <span class="gd-kchev">⌄</span>
+     </div>
+     <div class="gd-kbody"><div class="gd-kbody-h">Komponen achievement — <b>${f.kpi}</b><a class="gd-kopen" onclick="event.stopPropagation();codecGoSub('${f.nav}')">buka modul →</a></div>${comps}</div>
+   </div>`; }).join("");
+ const gdRating=[5,4,3,2,1].map((s,i)=>{const cnt=R.cnt?R.cnt[i]:0;return `<div class="gd-rrow"><span>${'★'.repeat(s)}</span><div class="gd-rtrack"><i style="width:${R.dist[i]}%"></i></div><b>${R.dist[i]}%</b><em>${cnt}</em></div>`;}).join("");
  const gdEvents=EVENTS.slice().sort((a,b)=>a.start.localeCompare(b.start)).slice(0,8).map(e=>{ const live=/·\s*Running/i.test(e.ev); const nm=e.ev.replace(/\s*·\s*Running/i,'');
    return `<div class="gd-erow"><span class="gd-etime">${e.start}</span><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px">${live?'<span class="gd-livedot">LIVE</span>':''}<b class="gd-eroom">${e.room}</b></div><div class="gd-ename">${nm}</div><div class="gd-emeta"><span style="color:${e.hot?'var(--red)':'#3B82F6'}">🌡 ${e.temp}°C</span><span>👥 ${e.pax}</span><span>🍽 ${e.sr}</span></div></div></div>`; }).join("");
  const gdUp=(d,t)=>{const p=d.split(' ');return `<div class="gd-uprow"><span class="gd-updte"><b>${p[0]}</b><small>${(p[1]||'').toUpperCase()}</small></span><span class="gd-uptx">${t}</span></div>`;};
@@ -2208,30 +2307,41 @@ function renderOverview(){
   </div>
 
   <div class="gd-sec" id="gd-kpi"><i></i>KPI & Progress</div>
-  <div class="card">
-    <div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Highlight Pencapaian KPI GA Dept</div><div class="gd-chs">— ${codecMonthID()} · derive live dari seluruh modul AGAVA</div></div></div>
-    <div class="gd-cells3">
-      <div class="gd-cell"><div class="gd-cv" style="color:var(--green)">${avgK}%</div><div class="gd-cl">Avg. KPI Achievement</div><span class="badge" style="background:#FEF3C7;color:#B45309">▲ rata-rata 6 sub-function</span></div>
-      <div class="gd-cell"><div class="gd-cv" style="color:#2563EB">${hitK}/6</div><div class="gd-cl">Sub-Function capai target</div><span class="badge" style="background:#FEF3C7;color:#B45309">${hitK>=5?'Excellent':hitK>=4?'Good':'Perlu Perhatian'}</span></div>
-      <div class="gd-cell"><div class="gd-cv" style="color:var(--red)">${kOk}/8</div><div class="gd-cl">KPI modul on-target</div><span class="badge" style="background:#DBEAFE;color:#2563EB">single source of truth</span></div>
+  <div class="card gd-kherowrap">
+    <div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Highlight Pencapaian KPI GA Dept</div><div class="gd-chs">— ${codecMonthID()} · derive live & sinkron dari sheet Total Pencapaian YTD</div></div></div>
+    <div class="gd-khero">
+      <div class="gd-kbig" onclick="codecKpiPop('total')" title="klik untuk rincian sumber">
+        <div class="gd-kbig-v">${KPI.total}%</div>
+        <div class="gd-kbig-l">Total Achievement KPI GA</div>
+        <div class="gd-kbig-h">👆 klik angka untuk lihat dari data apa</div>
+      </div>
+      <div class="gd-kside">
+        <div class="gd-kmini" onclick="codecKpiPop('achieved')"><div class="gd-kmv" style="color:#2563EB">${KPI.achieved}<small>/${KPI.tot}</small></div><div class="gd-kml">KPI Utama Tercapai</div></div>
+        <div class="gd-kmini" onclick="codecKpiPop('nonroutine')"><div class="gd-kmv" style="color:#7C3AED">${KPI.nonPct}%</div><div class="gd-kml">KPI Non-Routine ◆</div></div>
+        <div class="gd-kmini" onclick="codecKpiPop('routine')"><div class="gd-kmv" style="color:var(--green)">${KPI.routPct}%</div><div class="gd-kml">KPI Routine ●</div></div>
+      </div>
     </div>
+    <div class="gd-kpop" id="gdKpiPop"></div>
   </div>
   <div class="gd-g75 mt16">
-    <div class="card"><div class="gd-ch"><span class="gd-chi">📈</span><div><div class="gd-cht">KPI Achievement per Sub-Function</div><div class="gd-chs">Target vs Actual YTD · klik untuk buka modul</div></div></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">📈</span><div><div class="gd-cht">Achievement 6 KPI Utama</div><div class="gd-chs">klik salah satu bar untuk lihat komponen achievement-nya</div></div></div>
       <div class="gd-pad">${gdKpiRows}</div></div>
     <div class="card"><div class="gd-ch"><span class="gd-chi">📅</span><div><div class="gd-cht">Progress Bulanan</div><div class="gd-chs">Update otomatis dari modul AGAVA</div></div></div>
       <div class="gd-cells2">
-        <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${prjN}</div><span class="badge" style="background:#FEF3C7;color:#B45309">avg ${prjAvg}%</span><div class="gd-cl2">Project Plan & Actual</div><div class="gd-cl3">${CODEC_PROJECTS.filter(p=>p.st==='ok').length} on-track · ${prjBlk} blocked</div></div>
+        <div class="gd-cell"><div class="gd-cv2" style="color:#7C3AED">${Math.round((CODEC_PD_REJUV.concat(CODEC_PD_ABS).reduce((a,p)=>a+p.v,0))/(CODEC_PD_REJUV.length+CODEC_PD_ABS.length))}%</div><span class="badge" style="background:#EDE9FE;color:#7C3AED">${CODEC_PD_REJUV.length+CODEC_PD_ABS.length} project</span><div class="gd-cl2">Project Development</div><div class="gd-cl3">Rejuvenation + Advanced Building System</div></div>
         <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${tkRes} <small>dari ${tkTot}</small></div><div class="gd-cl2">Tiket Selesai</div><div class="gd-cl3">+${tkFu} lanjut ke procurement</div></div>
         <div class="gd-cell"><div class="gd-cv2" style="color:#8B5CF6">${pipeN}</div><span class="badge" style="background:#EDE9FE;color:#8B5CF6">pipeline aktif</span><div class="gd-cl2">Payment Progress</div><div class="gd-cl3">${relN} released · dari Payment Tracker</div></div>
         <div class="gd-cell"><div class="gd-cv2" style="color:var(--green)">−${eRed}%</div><div class="gd-cl2">Konsumsi Energi</div><div class="gd-cl3">vs baseline 2019 · ${ENERGY_MONTHS[ENERGY_MONTHS.length-1]} 2026</div></div>
       </div></div>
   </div>
-  <div class="card mt16"><div class="gd-rating">
-    <div style="text-align:center"><div class="gd-rbig">${R.score}</div><div class="gd-rstars">★★★★★</div><div class="gd-rsub">${R.count} responden</div></div>
-    <div style="flex:1;min-width:220px"><div class="gd-rt">Rating Layanan GA Dept</div>${gdRating}</div>
-    <span class="badge" style="background:#FEF3C7;color:#B45309">⭐ Sangat Baik</span>
-  </div></div>
+  <div class="card mt16 gd-ratcard" onclick="go('service')" title="klik → buka modul Service">
+    <div class="gd-ch"><span class="gd-chi">⭐</span><div><div class="gd-cht">Rating Pelayanan GA — ${codecMonthID()}</div><div class="gd-chs">rata-rata rating resolved ticket · sinkron dari modul Service · klik → buka Service</div></div><span class="gd-rgo">buka Service →</span></div>
+    <div class="gd-rating">
+      <div class="gd-rleft"><div class="gd-rbig">${R.score}</div><div class="gd-rstars">${'★'.repeat(Math.round(parseFloat(R.score)))}${'☆'.repeat(5-Math.round(parseFloat(R.score)))}</div><div class="gd-rsub">${R.count} resolved ticket dinilai</div></div>
+      <div class="gd-rbars">${gdRating}</div>
+      <span class="badge" style="background:#FEF3C7;color:#B45309">${parseFloat(R.score)>=4.5?'⭐ Excellent':parseFloat(R.score)>=4?'⭐ Sangat Baik':parseFloat(R.score)>=3?'⭐ Baik':'⭐ Perlu Perhatian'}</span>
+    </div>
+  </div>
 
   <div class="gd-sec" id="gd-hot"><i></i>Hot Topic</div>
   <div class="gd-g543">
@@ -4325,8 +4435,9 @@ function gaServiceRating(){
  const rated=TICKETS.filter(t=>t.rating>0);
  if(!rated.length) return GA_RATING;
  const n=rated.length, avg=rated.reduce((s,t)=>s+t.rating,0)/n;
- const dist=[5,4,3,2,1].map(star=>Math.round(rated.filter(t=>Math.round(t.rating)===star).length/n*100));
- return { score:avg.toFixed(1), count:n, dist };
+ const cnt=[5,4,3,2,1].map(star=>rated.filter(t=>Math.round(t.rating)===star).length);
+ const dist=cnt.map(c=>Math.round(c/n*100));
+ return { score:avg.toFixed(1), count:n, dist, cnt };
 }
 /* Ticket rating — requester rates after a ticket is resolved */
 function openRate(no){
@@ -4557,7 +4668,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-2";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-3";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
