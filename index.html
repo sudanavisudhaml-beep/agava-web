@@ -1196,6 +1196,78 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 @media (prefers-reduced-motion:reduce){.gc-alert,.pj-warn,.gc-ps.over,.kd-tile.bad,.insight.crit,.gc-stat.bad,.gc-perm-row.overdue,.cp-row.cpb,.gc-cell.conf.dbl,[style*="border-left:4px solid var(--red)"],.badge.bd-crit,.pj-badge.warn,.kchip.bad,.pj-odot{animation:none}
 .gc-alert::after,.pj-warn::after,.gc-ps.over::after,.kd-tile.bad::after,.insight.crit::after,.gc-stat.bad::after,.gc-perm-row.overdue::after,.cp-row.cpb::after,[style*="border-left:4px solid var(--red)"]::after{animation:none;display:none}}
 
+/* ╔══════════════════════════════════════════════════════════════════╗
+   ║  LIQUID GLASS THEME — Apple-style · light grey / electric-turquoise ║
+   ╚══════════════════════════════════════════════════════════════════╝ */
+:root{
+  --blue:#0a7cff; --blue-s:#e8f3ff;
+  --turq:#00c8d4;
+  --acc:linear-gradient(135deg,#00c6fb 0%,#0a7cff 55%,#0059e8 100%);
+  --glass:rgba(255,255,255,.60);
+  --glass-hi:rgba(255,255,255,.88);
+  --glass-brd:rgba(255,255,255,.75);
+  --blur:saturate(1.6) blur(18px);
+}
+body{background:
+  radial-gradient(1000px 560px at 8% -10%, rgba(0,198,251,.17), transparent 62%),
+  radial-gradient(900px 600px at 100% 8%, rgba(10,124,255,.13), transparent 60%),
+  radial-gradient(800px 700px at 55% 112%, rgba(0,208,212,.13), transparent 60%),
+  linear-gradient(160deg,#f7f9fc 0%,#eef2f8 48%,#e9f2f6 100%);
+  background-attachment:fixed}
+::-webkit-scrollbar-thumb{background:rgba(120,140,170,.45)}
+/* ---- permukaan kaca ---- */
+.card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--glass-brd);
+  box-shadow:0 12px 32px rgba(20,40,80,.10),0 2px 6px rgba(20,40,80,.05),inset 0 1px 0 var(--glass-hi)}
+.gd-nav{background:rgba(255,255,255,.55);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-brd);box-shadow:0 8px 24px rgba(20,40,80,.10),inset 0 1px 0 var(--glass-hi)}
+.drawer{background:rgba(255,255,255,.82);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.gc-toolbar,.gc-monthstrip{background:rgba(255,255,255,.60);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
+.gd-cells3,.gd-cells2,.gd-cells4{background:rgba(150,175,210,.28)}
+.gd-cell{background:rgba(255,255,255,.60)}
+.gd-tile,.gd-util,.gd-income,.gd-kmini,.gd-krow2,.pr-row,.gd-stream,.mini-panel,.hl2-tile,.up2{backdrop-filter:blur(8px) saturate(1.3);-webkit-backdrop-filter:blur(8px) saturate(1.3)}
+.gd-stream{background:rgba(255,255,255,.50);border:1px solid rgba(255,255,255,.7)}
+.gd-krow2{background:rgba(255,255,255,.45)}
+/* ---- sidebar → kaca terang ---- */
+.side{background:linear-gradient(180deg,rgba(255,255,255,.74),rgba(243,247,252,.58));backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-right:1px solid rgba(255,255,255,.85);box-shadow:1px 0 24px rgba(20,40,80,.06);color:#3a4c66}
+.logo-img{filter:none}
+.sec-label{color:#8aa0bd}
+.nav a{color:#4a5d78;border-left:3px solid transparent}
+.nav a svg{stroke:#5b7191}
+.nav a:hover{background:rgba(10,124,255,.08);color:var(--ink)}
+.nav a.active{background:linear-gradient(135deg,rgba(0,198,251,.20),rgba(10,124,255,.16));color:#0559d6;border-left-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 2px 10px rgba(10,124,255,.12)}
+.nav a.active svg{stroke:#0a7cff}
+.side-user{border-top:1px solid rgba(120,150,190,.20)}
+.side-user .av{background:var(--acc);color:#fff}
+.side-user b{color:var(--ink)}
+/* ---- tombol utama → liquid electric/turquoise ---- */
+.btn-act,.gc-new,.cp-act.ok{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);
+  border:1px solid rgba(255,255,255,.5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 8px 20px rgba(10,124,255,.33)}
+.btn-act:hover,.gc-new:hover,.cp-act.ok:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 12px 26px rgba(10,124,255,.42)}
+/* ---- tombol sekunder & ikon → kepingan kaca ---- */
+.btn-out,.icon-btn,.copilot-btn,.live-chip,.btn-mini,.cp-act{background:rgba(255,255,255,.55);
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5);
+  border:1px solid rgba(255,255,255,.85);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 3px 10px rgba(20,40,80,.08)}
+.btn-out:hover,.icon-btn:hover,.copilot-btn:hover,.live-chip:hover,.btn-mini:hover{border-color:rgba(10,124,255,.45)}
+button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outline-offset:2px}
+/* ---- aksen electric/turquoise ---- */
+.gd-ctime2{background:linear-gradient(120deg,#0059e8,#0a7cff,#00c6fb,#00e0c9,#0059e8);background-size:300% 100%}
+.gd-kbig{background:linear-gradient(135deg,rgba(0,198,251,.94),rgba(10,124,255,.94) 55%,rgba(0,89,232,.94));
+  border:1px solid rgba(255,255,255,.45);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 10px 26px rgba(10,124,255,.32)}
+.gd-vhead{background:linear-gradient(135deg,#0a7cff,#00c6d4)}
+.gd-sec i{background:linear-gradient(180deg,#00c6fb,#0a7cff)}
+.gd-logo{background:var(--acc)}
+.ga-svc-panel{background:linear-gradient(135deg,rgba(232,243,255,.75),rgba(236,251,253,.65));backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-color:rgba(10,124,255,.28)}
+/* ---- fallback tanpa backdrop-filter ---- */
+@supports not (backdrop-filter: blur(4px)){
+  .card{background:rgba(255,255,255,.94)}
+  .side{background:linear-gradient(180deg,#fdfefe,#f2f6fa)}
+  .gd-nav,.drawer,.gc-toolbar,.gc-monthstrip{background:rgba(255,255,255,.96)}
+}
+
 /* ============ MOBILE RESPONSIVE — kompak & profesional di HP ============ */
 .mob-menu{display:none;background:transparent;border:none;color:var(--ink);font-size:22px;line-height:1;padding:2px 6px;cursor:pointer;flex:0 0 auto}
 #mobBackdrop{display:none}
@@ -1441,27 +1513,8 @@ function applyLogin(u){
 }
 function logout(){ gUser=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
 
-/* ---- Tarik SO dari SharePoint List ----
-   Default: angka dari list nyata Anda (Juni 2026). Saat file di-host DI DALAM SharePoint site,
-   set useSharePoint=true → otomatis tarik live (same-origin, pakai login M365). */
-const SP_CONFIG={ useSharePoint:false, site:"https://YOURTENANT.sharepoint.com/teams/PROCUREMENTSYSTEMDEVELOPMENT", list:"SO TRACKER" };
-let SO_SUMMARY={ berjalan:16, upr:9, spk:6 };          // SO berjalan · sudah UPR · sudah SPK
-let TIKET_SUMMARY={ berjalan:55, selesai:8, resp:"10 Min" }; // tiket berjalan · selesai · avg response
-async function fetchSOSummary(){
-  if(!SP_CONFIG.useSharePoint) return;
-  try{
-    const u=`${SP_CONFIG.site}/_api/web/lists/getbytitle('${SP_CONFIG.list}')/items?$select=Title,Status,TglCreate,AgingZone&$top=2000`;
-    const r=await fetch(u,{headers:{"Accept":"application/json;odata=verbose"},credentials:"include"});
-    const items=(await r.json()).d.results;
-    const today=new Date().toISOString().slice(0,10);
-    SO_SUMMARY={
-      berjalan: items.filter(x=>x.Status!=="Done").length,
-      upr: SO_SUMMARY.upr,   // UPR/SPK butuh kolom dari model E2E (belum ada di list saat ini)
-      spk: SO_SUMMARY.spk
-    };
-    renderOverview();
-  }catch(e){ console.warn("Gagal tarik SO dari SharePoint:",e); }
-}
+/* SO_SUMMARY / TIKET_SUMMARY / fetchSOSummary dihapus — SEMUA tampilan derive langsung dari
+   array SO & TICKETS (single source). Integrasi SharePoint nanti: map list item → SO[] lalu renderAll(). */
 function buildNav(){
   const allowed=(ROLES[gRole]&&ROLES[gRole].menus)||MENU.map(m=>m.id);
   document.getElementById("nav").innerHTML=MENU.filter(m=>allowed.includes(m.id)).map(m=>
@@ -1476,9 +1529,9 @@ function go(id){
   active=(id==="ersus")?"energy":id; buildNav();
   ["page-overview","page-procurement","page-building","page-project","page-gacal","page-service","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
-  if(id==="overview"){document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
+  if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="procurement"){document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
-  else if(id==="building"){document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
+  else if(id==="building"){renderBuilding();document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
   else if(id==="project"){renderProject();document.getElementById("page-project").classList.remove("hide");t.textContent="Project Development";s.textContent="Project Timeline × Calendar of Event 2026 — radar overlap konstruksi vs reservasi";}
   else if(id==="gacal"){renderGACal();document.getElementById("page-gacal").classList.remove("hide");t.textContent="GA Calendar";s.textContent="Kalender terpadu GA — deteksi benturan project × event × ruang meeting";}
   else if(id==="service"){document.getElementById("page-service").classList.remove("hide");t.textContent="Service";s.textContent="Complaint tickets · response time, PIC & escalations";}
@@ -1504,7 +1557,7 @@ function go(id){
 function secIc(bg,col,ic){return `<div class="sec-ic" style="background:${bg};color:${col}"><svg viewBox="0 0 24 24">${IC[ic]}</svg></div>`;}
 
 /* --- data & helper overview tambahan --- */
-const GA_RATING={ score:4.6, count:1248, dist:[72,18,6,3,1] };
+/* GA_RATING dummy dihapus — rating selalu derive dari tiket resolved yang dinilai */
 function ratingCard(){
  const r=gaServiceRating();
  return `<div class="card rating-card">
@@ -1692,7 +1745,7 @@ function kpiDeptData(){
  K.push({ic:"🎫",name:"SLA Response Tiket",param:resp.length+" tiket direspons · target ≤ 15 mnt",target:"≥ 95%",ach:slaPct+"%",pct:slaPct,st:slaPct>=95?"ok":slaPct>=85?"warn":"bad",src:"Service"});
  // 2. Rating Layanan GA — dari rating tiket closed (gaServiceRating)
  const r=gaServiceRating(), rv=parseFloat(r.score);
- K.push({ic:"⭐",name:"Rating Layanan GA",param:r.count+" responden · tiket selesai",target:"≥ 4.0",ach:r.score,pct:Math.round(rv/5*100),st:rv>=4?"ok":rv>=3.5?"warn":"bad",src:"Service"});
+ K.push({ic:"⭐",name:"Rating Layanan GA",param:r.count+" responden · tiket selesai",target:"≥ 4.0",ach:r.score,pct:Math.round(rv/5*100),st:r.count===0?"warn":rv>=4?"ok":rv>=3.5?"warn":"bad",src:"Service"});
  // 3. Efisiensi Energi — dari data ERSUS (GRK 2026 vs baseline 2019)
  const avg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, avg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length;
  const red=Math.round((1-avg26/avg19)*1000)/10;
@@ -1924,7 +1977,7 @@ const MEETING_ROOMS=["Mahoni","Ebony","Trembesi","Akasia","Angsana","Auditorium"
 let GACAL_CUSTOM=[];
 let gacalMonth=5;  /* diinit ke bulan TODAY_STR saat renderGACal pertama (hindari TDZ di top-level) */
 let gacalMonthInit=false;
-let gacalFilters={'resv':true,'room':true,'proj-start':true,'proj-end':true,'ticket':true};
+let gacalFilters={'resv':true,'room':true,'proj-start':true,'proj-end':true,'maint':true,'ticket':true};
 function gacalEvents(){
  const evs=[];
  (typeof PJ_E!=='undefined'?PJ_E:[]).forEach((e,i)=>{ if(e.s)evs.push({date:e.s,type:'resv',loc:e.l,title:e.n&&e.n!=='-'?e.n:'(acara)',sub:e.l+(e.pic?' · '+e.pic:''),src:'PJ_E',idx:i}); });
@@ -1988,8 +2041,8 @@ function gacalSaveEvent(type){
  const date=document.getElementById('ga-date').value||TODAY_STR;
  if(type==='meeting'){
    const room=document.getElementById('ga-room').value, st=document.getElementById('ga-start').value||'09:00', en=document.getElementById('ga-end').value||'10:00';
-   if(typeof ROOM_BOOKINGS!=='undefined') ROOM_BOOKINGS.unshift({room:room,event:title,date:date,start:st,end:en,status:'Booked'});
-   GACAL_CUSTOM.push({date:date,type:'room',loc:room,title:title,sub:room+' · '+st+'–'+en,status:'Booked',src:'CUSTOM'});
+   if(typeof ROOM_BOOKINGS!=='undefined'){ ROOM_BOOKINGS.unshift({room:room,event:title,date:date,start:st,end:en,status:'Booked'}); }
+   else { GACAL_CUSTOM.push({date:date,type:'room',loc:room,title:title,sub:room+' · '+st+'–'+en,status:'Booked',src:'CUSTOM'}); }   // simpan SEKALI — hindari double count & false conflict
  } else {
    const loc=(document.getElementById('ga-loc')||{}).value||'';
    const time=(document.getElementById('ga-time')||{}).value||'';
@@ -2005,15 +2058,16 @@ function renderGACal(){
  if(!gacalMonthInit){ gacalMonth=+TODAY_STR.split('-')[1]-1; gacalMonthInit=true; }
  if(!window._gcMenuBound){ document.addEventListener('click',ev=>{ const mn=document.getElementById('gcNewMenu'); if(mn&&mn.classList.contains('open')&&!ev.target.closest('.gc-newwrap'))mn.classList.remove('open'); }); window._gcMenuBound=true; }
  const m=gacalMonth, year=2026, all=gacalEvents(), conf=gacalConflicts();
+ const ym=year+'-'+String(m+1).padStart(2,'0');   // pembanding sadar-tahun — izin 2027 tidak nyasar ke grid 2026
  const active=Object.keys(gacalFilters).filter(k=>gacalFilters[k]);
- const evs=all.filter(e=>e.date&&(+e.date.split('-')[1]-1===m)&&active.includes(e.type));
+ const evs=all.filter(e=>e.date&&e.date.slice(0,7)===ym&&active.includes(e.type));
  const byDay={}; evs.forEach(e=>{ const d=+e.date.split('-')[2]; (byDay[d]=byDay[d]||[]).push(e); });
  // konflik per tanggal (bulan ini)
- const confDay={}; conf.forEach(c=>{ if(+c.date.split('-')[1]-1===m){ confDay[+c.date.split('-')[2]]=c.kind; } });
+ const confDay={}; conf.forEach(c=>{ if(c.date.slice(0,7)===ym){ confDay[+c.date.split('-')[2]]=c.kind; } });
  const first=new Date(year,m,1).getDay(), days=new Date(year,m+1,0).getDate();
  const todayD=(+TODAY_STR.split('-')[1]-1===m)?+TODAY_STR.split('-')[2]:-1;
  const cnt=t=>evs.filter(e=>e.type===t).length;
- const confMonth=conf.filter(c=>+c.date.split('-')[1]-1===m);
+ const confMonth=conf.filter(c=>c.date.slice(0,7)===ym);
  const crossN=confMonth.filter(c=>c.kind==='cross').length, dblN=confMonth.filter(c=>c.kind==='double').length;
  let h=`<div class="gc-shell">
   <div class="gc-toolbar">
@@ -2045,7 +2099,7 @@ function renderGACal(){
      ? `<div class="gc-cf cross"><b>${fmtDay(c.date)}</b> · ⚡ <b>${esc(c.event)}</b> di <b>${c.loc}</b> berbarengan fase konstruksi <b>${esc(c.phase)}</b> (${esc(c.project)})</div>`
      : `<div class="gc-cf dbl"><b>${fmtDay(c.date)}</b> · ▦ <b>${c.count} reservasi</b> bertumpuk di <b>${c.loc}</b>: ${c.events.map(esc).join(' × ')}</div>`).join('')}
      ${confMonth.length>6?`<div class="gc-cf" style="opacity:.6">… +${confMonth.length-6} benturan lain</div>`:''}</div></div>`:''}
-  <div class="gc-filters">${Object.entries(GACAL_TYPES).map(([k,t])=>`<span class="gc-chip ${gacalFilters[k]?'':'off'}" onclick="gacalToggle('${k}')"><i style="background:${t.color}"></i>${t.label} <b>${all.filter(e=>e.type===k&&+e.date.split('-')[1]-1===m).length}</b></span>`).join('')}
+  <div class="gc-filters">${Object.entries(GACAL_TYPES).map(([k,t])=>`<span class="gc-chip ${gacalFilters[k]?'':'off'}" onclick="gacalToggle('${k}')"><i style="background:${t.color}"></i>${t.label} <b>${all.filter(e=>e.type===k&&(e.date||'').slice(0,7)===ym).length}</b></span>`).join('')}
    <span class="gc-hint">Klik tanggal untuk detail agenda</span></div>
   <div class="gc-monthstrip">
     <div class="gc-mlabel">📅 ${GACAL_MON[m]} <b>2026</b></div>
@@ -2090,13 +2144,20 @@ function gacalOpenDay(m,d){
    Procurement Hub, named projects) memakai angka sheet YTD. */
 const CODEC_ASSET_STO={ach:78,target:85};   // KPI Asset STO — Asset Maintenance Develop AIHO Land Bank & STO (non-routine)
 const CODEC_PROC_HUB={ach:72,target:80};     // External Relation — Procurement Hub across Astra Group (non-routine)
-const CODEC_PD_REJUV=[                        // Project Development · Rejuvenation on AMDI
- {n:"Multipurpose Space — Lab EHS",v:35},{n:"Rejuvenate AMDI C",v:48},{n:"Rejuvenate Corridor & Toilet",v:56},
- {n:"Rejuvenate Auditorium",v:12},{n:"Foundation Advisory & Enablement",v:64},{n:"Expand Sport Facilities in AIHO",v:28}
+/* SINGLE SOURCE project CODEC — dipakai KPI Project Dev, Progress Bulanan, & section Progress Proyek */
+const CODEC_PROJ=[
+ {n:"Multipurpose Space — Lab EHS",plan:50,actual:35,phase:"Construction",grp:"rejuv"},
+ {n:"Rejuvenate AMDI C",plan:55,actual:48,phase:"Construction",grp:"rejuv"},
+ {n:"Rejuvenate Corridor & Toilet",plan:60,actual:56,phase:"Construction",grp:"rejuv"},
+ {n:"Rejuvenate Auditorium",plan:30,actual:12,phase:"Tender",grp:"rejuv"},
+ {n:"Foundation Advisory & Enablement",plan:60,actual:64,phase:"Construction",grp:"rejuv"},
+ {n:"Expand Sport Facilities AIHO",plan:40,actual:28,phase:"Getting Requirement",grp:"rejuv"},
+ {n:"ERSUS — Energy Intelligence",plan:75,actual:70,phase:"Construction",grp:"abs"},
+ {n:"GAVA (AGAVA)",plan:80,actual:82,phase:"Serah Terima",grp:"abs"},
+ {n:"Digital Meal Coupon",plan:50,actual:45,phase:"Tender",grp:"abs"}
 ];
-const CODEC_PD_ABS=[                          // Project Development · Advanced Building System
- {n:"ERSUS — Energy Intelligence",v:70},{n:"GAVA (AGAVA)",v:82},{n:"Digital Meal Coupon",v:45}
-];
+const CODEC_PD_REJUV=CODEC_PROJ.filter(p=>p.grp==="rejuv").map(p=>({n:p.n,v:p.actual}));   // derived — jangan isi manual
+const CODEC_PD_ABS=CODEC_PROJ.filter(p=>p.grp==="abs").map(p=>({n:p.n,v:p.actual}));       // derived — jangan isi manual
 const CODEC_SUBFN=[
  {ic:"🔧",name:"General Facilities Management",sub:"Maintenance & Utilities (ESG)",kpi:"Contribute to ASTRA ESG Program 2030",target:90,nav:"energy",type:"routine"},
  {ic:"🛎️",name:"General Services Management",sub:"Penilaian Vendor",kpi:"Enhance Shuttle Experience",target:85,nav:"service",type:"routine"},
@@ -2235,25 +2296,16 @@ const CODEC_REVENUE=[
  {name:"EVCS — EV Charging Station",ic:"🔌",rev:0.12},
  {name:"Massage Chair",ic:"💺",rev:0.04}
 ];
-/* ===== CODEC Project Development — plan vs actual, fase, mingguan (sinkron modul Project) ===== */
-const CODEC_PROJ=[
- {n:"Multipurpose Space — Lab EHS",plan:50,actual:35,phase:"Construction"},
- {n:"Rejuvenate AMDI C",plan:55,actual:48,phase:"Construction"},
- {n:"Rejuvenate Corridor & Toilet",plan:60,actual:56,phase:"Construction"},
- {n:"Rejuvenate Auditorium",plan:30,actual:12,phase:"Tender"},
- {n:"Foundation Advisory & Enablement",plan:60,actual:64,phase:"Construction"},
- {n:"Expand Sport Facilities AIHO",plan:40,actual:28,phase:"Getting Requirement"},
- {n:"ERSUS — Energy Intelligence",plan:75,actual:70,phase:"Construction"},
- {n:"GAVA (AGAVA)",plan:80,actual:82,phase:"Serah Terima"},
- {n:"Digital Meal Coupon",plan:50,actual:45,phase:"Tender"}
-];
 const CODEC_PROJ_PHASES=["Getting Requirement","Tender","Construction","Serah Terima"];
 const CODEC_PROJ_WEEKLY={ wk:["W1","W2","W3","W4","W5","W6"], plan:[20,32,44,54,62,70], actual:[18,28,39,47,53,58] };
-const CODEC_PROJ_OVERLAP=2;   // titik project×event bersinggungan (dari GA Calendar)
 /* ===== CODEC Building & Utility — maintenance rutin & work permit ===== */
 const CODEC_MAINT={done:18,total:24};       // maintenance rutin bulan ini
-const WORK_PERMIT={active:14,pending:2,overdue:1};
+const WORK_PERMIT={overdue:1};   // hanya overdue (stub sampai flow Perizinan mengisi); active/pending DERIVE dari WORKS
 const ENERGY_MONTHLY_CAP=285000;            // batas emisi bulanan (kg CO2e) — untuk peringatan merah
+const CHILLERS=[{n:"Chiller 1",st:"Running",load:72,c:"ok"},{n:"Chiller 2",st:"Running",load:65,c:"ok"},{n:"Chiller 3",st:"Standby",load:0,c:"neu"}];  // single source per-unit
+const UTILITY_STATUS={chillers:{run:CHILLERS.filter(c=>c.st==="Running").length,total:CHILLERS.length},pumps:{run:5,total:5}};   // derived — CODEC + Building + Copilot
+const BUDGET_GA={opex:68,capex:54};                                      // single source — CODEC + Payment (% only)
+/* Upcoming CODEC kini DERIVE live dari gacalEvents() — tidak ada daftar agenda statis */
 /* ===== CODEC — Pemakaian Biaya Transport (per jenis armada & per divisi) ===== */
 const CODEC_TRANSPORT={
  byType:[
@@ -2340,9 +2392,8 @@ function renderOverview(){
    return;
  }
  /* ====== CODEC v3 — layout ref: ga-dashboard.html (light, nav sticky, jam live) ====== */
- const S=codecSubFnData(), avgK=Math.round(S.reduce((a,x)=>a+x.ach,0)/S.length), hitK=S.filter(x=>x.ach>=x.target).length, kOk=kpiDeptData().filter(k=>k.st==="ok").length;
+ const S=codecSubFnData();
  const R=gaServiceRating();
- const prjN=CODEC_PROJECTS.length, prjAvg=Math.round(CODEC_PROJECTS.reduce((a,p)=>a+p.prog,0)/Math.max(prjN,1)), prjBlk=CODEC_PROJECTS.filter(p=>p.st==='blocked').length;
  const tkTot=TICKETS.length, tkUn=TICKETS.filter(t=>t.stg===0).length, tkAsg=TICKETS.filter(t=>t.stg===1).length, tkIp=TICKETS.filter(t=>t.stg===2).length, tkFu=TICKETS.filter(t=>t.toProc).length, tkRes=TICKETS.filter(t=>t.stg===3).length;
  const soTot=SO.length, soUpr=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=2).length, soSpk=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=3).length, soBast=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=4).length;
  const pipeN=SO.filter(s=>s.invReceived&&!s.invReleased).length, relN=SO.filter(s=>s.invReleased).length;
@@ -2370,7 +2421,6 @@ function renderOverview(){
  const gdUp=(d,t)=>{const p=d.split(' ');return `<div class="gd-uprow"><span class="gd-updte"><b>${p[0]}</b><small>${(p[1]||'').toUpperCase()}</small></span><span class="gd-uptx">${t}</span></div>`;};
  const gdPri=(ic,t,d,n,nav)=>{const c=n===0?'var(--green)':n<=2?'#F59E0B':'var(--red)';return `<div class="gd-pri" onclick="go('${nav}')"><span class="gd-pric">${ic}</span><div style="flex:1"><div class="gd-prit">${t}</div><div class="gd-prid">${n===0?'semua aman':d}</div></div><span class="gd-prin" style="color:${c}">${n}</span></div>`;};
  const gdHbar=(l,v,max,c)=>`<div class="gd-hbar"><div class="gd-hlab"><span>${l}</span><b>Rp ${v}jt</b></div><div class="gd-htrack"><i style="width:${Math.min(v/max*100,100)}%;background:${c}"></i></div></div>`;
- const gdTierB=(s)=>{const t=vendorTier(s);const m=t.n==='Platinum'?['#7C3AED','#EDE9FE']:t.n==='Gold'?['#B45309','#FEF3C7']:['#64748B','#F1F5F9'];return `<span class="badge" style="background:${m[1]};color:${m[0]}">${t.n}</span>`;};
  /* ---- Service (3): per-area, resolved minggu ini, escalated ---- */
  const svcArea=l=>{l=(l||'').toLowerCase(); if(l.indexOf('bsd')>=0)return'ABC BSD'; if(l.indexOf('bandung')>=0||l.indexOf('bdg')>=0)return'ABC Bandung'; if(l.indexOf('tower')>=0)return'Tower'; if(l==='ma'||l.indexOf('menara')>=0)return'Menara Astra'; if(l.indexOf('amdi')>=0||l.indexOf('auditorium')>=0)return'AMDI'; return'Lainnya';};
  const weekAgo=(()=>{const d=new Date(TODAY_STR);d.setDate(d.getDate()-7);return d.toISOString().slice(0,10);})();
@@ -2391,7 +2441,18 @@ function renderOverview(){
  const pjPhase=CODEC_PROJ_PHASES.map(ph=>({ph,n:CODEC_PROJ.filter(p=>p.phase===ph).length}));
  /* ---- Building (9b) ---- */
  const maintDonePct=Math.round(CODEC_MAINT.done/CODEC_MAINT.total*100), maintPend=CODEC_MAINT.total-CODEC_MAINT.done;
- const wpInProg=WORKS.filter(w=>w.izin).length, wpOverdue=WORK_PERMIT.overdue;
+ const wpActive=WORKS.filter(w=>w.izin).length, wpPending=WORKS.filter(w=>!w.izin).length, wpOverdue=WORK_PERMIT.overdue;
+ /* ---- Payment tiles — derive dari SO invoice pipeline (tally dgn Payment Tracker) ---- */
+ const payOverN=SO.filter(s=>invReleaseOverdue(s)).length;
+ const payProcN=Math.max(pipeN-payOverN,0);                                   // invoice diterima, diproses, belum lewat estimasi
+ const payPendN=SO.filter(s=>s.wstep>=4&&!s.invReceived).length;              // BAST done, menunggu invoice
+ /* ---- Overlap project×event — live dari GA Calendar (bulan berjalan, hanya kind cross) ---- */
+ let pjOverlap=0; try{ const mm=TODAY_STR.slice(0,7); pjOverlap=gacalConflicts().filter(c=>c.kind==='cross'&&c.date&&c.date.slice(0,7)===mm).length; }catch(e){}
+ /* ---- Upcoming — live dari gacalEvents(): esok s.d. +30 hari, tanpa tiket (tanggal tiket = created) ---- */
+ let upList=[]; try{
+   const upLim=(d=>{d.setDate(d.getDate()+30);return d.toISOString().slice(0,10);})(new Date(TODAY_STR+"T00:00:00"));
+   upList=gacalEvents().filter(e=>e.type!=='ticket'&&e.date>TODAY_STR&&e.date<=upLim).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
+ }catch(e){}
  el.innerHTML=`
  <div class="gd">
   <div class="gd-nav" id="gdNav">
@@ -2468,11 +2529,11 @@ function renderOverview(){
         <div class="gd-fn"><div class="gd-fnt"><b style="color:#F59E0B">${soSpk}</b><span>SPK Done</span></div><div class="gd-ftrack"><i style="width:${Math.round(soSpk/Math.max(soTot,1)*100)}%;background:#F59E0B"></i></div></div>
         <div class="gd-fn"><div class="gd-fnt"><b style="color:#15a34a">${soBast}</b><span>BAST Done</span></div><div class="gd-ftrack"><i style="width:${Math.round(soBast/Math.max(soTot,1)*100)}%;background:#15a34a"></i></div></div>
       </div></div></div>
-    <div class="card gd-clickcard" onclick="go('payment')" title="klik → Payment"><div class="gd-ch"><span class="gd-chi">💳</span><div><div class="gd-cht">Payment Tracker — BPH Status</div><div class="gd-chs">payment proof status · sinkron Payment Tracker</div></div><span class="gd-rgo">buka →</span></div>
+    <div class="card gd-clickcard" onclick="go('payment')" title="klik → Payment"><div class="gd-ch"><span class="gd-chi">💳</span><div><div class="gd-cht">Payment Tracker — BPH Status</div><div class="gd-chs">payment proof status · derive live dari SO invoice pipeline</div></div><span class="gd-rgo">buka →</span></div>
       <div class="gd-tiles3">
-        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">24</b><span>Processing</span></div>
-        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">9</b><span>Pending</span></div>
-        <div class="gd-tile" style="background:#FEE2E2"><b style="color:var(--red)">2</b><span>Overdue</span></div>
+        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">${payProcN}</b><span>Processing</span></div>
+        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">${payPendN}</b><span>Menunggu Invoice</span></div>
+        <div class="gd-tile ${payOverN?'gd-escblink':''}" style="background:#FEE2E2"><b style="color:var(--red)">${payOverN}</b><span>Overdue</span></div>
       </div></div>
   </div>
 
@@ -2480,11 +2541,9 @@ function renderOverview(){
   <div class="gd-g543">
     <div class="card"><div class="gd-ch"><span class="gd-chi">📋</span><div><div class="gd-cht">Today's Log</div><div class="gd-chs">pekerjaan hari ini · dari GA Calendar</div></div><span class="gd-live">● LIVE</span></div>
       <div class="gd-pad">${gdEvents}<a class="see-more" onclick="go('gacal')">buka GA Calendar →</a></div></div>
-    <div class="card"><div class="gd-ch"><span class="gd-chi">📆</span><div><div class="gd-cht">Upcoming</div><div class="gd-chs">pekerjaan esok & 7–30 hari</div></div><span class="badge" style="background:#DBEAFE;color:#2563EB">12 agenda</span></div>
+    <div class="card"><div class="gd-ch"><span class="gd-chi">📆</span><div><div class="gd-cht">Upcoming</div><div class="gd-chs">pekerjaan esok & 30 hari · live dari GA Calendar</div></div><span class="badge" style="background:#DBEAFE;color:#2563EB">${upList.length} agenda</span></div>
       <div class="gd-pad">
-        ${gdUp("17 Jun","IR Talk Batch II · Auditorium")}${gdUp("17 Jun","Diversity for Leaders · R. William S.")}${gdUp("18 Jun","Sharing CFA · Auditorium")}${gdUp("19 Jun","PKAG · Auditorium")}
-        ${gdUp("20 Jun","AC service — all buildings")}${gdUp("23 Jun","Genset monthly test — AMDI")}${gdUp("24 Jun","Auditorium Renovation — start")}${gdUp("26 Jun","Fire system check — ABC BSD")}
-        ${gdUp("28 Jun","Corridor & Toilet 8A — next phase")}${gdUp("30 Jun","Lift maintenance — Tower")}${gdUp("05 Jul","1C Rejuvenation — phase 2")}${gdUp("08 Jul","Water tank cleaning — MA")}
+        ${upList.map(e=>gdUp(fmtDay(e.date),esc(e.title)+(e.loc?' · '+esc(e.loc):''))).join('')||'<div class="gd-cl3" style="padding:8px 0">tidak ada agenda 30 hari ke depan</div>'}
         <a class="see-more" onclick="go('gacal')">buka GA Calendar →</a>
       </div></div>
     <div class="card"><div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Prioritas Hari Ini</div><div class="gd-chs">urgent & belum selesai · klik buka modul</div></div></div>
@@ -2508,26 +2567,26 @@ function renderOverview(){
   <div class="gd-sec" id="gd-bud"><i></i>Budget GA</div>
   <div class="card"><div class="gd-ch"><span class="gd-chi">💳</span><div><div class="gd-cht">Pemakaian Budget GA</div><div class="gd-chs">hanya persentase budget keluar · per bulan terupdate (${codecMonthID()})</div></div></div>
     <div class="gd-pad2"><div class="gd-g2">
-      <div><div class="gd-blab"><span>Budget <b style="color:var(--green)">OPEX</b> keluar</span><b style="color:var(--green);font-size:18px">68%</b></div>${gdBar(68,100,'var(--green)',13)}<div class="gd-cl3" style="margin-top:7px">progress pemakaian OPEX · ${codecMonthID()}</div></div>
-      <div><div class="gd-blab"><span>Budget <b style="color:#2563EB">CAPEX</b> keluar</span><b style="color:#2563EB;font-size:18px">54%</b></div>${gdBar(54,100,'#2563EB',13)}<div class="gd-cl3" style="margin-top:7px">progress pemakaian CAPEX · ${codecMonthID()}</div></div>
+      <div><div class="gd-blab"><span>Budget <b style="color:var(--green)">OPEX</b> keluar</span><b style="color:var(--green);font-size:18px">${BUDGET_GA.opex}%</b></div>${gdBar(BUDGET_GA.opex,100,'var(--green)',13)}<div class="gd-cl3" style="margin-top:7px">progress pemakaian OPEX · ${codecMonthID()}</div></div>
+      <div><div class="gd-blab"><span>Budget <b style="color:#2563EB">CAPEX</b> keluar</span><b style="color:#2563EB;font-size:18px">${BUDGET_GA.capex}%</b></div>${gdBar(BUDGET_GA.capex,100,'#2563EB',13)}<div class="gd-cl3" style="margin-top:7px">progress pemakaian CAPEX · ${codecMonthID()}</div></div>
     </div></div>
   </div>
 
   <div class="gd-sec" id="gd-trans"><i></i>Biaya Transport GA</div>
   <div class="gd-g2">
     <div class="card gd-clickcard" onclick="go('transport')" title="klik → Biaya Transportasi GA"><div class="gd-ch"><span class="gd-chi">🚗</span><div><div class="gd-cht">Biaya per Jenis Transportasi</div><div class="gd-chs">pengeluaran armada 2026 · rupiah</div></div><b style="color:var(--green);font-size:15px">Rp ${CODEC_TRANSPORT.byType.reduce((a,x)=>a+x.cost,0)}jt</b></div>
-      <div class="gd-pad2">${CODEC_TRANSPORT.byType.map(t=>gdHbar(t.name,t.cost,30,'#3B82F6')).join('')}</div></div>
+      <div class="gd-pad2">${CODEC_TRANSPORT.byType.map(t=>gdHbar(t.name,t.cost,Math.max(...CODEC_TRANSPORT.byType.map(x=>x.cost)),'#3B82F6')).join('')}</div></div>
     <div class="card gd-clickcard" onclick="go('transport')" title="klik → Biaya Transportasi GA"><div class="gd-ch"><span class="gd-chi">🏢</span><div><div class="gd-cht">Biaya per Divisi</div><div class="gd-chs">penggunaan tertinggi · rupiah</div></div><span class="gd-rgo">buka →</span></div>
-      <div class="gd-pad2">${CODEC_TRANSPORT.byDiv.map(d=>gdHbar(d.name,d.cost,10,'#60A5FA')).join('')}</div></div>
+      <div class="gd-pad2">${CODEC_TRANSPORT.byDiv.map(d=>gdHbar(d.name,d.cost,Math.max(...CODEC_TRANSPORT.byDiv.map(x=>x.cost)),'#60A5FA')).join('')}</div></div>
   </div>
 
   <div class="gd-sec" id="gd-permit"><i></i>Permit — Work Permit & Reminder</div>
-  <div class="card gd-clickcard" onclick="go('reminder')" title="klik → modul Perizinan"><div class="gd-ch"><span class="gd-chi">📄</span><div><div class="gd-cht">Work Permit & Safety</div><div class="gd-chs">status izin kerja · sinkron modul Perizinan · klik → buka</div></div><span class="gd-rgo">buka →</span></div>
+  <div class="card gd-clickcard" onclick="go('reminder')" title="klik → modul Perizinan"><div class="gd-ch"><span class="gd-chi">📄</span><div><div class="gd-cht">Work Permit & Safety</div><div class="gd-chs">izin kerja sinkron Building (WORKS) · reminder dokumen sinkron Perizinan</div></div><span class="gd-rgo">buka →</span></div>
     <div class="gd-pad2">
       <div class="gd-g3" style="margin-bottom:18px">
-        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">${WORK_PERMIT.active}</b><span>Active work permit</span></div>
-        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">${WORK_PERMIT.pending}</b><span>Pending permit</span></div>
-        <div class="gd-tile ${wpOverdue?'gd-escblink':''}" style="background:#FEE2E2"><b style="color:var(--red)">${WORK_PERMIT.overdue}</b><span>Overdue</span></div>
+        <div class="gd-tile" style="background:#EFF6FF"><b style="color:#2563EB">${wpActive}</b><span>Active work permit</span></div>
+        <div class="gd-tile" style="background:#FEF3C7"><b style="color:#F59E0B">${wpPending}</b><span>Pending permit</span></div>
+        <div class="gd-tile ${wpOverdue?'gd-escblink':''}" style="background:#FEE2E2"><b style="color:var(--red)">${wpOverdue}</b><span>Overdue</span></div>
       </div>
       <div class="gd-sub">🔔 Permit Reminder — STNK & PBB</div>
       <div class="gd-g2" style="gap:20px">
@@ -2554,11 +2613,11 @@ function renderOverview(){
         <div class="gd-sub">🔧 Maintenance Rutin — ${codecMonthID()}</div>
         <div class="gd-blab"><span>Sudah dikerjakan</span><b style="color:var(--green)">${CODEC_MAINT.done}/${CODEC_MAINT.total} · ${maintDonePct}%</b></div>${gdBar(CODEC_MAINT.done,CODEC_MAINT.total,'var(--green)',11)}
         <div class="gd-blab" style="margin-top:10px"><span>Belum dikerjakan</span><b style="color:#F59E0B">${maintPend} pekerjaan</b></div>${gdBar(maintPend,CODEC_MAINT.total,'#F59E0B',11)}
-        <div class="gd-sub" style="margin-top:15px">🔨 Work Permit in Progress · <b style="color:#2563EB">${wpInProg}</b>${wpOverdue?` · <b class="gd-escblink" style="color:var(--red);padding:2px 8px;border-radius:8px">${wpOverdue} overdue</b>`:''}</div>
+        <div class="gd-sub" style="margin-top:15px">🔨 Work Permit in Progress · <b style="color:#2563EB">${wpActive}</b>${wpOverdue?` · <b class="gd-escblink" style="color:var(--red);padding:2px 8px;border-radius:8px">${wpOverdue} overdue</b>`:''}</div>
         <div class="gd-sub" style="margin-top:15px">⚙️ Main Utility Status</div>
         <div class="gd-g2" style="gap:10px">
-          <div class="gd-util"><b style="color:#2563EB">2/3</b><span>Chillers running</span></div>
-          <div class="gd-util"><b style="color:var(--green)">5/5</b><span>Pumps running</span></div>
+          <div class="gd-util"><b style="color:#2563EB">${UTILITY_STATUS.chillers.run}/${UTILITY_STATUS.chillers.total}</b><span>Chillers running</span></div>
+          <div class="gd-util"><b style="color:var(--green)">${UTILITY_STATUS.pumps.run}/${UTILITY_STATUS.pumps.total}</b><span>Pumps running</span></div>
         </div>
       </div></div>
     <div class="card"><div class="gd-ch"><span class="gd-chi">🚨</span><div><div class="gd-cht">Perlu Segera Dikerjakan / Overdue</div><div class="gd-chs">notifikasi maintenance mendesak · via ERSUS</div></div></div>
@@ -2589,7 +2648,7 @@ function renderOverview(){
   </div>
 
   <div class="gd-sec" id="gd-project"><i></i>Progress Proyek</div>
-  <div class="card gd-clickcard" onclick="go('project')" title="klik → Project Development"><div class="gd-ch"><span class="gd-chi">🏗</span><div><div class="gd-cht">Progress Proyek — Plan vs Actual</div><div class="gd-chs">sinkron modul Project Development · klik → buka</div></div>${CODEC_PROJ_OVERLAP?`<span class="gd-rgo gd-escblink" style="color:var(--red)">⚠ ${CODEC_PROJ_OVERLAP} overlap</span>`:''}<span class="gd-rgo">buka →</span></div>
+  <div class="card gd-clickcard" onclick="go('project')" title="klik → Project Development"><div class="gd-ch"><span class="gd-chi">🏗</span><div><div class="gd-cht">Progress Proyek — Plan vs Actual</div><div class="gd-chs">sinkron modul Project Development · klik → buka</div></div>${pjOverlap?`<span class="gd-rgo gd-escblink" style="color:var(--red)">⚠ ${pjOverlap} overlap</span>`:''}<span class="gd-rgo">buka →</span></div>
     <div class="gd-pad2">
       <div class="gd-g2">
         <div>
@@ -2602,7 +2661,7 @@ function renderOverview(){
         <div>
           <div class="gd-sub">Progress Mingguan — Plan vs Actual</div>
           <div class="gd-wk">${CODEC_PROJ_WEEKLY.wk.map((w,i)=>`<div class="gd-wkc"><div class="gd-wkbars"><i class="pl" style="height:${CODEC_PROJ_WEEKLY.plan[i]}%" title="Plan ${CODEC_PROJ_WEEKLY.plan[i]}%"></i><i class="ac" style="height:${CODEC_PROJ_WEEKLY.actual[i]}%" title="Actual ${CODEC_PROJ_WEEKLY.actual[i]}%"></i></div><small>${w}</small></div>`).join('')}</div>
-          <div class="gd-cl3" style="margin-top:8px"><span style="color:#cbd5e1">▮</span> Plan &nbsp; <span style="color:#2563EB">▮</span> Actual &nbsp;·&nbsp; ⚠ ${CODEC_PROJ_OVERLAP} titik overlap project×event <a class="gd-kopen" onclick="event.stopPropagation();go('gacal')">GA Calendar →</a></div>
+          <div class="gd-cl3" style="margin-top:8px"><span style="color:#cbd5e1">▮</span> Plan &nbsp; <span style="color:#2563EB">▮</span> Actual &nbsp;·&nbsp; ⚠ ${pjOverlap} titik overlap project×event bulan ini <a class="gd-kopen" onclick="event.stopPropagation();go('gacal')">GA Calendar →</a></div>
         </div>
       </div>
       <div class="gd-sub" style="margin-top:15px">Plan vs Actual per Project</div>
@@ -3105,7 +3164,6 @@ function renderBuilding(){
   {n:"Chiller Overhaul",m:[0,0,0,0,0,0,0,1,0,0,0,0]},
   {n:"Facade & Building",m:[0,1,0,0,1,0,0,1,0,0,1,0]}
  ];
- const CHILLERS=[{n:"Chiller 1",st:"Running",load:72,c:"ok"},{n:"Chiller 2",st:"Running",load:65,c:"ok"},{n:"Chiller 3",st:"Standby",load:0,c:"neu"}];
  const TEMPS=[{r:"Auditorium",t:23.5,set:24,st:"ok"},{r:"Server Room",t:19.2,set:20,st:"ok"},{r:"Executive Lounge",t:26.8,set:24,st:"warn"},{r:"R. William Soeryadjaja",t:24.1,set:24,st:"ok"},{r:"Lobby Utama",t:28.4,set:25,st:"crit"},{r:"R. Meeting 6A",t:23.0,set:24,st:"ok"}];
  const CONS=[{i:"⚡",n:"Electricity",v:"142 MWh",b:"baseline 150 MWh",pct:-4,good:true},{i:"💧",n:"Water",v:"3.8k m³",b:"baseline 3.5k m³",pct:8,good:false},{i:"🗑️",n:"Waste",v:"12.4 ton",b:"baseline 13 ton",pct:-5,good:true},{i:"⛽",n:"Genset Fuel",v:"1.2k L",b:"baseline 1.5k L",pct:-20,good:true}];
  const bmToday=TICKETS.filter(t=>t.team==="BM"&&t.created===TODAY_STR);
@@ -3212,7 +3270,7 @@ function openTicket(no){
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
-function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)return; t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; if(t.stg===3)t.closed=TODAY_STR; dbSaveTicket(t); openTicket(no); renderService(); renderOverview(); updateBell(); }
+function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)return; t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; if(t.stg===3)t.closed=TODAY_STR; dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,ts:t.ts[t.stg],closed:t.closed||null}); openTicket(no); renderService(); renderOverview(); renderBuilding(); updateBell(); }
 function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
 function gaServiceButtons(){
  if(viewerOnly()) return '';
@@ -3248,8 +3306,8 @@ function renderService(){
     </div>`;
    return;
  }
- const total=TICKETS.length, ongoing=TICKETS.filter(t=>t.status!=="Resolved").length, resolved=TICKETS.filter(t=>t.status==="Resolved").length, esc=TICKETS.filter(t=>t.esc).length;
- const list=TICKETS.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?t.esc: svcFilter==="resolved"?t.status==="Resolved":true);
+ const total=TICKETS.length, ongoing=TICKETS.filter(t=>t.status!=="Resolved").length, resolved=TICKETS.filter(t=>t.status==="Resolved").length, esc=TICKETS.filter(t=>t.esc&&t.status!=="Resolved").length;
+ const list=TICKETS.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?(t.esc&&t.status!=="Resolved"): svcFilter==="resolved"?t.status==="Resolved":true);
  const pills=[["all","All",total],["open","Ongoing",ongoing],["esc","Escalated",esc],["resolved","Resolved",resolved]];
  const r=svcRating(); const full=Math.round(r.avg); const stars='★'.repeat(full)+'☆'.repeat(5-full);
  const el=document.getElementById("page-service");
@@ -3353,7 +3411,7 @@ async function submitTicket(){
  const no=res.ticketNo||("GA-202606-"+String(++ticketSeq).padStart(4,"0"));
  TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,ts:{0:nowStamp()}});
  dbSaveTicket(TICKETS[0]);
- svcFilter="all"; renderService(); go("service");
+ svcFilter="all"; renderService(); renderOverview(); renderBuilding(); go("service");
  if(res.ticketNo && !res._sim){ alert("✅ Tiket dibuat & flow Power Automate dijalankan.\nNomor dari flow: "+no+"\nStatus: "+(res.status||"Submitted")); }
 }
 
@@ -3603,7 +3661,9 @@ function rbSaveBooking(){
  const title=(document.getElementById("rb-title").value||"").trim()||"Booking";
  const email=(document.getElementById("rb-by").value||"").trim()||(gUser?gUser.email:"");
  RB_BOOKINGS.push({room:s.room,date:s.date,start,end,title,by:(gUser?gUser.name:""),email});
- closeDrawer(); renderRoomBook();
+ // jembatan → ROOM_BOOKINGS (Service Room&Event card, GA Calendar, deteksi konflik) — src:'rb' agar sinkron saat release
+ ROOM_BOOKINGS.unshift({room:rbRoomName(s.room),event:title,date:s.date,start:start,end:end,status:"Booked",src:"rb",rbRoom:s.room,rbStart:start});
+ closeDrawer(); renderRoomBook(); renderService(); updateBell(); renderReminder();
  alert("✅ Booking tersimpan — "+title+"\n"+s.date+" · "+start+"–"+end+"\n(ERSUS akan menyalakan fasilitas ruangan saat jadwal mulai.)");
 }
 
@@ -3672,7 +3732,9 @@ function saveTransport(type){
    Jika ERSUS mendeteksi ruang idle 30 mnt → notif "jadi digունakan?". Ya → +15 mnt
    (maks 2x perpanjangan). Jika tetap idle setelah 2x → release (total 1 jam). */
 function rbAllRoom(id){ for(const k in RB_ROOMS){ const r=RB_ROOMS[k].find(x=>x.id===id); if(r)return r; } return {name:id}; }
-function rbReleaseBooking(roomId){ const b=rbBookingAt(roomId,TODAY_STR,RB_NOW); if(!b)return; const i=RB_BOOKINGS.indexOf(b); if(i>=0)RB_BOOKINGS.splice(i,1); }
+function rbReleaseBooking(roomId){ const b=rbBookingAt(roomId,TODAY_STR,RB_NOW); if(!b)return; const i=RB_BOOKINGS.indexOf(b); if(i>=0)RB_BOOKINGS.splice(i,1);
+ const j=ROOM_BOOKINGS.findIndex(x=>x.src==="rb"&&x.rbRoom===b.room&&x.date===b.date&&x.rbStart===b.start); if(j>=0)ROOM_BOOKINGS.splice(j,1);   // lepas juga dari jembatan
+ renderService(); updateBell(); renderReminder(); }
 function rbIdleCheck(roomId){
  rbCancelHide(); const p=document.getElementById("rbpop"); if(p)p.classList.add("hide");
  const room=rbAllRoom(roomId), b=rbBookingAt(roomId,TODAY_STR,RB_NOW);
@@ -3694,7 +3756,8 @@ function rbIdleCheck(roomId){
 function rbIdleYes(roomId){
  const b=rbBookingAt(roomId,TODAY_STR,RB_NOW), room=rbAllRoom(roomId); if(!b){ closeDrawer(); return; }
  b.ext=(b.ext||0)+1; b.end=rbAddMin(b.end,15);
- closeDrawer(); renderRoomBook();
+ const br=ROOM_BOOKINGS.find(x=>x.src==="rb"&&x.rbRoom===b.room&&x.date===b.date&&x.rbStart===b.start); if(br)br.end=b.end;   // sinkron jembatan
+ closeDrawer(); renderRoomBook(); renderReminder();
  alert("✅ Booking "+room.name+" diperpanjang 15 menit (s/d "+b.end+").\nPerpanjangan ke-"+b.ext+"/2."+(b.ext>=2?"\n⚠️ Jika masih idle, ruang akan otomatis di-release.":""));
 }
 function rbIdleNo(roomId){
@@ -3869,7 +3932,7 @@ function approveSO(no,gate,decision){
                      : ("✅ PIC Procurement approve. SO "+no+" diteruskan ke GA Dept Head. Assigned: "+staff+"."));
  } else if(gate==="dept"){
    if(decision==="Rejected"){ s.apprDept="Rejected"; s.ts.dept=nowStamp(); alert("⛔ SO "+no+" ditolak GA Dept Head."); }
-   else { s.apprDept="Approved"; s.ts.dept=nowStamp(); alert(s.escalated ? ("✅ GA Dept Head approve. SO "+no+" → tombol aksi PIC Procurement kini aktif.")
+   else { s.apprDept="Approved"; s.ts.dept=nowStamp(); s.stage=Math.max(s.stage||0,2); alert(s.escalated ? ("✅ GA Dept Head approve. SO "+no+" → tombol aksi PIC Procurement kini aktif.")
                      : ("✅ GA Dept Head approve. SO "+no+" final approved → masuk Assigned SO "+(s.staffPIC||"")+".")); }
  }
  renderApprovals(); renderProc(); renderAssigned(); renderReminder(); buildNav(); updateBell();
@@ -4015,6 +4078,7 @@ function soStep(no){
  if(s.wstep===2){ openSPK(no); return; }     // Kirim SPK → modal upload+email
  if(s.wstep===3){ openBAST(no); return; }     // Kirim BAST → modal upload
  var keys=["sourcing","upr"]; s.ts[keys[s.wstep]]=nowStamp(); s.wstep++;
+ s.stage=Math.max(s.stage||0,s.wstep+2);   // sinkron stage drawer dgn wstep (wstep1→UPR, wstep2→SPK)
  renderAssigned(); renderProc();
 }
 function renderAssigned(){
@@ -4070,7 +4134,7 @@ function sendSPK(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
  s.spkNo=document.getElementById("spk-no").value||"SPK"; s.vendor=document.getElementById("spk-vendor").value||"Vendor";
  var toEmail=(document.getElementById("spk-to")||{}).value||"(email vendor)";
- s.spkSent=true; s.ts.spk=nowStamp(); s.wstep=3;
+ s.spkSent=true; s.ts.spk=nowStamp(); s.wstep=3; s.stage=Math.max(s.stage||0,5);
  closeDrawer(); renderAssigned(); renderProc(); renderPayment();
  alert("📧 SPK terkirim via Outlook ke "+toEmail+"\nSubject: [SPK] "+s.spkNo+" - "+s.item+" - "+s.vendor+"\ncc: Section Head, Dept Head\n\nStatus: SPK Terkirim");
 }
@@ -4179,14 +4243,14 @@ function cpCancelTicket(){ gCpDraft=null; cpPush('bot','Baik, tidak jadi dibuat.
 function copilotReply(q){
  q=q.toLowerCase();
  if(/(hello|hi|hai|help|bantu)/.test(q)) return "Hi! I can summarize anything in AGAVA — try: <b>ongoing SO</b>, <b>escalated tickets</b>, <b>my approvals</b>, <b>energy alerts</b>, <b>vendor performance</b>, or <b>reminders</b>.";
- if(/(so|supply order|procure)/.test(q)) return `There are <b>${SO_SUMMARY.berjalan} SO ongoing</b> — ${SO_SUMMARY.upr} in UPR, ${SO_SUMMARY.spk} in SPK. Biggest pending UPR approval: <b>Rp 185 M</b> (Chief CHCD). Open <b>Procurement</b> for the full pipeline.`;
- if(/(ticket|service|complaint)/.test(q)) return `<b>${TIKET_SUMMARY.berjalan} tickets ongoing</b>, ${TIKET_SUMMARY.selesai} resolved. Avg response time <b>${TIKET_SUMMARY.resp}</b>. ${TICKETS.filter(t=>t.esc).length} tickets are escalated and need attention.`;
- if(/(approval|approve|upr|bast)/.test(q)) return `There are <b>${pendingApprovals().length} pending approvals</b> in the pipeline. As <b>${gTier}</b>, ${approvalsForTier().length} are routed to you right now. Open <b>Approvals</b> to action them.`;
- if(/(energy|chiller|temp|anomal|alert|ersus)/.test(q)) return `Active alerts: <b>Main Lobby 28.4°C</b> (above setpoint) and <b>water use +8%</b> vs baseline. Chillers 2/3 running. See <b>Energy → ERSUS</b> for details & actions.`;
+ if(/(so|supply order|procure)/.test(q)) return `There are <b>${SO.length} SO ongoing</b> — ${SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=2).length} UPR done, ${SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=3).length} SPK done, ${SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=4).length} BAST done. Open <b>Procurement</b> for the full pipeline.`;
+ if(/(ticket|service|complaint)/.test(q)) return `<b>${TICKETS.filter(t=>t.stg<3).length} tickets ongoing</b>, ${TICKETS.filter(t=>t.stg===3).length} resolved. ${TICKETS.filter(t=>t.esc&&t.stg<3).length} tickets are escalated and need attention.`;
+ if(/(approval|approve|upr|bast)/.test(q)) return `There are <b>${pendingApprovals().length} pending approvals</b> in the pipeline. As <b>${gTier}</b>, ${approvalsForTier()} are routed to you right now. Open <b>Approvals</b> to action them.`;
+ if(/(energy|chiller|temp|anomal|alert|ersus)/.test(q)) return `Active alerts: <b>Main Lobby 28.4°C</b> (above setpoint) and <b>water use +8%</b> vs baseline. Chillers ${UTILITY_STATUS.chillers.run}/${UTILITY_STATUS.chillers.total} running. See <b>Energy → ERSUS</b> for details & actions.`;
  if(/(vendor|housekeep|cleaning|bm)/.test(q)) return `Top vendor: <b>BSD Housekeeping 2.9 (Platinum)</b>. Lowest: <b>Bandung HK 2.1 (Silver)</b>. Scores are the avg of Housekeeping & BM per site (scale 0–3).`;
  if(/(stnk|pbb|permit|izin|reminder|expir|due)/.test(q)) return `<b>1 vehicle STNK overdue</b>, Lift SLO permit due in 4 days. In total <b>${activeNotifs().length+pendingApprovals().length} items</b> need action in <b>Reminder</b>.`;
  if(/(room|event|booking|meeting)/.test(q)) return `3 rooms in use now (Auditorium, R. William S., Executive Lounge). Upcoming: <b>Townhall Q2</b> (23 Jun) & <b>Leadership Forum</b> (26 Jun).`;
- if(/(payment|budget|bph|invoice)/.test(q)) return `Pemakaian budget GA: <b>OPEX 68%</b> · <b>CAPEX 54%</b> — YTD on budget. <b>2 payment proofs overdue</b> — follow up with Finance.`;
+ if(/(payment|budget|bph|invoice)/.test(q)) return `Pemakaian budget GA: <b>OPEX ${BUDGET_GA.opex}%</b> · <b>CAPEX ${BUDGET_GA.capex}%</b> — YTD on budget. <b>${SO.filter(s=>invReleaseOverdue(s)).length} payment proofs overdue</b> — follow up with Finance.`;
  return "I'm AGAVA Copilot (simulated for this mockup). I can summarize <b>SO, tickets, approvals, energy alerts, vendor performance, payments</b> and <b>reminders</b>. Once wired to live data + an AI model, I'll answer in real time. Try: \"how many SO are ongoing?\"";
 }
 const CP_AVA_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L12 5l8 15"/></svg>';
@@ -4409,8 +4473,16 @@ function simulateFlow(name,payload){
 function payloadBrief(o){ try{ return Object.entries(o||{}).slice(0,3).map(([k,v])=>k+":"+(typeof v==="object"?"…":String(v).slice(0,18))).join(" · "); }catch(e){ return ""; } }
 /* Flow → AGAVA callback. A flow (or its webhook response) can push a status
    change back into AGAVA. Exposed on window so an external script can call it. */
+/* Jaga status & stg tiket selalu selaras saat patch datang dari luar (PA callback / Firestore) */
+function syncTicketStage(t,patch){ if(!t)return;
+  if(t.status==="To Procurement"){ t.status="In Progress"; t.stg=2; t.toProc=true; }
+  if(patch&&patch.status!=null&&patch.stg==null){ const i=TSTAGES.indexOf(t.status); if(i>=0)t.stg=i; }
+  else if(typeof t.stg==="number"){ t.stg=Math.max(0,Math.min(3,t.stg)); t.status=TSTAGES[t.stg]; }
+  else { const i=TSTAGES.indexOf(t.status); t.stg=i>=0?i:0; t.status=TSTAGES[t.stg]; }
+  if(t.stg===3&&!t.closed)t.closed=TODAY_STR;
+}
 function applyFlowCallback(entity,key,patch){
-  if(entity==="ticket"){ const t=TICKETS.find(x=>x.no===key); if(t){ Object.assign(t,patch); renderService(); renderOverview(); updateBell(); } }
+  if(entity==="ticket"){ const t=TICKETS.find(x=>x.no===key); if(t){ Object.assign(t,patch); syncTicketStage(t,patch); renderService(); renderOverview(); renderBuilding(); updateBell(); } }
   else if(entity==="so"){ const s=SO.find(x=>x.no===key); if(s){ Object.assign(s,patch); renderProc(); renderAssigned(); renderPayment(); updateBell(); } }
   return true;
 }
@@ -4448,7 +4520,7 @@ function ctStatusBadge(st){ return st==="Active"?'<span class="badge bd-ok">Acti
 function renderVendor(){
  const el=document.getElementById("page-vendor"); if(!el)return;
  const b=vendorBudget();
- const FLOWLIST=[['createTicket','Create Ticket (Service)'],['createSO','Create SO (Procurement)'],['advanceSO','Advance SO stage'],['sendSPK','Send SPK email'],['sendBAST','Send BAST email']];
+ const FLOWLIST=[['createTicket','Create Ticket (Service)'],['updateTicket','Update Ticket (Service)'],['createSO','Create SO (Procurement)'],['advanceSO','Advance SO stage'],['sendSPK','Send SPK email'],['sendBAST','Send BAST email']];
  const esc=u=>String(u||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
  const bridge=`<div class="card pad" style="margin-top:18px">
    <div class="panel-t">🔗 Power Automate Bridge <span class="badge ${Object.values(FLOW.endpoints).some(Boolean)?'bd-ok':'bd-info'}" style="margin-left:6px">${Object.values(FLOW.endpoints).filter(Boolean).length} connected</span></div>
@@ -4583,7 +4655,7 @@ function saveSLA(){
 /* GA service rating — driven by in-app ticket ratings (feeds Overview rating card) */
 function gaServiceRating(){
  const rated=TICKETS.filter(t=>t.rating>0);
- if(!rated.length) return GA_RATING;
+ if(!rated.length) return {score:"0.0",count:0,dist:[0,0,0,0,0],cnt:[0,0,0,0,0]};
  const n=rated.length, avg=rated.reduce((s,t)=>s+t.rating,0)/n;
  const cnt=[5,4,3,2,1].map(star=>rated.filter(t=>Math.round(t.rating)===star).length);
  const dist=cnt.map(c=>Math.round(c/n*100));
@@ -4608,6 +4680,7 @@ function saveRate(no){
  const t=TICKETS.find(x=>x.no===no); if(!t)return;
  if(!window._rateTmp){ alert("Pilih bintang dulu."); return; }
  t.rating=window._rateTmp; if(!t.closed)t.closed=TODAY_STR;
+ dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,rating:t.rating,closed:t.closed});
  closeDrawer(); renderService(); renderOverview();
 }
 
@@ -4784,17 +4857,11 @@ function applyLiveRooms(rows){
     status:String(liveCell(r,["status"])||"Booked").trim()
   })).filter(b=>b.room && b.date);
   if(!mapped.length) return;
-  ROOM_BOOKINGS.length=0; mapped.forEach(b=>ROOM_BOOKINGS.push(b));
+  const kept=ROOM_BOOKINGS.filter(b=>b.src==="rb");   // jangan hapus booking dari denah (jembatan RB)
+  ROOM_BOOKINGS.length=0; kept.concat(mapped).forEach(b=>ROOM_BOOKINGS.push(b));
 }
 
-function recomputeSummaries(){
-  SO_SUMMARY={ berjalan:SO.length,
-    upr:SO.filter(s=>(s.wstep||0)>=1).length,
-    spk:SO.filter(s=>(s.wstep||0)>=2).length };
-  TIKET_SUMMARY={ berjalan:TICKETS.filter(t=>t.status!=="Resolved").length,
-    selesai:TICKETS.filter(t=>t.status==="Resolved").length,
-    resp:TIKET_SUMMARY.resp };
-}
+/* recomputeSummaries dihapus — tidak pernah dipanggil & formula tidak selaras dgn derive live */
 
 function renderAll(){
   [renderOverview,renderProc,renderBuilding,renderService,renderEnergy,renderErsus,renderReminder,renderApprovals,renderAssigned,renderPayment,renderVendor,renderHSE,updateBell]
@@ -4818,7 +4885,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-5";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-8";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -4839,16 +4906,16 @@ function dbInit(){
       const d=ch.doc.data(); d.no=d.no||ch.doc.id;
       const i=TICKETS.findIndex(t=>t.no===d.no);
       if(ch.type==="removed"){ if(i>=0){TICKETS.splice(i,1);changed=true;} }
-      else if(i>=0){ Object.assign(TICKETS[i],d); changed=true; }
-      else { TICKETS.unshift(d); changed=true; }
+      else if(i>=0){ Object.assign(TICKETS[i],d); syncTicketStage(TICKETS[i],d); changed=true; }
+      else { TICKETS.unshift(d); syncTicketStage(d,null); changed=true; }
     });
-    if(changed){ renderService(); renderOverview(); updateBell(); }
+    if(changed){ renderService(); renderOverview(); renderBuilding(); updateBell(); }
   },err=>{ AGDB.on=false; dbPill("Database: rules tertutup — mode lokal",false); console.warn("AGDB rules/err:",err&&err.code); });
  }catch(e){ dbPill("Database: offline — mode lokal",false); console.warn("AGDB init:",e); }
 }
 function dbSaveTicket(t){ if(!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
 
-loadFlowConfig();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");fetchSOSummary();updateBell();liveStatus("off","");dbInit();startTopClock();
+loadFlowConfig();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();
 </script>
 </body>
 </html>
