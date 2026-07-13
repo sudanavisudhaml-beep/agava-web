@@ -3854,7 +3854,7 @@ function soPendingAll(){ return SO.filter(s=>soGateTier(s)).map(s=>({approval:tr
 function approvalsForTier(){ return soApprovalsForTier(gTier).length + APPROVALS.filter(a=>a.tier===gTier && a.status==="Pending").length; }
 function pendingApprovals(){ return APPROVALS.filter(a=>a.status==="Pending").concat(soPendingAll()); }
 function activeNotifs(){ return NOTIFS.filter(n=>!n.done); }
-function navBadge(id){ let c=0; if(id==="approvals")c=approvalsForTier(); else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
+function navBadge(id){ let c=0; if(id==="approvals")c=approvalsForTier(); else if(id==="assigned"){ const me=gUser?gUser.name:""; c=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprProc==="Approved" && s.apprDept==="Approved" && s.wstep<4).length; } else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
 function approveSO(no,gate,decision){
  var s=SO.find(x=>x.no===no); if(!s)return;
  s.ts=s.ts||{};
@@ -4818,7 +4818,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-4";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-5";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
