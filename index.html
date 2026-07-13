@@ -1234,11 +1234,12 @@ body{background:
   backdrop-filter:saturate(1.8) blur(22px);-webkit-backdrop-filter:saturate(1.8) blur(22px);
   border-right:1px solid rgba(255,255,255,.55);
   box-shadow:1px 0 34px rgba(8,70,150,.12), inset -1px 0 0 rgba(170,220,255,.40);
-  color:#2f4568;position:relative;overflow:hidden}
-.side::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  color:#2f4568}
+/* glow atas/bawah di belakang konten — z-index:-1 aman krn .side (sticky+backdrop) punya stacking context sendiri;
+   JANGAN pakai .side>*{position:relative} — itu mematahkan absolute .rail-toggle & bikin menu tak bisa diklik */
+.side::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;
   background:radial-gradient(130% 26% at 50% -2%, rgba(0,214,232,.30), transparent 62%),
     radial-gradient(120% 24% at 50% 102%, rgba(10,124,255,.20), transparent 60%)}
-.side>*{position:relative;z-index:1}
 .logo-img{filter:none}
 .sec-label{color:#5478a8;letter-spacing:1.8px}
 .nav a{color:#38507a;border-left:3px solid transparent;font-weight:600}
@@ -4901,7 +4902,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-9";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-10";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
