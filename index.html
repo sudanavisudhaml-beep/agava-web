@@ -1307,7 +1307,12 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
   .mob-menu{display:block}
 
   /* Topbar kompak */
-  .top{gap:8px;padding:9px 11px;align-items:center}
+  .top{gap:8px;padding:9px 11px;align-items:center;
+    position:sticky;top:0;z-index:50;
+    background:linear-gradient(180deg,rgba(247,250,253,.88),rgba(240,246,252,.72));
+    backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);
+    border-bottom:1px solid rgba(255,255,255,.75);box-shadow:0 4px 18px rgba(20,40,80,.10)}
+  .gd-nav{top:calc(var(--topH,96px) + 4px)}   /* nav section CODEC menempel tepat di bawah top bar */
   .hd-titles{flex:1;min-width:0}
   #pgTitle{font-size:15px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sub{font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1567,6 +1572,7 @@ function go(id){
   else if(id==="ersus"){document.getElementById("page-ersus").classList.remove("hide");t.textContent="ERSUS · Energy Intelligence";s.textContent="Insights & notifications that need action";}
   else{const sb=document.getElementById("page-stub");sb.classList.remove("hide");const m=MENU.find(x=>x.id===id);t.textContent=m.label;s.textContent="This module is coming soon.";
     sb.innerHTML=`<div class="card" style="padding:60px;text-align:center;color:var(--muted)"><div style="font-size:40px;opacity:.3">🚧</div><div style="margin-top:12px;font-size:15px">The <b style="color:var(--ink)">${m.label}</b> module is not built in this mockup yet.</div><div style="font-size:13px;margin-top:6px">Try <b style="color:var(--blue)">Procurement</b> or <b style="color:var(--blue)">Energy</b>.</div></div>`;}
+  setTopH();
   window.scrollTo(0,0);
 }
 
@@ -2391,6 +2397,9 @@ function startTopClock(){
    te.innerHTML=String(d.getHours()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getMinutes()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getSeconds()).padStart(2,'0'); };
  upd(); if(!window._gdClock) window._gdClock=setInterval(upd,1000);
 }
+/* ukur tinggi top bar → CSS var --topH (untuk offset sticky gd-nav di mobile) */
+function setTopH(){ const t=document.querySelector('.top'); if(t)document.documentElement.style.setProperty('--topH',t.offsetHeight+'px'); }
+window.addEventListener('resize',setTopH);
 function gdInit(){
  startTopClock();
  if(window._gdObs) window._gdObs.disconnect();
@@ -4902,7 +4911,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-10";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-11";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
