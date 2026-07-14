@@ -903,6 +903,9 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .gd-g75{display:grid;grid-template-columns:7fr 5fr;gap:16px}
 .gd-g57{display:grid;grid-template-columns:5fr 7fr;gap:16px}
 .gd-g543{display:grid;grid-template-columns:5fr 4fr 3fr;gap:16px}
+/* fit-to-screen: grid child boleh menyusut di bawah lebar kontennya → tak ada scrollbar horizontal desktop */
+.gd-g2>*,.gd-g3>*,.gd-g4>*,.gd-g75>*,.gd-g57>*,.gd-g543>*,.gd-cells2>*,.gd-cells3>*,.gd-cells4>*,.gd-vgrid>*{min-width:0}
+.gd{overflow-x:clip}   /* clip (bukan hidden) agar sticky gd-nav tetap jalan */
 .mt16{margin-top:16px}
 .gd-pbar{background:#F1F5F9;border-radius:6px;overflow:hidden;flex:1}
 .gd-pbar i{display:block;height:100%;border-radius:6px;transition:width .5s}
@@ -2502,17 +2505,15 @@ function renderOverview(){
     </div>
     <div class="gd-kpop" id="gdKpiPop"></div>
   </div>
-  <div class="gd-g75 mt16">
-    <div class="card"><div class="gd-ch"><span class="gd-chi">📈</span><div><div class="gd-cht">Achievement 6 KPI Utama</div><div class="gd-chs">klik salah satu bar untuk lihat komponen achievement-nya</div></div></div>
-      <div class="gd-pad">${gdKpiRows}</div></div>
-    <div class="card"><div class="gd-ch"><span class="gd-chi">📅</span><div><div class="gd-cht">Progress Bulanan</div><div class="gd-chs">Update otomatis dari modul AGAVA</div></div></div>
-      <div class="gd-cells2">
-        <div class="gd-cell"><div class="gd-cv2" style="color:#7C3AED">${Math.round((CODEC_PD_REJUV.concat(CODEC_PD_ABS).reduce((a,p)=>a+p.v,0))/(CODEC_PD_REJUV.length+CODEC_PD_ABS.length))}%</div><span class="badge" style="background:#EDE9FE;color:#7C3AED">${CODEC_PD_REJUV.length+CODEC_PD_ABS.length} project</span><div class="gd-cl2">Project Development</div><div class="gd-cl3">Rejuvenation + Advanced Building System</div></div>
-        <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${tkRes} <small>dari ${tkTot}</small></div><div class="gd-cl2">Tiket Selesai</div><div class="gd-cl3">+${tkFu} lanjut ke procurement</div></div>
-        <div class="gd-cell"><div class="gd-cv2" style="color:#8B5CF6">${pipeN}</div><span class="badge" style="background:#EDE9FE;color:#8B5CF6">pipeline aktif</span><div class="gd-cl2">Payment Progress</div><div class="gd-cl3">${relN} released · dari Payment Tracker</div></div>
-        <div class="gd-cell"><div class="gd-cv2" style="color:var(--green)">−${eRed}%</div><div class="gd-cl2">Konsumsi Energi</div><div class="gd-cl3">vs baseline 2019 · ${ENERGY_MONTHS[ENERGY_MONTHS.length-1]} 2026</div></div>
-      </div></div>
-  </div>
+  <div class="card mt16"><div class="gd-ch"><span class="gd-chi">📈</span><div><div class="gd-cht">Achievement 6 KPI Utama</div><div class="gd-chs">klik salah satu bar untuk lihat komponen achievement-nya</div></div></div>
+    <div class="gd-pad">${gdKpiRows}</div></div>
+  <div class="card mt16"><div class="gd-ch"><span class="gd-chi">📅</span><div><div class="gd-cht">Progress Bulanan</div><div class="gd-chs">Update otomatis dari modul AGAVA</div></div></div>
+    <div class="gd-cells4">
+      <div class="gd-cell"><div class="gd-cv2" style="color:#7C3AED">${Math.round((CODEC_PD_REJUV.concat(CODEC_PD_ABS).reduce((a,p)=>a+p.v,0))/(CODEC_PD_REJUV.length+CODEC_PD_ABS.length))}%</div><span class="badge" style="background:#EDE9FE;color:#7C3AED">${CODEC_PD_REJUV.length+CODEC_PD_ABS.length} project</span><div class="gd-cl2">Project Development</div><div class="gd-cl3">Rejuvenation + Advanced Building System</div></div>
+      <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${tkRes} <small>dari ${tkTot}</small></div><div class="gd-cl2">Tiket Selesai</div><div class="gd-cl3">+${tkFu} lanjut ke procurement</div></div>
+      <div class="gd-cell"><div class="gd-cv2" style="color:#8B5CF6">${pipeN}</div><span class="badge" style="background:#EDE9FE;color:#8B5CF6">pipeline aktif</span><div class="gd-cl2">Payment Progress</div><div class="gd-cl3">${relN} released · dari Payment Tracker</div></div>
+      <div class="gd-cell"><div class="gd-cv2" style="color:var(--green)">−${eRed}%</div><div class="gd-cl2">Konsumsi Energi</div><div class="gd-cl3">vs baseline 2019 · ${ENERGY_MONTHS[ENERGY_MONTHS.length-1]} 2026</div></div>
+    </div></div>
   <div class="card mt16 gd-ratcard" onclick="go('service')" title="klik → buka modul Service">
     <div class="gd-ch"><span class="gd-chi">⭐</span><div><div class="gd-cht">Rating Pelayanan GA — ${codecMonthID()}</div><div class="gd-chs">rata-rata rating resolved ticket · sinkron dari modul Service · klik → buka Service</div></div><span class="gd-rgo">buka Service →</span></div>
     <div class="gd-rating">
@@ -4911,7 +4912,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-11";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-12";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
