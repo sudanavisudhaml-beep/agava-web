@@ -292,6 +292,33 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .rb-room2.space rect{fill:#eef1f5;stroke:#b6c0cd;stroke-width:1.4;cursor:default}
 .rb-room2.space .rb-codebig{fill:#7d8a9a;font-size:15px}
 .rb-room2.space:hover rect{stroke-width:1.4}
+/* ===== Denah LT1A — Apple glass ===== */
+.rb-l1svg{width:100%;height:auto;min-width:660px;display:block;border-radius:16px;
+  background:linear-gradient(160deg,rgba(0,198,251,.06),rgba(255,255,255,.5) 55%,rgba(0,208,212,.08));
+  border:1px solid rgba(255,255,255,.7);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 6px 22px rgba(20,60,120,.08)}
+.rb-l1-shell{fill:url(#rbShell);stroke:rgba(10,124,255,.28);stroke-width:2;stroke-linejoin:round;filter:drop-shadow(0 8px 20px rgba(20,60,120,.10))}
+.rb-l1-canopy rect{fill:rgba(255,255,255,.7);stroke:rgba(10,124,255,.3);stroke-width:1.4}
+.rb-l1-atrium{fill:rgba(0,198,251,.08);stroke:rgba(10,124,255,.25);stroke-width:1.6;stroke-dasharray:5 5}
+.rb-l1-col{fill:rgba(10,124,255,.5)}
+.rb-l1-void{fill:#8aa6c4;font:600 12px var(--ff);letter-spacing:1.5px}
+.rb-l1-floorlbl{fill:#0b3f7a;font:800 15px var(--ff);letter-spacing:1px;opacity:.85}
+.rb-l1 rect{fill:url(#rbFree);stroke:rgba(16,169,140,.55);stroke-width:1.6;cursor:pointer;transition:.14s;
+  filter:drop-shadow(0 4px 10px rgba(20,60,120,.10))}
+.rb-l1.busy rect{fill:url(#rbBusy);stroke:rgba(220,38,38,.5)}
+.rb-l1:hover rect{stroke:#0a7cff;stroke-width:2.6;filter:drop-shadow(0 8px 18px rgba(10,124,255,.28))}
+.rb-l1 text{pointer-events:none}
+.rb-l1n{font:800 12.5px var(--ff);fill:#0b3a63;letter-spacing:.3px}
+.rb-l1.sm .rb-l1n{font-size:11px}
+.rb-l1c{font:600 10.5px var(--ff);fill:#1f6f63}
+.rb-l1.busy .rb-l1c{fill:#a83232}
+.rb-l1b{font:800 9.5px var(--ff);fill:#dc2626}
+.rb-l1dot{fill:#12b981}
+.rb-l1.busy .rb-l1dot{fill:#dc2626}
+.rb-l1.blink rect{animation:rbBlinkL1 .8s ease-in-out infinite}
+@keyframes rbBlinkL1{0%,100%{stroke:#0a7cff;stroke-width:3}50%{stroke:#00c6fb;stroke-width:3.6;filter:drop-shadow(0 0 12px rgba(10,124,255,.5))}}
+.rb-l1-legend text{fill:#7c8ca6;font:600 11px var(--ff)}
+.rb-l1-legend .lg-free{fill:url(#rbFree);stroke:rgba(16,169,140,.55);stroke-width:1.4}
+.rb-l1-legend .lg-busy{fill:url(#rbBusy);stroke:rgba(220,38,38,.5);stroke-width:1.4}
 .ga-svc-panel{background:linear-gradient(135deg,#eef4ff,#f4f0ff 55%,#e9f6f2);border:1.5px solid #b9cdf2;border-radius:18px;padding:16px 18px 18px;margin-bottom:18px;box-shadow:0 3px 14px rgba(37,99,235,.08)}
 .ga-svc-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:13px}
 .ga-svc-badge{background:var(--navy,#14243c);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.08em;padding:6px 14px;border-radius:20px;box-shadow:0 2px 8px rgba(20,36,60,.25)}
@@ -3449,7 +3476,7 @@ async function submitTicket(){
 const RB_SITES=["AMDI","MA","ABC BSD","ABC BDG"];
 const RB_FLOORS={ "AMDI":["Lantai 1","Lantai 3","Lantai 4","Lantai 6","Lantai 8"], "MA":["Lantai 5","Lantai 12"], "ABC BSD":["Ground Floor","Lantai 2"], "ABC BDG":["Lantai 1"] };
 /* Denah asli (render dari PDF). Bila ada, dipakai sbg background + hotspot ruang. */
-const RB_FLOORPLAN={ "AMDI|Lantai 1":"assets/floor-l1.png", "AMDI|Lantai 3":"assets/floor-l3.png", "AMDI|Lantai 4":"assets/floor-l4.png", "AMDI|Lantai 6":"assets/floor-l6.png", "AMDI|Lantai 8":"assets/floor-l8.png" };
+const RB_FLOORPLAN={ "AMDI|Lantai 3":"assets/floor-l3.png", "AMDI|Lantai 4":"assets/floor-l4.png", "AMDI|Lantai 6":"assets/floor-l6.png", "AMDI|Lantai 8":"assets/floor-l8.png" };
 const RB_ROOMS={
  "AMDI|Lantai 3":[
    {id:"l3-studio",name:"Studio Room",cap:20,row:0},{id:"l3-tc1",name:"Training Class 1",cap:36,row:0},{id:"l3-tc2",name:"Training Class 2",cap:36,row:0},{id:"l3-tc3",name:"Training Class 3",cap:36,row:0},{id:"l3-tc4",name:"Training Class 4",cap:36,row:0},
@@ -3461,16 +3488,17 @@ const RB_ROOMS={
    {id:"l4-conf1",name:"Conference Room 1",cap:24,row:1},{id:"l4-conf2",name:"Conference Room 2",cap:24,row:1},{id:"l4-421",name:"Meeting 421",cap:18,row:1},{id:"l4-422",name:"Meeting 422",cap:18,row:1},{id:"l4-423",name:"Meeting 423",cap:18,row:1},{id:"l4-424",name:"Meeting 424",cap:18,row:1},
    {id:"l4-411",name:"Meeting 411",cap:18,row:2},{id:"l4-412",name:"Meeting 412",cap:18,row:2},{id:"l4-413",name:"Meeting 413",cap:18,row:2},{id:"l4-414",name:"Meeting 414",cap:18,row:2},{id:"l4-415",name:"Meeting 415",cap:18,row:2},{id:"l4-416",name:"Meeting 416",cap:18,row:2},{id:"l4-417",name:"Meeting 417",cap:18,row:2}
  ],
+ /* LT1A — sesuai denah "Layout LT1A Room Name & Capacity" (9 ruang meeting bertema) */
  "AMDI|Lantai 1":[
-   {id:"l1-sustainability",name:"Sustainability",cap:24,code:1,wing:"L",x:352,y:150,w:122,h:120,type:"meet"},
-   {id:"l1-strive",name:"Strive",cap:12,code:2,wing:"L",x:260,y:150,w:88,h:57,type:"meet"},
-   {id:"l1-teamwork",name:"Teamwork",cap:12,code:3,wing:"L",x:260,y:211,w:88,h:59,type:"meet"},
-   {id:"l1-innovation",name:"Innovation",cap:14,code:4,wing:"L",x:260,y:274,w:88,h:60,type:"meet"},
-   {id:"l1-collaborative",name:"Collaborative",cap:12,code:5,wing:"L",x:260,y:338,w:88,h:58,type:"meet"},
-   {id:"l1-agility",name:"Agility",cap:10,code:6,wing:"L",x:352,y:274,w:122,h:60,type:"meet"},
-   {id:"l1-commitment",name:"Commitment",cap:10,code:7,wing:"L",x:352,y:338,w:122,h:58,type:"meet"},
-   {id:"l1-proactive",name:"Proactive",cap:10,code:8,wing:"L",x:163,y:298,w:90,h:56,type:"meet"},
-   {id:"l1-respect",name:"Respect",cap:10,code:9,wing:"L",x:163,y:358,w:90,h:48,type:"meet"}
+   {id:"l1-innovation",name:"Innovation",cap:7,size:"M",x:284,y:116,w:118,h:98},
+   {id:"l1-collaborative",name:"Collaborative",cap:7,size:"M",x:406,y:116,w:118,h:98},
+   {id:"l1-respect",name:"Respect",cap:4,size:"S",x:320,y:224,w:94,h:84},
+   {id:"l1-proactive",name:"Proactive",cap:4,size:"S",x:418,y:224,w:94,h:84},
+   {id:"l1-commitment",name:"Commitment",cap:4,size:"S",x:520,y:222,w:104,h:68},
+   {id:"l1-strive",name:"Strive",cap:6,size:"M",x:516,y:294,w:130,h:86},
+   {id:"l1-sustainability",name:"Sustainability",cap:21,size:"L",x:284,y:322,w:182,h:172},
+   {id:"l1-teamwork",name:"Teamwork",cap:7,size:"M",x:420,y:502,w:122,h:102},
+   {id:"l1-agile",name:"Agile",cap:4,size:"S",x:550,y:472,w:134,h:114}
  ],
  "AMDI|Lantai 6":[
    {id:"l6-bundar",name:"R. Meja Bundar",cap:12,row:0},{id:"l6-synergi",name:"Synergi",cap:16,row:0},{id:"l6-a",name:"Room A",cap:8,row:0},{id:"l6-b",name:"Room B",cap:8,row:0},
@@ -3485,24 +3513,10 @@ const RB_ROOMS={
  "ABC BSD|Lantai 2":[{id:"bsd-4",name:"Tulip",cap:14,row:0},{id:"bsd-5",name:"Sakura",cap:10,row:0}],
  "ABC BDG|Lantai 1":[{id:"bdg-1",name:"Asia Afrika",cap:20,row:0},{id:"bdg-2",name:"Braga",cap:12,row:0}]
 };
-/* Space non-meeting (office/pantry/toilet/board) — diberi kode juga utk dinamai user; tidak bisa di-book. */
-const RB_SPACES={
- "AMDI|Lantai 1":[
-   {id:"l1-s10",name:"Open Office",code:10,wing:"L",x:60,y:150,w:96,h:120,type:"space"},
-   {id:"l1-s11",name:"Pantry",code:11,wing:"L",x:60,y:278,w:46,h:78,type:"space"},
-   {id:"l1-s12",name:"Toilet",code:12,wing:"L",x:111,y:278,w:45,h:78,type:"space"},
-   {id:"l1-s13",name:"Office",code:13,wing:"R",x:528,y:152,w:92,h:60,type:"space"},
-   {id:"l1-s14",name:"Office",code:14,wing:"R",x:626,y:152,w:92,h:60,type:"space"},
-   {id:"l1-s15",name:"Board Room",code:15,wing:"R",x:724,y:150,w:120,h:96,type:"space"},
-   {id:"l1-s16",name:"Office",code:16,wing:"R",x:528,y:218,w:92,h:60,type:"space"},
-   {id:"l1-s17",name:"Pantry",code:17,wing:"R",x:626,y:218,w:92,h:60,type:"space"},
-   {id:"l1-s18",name:"Toilet",code:18,wing:"R",x:724,y:252,w:120,h:60,type:"space"},
-   {id:"l1-s19",name:"Core / Lift",code:19,wing:"C",x:470,y:150,w:60,h:96,type:"space"},
-   {id:"l1-s20",name:"Panggung / Void",code:20,wing:"C",x:432,y:336,w:136,h:140,type:"space"}
- ]
-};
-/* Kemiringan sayap (boomerang): L miring kiri-bawah, R miring kanan-bawah. */
-const RB_ROTS={ "AMDI|Lantai 1":{L:{rot:-22,px:300,py:268,box:[50,138,452,290]},R:{rot:22,px:700,py:268,box:[498,138,452,290]}} };
+/* Space non-meeting — LT1A fokus ke ruang meeting saja, tak ada space berkode lagi. */
+const RB_SPACES={};
+/* RB_ROTS kosong — LT1A dirender oleh rbFloorPlanL1() (denah asli), bukan boomerang generik. */
+const RB_ROTS={};
 let RB_BOOKINGS=[
  {room:"l3-conf1",date:TODAY_STR,start:"08:00",end:"10:00",title:"Diversity for Leaders",by:"HCD",email:"hcd.event@ai.astra.co.id"},
  {room:"l3-conf1",date:TODAY_STR,start:"13:00",end:"15:00",title:"Vendor Review",by:"GA Procurement",email:"sudana.visudha@ai.astra.co.id"},
@@ -3562,8 +3576,8 @@ function rbCleanPlan(rooms){
    <rect x="690" y="500" width="22" height="15" rx="3" class="rb-leg-room"/><text x="720" y="512" class="rb-leg-t">Ruang meeting (kode = nomor) — klik untuk book</text>
  </svg></div>`;
 }
-function rbHighlight(id){ document.querySelectorAll('#page-roombook .rb-room2.blink').forEach(g=>g.classList.remove('blink')); const g=document.getElementById('rbroom-'+id); if(g)g.classList.add('blink'); }
-function rbUnhighlight(){ document.querySelectorAll('#page-roombook .rb-room2.blink').forEach(g=>g.classList.remove('blink')); }
+function rbHighlight(id){ document.querySelectorAll('#page-roombook .blink').forEach(g=>g.classList.remove('blink')); const g=document.getElementById('rbroom-'+id); if(g)g.classList.add('blink'); }
+function rbUnhighlight(){ document.querySelectorAll('#page-roombook .blink').forEach(g=>g.classList.remove('blink')); }
 /* === Denah clean v2: mengikuti boomerang asli — sayap miring, core + panggung di tengah === */
 function rbCoreSvg(){ return ''; }
 function rbSpaceSvg(sp,rot){ const cx=sp.x+sp.w/2, cy=sp.y+sp.h/2, meet=sp.type==="meet";
@@ -3582,6 +3596,35 @@ function rbCleanPlan2(key){
    ${rbCoreSvg()}${wing("L")}${wing("R")}${center}
    <rect x="60" y="528" width="20" height="14" rx="3" class="rb-leg-room"/><text x="88" y="540" class="rb-leg-t">Ruang meeting (klik = book)</text>
    <rect x="330" y="528" width="20" height="14" rx="3" class="rb-leg-space"/><text x="358" y="540" class="rb-leg-t">Space lain (kode — belum dinamai)</text>
+ </svg></div>`;
+}
+/* === Denah LT1A — 9 ruang meeting bertema, gaya Apple glass (electric/turquoise) === */
+function rbFloorPlanL1(){
+ const rooms=RB_ROOMS["AMDI|Lantai 1"]||[];
+ const sizeLbl=s=>s==='L'?'L · Besar':s==='M'?'M · Sedang':'S · Kecil';
+ const roomSvg=r=>{ const st=rbRoomStatus(r.id), bk=rbRoomBookings(r.id,TODAY_STR); const cx=r.x+r.w/2, cy=r.y+r.h/2;
+   return `<g id="rbroom-${r.id}" class="rb-l1 ${st}${r.size==='S'?' sm':''}" onmouseenter="rbShowPop(event,'${r.id}');rbHighlight('${r.id}')" onmouseleave="rbScheduleHide();rbUnhighlight()" onclick="rbOpenForm('${r.id}')">
+     <rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" rx="10"/>
+     <circle cx="${r.x+15}" cy="${r.y+15}" r="4.2" class="rb-l1dot"/>
+     <text x="${cx}" y="${cy-6}" text-anchor="middle" class="rb-l1n">${r.name.toUpperCase()}</text>
+     <text x="${cx}" y="${cy+11}" text-anchor="middle" class="rb-l1c">${r.cap} pax · ${sizeLbl(r.size)}</text>
+     ${bk.length?`<text x="${cx}" y="${cy+26}" text-anchor="middle" class="rb-l1b">● ${bk.length} booking</text>`:''}
+   </g>`; };
+ return `<div class="rb-plan-wrap"><svg viewBox="0 0 1000 660" class="rb-l1svg" preserveAspectRatio="xMidYMid meet">
+   <defs>
+     <linearGradient id="rbFree" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6fcfb"/><stop offset="1" stop-color="#d3f4ef"/></linearGradient>
+     <linearGradient id="rbBusy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9e9"/><stop offset="1" stop-color="#fdd6d6"/></linearGradient>
+     <linearGradient id="rbShell" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="rgba(0,198,251,.10)"/><stop offset=".55" stop-color="rgba(255,255,255,.5)"/><stop offset="1" stop-color="rgba(0,208,212,.12)"/></linearGradient>
+   </defs>
+   <path class="rb-l1-shell" d="M64,196 L252,128 L470,152 Q500,142 530,152 L750,128 L936,200 L910,492 L648,476 C606,600 556,636 500,636 C444,636 394,600 352,476 L96,492 Z"/>
+   <g class="rb-l1-canopy"><rect x="472" y="132" width="26" height="30" rx="3"/><rect x="502" y="132" width="26" height="30" rx="3"/></g>
+   <path class="rb-l1-atrium" d="M648,476 C606,600 556,636 500,636 C444,636 394,600 352,476 Z"/>
+   <circle cx="452" cy="566" r="6" class="rb-l1-col"/><circle cx="548" cy="566" r="6" class="rb-l1-col"/>
+   <text x="500" y="556" text-anchor="middle" class="rb-l1-void">ATRIUM · VOID</text>
+   <text x="86" y="176" class="rb-l1-floorlbl">AMDI · LANTAI 1A</text>
+   ${rooms.map(roomSvg).join("")}
+   <g class="rb-l1-legend"><rect x="640" y="616" width="20" height="14" rx="4" class="lg-free"/><text x="668" y="628">Kosong</text>
+     <rect x="748" y="616" width="20" height="14" rx="4" class="lg-busy"/><text x="776" y="628">Sedang dipakai</text></g>
  </svg></div>`;
 }
 function renderRoomBook(){
@@ -3603,7 +3646,11 @@ function renderRoomBook(){
   <div class="card pad">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><div class="panel-t" style="margin:0">Denah ${rbSite} · ${rbFloor} <span style="font-weight:400;color:var(--muted)">— ruang meeting</span></div>
       <div class="rb-legend"><span><i class="rb-sw free"></i> Kosong</span><span><i class="rb-sw busy"></i> Sedang dipakai (ada orang)</span> <span class="muted small">· status pukul ${RB_NOW}</span></div></div>
-    ${(RB_ROTS[key]||img)?`
+    ${key==="AMDI|Lantai 1"?`
+    ${rbFloorPlanL1()}
+    <div class="muted small" style="margin-top:8px">Klik / hover ruang di <b>denah</b> atau <b>chip</b> — ruang terpilih akan <b>berkedip</b> di denah. Denah sesuai layout LT1A (nama & kapasitas ruang).</div>
+    <div class="rb-chips">${raw.map(rbChip).join("")}</div>
+    `:(RB_ROTS[key]||img)?`
     ${RB_ROTS[key]?rbCleanPlan2(key):rbCleanPlan(raw)}
     <div class="muted small" style="margin-top:8px">Klik / hover ruang di <b>denah</b> atau <b>chip</b> — ruang terpilih akan <b>berkedip</b> di denah. Angka di denah = kode ruang.</div>
     <div class="rb-chips">${raw.map(rbChip).join("")}</div>
@@ -4912,7 +4959,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-12";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-13";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
