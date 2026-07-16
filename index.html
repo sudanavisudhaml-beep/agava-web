@@ -292,6 +292,11 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .rb-room2.space rect{fill:#eef1f5;stroke:#b6c0cd;stroke-width:1.4;cursor:default}
 .rb-room2.space .rb-codebig{fill:#7d8a9a;font-size:15px}
 .rb-room2.space:hover rect{stroke-width:1.4}
+/* ===== Project Development — timeline app (iframe) ===== */
+.pj-frame-wrap{border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.72);
+  box-shadow:0 12px 34px rgba(20,40,80,.10),inset 0 1px 0 rgba(255,255,255,.85);background:rgba(255,255,255,.35)}
+#pjFrame{width:100%;height:calc(100vh - 158px);min-height:640px;border:0;display:block;background:transparent;color-scheme:light}
+@media(max-width:900px){#pjFrame{height:calc(100vh - 190px);min-height:560px}}
 /* ===== Denah LT1A — Apple glass ===== */
 .rb-l1svg{width:100%;height:auto;min-width:660px;display:block;border-radius:16px;
   background:linear-gradient(160deg,rgba(0,198,251,.06),rgba(255,255,255,.5) 55%,rgba(0,208,212,.08));
@@ -1916,8 +1921,17 @@ function pjSummary(){
  const pcts=names.map(pn=>{ const acts=PJ_P.filter(p=>p.p===pn); const ps=acts.map(a=>a.s).sort()[0], pe=acts.map(a=>a.e).sort().slice(-1)[0]; return Math.min(100,Math.max(0,Math.round(pjDd(ps,TODAY_STR)/Math.max(pjDd(ps,pe),1)*100))); });
  return {projects:names.length, activities:PJ_P.length, avg:Math.round(pcts.reduce((a,b)=>a+b,0)/Math.max(pcts.length,1)), overlapActs:ol, events:PJ_E.length};
 }
+/* Modul Project Development = app Timeline (pj-timeline.html) di iframe same-origin.
+   Data tersimpan di localStorage app itu & disinkronkan ke CODEC via window.agavaTimelineSync().
+   Dimuat sekali saja — navigasi bolak-balik tidak me-reset state/scroll timeline. */
 function renderProject(){
  const el=document.getElementById('page-project'); if(!el)return;
+ if(el.querySelector('#pjFrame'))return;
+ el.innerHTML=`<div class="pj-frame-wrap"><iframe id="pjFrame" src="pj-timeline.html" title="Project Timeline — AGAVA"></iframe></div>`;
+}
+/* (gantt lama dipertahankan sbg sumber data PJ_P/PJ_E untuk deteksi benturan GA Calendar) */
+function renderProjectLegacy(){
+ const el=document.getElementById('page-project-legacy'); if(!el)return;   // tidak ada → no-op
  const T=pjToday(), NM=T.m, NW=T.w;
  const names=pjNames(), groups=pjCur==='all'?names:[pjCur];
  const sum=pjSummary();
@@ -2209,8 +2223,15 @@ const CODEC_PROJ=[
  {n:"GAVA (AGAVA)",plan:80,actual:82,phase:"Serah Terima",grp:"abs"},
  {n:"Digital Meal Coupon",plan:50,actual:45,phase:"Tender",grp:"abs"}
 ];
-const CODEC_PD_REJUV=CODEC_PROJ.filter(p=>p.grp==="rejuv").map(p=>({n:p.n,v:p.actual}));   // derived — jangan isi manual
-const CODEC_PD_ABS=CODEC_PROJ.filter(p=>p.grp==="abs").map(p=>({n:p.n,v:p.actual}));       // derived — jangan isi manual
+/* Timeline modul Project Development (iframe pj-timeline.html) → sumber tunggal bila terisi.
+   Diisi lewat window.agavaTimelineSync(); kalau kosong, pakai seed CODEC_PROJ di atas. */
+let PJ_TIMELINE=null;
+function codecProjects(){ return (PJ_TIMELINE&&PJ_TIMELINE.length)?PJ_TIMELINE:CODEC_PROJ; }
+function agavaTimelineSync(list){
+  PJ_TIMELINE=(Array.isArray(list)&&list.length)?list:null;
+  try{ renderOverview(); }catch(e){ console.warn("timeline sync:",e); }
+}
+window.agavaTimelineSync=agavaTimelineSync;
 const CODEC_SUBFN=[
  {ic:"🔧",name:"General Facilities Management",sub:"Maintenance & Utilities (ESG)",kpi:"Contribute to ASTRA ESG Program 2030",target:90,nav:"energy",type:"routine"},
  {ic:"🛎️",name:"General Services Management",sub:"Penilaian Vendor",kpi:"Enhance Shuttle Experience",target:85,nav:"service",type:"routine"},
@@ -2263,7 +2284,7 @@ function codecSubFnData(){
  const admComp=[{n:"Payment BPH terbayar (on-time)",v:payBPH,type:"routine"},{n:"Asset STO — AIHO Land Bank & STO",v:CODEC_ASSET_STO.ach,type:"nonroutine"}];
  const adm=Math.round(avgA(admComp.map(c=>c.v)));
  // 4. Project Development ← Rejuvenation + Advanced Building System (non-routine)
- const pdComp=[...CODEC_PD_REJUV.map(p=>({n:"Rejuv · "+p.n,v:p.v,type:"nonroutine"})),...CODEC_PD_ABS.map(p=>({n:"ABS · "+p.n,v:p.v,type:"nonroutine"}))];
+ const pdComp=codecProjects().map(p=>({n:p.n,v:p.actual,type:"nonroutine"}));
  const psd=Math.round(avgA(pdComp.map(c=>c.v)));
  // 5. External Relation ← Procurement Hub across Astra Group (non-routine)
  const extComp=[{n:"Procurement Hub across Astra Group",v:CODEC_PROC_HUB.ach,type:"nonroutine"}];
@@ -2273,12 +2294,12 @@ function codecSubFnData(){
  const ehsComp=[{n:"AGC — Astra Green Company",v:p.agc.score,type:"routine"},{n:"MKA — Mandatory Key Action",v:p.mka.score,type:"routine"},{n:"SGR — Safety Golden Rules",v:p.sgr.score,type:"routine"}];
  const ehs=Math.round(avgA(ehsComp.map(c=>c.v)));
  const vals=[gfm,gsm,adm,psd,ext,ehs], comps=[gfmComp,gsmComp,admComp,pdComp,extComp,ehsComp];
- const delayed=CODEC_PD_REJUV.concat(CODEC_PD_ABS).filter(p=>p.v<50).length;
+ const delayed=codecProjects().filter(p=>p.actual<50).length;
  const notes=[
    "GRK −"+(Math.round(grkRed*10)/10)+"% ✓ · Water −"+(Math.round(watRed*10)/10)+"% · REM "+(Math.round(avgA(REM_PCT)*10)/10)+"% · Waste "+(Math.round(wOk/wTot*1000)/10)+"% · dari modul Energy",
    VENDOR_PERF.length+" site dinilai · avg "+gsm+"% · dari modul Service",
    (late?late+" payment lewat estimasi":"payment BPH on-time")+" · Asset STO "+CODEC_ASSET_STO.ach+"% · Payment Tracker",
-   CODEC_PD_REJUV.length+" Rejuvenation + "+CODEC_PD_ABS.length+" Advanced Building System · "+delayed+" di bawah 50%",
+   codecProjects().length+" project"+(PJ_TIMELINE?" · live dari modul Project Development":"")+" · "+delayed+" di bawah 50%",
    "Procurement Hub "+CODEC_PROC_HUB.ach+"% menuju target "+CODEC_PROC_HUB.target+"% · across Astra Group",
    "AGC "+p.agc.score+"% · MKA "+p.mka.score+"% · SGR "+p.sgr.score+"% · Compliance AIHO"
  ];
@@ -2493,8 +2514,9 @@ function renderOverview(){
  const eYTDpct=Math.round(GRK_2026.reduce((a,b)=>a+b,0)/(ENERGY_MONTHLY_CAP*GRK_2026.length)*100);
  const eMax=Math.max(...GRK_2026);
  /* ---- Project (11) ---- */
- const pjPlan=Math.round(CODEC_PROJ.reduce((a,p)=>a+p.plan,0)/CODEC_PROJ.length), pjAct=Math.round(CODEC_PROJ.reduce((a,p)=>a+p.actual,0)/CODEC_PROJ.length);
- const pjPhase=CODEC_PROJ_PHASES.map(ph=>({ph,n:CODEC_PROJ.filter(p=>p.phase===ph).length}));
+ const PJL=codecProjects();
+ const pjPlan=Math.round(PJL.reduce((a,p)=>a+p.plan,0)/Math.max(PJL.length,1)), pjAct=Math.round(PJL.reduce((a,p)=>a+p.actual,0)/Math.max(PJL.length,1));
+ const pjPhase=CODEC_PROJ_PHASES.map(ph=>({ph,n:PJL.filter(p=>p.phase===ph).length}));
  /* ---- Building (9b) ---- */
  const maintDonePct=Math.round(CODEC_MAINT.done/CODEC_MAINT.total*100), maintPend=CODEC_MAINT.total-CODEC_MAINT.done;
  const wpActive=WORKS.filter(w=>w.izin).length, wpPending=WORKS.filter(w=>!w.izin).length, wpOverdue=WORK_PERMIT.overdue;
@@ -2536,7 +2558,7 @@ function renderOverview(){
     <div class="gd-pad">${gdKpiRows}</div></div>
   <div class="card mt16"><div class="gd-ch"><span class="gd-chi">📅</span><div><div class="gd-cht">Progress Bulanan</div><div class="gd-chs">Update otomatis dari modul AGAVA</div></div></div>
     <div class="gd-cells4">
-      <div class="gd-cell"><div class="gd-cv2" style="color:#7C3AED">${Math.round((CODEC_PD_REJUV.concat(CODEC_PD_ABS).reduce((a,p)=>a+p.v,0))/(CODEC_PD_REJUV.length+CODEC_PD_ABS.length))}%</div><span class="badge" style="background:#EDE9FE;color:#7C3AED">${CODEC_PD_REJUV.length+CODEC_PD_ABS.length} project</span><div class="gd-cl2">Project Development</div><div class="gd-cl3">Rejuvenation + Advanced Building System</div></div>
+      <div class="gd-cell gd-clickcard" onclick="go('project')" title="klik → Project Development"><div class="gd-cv2" style="color:#7C3AED">${pjAct}%</div><span class="badge" style="background:#EDE9FE;color:#7C3AED">${PJL.length} project</span><div class="gd-cl2">Project Development</div><div class="gd-cl3">${PJ_TIMELINE?'live dari timeline · plan '+pjPlan+'%':'Rejuvenation + Advanced Building System'}</div></div>
       <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${tkRes} <small>dari ${tkTot}</small></div><div class="gd-cl2">Tiket Selesai</div><div class="gd-cl3">+${tkFu} lanjut ke procurement</div></div>
       <div class="gd-cell"><div class="gd-cv2" style="color:#8B5CF6">${pipeN}</div><span class="badge" style="background:#EDE9FE;color:#8B5CF6">pipeline aktif</span><div class="gd-cl2">Payment Progress</div><div class="gd-cl3">${relN} released · dari Payment Tracker</div></div>
       <div class="gd-cell"><div class="gd-cv2" style="color:var(--green)">−${eRed}%</div><div class="gd-cl2">Konsumsi Energi</div><div class="gd-cl3">vs baseline 2019 · ${ENERGY_MONTHS[ENERGY_MONTHS.length-1]} 2026</div></div>
@@ -2719,7 +2741,7 @@ function renderOverview(){
         </div>
       </div>
       <div class="gd-sub" style="margin-top:15px">Plan vs Actual per Project</div>
-      ${CODEC_PROJ.map(p=>`<div class="gd-pjrow"><span class="gd-pjn">${p.n} <em>${p.phase}</em></span><div class="gd-pjbars"><div class="gd-pjb"><i style="width:${p.plan}%;background:#cbd5e1"></i></div><div class="gd-pjb"><i style="width:${p.actual}%;background:${p.actual>=p.plan?'#15a34a':'#F59E0B'}"></i></div></div><b style="color:${p.actual>=p.plan?'#15a34a':'#F59E0B'};min-width:38px;text-align:right">${p.actual}%</b></div>`).join('')}
+      ${PJL.map(p=>`<div class="gd-pjrow"><span class="gd-pjn">${esc(p.n)} <em>${p.phase}</em></span><div class="gd-pjbars"><div class="gd-pjb"><i style="width:${p.plan}%;background:#cbd5e1"></i></div><div class="gd-pjb"><i style="width:${p.actual}%;background:${p.actual>=p.plan?'#15a34a':'#F59E0B'}"></i></div></div><b style="color:${p.actual>=p.plan?'#15a34a':'#F59E0B'};min-width:38px;text-align:right">${p.actual}%</b></div>`).join('')}
     </div>
   </div>
 
@@ -4959,7 +4981,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-13";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.10-14";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";

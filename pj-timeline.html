@@ -1,0 +1,3275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline Proyek — Manajemen Multi-Proyek</title>
+<style>
+/* ═════════════════════════════════════════════════════
+   TOKENS
+   ═════════════════════════════════════════════════════ */
+:root {
+  --bg-a: #f7f9fc;
+  --bg-b: #e9f2f6;
+
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-inner: 0 1px 0 rgba(255, 255, 255, 0.9);
+  --glass-shadow: 0 12px 40px rgba(20, 60, 140, 0.10),
+                  0 2px 8px rgba(20, 60, 140, 0.05);
+
+  --blue: #0a7cff;
+  --blue-strong: #0059e8;
+  --blue-light: #00c6fb;
+  --blue-soft: #e8f3ff;
+  --blue-tint: #f0f8ff;
+  --turq: #00c8d4;
+
+  --ink: #1D1D1F;
+  --ink-2: #3C3C43;
+  --ink-3: #6E6E73;
+  --ink-4: #A1A1A6;
+
+  --success: #15a34a;
+  --warning: #F59E0B;
+  --danger:  #dc2626;
+
+  --hairline: rgba(60, 60, 67, 0.12);
+  --hairline-strong: rgba(60, 60, 67, 0.24);
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 28px;
+
+  /* Apple-only font stack */
+  --font-sf: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+}
+
+/* ═════════════════════════════════════════════════════
+   RESET & BASE
+   ═════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sf);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background:
+    radial-gradient(1000px 560px at 8% -10%, rgba(0, 198, 251, 0.17), transparent 62%),
+    radial-gradient(900px 600px at 100% 8%, rgba(10, 124, 255, 0.13), transparent 60%),
+    radial-gradient(800px 700px at 55% 112%, rgba(0, 208, 212, 0.13), transparent 60%),
+    linear-gradient(180deg, var(--bg-a) 0%, var(--bg-b) 100%);
+  background-attachment: fixed;
+}
+.ambient {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.ambient::before, .ambient::after {
+  content: ""; position: absolute; border-radius: 50%;
+  filter: blur(80px); opacity: 0.55;
+}
+.ambient::before {
+  width: 500px; height: 500px; left: -100px; top: -100px;
+  background: radial-gradient(circle, #7fd6ff, transparent 70%);
+}
+.ambient::after {
+  width: 600px; height: 600px; right: -150px; bottom: -150px;
+  background: radial-gradient(circle, #A9D6FF, transparent 70%);
+}
+.app {
+  position: relative; z-index: 1;
+  max-width: 1440px; margin: 0 auto;
+  padding: 24px 24px 80px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.view { display: none; flex-direction: column; gap: 20px; }
+.view.active { display: flex; }
+
+/* ═════════════════════════════════════════════════════
+   TYPOGRAPHY
+   ═════════════════════════════════════════════════════ */
+h1, h2, h3, h4 { margin: 0; letter-spacing: -0.02em; }
+h1 { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; }
+h2 { font-size: 19px; font-weight: 600; letter-spacing: -0.015em; }
+h3 { font-size: 15px; font-weight: 600; }
+.eyebrow {
+  text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 11px; font-weight: 600; color: var(--ink-3);
+}
+.mono-num { font-variant-numeric: tabular-nums; }
+
+/* ═════════════════════════════════════════════════════
+   GLASS
+   ═════════════════════════════════════════════════════ */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+          backdrop-filter: blur(24px) saturate(180%);
+  border: 0.5px solid var(--glass-border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--glass-shadow), inset var(--glass-inner);
+  padding: 22px 24px;
+}
+.glass-strong { background: var(--glass-bg-strong); }
+
+/* ═════════════════════════════════════════════════════
+   BUTTONS
+   ═════════════════════════════════════════════════════ */
+.btn {
+  border: 0.5px solid var(--hairline);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ink);
+  padding: 9px 16px; border-radius: 999px;
+  font-size: 13px; font-weight: 500; font-family: var(--font-sf);
+  cursor: pointer; transition: all .15s ease;
+  display: inline-flex; align-items: center; gap: 6px;
+  letter-spacing: -0.005em;
+}
+.btn:hover { background: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); }
+.btn:active { transform: translateY(0); }
+.btn-primary {
+  background: var(--blue); color: white; border-color: transparent;
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.28);
+}
+.btn-primary:hover { background: var(--blue-strong); box-shadow: 0 4px 14px rgba(0, 122, 255, 0.38); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--blue); }
+.btn-ghost:hover { background: var(--blue-soft); }
+.btn-danger { color: var(--danger); }
+.btn-danger:hover { background: rgba(255, 59, 48, 0.08); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-icon { padding: 8px; border-radius: 10px; width: 32px; height: 32px; display: inline-grid; place-items: center; }
+.btn-icon.sm { width: 28px; height: 28px; padding: 0; }
+.btn-lg { padding: 12px 22px; font-size: 14px; }
+
+/* ═════════════════════════════════════════════════════
+   INPUTS
+   ═════════════════════════════════════════════════════ */
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label {
+  font-size: 11px; color: var(--ink-3);
+  letter-spacing: 0.02em; font-weight: 500; text-transform: uppercase;
+}
+input[type="text"], input[type="number"], input[type="date"], select, textarea {
+  font-family: var(--font-sf); font-size: 14px; color: var(--ink);
+  background: rgba(255, 255, 255, 0.85);
+  border: 0.5px solid var(--hairline); border-radius: 10px;
+  padding: 9px 12px; outline: none;
+  transition: all .15s ease; width: 100%; min-width: 0;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.16);
+  background: white;
+}
+input::placeholder { color: var(--ink-4); }
+select { appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%236E6E73' d='M6 8L2 4h8z'/></svg>"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+
+/* ═════════════════════════════════════════════════════
+   TOP NAV
+   ═════════════════════════════════════════════════════ */
+.topnav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px; border-radius: var(--r-lg); gap: 16px;
+}
+.brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.logo-mark {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-light) 100%);
+  display: grid; place-items: center;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  color: white;
+}
+.brand-text .name { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+.brand-text .sub { font-size: 11px; color: var(--ink-3); letter-spacing: 0.02em; }
+
+.crumbs { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3); }
+.crumbs .sep { color: var(--ink-4); }
+.crumbs .current { color: var(--ink); font-weight: 500; }
+.crumbs .crumb-link { cursor: pointer; }
+.crumbs .crumb-link:hover { color: var(--blue); }
+
+.topnav .actions { display: flex; gap: 8px; }
+
+.portfolio-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 12px 5px 5px; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+          backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid rgba(0, 122, 255, 0.18);
+  box-shadow: 0 1px 4px rgba(0, 51, 153, 0.06);
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.portfolio-pill:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 122, 255, 0.32);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 51, 153, 0.10);
+}
+.pp-ring { width: 26px; height: 26px; display: grid; place-items: center; flex-shrink: 0; }
+.pp-text { display: flex; flex-direction: column; line-height: 1.1; }
+.pp-lbl { font-size: 9px; color: var(--ink-3); letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600; }
+.pp-val { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--blue-strong); font-variant-numeric: tabular-nums; margin-top: 1px; }
+@media (max-width: 900px) { .portfolio-pill .pp-text { display: none; } .portfolio-pill { padding: 5px; } }
+
+/* ═════════════════════════════════════════════════════
+   PAGE HEAD (for detail/edit views)
+   ═════════════════════════════════════════════════════ */
+.page-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 0 4px;
+}
+.page-head .page-title { flex: 1; font-size: 18px; font-weight: 600; letter-spacing: -0.015em; }
+.page-head .actions { display: flex; gap: 8px; }
+
+/* ═════════════════════════════════════════════════════
+   HERO (dashboard) — iPhone glass style
+   ═════════════════════════════════════════════════════ */
+.hero {
+  display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center;
+  padding: 20px 24px;
+}
+.hero-title-block {
+  min-width: 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.hero h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* iPhone-style contained chips for hero meta */
+.hero-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  min-width: 0;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  font-variant-numeric: tabular-nums;
+  background: rgba(0, 122, 255, 0.08);
+  color: var(--blue-strong);
+  border: 0.5px solid rgba(0, 122, 255, 0.16);
+  max-width: 100%;
+  min-width: 0;
+}
+.chip .chip-num { font-weight: 700; }
+.chip-attention {
+  background: rgba(255, 59, 48, 0.10);
+  color: var(--danger);
+  border-color: rgba(255, 59, 48, 0.24);
+  overflow: hidden;
+}
+.chip-attention .chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+.chip-attention .chip-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 0 2.5px rgba(255, 59, 48, 0.22);
+  animation: heroPulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.chip-attention strong { font-weight: 700; }
+@keyframes heroPulse {
+  0%, 100% { box-shadow: 0 0 0 2.5px rgba(255, 59, 48, 0.22); }
+  50%      { box-shadow: 0 0 0 5px rgba(255, 59, 48, 0.08); }
+}
+.hero-right { display: flex; justify-content: center; flex-shrink: 0; }
+
+.ring-wrap { position: relative; width: 130px; height: 130px; }
+.ring-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.ring-bg { stroke: rgba(0, 122, 255, 0.12); }
+.ring-fg { stroke: url(#ringGrad); stroke-linecap: round; transition: stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1); }
+.ring-center {
+  position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+}
+.ring-val {
+  font-size: 24px; font-weight: 700;
+  letter-spacing: -0.025em; line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--ink);
+}
+.ring-val .unit { font-size: 12px; font-weight: 500; color: var(--ink-3); letter-spacing: 0; }
+.ring-label { font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-top: 4px; }
+
+/* ═════════════════════════════════════════════════════
+   KPI CARDS (shared)
+   ═════════════════════════════════════════════════════ */
+.kpis { display: grid; gap: 14px; grid-template-columns: repeat(4, 1fr); }
+.kpi { padding: 18px 20px; border-radius: var(--r-lg); }
+.kpi .eyebrow { margin-bottom: 6px; }
+.kpi .val {
+  font-size: 32px; font-weight: 700; letter-spacing: -0.025em; line-height: 1;
+  font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 4px;
+}
+.kpi .val .unit { font-size: 14px; font-weight: 500; color: var(--ink-3); letter-spacing: 0; }
+.kpi .sub { font-size: 12px; color: var(--ink-3); margin-top: 8px; }
+.kpi .bar { height: 6px; background: var(--blue-soft); border-radius: 999px; overflow: hidden; margin-top: 12px; }
+.kpi .bar > span { display: block; height: 100%; border-radius: 999px; transition: width .5s cubic-bezier(.2,.8,.2,1); }
+.kpi.plan .val { color: var(--blue); }
+.kpi.plan .bar > span { background: linear-gradient(90deg, var(--blue-light), var(--blue)); }
+.kpi.actual .val { color: var(--blue-strong); }
+.kpi.actual .bar > span { background: linear-gradient(90deg, var(--blue), var(--blue-strong)); }
+.kpi.dev.pos .val { color: var(--success); }
+.kpi.dev.neg .val { color: var(--danger); }
+.kpi.dev.pos .bar > span { background: linear-gradient(90deg, #6EE7B7, var(--success)); }
+.kpi.dev.neg .bar > span { background: linear-gradient(90deg, #FFB4A9, var(--danger)); }
+.kpi.overlap .val { color: var(--warning); }
+.kpi.overlap.zero .val { color: var(--success); }
+.kpi.overlap .bar > span { background: linear-gradient(90deg, #FFD79A, var(--warning)); }
+.kpi.overlap.zero .bar > span { background: linear-gradient(90deg, #6EE7B7, var(--success)); }
+.kpi.count .val { color: var(--ink); }
+.kpi.count .bar > span { background: linear-gradient(90deg, var(--blue-light), var(--blue-strong)); }
+
+/* ═════════════════════════════════════════════════════
+   SECTION HEAD
+   ═════════════════════════════════════════════════════ */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+}
+.section-head .actions { display: flex; gap: 8px; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+.legend-swatch { width: 14px; height: 10px; border-radius: 3px; }
+.sw-plan { background: linear-gradient(90deg, rgba(0, 122, 255, 0.18), rgba(0, 122, 255, 0.34)); border: 1px solid rgba(0, 122, 255, 0.4); }
+.sw-actual { background: linear-gradient(90deg, var(--blue), var(--blue-strong)); }
+.sw-overlap { background: repeating-linear-gradient(45deg, rgba(255, 149, 0, 0.18) 0 4px, rgba(255, 149, 0, 0.32) 4px 8px); border: 1px solid rgba(255, 149, 0, 0.5); }
+.sw-today { background: var(--warning); }
+
+/* ═════════════════════════════════════════════════════
+   PROJECT CARDS (dashboard grid)
+   ═════════════════════════════════════════════════════ */
+.project-cards {
+  display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+.project-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.7);
+  border: 0.5px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: all .2s ease;
+  display: flex; flex-direction: column; gap: 14px;
+  box-shadow: 0 4px 16px rgba(20, 60, 140, 0.05);
+}
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(20, 60, 140, 0.12);
+  background: white;
+}
+
+/* Worst-deviation card: red glow + pulsing corner dot */
+.project-card.worst {
+  border-color: rgba(255, 59, 48, 0.4);
+  background: linear-gradient(180deg, rgba(255, 59, 48, 0.035), rgba(255, 255, 255, 0.7));
+  box-shadow:
+    0 0 0 1px rgba(255, 59, 48, 0.14),
+    0 6px 24px rgba(255, 59, 48, 0.12);
+}
+.project-card.worst:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 59, 48, 0.24),
+    0 12px 36px rgba(255, 59, 48, 0.18);
+}
+.project-card.worst::after {
+  content: "";
+  position: absolute; top: 14px; right: 14px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.25);
+  animation: cardPulse 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+@keyframes cardPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.25), 0 0 8px rgba(255, 59, 48, 0.6); }
+  50%      { box-shadow: 0 0 0 7px rgba(255, 59, 48, 0.08), 0 0 12px rgba(255, 59, 48, 0.3); }
+}
+.project-card.worst .pc-status { padding-right: 22px; }
+.pc-dev-note {
+  font-size: 11px;
+  color: var(--danger);
+  font-weight: 500;
+  margin-top: 6px;
+  display: flex; align-items: center; gap: 5px;
+  letter-spacing: -0.005em;
+}
+.pc-dev-note::before {
+  content: "";
+  display: inline-block;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--danger);
+}
+.pc-dev-note strong { font-weight: 700; font-variant-numeric: tabular-nums; }
+.project-card .pc-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.project-card .pc-title { font-size: 16px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; }
+.project-card .pc-loc { font-size: 12px; color: var(--ink-3); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+.project-card .pc-status { font-size: 10px; padding: 3px 8px; border-radius: 999px; font-weight: 600; letter-spacing: 0.03em; white-space: nowrap; }
+.status-ahead { background: rgba(48, 183, 107, 0.14); color: var(--success); }
+.status-onplan { background: rgba(0, 122, 255, 0.12); color: var(--blue-strong); }
+.status-behind { background: rgba(255, 59, 48, 0.12); color: var(--danger); }
+.status-notstarted { background: rgba(110, 110, 115, 0.12); color: var(--ink-3); }
+.project-card .pc-dates { font-size: 12px; color: var(--ink-3); display: flex; gap: 12px; font-variant-numeric: tabular-nums; }
+.project-card .pc-progress { display: flex; flex-direction: column; gap: 6px; }
+.project-card .pc-progress-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.project-card .pc-progress-row strong { color: var(--ink); font-weight: 600; }
+.project-card .pc-bars { position: relative; height: 8px; background: var(--blue-soft); border-radius: 999px; overflow: hidden; }
+.project-card .pc-bars .plan { position: absolute; inset: 0 auto 0 0; background: rgba(0, 122, 255, 0.4); border-radius: 999px; }
+.project-card .pc-bars .actual { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--blue), var(--blue-strong)); border-radius: 999px; }
+
+.project-card .pc-foot { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--ink-3); }
+.project-card .pc-items-count { display: flex; align-items: center; gap: 4px; }
+
+.add-project-card {
+  background: rgba(0, 122, 255, 0.04);
+  border: 1.5px dashed rgba(0, 122, 255, 0.32);
+  border-radius: var(--r-lg);
+  min-height: 220px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  cursor: pointer; color: var(--blue);
+  transition: all .2s ease;
+}
+.add-project-card:hover {
+  background: rgba(0, 122, 255, 0.08);
+  border-color: var(--blue);
+}
+.add-project-card .plus-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(0, 122, 255, 0.14);
+  display: grid; place-items: center; font-size: 22px; font-weight: 300;
+}
+.add-project-card .lbl { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+.add-project-card .sub { font-size: 12px; color: var(--ink-3); }
+
+/* ═════════════════════════════════════════════════════
+   PROJECT SUMMARY (detail view header)
+   ═════════════════════════════════════════════════════ */
+.project-summary { display: grid; gap: 16px; }
+.ps-top { display: flex; justify-content: space-between; align-items: start; gap: 16px; flex-wrap: wrap; }
+.ps-name { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+.ps-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--ink-3); }
+.ps-meta .item { display: flex; align-items: center; gap: 6px; }
+.ps-team { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); padding-top: 16px; border-top: 1px dashed var(--hairline); }
+.ps-team .team-item { display: flex; flex-direction: column; gap: 2px; }
+.ps-team .role { font-size: 10px; color: var(--ink-3); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; }
+.ps-team .who { font-size: 13px; color: var(--ink); font-weight: 500; }
+.ps-team .who.empty { color: var(--ink-4); font-weight: 400; font-style: italic; }
+
+/* ═════════════════════════════════════════════════════
+   SCALE SWITCHER (Apple-esque segmented control)
+   ═════════════════════════════════════════════════════ */
+.scale-switch {
+  display: inline-flex; background: rgba(120, 120, 128, 0.12);
+  border-radius: 10px; padding: 2px; position: relative;
+}
+.scale-switch button {
+  border: none; background: transparent;
+  padding: 6px 14px; font-size: 12px; font-weight: 500;
+  color: var(--ink-2); cursor: pointer; border-radius: 8px;
+  font-family: var(--font-sf);
+  transition: all .18s ease;
+  position: relative; z-index: 1;
+  letter-spacing: -0.005em;
+}
+.scale-switch button.active {
+  background: white; color: var(--ink);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  font-weight: 600;
+}
+.scale-switch button:hover:not(.active) { color: var(--ink); }
+
+/* ═════════════════════════════════════════════════════
+   GANTT
+   ═════════════════════════════════════════════════════ */
+.gantt-wrap {
+  border-radius: var(--r-md); overflow: hidden;
+  background: rgba(255, 255, 255, 0.4);
+  border: 0.5px solid var(--hairline);
+}
+.gantt-scroll {
+  overflow-x: auto; overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 122, 255, 0.3) transparent;
+}
+.gantt-scroll::-webkit-scrollbar { height: 10px; }
+.gantt-scroll::-webkit-scrollbar-thumb { background: rgba(0, 122, 255, 0.3); border-radius: 999px; }
+.gantt-scroll::-webkit-scrollbar-track { background: transparent; }
+
+.gantt { display: grid; grid-template-columns: 260px 1fr; min-width: 100%; }
+.gantt-labels {
+  position: sticky; left: 0; z-index: 3;
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(12px);
+          backdrop-filter: blur(12px);
+  border-right: 0.5px solid var(--hairline-strong);
+}
+.gantt-labels .g-head {
+  height: 56px; display: flex; align-items: center; padding: 0 16px;
+  border-bottom: 0.5px solid var(--hairline);
+  font-size: 12px; color: var(--ink-3); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.gantt-labels .g-row {
+  height: 44px; display: flex; align-items: center; padding: 0 16px;
+  border-bottom: 0.5px solid var(--hairline);
+  font-size: 13px; gap: 8px;
+}
+.gantt-labels .g-row:last-child { border-bottom: none; }
+.g-row .item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.g-row .item-contractor {
+  font-size: 10px; color: var(--blue-strong);
+  padding: 2px 6px; border-radius: 4px; background: var(--blue-soft);
+  white-space: nowrap;
+}
+
+.gantt-canvas { position: relative; min-width: 0; }
+.g-timescale {
+  height: 56px; border-bottom: 0.5px solid var(--hairline);
+  position: relative;
+}
+.g-timescale .tick {
+  position: absolute; top: 0; bottom: 0;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  font-size: 10px; color: var(--ink-3); padding: 4px 2px;
+  border-right: 0.5px solid var(--hairline);
+  overflow: hidden; white-space: nowrap;
+}
+.g-timescale .tick.month-first { border-left: 1px solid var(--hairline-strong); }
+.g-timescale .tick.weekend { background: rgba(0, 122, 255, 0.04); }
+.g-timescale .tick .t-primary { font-size: 12px; color: var(--ink); font-weight: 600; }
+.g-timescale .tick .t-mo { font-size: 8px; color: var(--ink-4); text-transform: uppercase; }
+.g-timescale .tick .t-sub { font-size: 9px; letter-spacing: 0.02em; }
+
+.g-rows { position: relative; }
+.g-track { height: 44px; position: relative; border-bottom: 0.5px solid var(--hairline); }
+.g-track:last-child { border-bottom: none; }
+.g-track .weekend-band {
+  position: absolute; top: 0; bottom: 0; background: rgba(0, 122, 255, 0.03);
+  pointer-events: none;
+}
+.g-track .overlap-band {
+  position: absolute; top: 0; bottom: 0;
+  background: repeating-linear-gradient(45deg, rgba(255, 149, 0, 0.08) 0 4px, rgba(255, 149, 0, 0.16) 4px 8px);
+  pointer-events: none;
+}
+
+/* Bar uses CSS variables that are set by category classes below */
+.g-bar {
+  /* Category defaults (Konstruksi = blue) */
+  --cat-solid: #007AFF;
+  --cat-strong: #0056D6;
+  --cat-light: #5AC8FA;
+  --cat-bg: rgba(0, 122, 255, 0.12);
+  --cat-border: rgba(0, 122, 255, 0.4);
+  --cat-shadow: rgba(0, 122, 255, 0.20);
+  --cat-plan-a: rgba(90, 200, 250, 0.55);
+  --cat-plan-b: rgba(0, 122, 255, 0.32);
+
+  position: absolute;
+  top: 8px; bottom: 8px;
+  border-radius: 8px; overflow: hidden;
+  background: var(--cat-bg);
+  border: 0.5px solid var(--cat-border);
+  box-shadow: 0 2px 8px var(--cat-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  cursor: pointer; transition: all .2s ease;
+  min-width: 18px;
+}
+.g-bar:hover {
+  box-shadow: 0 4px 16px var(--cat-shadow), 0 0 0 1px var(--cat-border), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+.g-bar .plan-fill {
+  position: absolute; top: 0; bottom: 0; left: 0;
+  background: linear-gradient(180deg, var(--cat-plan-a), var(--cat-plan-b));
+  pointer-events: none;
+}
+.g-bar .actual-fill {
+  position: absolute; top: 0; bottom: 0; left: 0;
+  background: linear-gradient(180deg, var(--cat-light), var(--cat-strong));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+.g-bar .bar-label {
+  position: absolute; inset: 0; display: flex; align-items: center; gap: 6px;
+  padding: 0 10px; font-size: 11px; font-weight: 600; color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.36);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none; z-index: 2;
+}
+
+/* Category color schemes */
+.g-bar.cat-persiapan {
+  --cat-solid: #FFB800;
+  --cat-strong: #C68F00;
+  --cat-light: #FFCC00;
+  --cat-bg: rgba(255, 184, 0, 0.15);
+  --cat-border: rgba(198, 143, 0, 0.55);
+  --cat-shadow: rgba(255, 184, 0, 0.22);
+  --cat-plan-a: rgba(255, 220, 100, 0.55);
+  --cat-plan-b: rgba(255, 184, 0, 0.38);
+}
+.g-bar.cat-persiapan .bar-label { color: #4A3400; text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4); }
+.g-bar.cat-tender {
+  --cat-solid: #30B76B;
+  --cat-strong: #1F8A50;
+  --cat-light: #52D18A;
+  --cat-bg: rgba(48, 183, 107, 0.14);
+  --cat-border: rgba(31, 138, 80, 0.55);
+  --cat-shadow: rgba(48, 183, 107, 0.22);
+  --cat-plan-a: rgba(110, 231, 183, 0.55);
+  --cat-plan-b: rgba(48, 183, 107, 0.36);
+}
+.g-bar.cat-konstruksi { /* uses defaults */ }
+.g-bar.cat-serahterima {
+  --cat-solid: #FF375F;
+  --cat-strong: #C81E42;
+  --cat-light: #FF6E8A;
+  --cat-bg: rgba(255, 55, 95, 0.14);
+  --cat-border: rgba(200, 30, 66, 0.55);
+  --cat-shadow: rgba(255, 55, 95, 0.22);
+  --cat-plan-a: rgba(255, 150, 172, 0.55);
+  --cat-plan-b: rgba(255, 55, 95, 0.36);
+}
+
+/* Status indication via OUTER glow (compatible with any category color) */
+.g-bar.behind {
+  box-shadow:
+    0 0 0 2px rgba(255, 59, 48, 0.45),
+    0 2px 12px rgba(255, 59, 48, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.g-bar.ahead {
+  box-shadow:
+    0 0 0 2px rgba(48, 183, 107, 0.45),
+    0 2px 12px rgba(48, 183, 107, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Category dot for row labels */
+.cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 1.5px rgba(255,255,255,0.9); }
+.cat-dot.cat-persiapan { background: #FFB800; }
+.cat-dot.cat-tender { background: #30B76B; }
+.cat-dot.cat-konstruksi { background: #007AFF; }
+.cat-dot.cat-serahterima { background: #FF375F; }
+
+/* Category group separator in Gantt sidebar */
+.g-cat-header {
+  height: 32px; display: flex; align-items: center;
+  padding: 0 16px; gap: 8px;
+  background: rgba(255, 255, 255, 0.5);
+  border-bottom: 0.5px solid var(--hairline);
+  border-top: 0.5px solid var(--hairline);
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.g-cat-header.cat-persiapan { color: #C68F00; }
+.g-cat-header.cat-tender { color: #1F8A50; }
+.g-cat-header.cat-konstruksi { color: #0056D6; }
+.g-cat-header.cat-serahterima { color: #C81E42; }
+.g-cat-header .count { font-weight: 500; color: var(--ink-4); letter-spacing: 0.02em; text-transform: none; margin-left: auto; font-size: 11px; }
+.g-cat-spacer { height: 32px; border-bottom: 0.5px solid var(--hairline); border-top: 0.5px solid var(--hairline); background: rgba(255,255,255,0.3); position: relative; }
+
+/* Category legend swatches */
+.sw-persiapan { background: linear-gradient(90deg, #FFCC00, #C68F00); border: 1px solid rgba(198, 143, 0, 0.5); }
+.sw-tender { background: linear-gradient(90deg, #52D18A, #1F8A50); border: 1px solid rgba(31, 138, 80, 0.5); }
+.sw-konstruksi { background: linear-gradient(90deg, #5AC8FA, #0056D6); border: 1px solid rgba(0, 86, 214, 0.5); }
+.sw-serahterima { background: linear-gradient(90deg, #FF6E8A, #C81E42); border: 1px solid rgba(200, 30, 66, 0.5); }
+
+/* Category badge (used in tables & modal) */
+.cat-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.cat-badge.cat-persiapan { background: rgba(255, 184, 0, 0.16); color: #8A6300; }
+.cat-badge.cat-tender { background: rgba(48, 183, 107, 0.16); color: #1F8A50; }
+.cat-badge.cat-konstruksi { background: rgba(0, 122, 255, 0.14); color: #0056D6; }
+.cat-badge.cat-serahterima { background: rgba(255, 55, 95, 0.14); color: #C81E42; }
+.cat-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.today-line {
+  position: absolute; top: 0; bottom: 0;
+  width: 2px; background: var(--warning);
+  box-shadow: 0 0 12px rgba(255, 149, 0, 0.6);
+  z-index: 4; pointer-events: none;
+}
+.today-line::before {
+  content: "HARI INI"; position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+  background: var(--warning); color: white;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  padding: 3px 6px; border-radius: 4px; white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(255, 149, 0, 0.4);
+}
+.gantt-canvas .today-line { top: 56px; }
+
+.gantt-empty {
+  grid-column: 1 / -1;
+  display: grid; place-items: center;
+  padding: 60px 20px; color: var(--ink-3); font-size: 14px; text-align: center;
+}
+
+/* ═════════════════════════════════════════════════════
+   S-CURVE
+   ═════════════════════════════════════════════════════ */
+.curve-wrap { position: relative; }
+.curve-svg { width: 100%; height: 320px; display: block; }
+.curve-svg .grid line { stroke: var(--hairline); stroke-width: 1; stroke-dasharray: 2 4; }
+.curve-svg .axis line { stroke: var(--hairline-strong); }
+.curve-svg .axis text { font-size: 10px; fill: var(--ink-3); font-family: var(--font-sf); }
+.curve-svg .plan-area { fill: url(#planGrad); opacity: 0.2; }
+.curve-svg .plan-line { fill: none; stroke: var(--blue-light); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.curve-svg .actual-line { fill: none; stroke: var(--blue-strong); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.curve-svg .today-marker { stroke: var(--warning); stroke-width: 2; stroke-dasharray: 4 3; }
+.curve-svg .today-label { fill: var(--warning); font-size: 10px; font-weight: 600; }
+.curve-svg .actual-dot { fill: var(--blue-strong); stroke: white; stroke-width: 2; }
+
+/* ═════════════════════════════════════════════════════
+   WORK TABLE
+   ═════════════════════════════════════════════════════ */
+.work-table-wrap { overflow-x: auto; border-radius: var(--r-md); border: 0.5px solid var(--hairline); }
+.work-table { width: 100%; border-collapse: collapse; font-size: 13px; background: rgba(255, 255, 255, 0.5); }
+.work-table thead th {
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 600;
+  padding: 12px 10px; text-align: left;
+  border-bottom: 0.5px solid var(--hairline);
+  position: sticky; top: 0;
+}
+.work-table td { padding: 10px; border-bottom: 0.5px solid var(--hairline); vertical-align: middle; }
+.work-table tr:last-child td { border-bottom: none; }
+.work-table tr:hover td { background: rgba(0, 122, 255, 0.04); }
+.work-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.work-table .actions-cell { text-align: right; white-space: nowrap; }
+.work-table .tag {
+  display: inline-block; font-size: 10px; padding: 2px 6px; border-radius: 4px;
+  background: var(--blue-soft); color: var(--blue-strong); font-weight: 500;
+}
+.work-table .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; vertical-align: middle; }
+.dot-ahead { background: var(--success); box-shadow: 0 0 0 3px rgba(48, 183, 107, 0.18); }
+.dot-onplan { background: var(--blue); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.18); }
+.dot-behind { background: var(--danger); box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.18); }
+.dot-notstarted { background: var(--ink-4); box-shadow: 0 0 0 3px rgba(161, 161, 166, 0.18); }
+
+.mini-bar { position: relative; width: 110px; height: 6px; background: var(--blue-soft); border-radius: 999px; overflow: hidden; }
+.mini-bar .fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 999px; }
+.mini-bar .plan { background: rgba(0, 122, 255, 0.35); }
+.mini-bar .actual { background: linear-gradient(90deg, var(--blue), var(--blue-strong)); }
+
+.empty-state { padding: 30px 20px; text-align: center; color: var(--ink-3); font-size: 13px; }
+
+/* ═════════════════════════════════════════════════════
+   PHOTO GALLERY
+   ═════════════════════════════════════════════════════ */
+.photo-grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+.photo-card {
+  position: relative; border-radius: var(--r-md); overflow: hidden;
+  cursor: pointer; aspect-ratio: 4 / 3;
+  background: var(--blue-soft);
+  border: 0.5px solid var(--hairline);
+  transition: all .2s ease;
+}
+.photo-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20, 60, 140, 0.12); }
+.photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-card .p-meta {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 20px 12px 10px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.78));
+  color: white;
+}
+.photo-card .p-caption {
+  font-size: 12px; font-weight: 600; letter-spacing: -0.005em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.photo-card .p-date { font-size: 10px; opacity: 0.85; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.photo-card .p-del {
+  position: absolute; top: 8px; right: 8px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5); color: white; border: none;
+  display: grid; place-items: center; cursor: pointer;
+  opacity: 0; transition: opacity .2s ease;
+  font-size: 14px;
+}
+.photo-card:hover .p-del { opacity: 1; }
+.photo-card .p-del:hover { background: var(--danger); }
+
+.photo-empty {
+  grid-column: 1 / -1;
+  text-align: center; padding: 40px 20px;
+  color: var(--ink-3); font-size: 13px;
+  border: 1px dashed var(--hairline-strong);
+  border-radius: var(--r-md);
+}
+
+/* ═════════════════════════════════════════════════════
+   MODAL
+   ═════════════════════════════════════════════════════ */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(20, 40, 80, 0.32);
+  -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: rgba(248, 250, 253, 0.86);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+          backdrop-filter: blur(40px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 22px;
+  box-shadow:
+    0 24px 80px rgba(20, 40, 80, 0.28),
+    0 2px 8px rgba(20, 40, 80, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  padding: 26px 24px;
+  max-width: 620px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  position: relative;
+  animation: modalIn .32s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+.modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: none; background: rgba(120, 120, 128, 0.14);
+  color: var(--ink-2); cursor: pointer;
+  display: grid; place-items: center;
+  font-size: 18px; font-weight: 400;
+}
+.modal-close:hover { background: rgba(120, 120, 128, 0.24); }
+.modal-actions {
+  display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px;
+  padding-top: 16px; border-top: 0.5px solid var(--hairline);
+}
+
+/* Bar-detail modal content */
+.mdl-title { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; padding-right: 40px; margin-bottom: 4px; }
+.mdl-sub { font-size: 12px; color: var(--ink-3); margin-bottom: 20px; }
+.mdl-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, 1fr); margin-bottom: 20px; }
+.mdl-cell {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 12px; padding: 12px 14px;
+  border: 0.5px solid var(--hairline);
+}
+.mdl-cell .lbl { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin-bottom: 4px; }
+.mdl-cell .v { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.mdl-cell .v.hi-blue { color: var(--blue); }
+.mdl-cell .v.hi-blue-s { color: var(--blue-strong); }
+.mdl-cell .v.hi-success { color: var(--success); }
+.mdl-cell .v.hi-danger { color: var(--danger); }
+.mdl-cell .v.hi-warn { color: var(--warning); }
+.mdl-cell .sub { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+.mdl-bar {
+  margin-top: 16px; margin-bottom: 8px;
+  position: relative; height: 12px;
+  background: var(--blue-soft); border-radius: 999px; overflow: hidden;
+  border: 0.5px solid var(--hairline);
+}
+.mdl-bar .plan { position: absolute; inset: 0 auto 0 0; background: rgba(0, 122, 255, 0.35); border-radius: 999px; }
+.mdl-bar .actual { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--blue), var(--blue-strong)); border-radius: 999px; }
+.mdl-status-strip {
+  display: flex; gap: 12px; padding: 12px 14px;
+  background: rgba(0, 122, 255, 0.06); border-radius: 12px;
+  font-size: 13px; align-items: center;
+}
+.mdl-status-strip.ahead { background: rgba(48, 183, 107, 0.08); color: var(--success); }
+.mdl-status-strip.behind { background: rgba(255, 59, 48, 0.08); color: var(--danger); }
+.mdl-status-strip.warn { background: rgba(255, 149, 0, 0.08); color: var(--warning); }
+
+/* iOS Settings-style grouped form cells */
+.ios-form { padding: 0; }
+.ios-section { margin-bottom: 22px; }
+.ios-section:last-child { margin-bottom: 0; }
+.ios-section-title {
+  font-size: 11px; color: var(--ink-3);
+  letter-spacing: 0.05em; text-transform: uppercase;
+  font-weight: 600;
+  padding: 0 14px 8px;
+}
+.ios-section-note {
+  font-size: 11px; color: var(--ink-3);
+  padding: 8px 14px 0;
+  line-height: 1.45;
+}
+.ios-group {
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+          backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid var(--hairline);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(20, 60, 140, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+.ios-cell {
+  display: flex; align-items: center;
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--hairline);
+  gap: 12px;
+  min-height: 44px;
+  transition: background .12s ease;
+}
+.ios-cell:last-child { border-bottom: none; }
+.ios-cell:hover:not(.ios-cell-readonly) { background: rgba(0, 122, 255, 0.03); }
+.ios-cell .cell-label {
+  font-size: 14px;
+  color: var(--ink);
+  flex-shrink: 0;
+  min-width: 150px;
+  letter-spacing: -0.005em;
+}
+.ios-cell input,
+.ios-cell select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  text-align: right;
+  font-size: 14px;
+  color: var(--ink);
+  border-radius: 0;
+  min-width: 0;
+  font-family: var(--font-sf);
+  font-variant-numeric: tabular-nums;
+}
+.ios-cell input:focus,
+.ios-cell select:focus {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+}
+.ios-cell input::placeholder { text-align: right; color: var(--ink-4); }
+.ios-cell select {
+  color: var(--ink);
+  padding-right: 20px;
+  background-position: right 4px center;
+  cursor: pointer;
+}
+.ios-cell input[type="date"] {
+  color: var(--blue);
+  font-weight: 500;
+  cursor: pointer;
+}
+.ios-cell input[type="date"]:invalid,
+.ios-cell input[type="date"]:not(:valid) { color: var(--ink-4); }
+.ios-cell .cell-value {
+  flex: 1; text-align: right;
+  color: var(--ink-3); font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.ios-cell .cell-value.has-value { color: var(--blue-strong); font-weight: 500; }
+.ios-cell.ios-cell-readonly { background: rgba(0, 122, 255, 0.035); }
+.cell-input-with-suffix {
+  display: flex; align-items: center; gap: 3px; flex: 1; justify-content: flex-end;
+}
+.cell-input-with-suffix input { max-width: 80px; text-align: right; }
+.cell-input-with-suffix .suffix { font-size: 14px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 520px) {
+  .ios-cell { flex-wrap: wrap; }
+  .ios-cell .cell-label { min-width: 100%; margin-bottom: 2px; font-size: 12px; color: var(--ink-3); }
+  .ios-cell input, .ios-cell select, .ios-cell .cell-value { text-align: left; }
+  .ios-cell input::placeholder { text-align: left; }
+  .cell-input-with-suffix { justify-content: flex-start; }
+}
+
+/* Item form modal — legacy grid kept for compat (unused now but harmless) */
+.item-form { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+.item-form .field-full { grid-column: 1 / -1; }
+
+/* ═════════════════════════════════════════════════════
+   LIGHTBOX
+   ═════════════════════════════════════════════════════ */
+.lightbox {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(10, 20, 40, 0.86);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  display: none; align-items: center; justify-content: center;
+  padding: 40px 20px 80px;
+}
+.lightbox.open { display: flex; }
+.lightbox img {
+  max-width: 100%; max-height: 100%; border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.lightbox-cap {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+  color: white; font-size: 13px; text-align: center;
+  max-width: 80vw;
+}
+.lightbox-close {
+  position: absolute; top: 20px; right: 20px;
+  width: 40px; height: 40px; border-radius: 50%;
+  border: none; background: rgba(255, 255, 255, 0.14); color: white;
+  cursor: pointer; font-size: 20px;
+  display: grid; place-items: center;
+}
+.lightbox-close:hover { background: rgba(255, 255, 255, 0.24); }
+
+/* ═════════════════════════════════════════════════════
+   TOAST
+   ═════════════════════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(29, 29, 31, 0.9); color: white;
+  padding: 10px 18px; border-radius: 999px;
+  font-size: 13px; font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  opacity: 0; pointer-events: none;
+  transition: all .3s ease; z-index: 100;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═════════════════════════════════════════════════════
+   RESPONSIVE
+   ═════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+  .hero { grid-template-columns: 1fr; }
+  .hero-right { justify-content: flex-start; }
+  .ps-team { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+  .app { padding: 16px 12px 60px; }
+  .glass { padding: 16px; border-radius: 20px; }
+  .hero { padding: 20px; }
+  h1 { font-size: 24px; }
+  .kpis { grid-template-columns: 1fr; }
+  .ring-wrap { width: 110px; height: 110px; }
+  .ring-val { font-size: 20px; }
+  .ring-val .unit { font-size: 10px; }
+  .gantt { grid-template-columns: 180px 1fr; }
+  .ps-team { grid-template-columns: 1fr; }
+  .mdl-grid { grid-template-columns: 1fr; }
+  .item-form { grid-template-columns: 1fr; }
+  .crumbs { display: none; }
+  .page-head .page-title { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<div class="app">
+
+  <!-- ═══ TOP NAV ═══ -->
+  <nav class="topnav glass glass-strong">
+    <div class="brand" id="brandBtn">
+      <div class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M3 6h18M3 12h13M3 18h8" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="name">Timeline Proyek</div>
+        <div class="sub">Manajemen Multi-Proyek</div>
+      </div>
+    </div>
+    <div class="crumbs" id="crumbs"></div>
+    <div class="portfolio-pill" id="portfolioPill" title="Klik untuk kembali ke dashboard portofolio">
+      <div class="pp-ring">
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <defs>
+            <linearGradient id="ppGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#5AC8FA"/>
+              <stop offset="100%" stop-color="#0056D6"/>
+            </linearGradient>
+          </defs>
+          <circle cx="12" cy="12" r="9" stroke="rgba(0, 122, 255, 0.16)" stroke-width="3" fill="none"/>
+          <circle id="ppRing" cx="12" cy="12" r="9" stroke="url(#ppGrad)" stroke-width="3" fill="none"
+                  stroke-linecap="round" transform="rotate(-90 12 12)"
+                  stroke-dasharray="56.55" stroke-dashoffset="56.55"/>
+        </svg>
+      </div>
+      <div class="pp-text">
+        <div class="pp-lbl">Achievement Portofolio</div>
+        <div class="pp-val" id="ppVal">0.0%</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-sm btn-ghost" id="loadSampleBtn">Muat contoh</button>
+      <button class="btn btn-sm" id="importBtn">Impor</button>
+      <button class="btn btn-primary btn-sm" id="exportBtn">Ekspor JSON</button>
+      <input type="file" id="importFile" accept="application/json" style="display: none;">
+    </div>
+  </nav>
+
+  <!-- ═════════════════════════════════════════════════
+       VIEW: DASHBOARD
+       ═════════════════════════════════════════════════ -->
+  <section class="view active" id="view-dashboard">
+    <div class="glass hero">
+      <div class="hero-title-block">
+        <h1>Monitoring seluruh proyek GA Astra</h1>
+        <div class="hero-chips" id="heroChips"></div>
+      </div>
+      <div class="hero-right">
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#5AC8FA"/>
+                <stop offset="100%" stop-color="#0056D6"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-bg" cx="100" cy="100" r="80" fill="none" stroke-width="16"/>
+            <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="80" fill="none" stroke-width="16"
+                    stroke-dasharray="502.65" stroke-dashoffset="502.65"/>
+          </svg>
+          <div class="ring-center">
+            <div>
+              <div class="ring-val"><span id="ringVal">0.0</span><span class="unit">%</span></div>
+              <div class="ring-label">Achievement Portofolio</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="kpis">
+      <div class="glass kpi plan">
+        <div class="eyebrow">Rata-rata Plan</div>
+        <div class="val"><span id="dashPlan">0.0</span><span class="unit">%</span></div>
+        <div class="bar"><span id="dashPlanBar" style="width:0%"></span></div>
+        <div class="sub">Target berdasarkan jadwal semua proyek</div>
+      </div>
+      <div class="glass kpi actual">
+        <div class="eyebrow">Rata-rata Aktual</div>
+        <div class="val"><span id="dashActual">0.0</span><span class="unit">%</span></div>
+        <div class="bar"><span id="dashActualBar" style="width:0%"></span></div>
+        <div class="sub">Realisasi lapangan seluruh proyek</div>
+      </div>
+      <div class="glass kpi dev" id="dashDevCard">
+        <div class="eyebrow">Deviasi Portofolio</div>
+        <div class="val"><span id="dashDev">0.0</span><span class="unit">%</span></div>
+        <div class="bar"><span id="dashDevBar" style="width:0%"></span></div>
+        <div class="sub" id="dashDevSub">Aktual dikurangi plan</div>
+      </div>
+      <div class="glass kpi count">
+        <div class="eyebrow">Jumlah Proyek</div>
+        <div class="val"><span id="dashCount">0</span><span class="unit">aktif</span></div>
+        <div class="bar"><span id="dashCountBar" style="width:0%"></span></div>
+        <div class="sub" id="dashCountSub">Total dalam portofolio</div>
+      </div>
+    </section>
+
+    <section class="glass">
+      <div class="section-head">
+        <div>
+          <h2>Daftar Proyek</h2>
+          <div class="eyebrow" style="margin-top: 4px;">Klik proyek untuk melihat Gantt chart</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary btn-lg" id="addScheduleBtn">
+            <span style="font-size: 16px; line-height: 1; margin-right: 2px;">+</span> Tambahkan Jadwal
+          </button>
+        </div>
+      </div>
+      <div class="project-cards" id="projectCards"></div>
+    </section>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════
+       VIEW: PROJECT DETAIL
+       ═════════════════════════════════════════════════ -->
+  <section class="view" id="view-project">
+    <div class="page-head">
+      <button class="btn btn-ghost" id="backToDashBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Dashboard
+      </button>
+      <div class="page-title" id="projectPageTitle"></div>
+      <div class="actions">
+        <button class="btn" id="editProjectBtn">Ubah Data</button>
+        <button class="btn btn-danger" id="deleteProjectBtn">Hapus</button>
+      </div>
+    </div>
+
+    <div class="glass project-summary" id="projectSummary"></div>
+
+    <section class="kpis" id="projectKpis">
+      <div class="glass kpi plan">
+        <div class="eyebrow">Progress Plan</div>
+        <div class="val"><span id="pjKpiPlan">0.0</span><span class="unit">%</span></div>
+        <div class="bar"><span id="pjKpiPlanBar" style="width:0%"></span></div>
+        <div class="sub">Target berdasarkan jadwal</div>
+      </div>
+      <div class="glass kpi actual">
+        <div class="eyebrow">Progress Aktual</div>
+        <div class="val"><span id="pjKpiActual">0.0</span><span class="unit">%</span></div>
+        <div class="bar"><span id="pjKpiActualBar" style="width:0%"></span></div>
+        <div class="sub">Realisasi di lapangan</div>
+      </div>
+      <div class="glass kpi dev" id="pjKpiDevCard">
+        <div class="eyebrow">Deviasi</div>
+        <div class="val"><span id="pjKpiDev">0.0</span><span class="unit">%</span></div>
+        <div class="bar"><span id="pjKpiDevBar" style="width:0%"></span></div>
+        <div class="sub" id="pjKpiDevSub">Aktual dikurangi plan</div>
+      </div>
+      <div class="glass kpi overlap zero" id="pjKpiOverlapCard">
+        <div class="eyebrow">Overlap Pekerjaan</div>
+        <div class="val"><span id="pjKpiOverlap">0</span><span class="unit">pekerjaan</span></div>
+        <div class="bar"><span id="pjKpiOverlapBar" style="width:0%"></span></div>
+        <div class="sub" id="pjKpiOverlapSub">Tumpang tindih terdeteksi</div>
+      </div>
+    </section>
+
+    <section class="glass">
+      <div class="section-head">
+        <div>
+          <h2>Gantt Chart</h2>
+          <div class="eyebrow" style="margin-top: 4px;">Klik batang untuk detail pekerjaan</div>
+        </div>
+        <div class="actions">
+          <div class="scale-switch" id="scaleSwitch">
+            <button data-scale="day" class="active">Hari</button>
+            <button data-scale="week">Minggu</button>
+            <button data-scale="month">Bulan</button>
+            <button data-scale="year">Tahun</button>
+          </div>
+        </div>
+      </div>
+      <div class="legend" style="margin-bottom: 8px;">
+        <div class="legend-item"><span class="legend-swatch sw-persiapan"></span> Persiapan</div>
+        <div class="legend-item"><span class="legend-swatch sw-tender"></span> Tender</div>
+        <div class="legend-item"><span class="legend-swatch sw-konstruksi"></span> Konstruksi</div>
+        <div class="legend-item"><span class="legend-swatch sw-serahterima"></span> Serah Terima</div>
+      </div>
+      <div class="legend" style="margin-bottom: 12px;">
+        <div class="legend-item" style="font-size: 11px; color: var(--ink-3);">
+          Setiap batang: <span style="opacity: 0.55; margin-left: 4px;">■</span> plan · <span style="margin-left: 4px;">■</span> aktual
+        </div>
+        <div class="legend-item"><span class="legend-swatch sw-overlap"></span> Zona overlap</div>
+        <div class="legend-item"><span class="legend-swatch sw-today"></span> Hari laporan</div>
+      </div>
+      <div class="gantt-wrap">
+        <div class="gantt-scroll" id="ganttScroll">
+          <div class="gantt" id="ganttGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass">
+      <div class="section-head">
+        <div>
+          <h2>Kurva S — Plan vs Aktual</h2>
+          <div class="eyebrow" style="margin-top: 4px;">Akumulasi progres terhadap waktu</div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch" style="background: var(--blue-light);"></span> Plan kumulatif</div>
+          <div class="legend-item"><span class="legend-swatch" style="background: var(--blue-strong);"></span> Aktual kumulatif</div>
+        </div>
+      </div>
+      <div class="curve-wrap">
+        <svg class="curve-svg" id="curveSvg" viewBox="0 0 800 320" preserveAspectRatio="none"></svg>
+      </div>
+    </section>
+
+    <section class="glass">
+      <div class="section-head">
+        <div>
+          <h2>Foto Progres</h2>
+          <div class="eyebrow" style="margin-top: 4px;">Dokumentasi lapangan proyek</div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="addPhotoBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Tambah Foto
+          </button>
+          <input type="file" id="photoInput" accept="image/*" multiple style="display: none;">
+        </div>
+      </div>
+      <div class="photo-grid" id="photoGrid"></div>
+    </section>
+
+    <section class="glass">
+      <div class="section-head">
+        <div>
+          <h2>Daftar Pekerjaan</h2>
+          <div class="eyebrow" style="margin-top: 4px;">Semua item dalam proyek ini</div>
+        </div>
+        <div style="font-size: 12px; color: var(--ink-3);">
+          Total bobot: <strong class="mono-num" id="pjTotalWeight" style="color: var(--ink);">0.0%</strong>
+        </div>
+      </div>
+      <div class="work-table-wrap">
+        <table class="work-table" id="pjWorkTable">
+          <thead>
+            <tr>
+              <th>Pekerjaan</th>
+              <th>Rencana</th>
+              <th>Aktual</th>
+              <th class="num">Bobot</th>
+              <th>Progress</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="pjWorkTbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <!-- ═════════════════════════════════════════════════
+       VIEW: EDIT PROJECT (add / edit schedule)
+       ═════════════════════════════════════════════════ -->
+  <section class="view" id="view-edit">
+    <div class="page-head">
+      <button class="btn btn-ghost" id="editCancelBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Batal
+      </button>
+      <div class="page-title" id="editPageTitle">Tambahkan Jadwal Baru</div>
+      <div class="actions">
+        <button class="btn btn-primary" id="editSaveBtn">Simpan Jadwal</button>
+      </div>
+    </div>
+
+    <div class="glass">
+      <h2 style="margin-bottom: 16px;">Informasi Proyek</h2>
+      <div style="display: grid; gap: 14px; grid-template-columns: 2fr 2fr 1fr 1fr 1fr;">
+        <div class="field">
+          <label>Nama proyek</label>
+          <input type="text" id="editName" placeholder="cth. Gedung Kantor 8 Lantai">
+        </div>
+        <div class="field">
+          <label>Lokasi</label>
+          <input type="text" id="editLocation" placeholder="cth. Jl. Sudirman No. 12, Jakarta">
+        </div>
+        <div class="field">
+          <label>Tanggal mulai</label>
+          <input type="date" id="editStart">
+        </div>
+        <div class="field">
+          <label>Durasi (hari)</label>
+          <input type="number" id="editDuration" min="1" value="90">
+        </div>
+        <div class="field">
+          <label>Hari laporan ke-</label>
+          <input type="number" id="editToday" min="0" value="0" disabled title="Otomatis mengikuti tanggal hari ini">
+        </div>
+      </div>
+    </div>
+
+    <div class="glass">
+      <h2 style="margin-bottom: 16px;">Tim Proyek</h2>
+      <div style="display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr);">
+        <div class="field">
+          <label>Konsultan arsitektur</label>
+          <input type="text" data-team-edit="arsitektur" placeholder="Nama firma">
+        </div>
+        <div class="field">
+          <label>Konsultan interior</label>
+          <input type="text" data-team-edit="interior" placeholder="Nama firma">
+        </div>
+        <div class="field">
+          <label>Konsultan MEP</label>
+          <input type="text" data-team-edit="mep" placeholder="Nama firma">
+        </div>
+        <div class="field">
+          <label>Kontraktor bongkaran</label>
+          <input type="text" data-team-edit="bongkaran" placeholder="Nama vendor">
+        </div>
+        <div class="field">
+          <label>Kontraktor utama</label>
+          <input type="text" data-team-edit="utama" placeholder="Nama vendor">
+        </div>
+        <div class="field">
+          <label>Sub kontraktor</label>
+          <input type="text" data-team-edit="sub" placeholder="Nama vendor">
+        </div>
+      </div>
+    </div>
+
+    <div class="glass">
+      <div class="section-head">
+        <div>
+          <h2>Item Pekerjaan</h2>
+          <div class="eyebrow" style="margin-top: 4px;">Rincian aktivitas dalam proyek</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="editAddItemBtn">+ Tambah Pekerjaan</button>
+        </div>
+      </div>
+      <div class="work-table-wrap">
+        <table class="work-table">
+          <thead>
+            <tr>
+              <th>Pekerjaan</th>
+              <th>Rencana</th>
+              <th>Aktual</th>
+              <th class="num">Bobot</th>
+              <th class="num">Plan %</th>
+              <th class="num">Aktual %</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="editItemsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ═════════════════════════════════════════════════
+     MODAL: Bar detail (on Gantt bar click)
+     ═════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="barModal">
+  <div class="modal">
+    <button class="modal-close" id="barModalClose">×</button>
+    <div id="barModalContent"></div>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════════
+     MODAL: Item form (add/edit work item)
+     ═════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="itemModal">
+  <div class="modal">
+    <button class="modal-close" id="itemModalClose">×</button>
+    <div class="mdl-title" id="itemModalTitle">Tambah Pekerjaan</div>
+    <div class="mdl-sub" id="itemModalSub">Detail item pekerjaan dalam proyek</div>
+    <div class="ios-form" id="itemFormGrid">
+      <div class="ios-section">
+        <div class="ios-section-title">Info Pekerjaan</div>
+        <div class="ios-group">
+          <div class="ios-cell">
+            <div class="cell-label">Nama pekerjaan</div>
+            <input type="text" name="name" placeholder="cth. Pondasi tiang pancang">
+          </div>
+          <div class="ios-cell">
+            <div class="cell-label">Kategori</div>
+            <select name="category">
+              <option value="persiapan">🟡 Persiapan</option>
+              <option value="tender">🟢 Tender</option>
+              <option value="konstruksi" selected>🔵 Konstruksi</option>
+              <option value="serahterima">🟣 Serah Terima</option>
+            </select>
+          </div>
+          <div class="ios-cell">
+            <div class="cell-label">Penanggung jawab</div>
+            <select name="contractor">
+              <option value="Konsultan Arsitektur">Konsultan Arsitektur</option>
+              <option value="Konsultan Interior">Konsultan Interior</option>
+              <option value="Konsultan MEP">Konsultan MEP</option>
+              <option value="Kontraktor Bongkaran">Kontraktor Bongkaran</option>
+              <option value="Kontraktor Utama" selected>Kontraktor Utama</option>
+              <option value="Sub Kontraktor">Sub Kontraktor</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="ios-section">
+        <div class="ios-section-title">Jadwal Rencana</div>
+        <div class="ios-group">
+          <div class="ios-cell">
+            <div class="cell-label">Tanggal target mulai</div>
+            <input type="date" name="planStart">
+          </div>
+          <div class="ios-cell">
+            <div class="cell-label">Tanggal target selesai</div>
+            <input type="date" name="planEnd">
+          </div>
+          <div class="ios-cell ios-cell-readonly">
+            <div class="cell-label">Durasi rencana</div>
+            <div class="cell-value" id="planDurDisplay">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ios-section">
+        <div class="ios-section-title">Realisasi Lapangan</div>
+        <div class="ios-group">
+          <div class="ios-cell">
+            <div class="cell-label">Tanggal aktual mulai</div>
+            <input type="date" name="actualStart">
+          </div>
+          <div class="ios-cell">
+            <div class="cell-label">Tanggal aktual selesai</div>
+            <input type="date" name="actualEnd">
+          </div>
+          <div class="ios-cell ios-cell-readonly">
+            <div class="cell-label">Durasi aktual</div>
+            <div class="cell-value" id="actualDurDisplay">Belum ada</div>
+          </div>
+        </div>
+        <div class="ios-section-note">Kosongkan bila pekerjaan belum dimulai. Isi tanggal selesai bila sudah tuntas.</div>
+      </div>
+
+      <div class="ios-section">
+        <div class="ios-section-title">Progres &amp; Bobot</div>
+        <div class="ios-group">
+          <div class="ios-cell">
+            <div class="cell-label">Bobot dalam proyek</div>
+            <div class="cell-input-with-suffix">
+              <input type="number" name="weight" min="0" max="100" step="0.1" value="10">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="ios-cell">
+            <div class="cell-label">Plan selesai</div>
+            <div class="cell-input-with-suffix">
+              <input type="number" name="planPercent" min="0" max="100" step="0.1" value="0">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+          <div class="ios-cell">
+            <div class="cell-label">Aktual selesai</div>
+            <div class="cell-input-with-suffix">
+              <input type="number" name="actualPercent" min="0" max="100" step="0.1" value="0">
+              <span class="suffix">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="itemModalCancel">Batal</button>
+      <button class="btn btn-primary" id="itemModalSave">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">×</button>
+  <img id="lightboxImg" alt="">
+  <div class="lightbox-cap" id="lightboxCap"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ═════════════════════════════════════════════════════
+   UTILS
+   ═════════════════════════════════════════════════════ */
+const MONTHS_ID = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const DAYS_ID = ["Min","Sen","Sel","Rab","Kam","Jum","Sab"];
+const MONTHS_ID_FULL = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+
+function uid() { return Math.random().toString(36).slice(2, 10); }
+function num(v) { const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+function addDays(dateStr, days) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+function fmtDate(d) { return `${d.getDate()} ${MONTHS_ID[d.getMonth()]} ${d.getFullYear()}`; }
+function fmtShort(d) { return `${d.getDate()} ${MONTHS_ID[d.getMonth()]}`; }
+function fmtDateISO(iso) { return iso ? fmtDate(new Date(iso)) : "—"; }
+function fmtShortISO(iso) { return iso ? fmtShort(new Date(iso)) : "—"; }
+function daysBetweenInclusive(startISO, endISO) {
+  if (!startISO || !endISO) return 0;
+  const d1 = new Date(startISO).getTime();
+  const d2 = new Date(endISO).getTime();
+  return Math.max(1, Math.round((d2 - d1) / 86400000) + 1);
+}
+function daysFromProjectStart(dateISO, projectStartISO) {
+  if (!dateISO || !projectStartISO) return null;
+  return Math.round((new Date(dateISO).getTime() - new Date(projectStartISO).getTime()) / 86400000) + 1;
+}
+function addDaysISO(startISO, days) {
+  const d = new Date(startISO);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+/* Ensure item has planStart/planEnd; if only legacy startDay/duration, backfill */
+function backfillItemDates(item, projectStart) {
+  if (!item.planStart && item.startDay && projectStart) {
+    item.planStart = addDaysISO(projectStart, num(item.startDay) - 1);
+  }
+  if (item.planStart && !item.planEnd && item.duration) {
+    item.planEnd = addDaysISO(item.planStart, num(item.duration) - 1);
+  }
+}
+/* Recompute legacy startDay/duration from dates (keeps render code stable) */
+function recomputeItemDayFields(item, projectStart) {
+  if (item.planStart && projectStart) {
+    const sd = daysFromProjectStart(item.planStart, projectStart);
+    if (sd != null) item.startDay = Math.max(1, sd);
+  }
+  if (item.planStart && item.planEnd) {
+    item.duration = daysBetweenInclusive(item.planStart, item.planEnd);
+  }
+}
+function escapeHtml(s) {
+  return String(s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+}
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove("show"), 2200);
+}
+function daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+function shortContractor(name) {
+  if (!name) return "—";
+  return name.replace("Konsultan ","").replace("Kontraktor ","").replace("Sub ","Sub-");
+}
+
+/* ═════════════════════════════════════════════════════
+   SAMPLE DATA (with SVG-based photo placeholders)
+   ═════════════════════════════════════════════════════ */
+function svgPhoto(hueA, hueB, label) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="hsl(${hueA},70%,60%)"/>
+        <stop offset="100%" stop-color="hsl(${hueB},60%,45%)"/>
+      </linearGradient>
+      <pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(30)">
+        <line x1="0" y1="0" x2="0" y2="40" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+      </pattern>
+    </defs>
+    <rect width="400" height="300" fill="url(#g)"/>
+    <rect width="400" height="300" fill="url(#p)"/>
+    <g fill="rgba(255,255,255,0.3)">
+      <rect x="60" y="180" width="40" height="90"/>
+      <rect x="110" y="140" width="50" height="130"/>
+      <rect x="170" y="100" width="60" height="170"/>
+      <rect x="240" y="130" width="55" height="140"/>
+      <rect x="305" y="170" width="45" height="100"/>
+    </g>
+    <text x="200" y="60" font-size="18" font-weight="700" fill="rgba(255,255,255,0.92)" text-anchor="middle" font-family="-apple-system, sans-serif">${label}</text>
+  </svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+
+function buildSample() {
+  /* Enricher: augment each item with plan/actual date fields derived from startDay/duration + status */
+  const enrich = (projectStart, items) => items.map(x => {
+    const planStart = addDaysISO(projectStart, num(x.startDay) - 1);
+    const planEnd = addDaysISO(projectStart, num(x.startDay) + num(x.duration) - 2);
+    const ap = num(x.actualPercent);
+    let actualStart = null, actualEnd = null;
+    if (ap >= 100) { actualStart = planStart; actualEnd = planEnd; }
+    else if (ap > 0) { actualStart = planStart; }
+    return { id: uid(), ...x, planStart, planEnd, actualStart, actualEnd };
+  });
+  const p1Items = [
+    { name:"Persiapan lahan & pengukuran", category:"persiapan", contractor:"Kontraktor Utama", startDay:1, duration:7, weight:3, planPercent:100, actualPercent:100 },
+    { name:"Perizinan & IMB", category:"persiapan", contractor:"Konsultan Arsitektur", startDay:1, duration:14, weight:2, planPercent:100, actualPercent:100 },
+    { name:"Tender kontraktor bongkaran", category:"tender", contractor:"Kontraktor Utama", startDay:3, duration:5, weight:2, planPercent:100, actualPercent:100 },
+    { name:"Tender vendor MEP & interior", category:"tender", contractor:"Kontraktor Utama", startDay:8, duration:10, weight:3, planPercent:100, actualPercent:90 },
+    { name:"Pekerjaan bongkaran struktur lama", category:"konstruksi", contractor:"Kontraktor Bongkaran", startDay:5, duration:12, weight:5, planPercent:100, actualPercent:95 },
+    { name:"Galian & pondasi tiang pancang", category:"konstruksi", contractor:"Kontraktor Utama", startDay:15, duration:20, weight:12, planPercent:100, actualPercent:88 },
+    { name:"Struktur beton bertulang bawah", category:"konstruksi", contractor:"Kontraktor Utama", startDay:30, duration:25, weight:14, planPercent:65, actualPercent:55 },
+    { name:"Struktur lantai 1-4", category:"konstruksi", contractor:"Kontraktor Utama", startDay:45, duration:30, weight:17, planPercent:8, actualPercent:4 },
+    { name:"Struktur lantai 5-8", category:"konstruksi", contractor:"Kontraktor Utama", startDay:65, duration:25, weight:14, planPercent:0, actualPercent:0 },
+    { name:"Pekerjaan MEP dasar & shaft", category:"konstruksi", contractor:"Konsultan MEP", startDay:40, duration:40, weight:9, planPercent:15, actualPercent:10 },
+    { name:"Finishing arsitektur & fasad", category:"konstruksi", contractor:"Konsultan Arsitektur", startDay:75, duration:30, weight:11, planPercent:0, actualPercent:0 },
+    { name:"Interior fit-out", category:"konstruksi", contractor:"Konsultan Interior", startDay:90, duration:25, weight:6, planPercent:0, actualPercent:0 },
+    { name:"Testing & commissioning", category:"serahterima", contractor:"Sub Kontraktor", startDay:110, duration:6, weight:1, planPercent:0, actualPercent:0 },
+    { name:"Serah terima ke owner", category:"serahterima", contractor:"Kontraktor Utama", startDay:115, duration:5, weight:1, planPercent:0, actualPercent:0 }
+  ];
+  const p1EnrichedItems = enrich("2026-08-01", p1Items);
+
+  const p2Items = [
+    { name:"Studi kelayakan & perizinan", category:"persiapan", contractor:"Konsultan Arsitektur", startDay:1, duration:14, weight:5, planPercent:100, actualPercent:100 },
+    { name:"Desain arsitektur & interior", category:"persiapan", contractor:"Konsultan Arsitektur", startDay:10, duration:25, weight:10, planPercent:100, actualPercent:100 },
+    { name:"Tender vendor interior & MEP", category:"tender", contractor:"Kontraktor Utama", startDay:25, duration:10, weight:5, planPercent:100, actualPercent:100 },
+    { name:"Bongkaran interior lama", category:"konstruksi", contractor:"Kontraktor Bongkaran", startDay:20, duration:10, weight:6, planPercent:100, actualPercent:100 },
+    { name:"MEP renovasi", category:"konstruksi", contractor:"Konsultan MEP", startDay:30, duration:30, weight:18, planPercent:80, actualPercent:82 },
+    { name:"Finishing dinding & lantai", category:"konstruksi", contractor:"Kontraktor Utama", startDay:45, duration:35, weight:22, planPercent:45, actualPercent:52 },
+    { name:"Furniture custom & fit-out", category:"konstruksi", contractor:"Konsultan Interior", startDay:60, duration:30, weight:18, planPercent:22, actualPercent:28 },
+    { name:"Instalasi lighting & signage", category:"konstruksi", contractor:"Sub Kontraktor", startDay:75, duration:15, weight:8, planPercent:0, actualPercent:0 },
+    { name:"Punch list & final inspection", category:"serahterima", contractor:"Konsultan Arsitektur", startDay:82, duration:5, weight:4, planPercent:0, actualPercent:0 },
+    { name:"Serah terima & training user", category:"serahterima", contractor:"Kontraktor Utama", startDay:85, duration:5, weight:4, planPercent:0, actualPercent:0 }
+  ];
+  const p2EnrichedItems = enrich("2026-06-15", p2Items);
+
+  const p3Items = [
+    { name:"Survei topografi & AMDAL", category:"persiapan", contractor:"Konsultan Arsitektur", startDay:1, duration:14, weight:4, planPercent:100, actualPercent:100 },
+    { name:"Mobilisasi alat berat", category:"persiapan", contractor:"Kontraktor Utama", startDay:1, duration:10, weight:3, planPercent:100, actualPercent:80 },
+    { name:"Tender kontraktor aspal", category:"tender", contractor:"Kontraktor Utama", startDay:12, duration:14, weight:3, planPercent:80, actualPercent:60 },
+    { name:"Tender sub-kontraktor jembatan", category:"tender", contractor:"Kontraktor Utama", startDay:15, duration:12, weight:3, planPercent:70, actualPercent:50 },
+    { name:"Pekerjaan tanah & drainase", category:"konstruksi", contractor:"Kontraktor Utama", startDay:8, duration:25, weight:14, planPercent:60, actualPercent:40 },
+    { name:"Struktur jembatan & pier", category:"konstruksi", contractor:"Kontraktor Utama", startDay:30, duration:60, weight:32, planPercent:8, actualPercent:5 },
+    { name:"Pekerjaan aspal & marka", category:"konstruksi", contractor:"Sub Kontraktor", startDay:80, duration:40, weight:22, planPercent:0, actualPercent:0 },
+    { name:"MEP jalan (PJU, drainase)", category:"konstruksi", contractor:"Konsultan MEP", startDay:100, duration:30, weight:13, planPercent:0, actualPercent:0 },
+    { name:"Landscaping & rambu", category:"konstruksi", contractor:"Sub Kontraktor", startDay:115, duration:20, weight:4, planPercent:0, actualPercent:0 },
+    { name:"Uji beban & sertifikasi", category:"serahterima", contractor:"Konsultan MEP", startDay:128, duration:5, weight:1, planPercent:0, actualPercent:0 },
+    { name:"Serah terima ruas jalan", category:"serahterima", contractor:"Kontraktor Utama", startDay:132, duration:3, weight:1, planPercent:0, actualPercent:0 }
+  ];
+  const p3EnrichedItems = enrich("2026-09-01", p3Items);
+
+  return [
+    {
+      id: uid(),
+      name: "Gedung Kantor Perintis 8 Lantai",
+      location: "Jl. HR Rasuna Said, Jakarta Selatan",
+      startDate: "2026-08-01",
+      duration: 120,
+      today: 45,
+      team: {
+        arsitektur: "Studio Arka Nusantara",
+        interior: "Ruang Dalam Design",
+        mep: "PT Tirta Daya Konsultan",
+        bongkaran: "CV Bumi Reksa",
+        utama: "PT Wijaya Konstruksi",
+        sub: "CV Karya Utama"
+      },
+      items: p1EnrichedItems,
+      photos: [
+        { id: uid(), src: svgPhoto(210, 240, "Persiapan Lahan · Minggu 1"), caption: "Pengukuran & pematokan awal", date: "2026-08-03" },
+        { id: uid(), src: svgPhoto(20, 40, "Bongkaran Struktur · Minggu 2"), caption: "Progres bongkaran dinding lama", date: "2026-08-14" },
+        { id: uid(), src: svgPhoto(140, 170, "Galian Pondasi · Minggu 3"), caption: "Tiang pancang siap dieksekusi", date: "2026-08-25" },
+        { id: uid(), src: svgPhoto(190, 220, "Beton Bertulang · Minggu 5"), caption: "Pengecoran kolom lantai basement", date: "2026-09-10" }
+      ]
+    },
+    {
+      id: uid(),
+      name: "Renovasi Interior Kantor Pusat Nusantara",
+      location: "Jl. Gatot Subroto, Jakarta Selatan",
+      startDate: "2026-06-15",
+      duration: 90,
+      today: 62,
+      team: {
+        arsitektur: "Studio Arka Nusantara",
+        interior: "Interior Fabric Studio",
+        mep: "PT Elektra Sinergi",
+        bongkaran: "CV Bumi Reksa",
+        utama: "PT Nusa Kreasi",
+        sub: "CV Mitra Sejahtera"
+      },
+      items: p2EnrichedItems,
+      photos: [
+        { id: uid(), src: svgPhoto(280, 320, "Fase Desain"), caption: "Presentasi mood board kepada klien", date: "2026-06-25" },
+        { id: uid(), src: svgPhoto(180, 210, "MEP Renovasi"), caption: "Instalasi jalur kabel data & listrik", date: "2026-07-20" }
+      ]
+    },
+    {
+      id: uid(),
+      name: "Pembangunan Jalan Akses Kawasan Industri",
+      location: "Bekasi Timur, Jawa Barat",
+      startDate: "2026-09-01",
+      duration: 135,
+      today: 22,
+      team: {
+        arsitektur: "PT Rencana Aksara",
+        interior: "",
+        mep: "PT Elektra Sinergi",
+        bongkaran: "CV Trisula",
+        utama: "PT Bangun Nusa Karya",
+        sub: "CV Adhi Perkasa"
+      },
+      items: p3EnrichedItems,
+      photos: [
+        { id: uid(), src: svgPhoto(30, 60, "Mobilisasi Alat Berat"), caption: "Excavator & bulldozer tiba di lokasi", date: "2026-09-05" }
+      ]
+    }
+  ];
+}
+
+/* ═════════════════════════════════════════════════════
+   STATE
+   ═════════════════════════════════════════════════════ */
+const state = {
+  projects: [],
+  currentView: "dashboard",
+  currentProjectId: null,
+  editingProjectId: null,   // null = creating new project
+  editingItemId: null,      // for item modal
+  editingScratch: null,     // temp project being edited (deep copy)
+  ganttScale: "day"
+};
+
+const SCALES = {
+  day:   { pxPerDay: 34,  key: "day",   label: "Hari" },
+  week:  { pxPerDay: 10,  key: "week",  label: "Minggu" },
+  month: { pxPerDay: 4,   key: "month", label: "Bulan" },
+  year:  { pxPerDay: 0.6, key: "year",  label: "Tahun" }
+};
+
+const CATEGORIES = {
+  persiapan:    { label: "Persiapan",    order: 0 },
+  tender:       { label: "Tender",       order: 1 },
+  konstruksi:   { label: "Konstruksi",   order: 2 },
+  serahterima:  { label: "Serah Terima", order: 3 }
+};
+const CATEGORY_KEYS = ["persiapan", "tender", "konstruksi", "serahterima"];
+function catOrder(key) { return CATEGORIES[key] ? CATEGORIES[key].order : 99; }
+function catLabel(key) { return CATEGORIES[key] ? CATEGORIES[key].label : key; }
+function normalizedCategory(key) { return CATEGORIES[key] ? key : "konstruksi"; }
+
+/* ═════════════════════════════════════════════════════
+   INTEGRASI AGAVA — auto-today · persistensi · bridge CODEC
+   ═════════════════════════════════════════════════════ */
+const PJ_STORE = "agava_pj_timeline_v1";
+/* Tanggal "hari ini" = tanggal berjalan (sama dgn jam live AGAVA) */
+function agavaToday(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+/* Hari ke-N proyek, dihitung otomatis dari tanggal mulai vs hari ini (0 = belum mulai) */
+function todayOf(p){
+  if (!p || !p.startDate) return 0;
+  const s = new Date(p.startDate + "T00:00:00");
+  const d = Math.floor((agavaToday() - s) / 86400000) + 1;
+  return clamp(d, 0, num(p.duration) || 0);
+}
+function saveProjects(){
+  try { localStorage.setItem(PJ_STORE, JSON.stringify(state.projects)); }
+  catch(e){ console.warn("PJ save:", e); }
+  pushToParent();
+}
+function loadProjects(){
+  try { const raw = localStorage.getItem(PJ_STORE);
+        if (raw) { const a = JSON.parse(raw); if (Array.isArray(a) && a.length) return a; } }
+  catch(e){ console.warn("PJ load:", e); }
+  return null;
+}
+/* Fase berjalan → label fase CODEC */
+function currentPhaseOf(p){
+  const map = { persiapan:"Getting Requirement", tender:"Tender", konstruksi:"Construction", serahterima:"Serah Terima" };
+  const items = p.items || [];
+  if (!items.length) return "Getting Requirement";
+  if (items.every(it => num(it.actualPercent) >= 100)) return "Serah Terima";
+  const td = todayOf(p);
+  const pick = arr => arr.reduce((best, it) => {
+    const o = catOrder(normalizedCategory(it.category));
+    return (!best || o > best.o) ? { o:o, k:normalizedCategory(it.category) } : best;
+  }, null);
+  const active = items.filter(it => { const s = num(it.startDay), d = num(it.duration); return td >= s && td < s + d; });
+  const r = pick(active) || pick(items.filter(it => num(it.actualPercent) > 0 && num(it.actualPercent) < 100)) || pick(items);
+  return r ? (map[r.k] || "Construction") : "Getting Requirement";
+}
+/* Kirim ringkasan plan/actual tiap proyek ke AGAVA (CODEC Progress Bulanan) */
+function pushToParent(){
+  try {
+    if (!(window.parent && window.parent !== window && typeof window.parent.agavaTimelineSync === "function")) return;
+    window.parent.agavaTimelineSync(state.projects.map(p => ({
+      n: p.name,
+      plan: Math.round(weightedPlan(p.items)),
+      actual: Math.round(weightedActual(p.items)),
+      phase: currentPhaseOf(p),
+      today: todayOf(p),
+      duration: num(p.duration),
+      startDate: p.startDate
+    })));
+  } catch(e){ /* standalone / cross-origin — abaikan */ }
+}
+/* Indikator hari bergerak sendiri: cek tiap menit, re-render saat tanggal berganti */
+let _pjDayStamp = agavaToday().toDateString();
+setInterval(() => {
+  const s = agavaToday().toDateString();
+  if (s !== _pjDayStamp) { _pjDayStamp = s; try { navigate(state.currentView, state.currentProjectId); pushToParent(); } catch(e){} }
+}, 60000);
+/* Sort items: by category order, then by startDay, then by name */
+function sortedItems(items) {
+  return [...items].sort((a, b) => {
+    const c = catOrder(a.category) - catOrder(b.category);
+    if (c !== 0) return c;
+    const s = num(a.startDay) - num(b.startDay);
+    if (s !== 0) return s;
+    return String(a.name).localeCompare(String(b.name));
+  });
+}
+/* Group sorted items by category */
+function groupByCategory(items) {
+  const groups = [];
+  let current = null;
+  sortedItems(items).forEach(it => {
+    const cat = normalizedCategory(it.category);
+    if (!current || current.key !== cat) {
+      current = { key: cat, label: catLabel(cat), items: [] };
+      groups.push(current);
+    }
+    current.items.push(it);
+  });
+  return groups;
+}
+
+/* ═════════════════════════════════════════════════════
+   COMPUTATIONS
+   ═════════════════════════════════════════════════════ */
+function totalWeight(items) { return items.reduce((s, it) => s + num(it.weight), 0); }
+function weightedPlan(items) {
+  const tw = totalWeight(items); if (!tw) return 0;
+  return items.reduce((s, it) => s + num(it.weight) * num(it.planPercent) / 100, 0) / tw * 100;
+}
+function weightedActual(items) {
+  const tw = totalWeight(items); if (!tw) return 0;
+  return items.reduce((s, it) => s + num(it.weight) * num(it.actualPercent) / 100, 0) / tw * 100;
+}
+function plannedCumulativeAtDay(items, day) {
+  const tw = totalWeight(items); if (!tw) return 0;
+  let sum = 0;
+  items.forEach(it => {
+    const s = num(it.startDay), d = num(it.duration);
+    const p = clamp((day - (s - 1)) / d, 0, 1);
+    sum += num(it.weight) * p;
+  });
+  return sum / tw * 100;
+}
+function overlapMap(items) {
+  const set = new Set();
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      const a = items[i], b = items[j];
+      const aEnd = num(a.startDay) + num(a.duration) - 1;
+      const bEnd = num(b.startDay) + num(b.duration) - 1;
+      if (!(aEnd < num(b.startDay) || bEnd < num(a.startDay))) {
+        set.add(a.id); set.add(b.id);
+      }
+    }
+  }
+  return set;
+}
+function concurrentByDay(items, duration) {
+  const arr = new Array(duration + 1).fill(0);
+  items.forEach(it => {
+    const s = num(it.startDay), d = num(it.duration);
+    for (let day = s; day < s + d && day <= duration; day++) if (day >= 1) arr[day]++;
+  });
+  return arr;
+}
+function overlappingWith(item, items) {
+  return items.filter(other => {
+    if (other.id === item.id) return false;
+    const aEnd = num(item.startDay) + num(item.duration) - 1;
+    const bEnd = num(other.startDay) + num(other.duration) - 1;
+    return !(aEnd < num(other.startDay) || bEnd < num(item.startDay));
+  });
+}
+function itemStatus(it) {
+  if (num(it.planPercent) === 0 && num(it.actualPercent) === 0) return { key:"notstarted", label:"Belum mulai", dot:"dot-notstarted" };
+  const diff = num(it.actualPercent) - num(it.planPercent);
+  if (diff >= 3) return { key:"ahead", label:"Di depan jadwal", dot:"dot-ahead" };
+  if (diff <= -3) return { key:"behind", label:"Terlambat", dot:"dot-behind" };
+  return { key:"onplan", label:"Sesuai plan", dot:"dot-onplan" };
+}
+function projectStatus(p) {
+  const plan = weightedPlan(p.items), actual = weightedActual(p.items);
+  if (plan === 0 && actual === 0) return { key:"notstarted", label:"Belum dimulai" };
+  const diff = actual - plan;
+  if (diff >= 3) return { key:"ahead", label:"Di depan" };
+  if (diff <= -3) return { key:"behind", label:"Terlambat" };
+  return { key:"onplan", label:"Sesuai plan" };
+}
+function portfolioActual() {
+  if (!state.projects.length) return 0;
+  return state.projects.reduce((s, p) => s + weightedActual(p.items), 0) / state.projects.length;
+}
+function portfolioPlan() {
+  if (!state.projects.length) return 0;
+  return state.projects.reduce((s, p) => s + weightedPlan(p.items), 0) / state.projects.length;
+}
+/* Returns id of the project with the largest negative deviation (worst behind schedule).
+   Returns null if no project is meaningfully behind (threshold: -3%). */
+function worstProjectId() {
+  let worst = null, worstDev = -3; // threshold
+  state.projects.forEach(p => {
+    const dev = weightedActual(p.items) - weightedPlan(p.items);
+    if (dev < worstDev) { worstDev = dev; worst = p.id; }
+  });
+  return worst;
+}
+
+/* ═════════════════════════════════════════════════════
+   NAVIGATION
+   ═════════════════════════════════════════════════════ */
+function navigate(view, projectId) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  const el = document.getElementById("view-" + view);
+  if (el) el.classList.add("active");
+  state.currentView = view;
+  state.currentProjectId = projectId || null;
+  renderCrumbs();
+  renderCurrentView();
+  updatePortfolioPill();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function updatePortfolioPill() {
+  const actual = portfolioActual();
+  document.getElementById("ppVal").textContent = actual.toFixed(1) + "%";
+  const CIRC = 2 * Math.PI * 9;
+  const off = CIRC * (1 - clamp(actual / 100, 0, 1));
+  const ring = document.getElementById("ppRing");
+  ring.setAttribute("stroke-dasharray", CIRC.toFixed(2));
+  ring.setAttribute("stroke-dashoffset", off.toFixed(2));
+}
+function renderCrumbs() {
+  const crumbs = document.getElementById("crumbs");
+  if (state.currentView === "dashboard") {
+    crumbs.innerHTML = `<span class="current">Dashboard</span>`;
+  } else if (state.currentView === "project") {
+    const p = state.projects.find(x => x.id === state.currentProjectId);
+    crumbs.innerHTML = `<span class="crumb-link" data-nav="dashboard">Dashboard</span> <span class="sep">/</span> <span class="current">${escapeHtml(p ? p.name : "Proyek")}</span>`;
+  } else if (state.currentView === "edit") {
+    const editing = state.editingProjectId ? state.projects.find(x => x.id === state.editingProjectId) : null;
+    const label = editing ? "Ubah Data · " + editing.name : "Tambah Jadwal Baru";
+    crumbs.innerHTML = `<span class="crumb-link" data-nav="dashboard">Dashboard</span> <span class="sep">/</span> <span class="current">${escapeHtml(label)}</span>`;
+  }
+  crumbs.querySelectorAll("[data-nav]").forEach(el => el.addEventListener("click", () => navigate(el.getAttribute("data-nav"))));
+}
+function renderCurrentView() {
+  if (state.currentView === "dashboard") renderDashboard();
+  else if (state.currentView === "project") renderProjectView();
+  else if (state.currentView === "edit") renderEditView();
+}
+
+/* ═════════════════════════════════════════════════════
+   DASHBOARD
+   ═════════════════════════════════════════════════════ */
+function renderDashboard() {
+  const actual = portfolioActual();
+  const plan = portfolioPlan();
+  const dev = actual - plan;
+
+  // Ring
+  const CIRC = 2 * Math.PI * 80; // radius 80
+  const dashOffset = CIRC * (1 - clamp(actual / 100, 0, 1));
+  document.getElementById("ringFg").style.strokeDasharray = CIRC;
+  document.getElementById("ringFg").style.strokeDashoffset = dashOffset;
+  document.getElementById("ringVal").textContent = actual.toFixed(1);
+
+  // Dashboard KPIs
+  document.getElementById("dashPlan").textContent = plan.toFixed(1);
+  document.getElementById("dashPlanBar").style.width = clamp(plan, 0, 100) + "%";
+  document.getElementById("dashActual").textContent = actual.toFixed(1);
+  document.getElementById("dashActualBar").style.width = clamp(actual, 0, 100) + "%";
+
+  const devCard = document.getElementById("dashDevCard");
+  devCard.classList.toggle("pos", dev >= 0);
+  devCard.classList.toggle("neg", dev < 0);
+  document.getElementById("dashDev").textContent = (dev >= 0 ? "+" : "") + dev.toFixed(1);
+  document.getElementById("dashDevBar").style.width = clamp(Math.abs(dev) * 3, 0, 100) + "%";
+  document.getElementById("dashDevSub").textContent = dev >= 0 ? "Portofolio di depan jadwal" : "Portofolio terlambat";
+
+  document.getElementById("dashCount").textContent = state.projects.length;
+  document.getElementById("dashCountBar").style.width = clamp(state.projects.length * 20, 0, 100) + "%";
+  document.getElementById("dashCountSub").textContent = state.projects.length === 0 ? "Belum ada proyek" : "Terpantau saat ini";
+
+  // Project cards
+  const worstId = worstProjectId();
+  const grid = document.getElementById("projectCards");
+  grid.innerHTML = "";
+  state.projects.forEach(p => grid.appendChild(renderProjectCard(p, p.id === worstId)));
+
+  // Hero meta chips
+  const heroChips = document.getElementById("heroChips");
+  const chips = [`<div class="chip"><span class="chip-num">${state.projects.length}</span> proyek terpantau</div>`];
+  if (worstId) {
+    const worst = state.projects.find(x => x.id === worstId);
+    const dev = weightedActual(worst.items) - weightedPlan(worst.items);
+    chips.push(`<div class="chip chip-attention" title="${escapeHtml(worst.name)}">
+      <span class="chip-dot"></span>
+      <span class="chip-text"><strong>Perlu perhatian</strong> · ${escapeHtml(worst.name)} <strong>${dev.toFixed(1)}%</strong></span>
+    </div>`);
+  }
+  heroChips.innerHTML = chips.join("");
+
+  // Add card
+  const add = document.createElement("div");
+  add.className = "add-project-card";
+  add.innerHTML = `
+    <div class="plus-icon">+</div>
+    <div class="lbl">Tambahkan Jadwal</div>
+    <div class="sub">Buat proyek baru</div>
+  `;
+  add.addEventListener("click", () => startNewProject());
+  grid.appendChild(add);
+}
+function renderProjectCard(p, isWorst) {
+  const plan = weightedPlan(p.items);
+  const actual = weightedActual(p.items);
+  const dev = actual - plan;
+  const st = projectStatus(p);
+  const startD = new Date(p.startDate);
+  const endD = addDays(p.startDate, p.duration - 1);
+  const card = document.createElement("div");
+  card.className = "project-card" + (isWorst ? " worst" : "");
+  card.innerHTML = `
+    <div class="pc-head">
+      <div>
+        <div class="pc-title">${escapeHtml(p.name)}</div>
+        <div class="pc-loc">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${escapeHtml(p.location || "Lokasi belum diisi")}
+        </div>
+      </div>
+      <div class="pc-status status-${st.key}">${st.label}</div>
+    </div>
+    <div class="pc-dates">
+      <span>${fmtShort(startD)} → ${fmtShort(endD)}</span>
+      <span>· ${p.duration} hari</span>
+    </div>
+    <div class="pc-progress">
+      <div class="pc-progress-row">
+        <span>Plan · <strong>${plan.toFixed(1)}%</strong></span>
+        <span>Aktual · <strong>${actual.toFixed(1)}%</strong></span>
+      </div>
+      <div class="pc-bars">
+        <div class="plan" style="width: ${clamp(plan, 0, 100)}%"></div>
+        <div class="actual" style="width: ${clamp(actual, 0, 100)}%"></div>
+      </div>
+      ${isWorst ? `<div class="pc-dev-note">Deviasi terbesar: <strong>${dev.toFixed(1)}%</strong> di belakang jadwal</div>` : ""}
+    </div>
+    <div class="pc-foot">
+      <span class="pc-items-count">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        ${p.items.length} pekerjaan
+      </span>
+      <span>Hari berjalan ke-${todayOf(p)}</span>
+    </div>
+  `;
+  card.addEventListener("click", () => navigate("project", p.id));
+  return card;
+}
+
+/* ═════════════════════════════════════════════════════
+   PROJECT DETAIL VIEW
+   ═════════════════════════════════════════════════════ */
+function renderProjectView() {
+  const p = state.projects.find(x => x.id === state.currentProjectId);
+  if (!p) { navigate("dashboard"); return; }
+  document.getElementById("projectPageTitle").textContent = p.name;
+  renderProjectSummary(p);
+  renderProjectKPIs(p);
+  renderGantt(p);
+  renderCurve(p);
+  renderPhotos(p);
+  renderProjectWorkTable(p);
+}
+function renderProjectSummary(p) {
+  const startD = new Date(p.startDate);
+  const endD = addDays(p.startDate, p.duration - 1);
+  const teamRoles = [
+    ["arsitektur", "Konsultan Arsitektur"],
+    ["interior", "Konsultan Interior"],
+    ["mep", "Konsultan MEP"],
+    ["bongkaran", "Kontraktor Bongkaran"],
+    ["utama", "Kontraktor Utama"],
+    ["sub", "Sub Kontraktor"]
+  ];
+  const teamHtml = teamRoles.map(([key, label]) => {
+    const who = p.team[key];
+    return `<div class="team-item">
+      <div class="role">${label}</div>
+      <div class="who ${who ? "" : "empty"}">${escapeHtml(who || "Belum ditugaskan")}</div>
+    </div>`;
+  }).join("");
+  document.getElementById("projectSummary").innerHTML = `
+    <div class="ps-top">
+      <div>
+        <div class="ps-name">${escapeHtml(p.name)}</div>
+        <div class="ps-meta">
+          <div class="item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            ${escapeHtml(p.location || "Lokasi belum diisi")}
+          </div>
+          <div class="item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            ${fmtDate(startD)} → ${fmtDate(endD)}
+          </div>
+          <div class="item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            ${p.duration} hari · Hari berjalan ke-${todayOf(p)}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ps-team">${teamHtml}</div>
+  `;
+}
+function renderProjectKPIs(p) {
+  const plan = weightedPlan(p.items);
+  const actual = weightedActual(p.items);
+  const dev = actual - plan;
+  const overlaps = overlapMap(p.items);
+  const tw = totalWeight(p.items);
+
+  document.getElementById("pjKpiPlan").textContent = plan.toFixed(1);
+  document.getElementById("pjKpiPlanBar").style.width = clamp(plan, 0, 100) + "%";
+  document.getElementById("pjKpiActual").textContent = actual.toFixed(1);
+  document.getElementById("pjKpiActualBar").style.width = clamp(actual, 0, 100) + "%";
+
+  const devCard = document.getElementById("pjKpiDevCard");
+  devCard.classList.toggle("pos", dev >= 0);
+  devCard.classList.toggle("neg", dev < 0);
+  document.getElementById("pjKpiDev").textContent = (dev >= 0 ? "+" : "") + dev.toFixed(1);
+  document.getElementById("pjKpiDevBar").style.width = clamp(Math.abs(dev) * 3, 0, 100) + "%";
+  document.getElementById("pjKpiDevSub").textContent = dev >= 0 ? "Di depan jadwal" : "Di belakang jadwal";
+
+  const ovCard = document.getElementById("pjKpiOverlapCard");
+  ovCard.classList.toggle("zero", overlaps.size === 0);
+  document.getElementById("pjKpiOverlap").textContent = overlaps.size;
+  document.getElementById("pjKpiOverlapBar").style.width = clamp(overlaps.size * 12, 0, 100) + "%";
+  document.getElementById("pjKpiOverlapSub").textContent = overlaps.size === 0 ? "Tidak ada tumpang tindih" : "Perlu koordinasi antar tim";
+
+  const twEl = document.getElementById("pjTotalWeight");
+  twEl.textContent = tw.toFixed(1) + "%";
+  twEl.style.color = Math.abs(tw - 100) < 0.5 ? "var(--success)" : (tw > 100 ? "var(--danger)" : "var(--ink)");
+}
+
+/* ═════════════════════════════════════════════════════
+   GANTT RENDER (with scale switch)
+   ═════════════════════════════════════════════════════ */
+function buildTimescaleTicks(p) {
+  // Return array of { xStart, xEnd, primaryLabel, subLabel, monthFirst, weekend, w }
+  const scale = SCALES[state.ganttScale];
+  const px = scale.pxPerDay;
+  const totalWidth = p.duration * px;
+  const ticks = [];
+  const startDate = new Date(p.startDate);
+
+  if (scale.key === "day") {
+    let lastMonth = -1;
+    for (let d = 1; d <= p.duration; d++) {
+      const dt = addDays(p.startDate, d - 1);
+      const dow = dt.getDay();
+      const monthFirst = dt.getMonth() !== lastMonth;
+      if (monthFirst) lastMonth = dt.getMonth();
+      ticks.push({
+        left: (d - 1) * px,
+        width: px,
+        primary: dt.getDate(),
+        sub: DAYS_ID[dow],
+        mo: MONTHS_ID[dt.getMonth()],
+        monthFirst,
+        weekend: dow === 0 || dow === 6
+      });
+    }
+  } else if (scale.key === "week") {
+    const totalWeeks = Math.ceil(p.duration / 7);
+    for (let w = 0; w < totalWeeks; w++) {
+      const d1 = w * 7 + 1;
+      const d2 = Math.min((w + 1) * 7, p.duration);
+      const dt1 = addDays(p.startDate, d1 - 1);
+      const dt2 = addDays(p.startDate, d2 - 1);
+      ticks.push({
+        left: (d1 - 1) * px,
+        width: (d2 - d1 + 1) * px,
+        primary: "M" + (w + 1),
+        sub: `${dt1.getDate()}-${dt2.getDate()} ${MONTHS_ID[dt1.getMonth()]}`,
+        mo: null,
+        monthFirst: w === 0 || dt1.getMonth() !== addDays(p.startDate, (w - 1) * 7).getMonth(),
+        weekend: false
+      });
+    }
+  } else if (scale.key === "month") {
+    const endDate = addDays(p.startDate, p.duration - 1);
+    let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+    while (cursor <= endDate) {
+      const monthStart = cursor > startDate ? cursor : startDate;
+      const nextMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+      const monthEnd = nextMonth <= endDate ? new Date(nextMonth.getTime() - 86400000) : endDate;
+      const dayOffset = Math.round((monthStart - startDate) / 86400000);
+      const dayLen = Math.round((monthEnd - monthStart) / 86400000) + 1;
+      ticks.push({
+        left: dayOffset * px,
+        width: dayLen * px,
+        primary: MONTHS_ID[cursor.getMonth()],
+        sub: cursor.getFullYear(),
+        mo: null,
+        monthFirst: true,
+        weekend: false
+      });
+      cursor = nextMonth;
+    }
+  } else if (scale.key === "year") {
+    const endDate = addDays(p.startDate, p.duration - 1);
+    let year = startDate.getFullYear();
+    while (year <= endDate.getFullYear()) {
+      const yStart = new Date(year, 0, 1);
+      const yEnd = new Date(year, 11, 31);
+      const rangeStart = yStart > startDate ? yStart : startDate;
+      const rangeEnd = yEnd < endDate ? yEnd : endDate;
+      const dayOffset = Math.round((rangeStart - startDate) / 86400000);
+      const dayLen = Math.round((rangeEnd - rangeStart) / 86400000) + 1;
+      ticks.push({
+        left: dayOffset * px,
+        width: dayLen * px,
+        primary: year,
+        sub: "",
+        mo: null,
+        monthFirst: true,
+        weekend: false
+      });
+      year++;
+    }
+  }
+  return { ticks, totalWidth, pxPerDay: px };
+}
+
+function renderGantt(p) {
+  const grid = document.getElementById("ganttGrid");
+  grid.innerHTML = "";
+
+  if (!p.items.length) {
+    grid.style.gridTemplateColumns = "1fr";
+    grid.innerHTML = `<div class="gantt-empty">Belum ada item pekerjaan.<br>Klik "Ubah Data" untuk menambahkan pekerjaan pertama.</div>`;
+    return;
+  }
+  grid.style.gridTemplateColumns = "260px 1fr";
+
+  const { ticks, totalWidth, pxPerDay } = buildTimescaleTicks(p);
+  const overlaps = overlapMap(p.items);
+  const concurrent = concurrentByDay(p.items, p.duration);
+  const groups = groupByCategory(p.items);
+
+  // ── LABELS COLUMN ────────────────────────────
+  const labelsCol = document.createElement("div");
+  labelsCol.className = "gantt-labels";
+  labelsCol.innerHTML = `<div class="g-head">Pekerjaan</div>`;
+  groups.forEach(g => {
+    const catHead = document.createElement("div");
+    catHead.className = "g-cat-header cat-" + g.key;
+    catHead.innerHTML = `
+      <span class="cat-dot cat-${g.key}"></span>
+      <span>${escapeHtml(g.label)}</span>
+      <span class="count">${g.items.length} pekerjaan</span>
+    `;
+    labelsCol.appendChild(catHead);
+    g.items.forEach(it => {
+      const row = document.createElement("div");
+      row.className = "g-row";
+      row.innerHTML = `
+        <span class="cat-dot cat-${normalizedCategory(it.category)}"></span>
+        <span class="item-name" title="${escapeHtml(it.name)}">${escapeHtml(it.name)}</span>
+        <span class="item-contractor">${escapeHtml(shortContractor(it.contractor))}</span>
+      `;
+      labelsCol.appendChild(row);
+    });
+  });
+  grid.appendChild(labelsCol);
+
+  // ── CANVAS ────────────────────────────
+  const canvas = document.createElement("div");
+  canvas.className = "gantt-canvas";
+  canvas.style.minWidth = totalWidth + "px";
+
+  // Timescale
+  const scale = document.createElement("div");
+  scale.className = "g-timescale";
+  scale.style.width = totalWidth + "px";
+  ticks.forEach(t => {
+    const cell = document.createElement("div");
+    cell.className = "tick" + (t.weekend ? " weekend" : "") + (t.monthFirst ? " month-first" : "");
+    cell.style.left = t.left + "px";
+    cell.style.width = t.width + "px";
+    if (state.ganttScale === "day") {
+      cell.innerHTML = `<div class="t-mo">${t.mo}</div><div class="t-primary">${t.primary}</div><div class="t-sub">${t.sub}</div>`;
+    } else if (state.ganttScale === "week" || state.ganttScale === "month") {
+      cell.innerHTML = `<div class="t-primary">${t.primary}</div><div class="t-sub">${t.sub}</div>`;
+    } else {
+      cell.innerHTML = `<div class="t-primary" style="font-size: 14px;">${t.primary}</div>`;
+    }
+    scale.appendChild(cell);
+  });
+  canvas.appendChild(scale);
+
+  // Rows
+  const rowsWrap = document.createElement("div");
+  rowsWrap.className = "g-rows";
+  rowsWrap.style.width = totalWidth + "px";
+
+  groups.forEach(g => {
+    // Category spacer row (matches sidebar cat-header height)
+    const spacer = document.createElement("div");
+    spacer.className = "g-cat-spacer";
+    rowsWrap.appendChild(spacer);
+
+    g.items.forEach(it => {
+      const row = document.createElement("div");
+      row.className = "g-track";
+
+      // Weekend bands only in day scale
+      if (state.ganttScale === "day") {
+        for (let d = 1; d <= p.duration; d++) {
+          const dt = addDays(p.startDate, d - 1);
+          const dow = dt.getDay();
+          if (dow === 0 || dow === 6) {
+            const band = document.createElement("div");
+            band.className = "weekend-band";
+            band.style.left = ((d - 1) * pxPerDay) + "px";
+            band.style.width = pxPerDay + "px";
+            row.appendChild(band);
+          }
+        }
+      }
+
+      // Overlap bands
+      const s = num(it.startDay), dur = num(it.duration);
+      for (let d = s; d < s + dur && d <= p.duration; d++) {
+        if (concurrent[d] > 1) {
+          const band = document.createElement("div");
+          band.className = "overlap-band";
+          band.style.left = ((d - 1) * pxPerDay) + "px";
+          band.style.width = pxPerDay + "px";
+          row.appendChild(band);
+        }
+      }
+
+      // Bar (with category class)
+      const bar = document.createElement("div");
+      const st = itemStatus(it);
+      const catKey = normalizedCategory(it.category);
+      bar.className = "g-bar cat-" + catKey +
+        (st.key === "ahead" ? " ahead" : "") +
+        (st.key === "behind" ? " behind" : "");
+      bar.style.left = ((s - 1) * pxPerDay) + "px";
+      bar.style.width = Math.max(18, dur * pxPerDay - 2) + "px";
+      bar.setAttribute("data-item-id", it.id);
+      bar.title = `${it.name} — klik untuk detail`;
+
+      const planFill = document.createElement("div");
+      planFill.className = "plan-fill";
+      planFill.style.width = clamp(num(it.planPercent), 0, 100) + "%";
+      bar.appendChild(planFill);
+
+      const actualFill = document.createElement("div");
+      actualFill.className = "actual-fill";
+      actualFill.style.width = clamp(num(it.actualPercent), 0, 100) + "%";
+      bar.appendChild(actualFill);
+
+      if (state.ganttScale === "day" || state.ganttScale === "week") {
+        const lbl = document.createElement("div");
+        lbl.className = "bar-label";
+        const overlapBadge = overlaps.has(it.id) ? "⇋ " : "";
+        lbl.textContent = `${overlapBadge}${num(it.actualPercent).toFixed(0)}%`;
+        bar.appendChild(lbl);
+      }
+
+      bar.addEventListener("click", (e) => { e.stopPropagation(); openBarModal(p, it); });
+
+      row.appendChild(bar);
+      rowsWrap.appendChild(row);
+    });
+  });
+  canvas.appendChild(rowsWrap);
+
+  // Today line
+  const _td = todayOf(p);
+  if (_td > 0 && _td <= p.duration) {
+    const line = document.createElement("div");
+    line.className = "today-line";
+    line.style.left = (_td * pxPerDay - 1) + "px";
+    canvas.appendChild(line);
+  }
+
+  grid.appendChild(canvas);
+}
+
+/* ═════════════════════════════════════════════════════
+   S-CURVE
+   ═════════════════════════════════════════════════════ */
+function renderCurve(p) {
+  const svg = document.getElementById("curveSvg");
+  const W = 800, H = 320;
+  const M = { l: 42, r: 20, t: 20, b: 34 };
+  const iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const dur = p.duration, today = todayOf(p);
+
+  const planSeries = [];
+  for (let d = 0; d <= dur; d++) planSeries.push({ x: d, y: plannedCumulativeAtDay(p.items, d) });
+
+  const actualToday = weightedActual(p.items);
+  const planToday = plannedCumulativeAtDay(p.items, today);
+  const actualSeries = [];
+  if (today > 0) {
+    const sc = planToday > 0 ? actualToday / planToday : 0;
+    for (let d = 0; d <= today; d++) actualSeries.push({ x: d, y: plannedCumulativeAtDay(p.items, d) * sc });
+  }
+
+  const xS = x => M.l + (x / dur) * iw;
+  const yS = y => M.t + ih - (y / 100) * ih;
+
+  let gridL = "", yL = "";
+  for (let pp = 0; pp <= 100; pp += 25) {
+    const yy = yS(pp);
+    gridL += `<line x1="${M.l}" y1="${yy}" x2="${M.l + iw}" y2="${yy}"/>`;
+    yL += `<text x="${M.l - 8}" y="${yy + 3}" text-anchor="end">${pp}%</text>`;
+  }
+  const xTickCount = Math.min(10, dur);
+  let xL = "", xT = "";
+  for (let i = 0; i <= xTickCount; i++) {
+    const d = Math.round((dur * i) / xTickCount);
+    const x = xS(d);
+    xT += `<line x1="${x}" y1="${M.t + ih}" x2="${x}" y2="${M.t + ih + 4}"/>`;
+    const dt = addDays(p.startDate, d);
+    xL += `<text x="${x}" y="${M.t + ih + 18}" text-anchor="middle">${fmtShort(dt)}</text>`;
+  }
+  const seriesToPath = (s) => s.length ? s.map((pt, i) => `${i === 0 ? "M" : "L"}${xS(pt.x)},${yS(pt.y)}`).join(" ") : "";
+  const planPath = seriesToPath(planSeries);
+  const planArea = `${planPath} L${xS(dur)},${yS(0)} L${xS(0)},${yS(0)} Z`;
+  const actualPath = seriesToPath(actualSeries);
+
+  let todayMark = "";
+  if (today > 0 && today <= dur) {
+    const tx = xS(today);
+    todayMark = `
+      <line class="today-marker" x1="${tx}" y1="${M.t}" x2="${tx}" y2="${M.t + ih}"/>
+      <text class="today-label" x="${tx}" y="${M.t - 4}" text-anchor="middle">HARI ${today}</text>
+      <circle class="actual-dot" cx="${xS(today)}" cy="${yS(actualToday)}" r="5"/>
+    `;
+  }
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="planGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#5AC8FA" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#5AC8FA" stop-opacity="0.02"/>
+      </linearGradient>
+    </defs>
+    <g class="grid">${gridL}</g>
+    <g class="axis">
+      <line x1="${M.l}" y1="${M.t + ih}" x2="${M.l + iw}" y2="${M.t + ih}"/>
+      ${xT}${xL}${yL}
+    </g>
+    <path class="plan-area" d="${planArea}"/>
+    <path class="plan-line" d="${planPath}"/>
+    ${actualSeries.length > 1 ? `<path class="actual-line" d="${actualPath}"/>` : ""}
+    ${todayMark}
+  `;
+}
+
+/* ═════════════════════════════════════════════════════
+   PHOTO GALLERY
+   ═════════════════════════════════════════════════════ */
+function renderPhotos(p) {
+  const grid = document.getElementById("photoGrid");
+  grid.innerHTML = "";
+  if (!p.photos || !p.photos.length) {
+    grid.innerHTML = `<div class="photo-empty">Belum ada foto progres. Klik "Tambah Foto" untuk mengunggah dokumentasi lapangan.</div>`;
+    return;
+  }
+  p.photos.forEach(ph => {
+    const card = document.createElement("div");
+    card.className = "photo-card";
+    card.innerHTML = `
+      <img src="${ph.src}" alt="${escapeHtml(ph.caption || "")}">
+      <button class="p-del" data-photo-id="${ph.id}" title="Hapus foto">×</button>
+      <div class="p-meta">
+        <div class="p-caption">${escapeHtml(ph.caption || "Foto tanpa keterangan")}</div>
+        <div class="p-date">${ph.date ? fmtDate(new Date(ph.date)) : "Tanpa tanggal"}</div>
+      </div>
+    `;
+    card.addEventListener("click", (e) => {
+      if (e.target.classList.contains("p-del")) return;
+      openLightbox(ph);
+    });
+    card.querySelector(".p-del").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (confirm("Hapus foto ini?")) {
+        p.photos = p.photos.filter(x => x.id !== ph.id);
+        saveProjects();
+        renderPhotos(p);
+        showToast("Foto dihapus");
+      }
+    });
+    grid.appendChild(card);
+  });
+}
+function openLightbox(ph) {
+  const lb = document.getElementById("lightbox");
+  document.getElementById("lightboxImg").src = ph.src;
+  document.getElementById("lightboxCap").textContent =
+    (ph.caption || "") + (ph.date ? "  ·  " + fmtDate(new Date(ph.date)) : "");
+  lb.classList.add("open");
+}
+
+/* ═════════════════════════════════════════════════════
+   PROJECT WORK TABLE
+   ═════════════════════════════════════════════════════ */
+function renderProjectWorkTable(p) {
+  const tbody = document.getElementById("pjWorkTbody");
+  tbody.innerHTML = "";
+  if (!p.items.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Belum ada pekerjaan.</td></tr>`;
+    return;
+  }
+  sortedItems(p.items).forEach(it => {
+    backfillItemDates(it, p.startDate);
+    const st = itemStatus(it);
+    const catKey = normalizedCategory(it.category);
+    const planDur = daysBetweenInclusive(it.planStart, it.planEnd);
+    const actualDur = it.actualStart && it.actualEnd ? daysBetweenInclusive(it.actualStart, it.actualEnd) : null;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+        <div style="font-weight: 500;">${escapeHtml(it.name)}</div>
+        <div style="font-size: 11px; margin-top: 4px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+          <span class="cat-badge cat-${catKey}">${escapeHtml(catLabel(catKey))}</span>
+          <span class="tag">${escapeHtml(it.contractor)}</span>
+        </div>
+      </td>
+      <td>
+        <div style="font-size: 12px; font-variant-numeric: tabular-nums;">${fmtShortISO(it.planStart)} → ${fmtShortISO(it.planEnd)}</div>
+        <div style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">${planDur} hari</div>
+      </td>
+      <td>
+        ${it.actualStart
+          ? `<div style="font-size: 12px; font-variant-numeric: tabular-nums;">${fmtShortISO(it.actualStart)} → ${it.actualEnd ? fmtShortISO(it.actualEnd) : "berjalan"}</div>
+             <div style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">${actualDur ? actualDur + " hari" : "belum tuntas"}</div>`
+          : `<span style="font-size: 12px; color: var(--ink-4);">Belum mulai</span>`
+        }
+      </td>
+      <td class="num">${num(it.weight).toFixed(1)}%</td>
+      <td>
+        <div class="mini-bar">
+          <div class="fill plan" style="width: ${clamp(num(it.planPercent), 0, 100)}%;"></div>
+          <div class="fill actual" style="width: ${clamp(num(it.actualPercent), 0, 100)}%;"></div>
+        </div>
+        <div style="font-size: 11px; color: var(--ink-3); margin-top: 3px; font-variant-numeric: tabular-nums;">
+          Plan ${num(it.planPercent).toFixed(0)}% · Aktual ${num(it.actualPercent).toFixed(0)}%
+        </div>
+      </td>
+      <td>
+        <span class="status-dot ${st.dot}"></span>
+        <span style="font-size: 12px;">${st.label}</span>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ═════════════════════════════════════════════════════
+   BAR CLICK MODAL
+   ═════════════════════════════════════════════════════ */
+function openBarModal(p, it) {
+  backfillItemDates(it, p.startDate);
+  const planStart = it.planStart, planEnd = it.planEnd;
+  const actualStart = it.actualStart, actualEnd = it.actualEnd;
+  const planDur = daysBetweenInclusive(planStart, planEnd);
+  const actualDur = actualStart && actualEnd ? daysBetweenInclusive(actualStart, actualEnd) : null;
+  const today = todayOf(p);
+  const daysElapsedInTask = clamp(today - num(it.startDay) + 1, 0, num(it.duration));
+  const st = itemStatus(it);
+  const dev = num(it.actualPercent) - num(it.planPercent);
+  const overlaps = overlappingWith(it, p.items);
+
+  const devClass = dev >= 3 ? "hi-success" : dev <= -3 ? "hi-danger" : "hi-blue";
+  const devSign = dev >= 0 ? "+" : "";
+  const statusStripCls =
+    st.key === "ahead" ? "ahead" :
+    st.key === "behind" ? "behind" :
+    overlaps.length ? "warn" : "";
+  const statusMsg =
+    st.key === "notstarted" ? "Pekerjaan belum dimulai." :
+    st.key === "ahead" ? "Realisasi lebih cepat dari plan sebesar " + Math.abs(dev).toFixed(1) + "%." :
+    st.key === "behind" ? "Realisasi tertinggal dari plan sebesar " + Math.abs(dev).toFixed(1) + "%. Perlu perhatian." :
+    "Realisasi sejalan dengan plan.";
+  const overlapMsg = overlaps.length
+    ? `Tumpang tindih dengan ${overlaps.length} pekerjaan lain: ${overlaps.map(o => escapeHtml(o.name)).join(", ")}.`
+    : "";
+
+  // Date deviation info
+  let scheduleNote = "";
+  if (actualStart && planStart && actualStart !== planStart) {
+    const shift = daysBetweenInclusive(planStart, actualStart) - 1;
+    scheduleNote = shift > 0
+      ? `Mulai <strong>${shift} hari lebih lambat</strong> dari rencana.`
+      : shift < 0
+        ? `Mulai <strong>${Math.abs(shift)} hari lebih cepat</strong> dari rencana.`
+        : "";
+  }
+
+  const catKey = normalizedCategory(it.category);
+  document.getElementById("barModalContent").innerHTML = `
+    <div class="mdl-title">${escapeHtml(it.name)}</div>
+    <div class="mdl-sub" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+      <span class="cat-badge cat-${catKey}">${escapeHtml(catLabel(catKey))}</span>
+      <span class="tag">${escapeHtml(it.contractor)}</span>
+      <span>·</span>
+      <span>${st.label}</span>
+    </div>
+    <div class="mdl-grid">
+      <div class="mdl-cell">
+        <div class="lbl">Rencana Mulai</div>
+        <div class="v hi-blue">${fmtDateISO(planStart)}</div>
+        <div class="sub">Target awal pekerjaan</div>
+      </div>
+      <div class="mdl-cell">
+        <div class="lbl">Rencana Selesai</div>
+        <div class="v hi-blue">${fmtDateISO(planEnd)}</div>
+        <div class="sub">Target akhir pekerjaan</div>
+      </div>
+      <div class="mdl-cell">
+        <div class="lbl">Aktual Mulai</div>
+        <div class="v ${actualStart ? "hi-blue-s" : ""}">${actualStart ? fmtDateISO(actualStart) : "Belum mulai"}</div>
+        <div class="sub">${actualStart ? "Realisasi di lapangan" : "Menunggu eksekusi"}</div>
+      </div>
+      <div class="mdl-cell">
+        <div class="lbl">Aktual Selesai</div>
+        <div class="v ${actualEnd ? "hi-blue-s" : ""}">${actualEnd ? fmtDateISO(actualEnd) : "Belum selesai"}</div>
+        <div class="sub">${actualEnd ? "Pekerjaan tuntas" : (actualStart ? "Sedang berjalan" : "—")}</div>
+      </div>
+      <div class="mdl-cell">
+        <div class="lbl">Durasi Rencana</div>
+        <div class="v">${planDur} hari</div>
+        <div class="sub">${today >= num(it.startDay) ? `Sudah berjalan ${daysElapsedInTask} hari` : "Belum dimulai"}</div>
+      </div>
+      <div class="mdl-cell">
+        <div class="lbl">Durasi Aktual</div>
+        <div class="v ${actualDur ? "hi-blue-s" : ""}">${actualDur ? actualDur + " hari" : (actualStart ? "Sedang berjalan" : "—")}</div>
+        <div class="sub">${actualDur ? (actualDur > planDur ? `+${actualDur - planDur} hari dari rencana` : actualDur < planDur ? `${planDur - actualDur} hari lebih cepat` : "Sesuai rencana") : "Belum ada realisasi"}</div>
+      </div>
+      <div class="mdl-cell">
+        <div class="lbl">Progress Plan</div>
+        <div class="v hi-blue">${num(it.planPercent).toFixed(1)}%</div>
+        <div class="sub">Target hingga hari ${today}</div>
+      </div>
+      <div class="mdl-cell">
+        <div class="lbl">Progress Aktual</div>
+        <div class="v hi-blue-s">${num(it.actualPercent).toFixed(1)}%</div>
+        <div class="sub">Realisasi hingga hari ${today}</div>
+      </div>
+      <div class="mdl-cell">
+        <div class="lbl">Deviasi</div>
+        <div class="v ${devClass}">${devSign}${dev.toFixed(1)}%</div>
+        <div class="sub">Aktual − Plan</div>
+      </div>
+      <div class="mdl-cell">
+        <div class="lbl">Bobot dalam Proyek</div>
+        <div class="v">${num(it.weight).toFixed(1)}%</div>
+        <div class="sub">Kontribusi ke total</div>
+      </div>
+    </div>
+    <div class="mdl-bar">
+      <div class="plan" style="width: ${clamp(num(it.planPercent), 0, 100)}%"></div>
+      <div class="actual" style="width: ${clamp(num(it.actualPercent), 0, 100)}%"></div>
+    </div>
+    <div style="font-size: 11px; color: var(--ink-3); text-align: right; margin-bottom: 16px; font-variant-numeric: tabular-nums;">
+      Plan ${num(it.planPercent).toFixed(1)}% · Aktual ${num(it.actualPercent).toFixed(1)}%
+    </div>
+    <div class="mdl-status-strip ${statusStripCls}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>
+        <div style="font-weight: 600;">${statusMsg}</div>
+        ${scheduleNote ? `<div style="font-size: 12px; opacity: 0.85; margin-top: 4px;">${scheduleNote}</div>` : ""}
+        ${overlapMsg ? `<div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">${overlapMsg}</div>` : ""}
+      </div>
+    </div>
+  `;
+  document.getElementById("barModal").classList.add("open");
+}
+
+/* ═════════════════════════════════════════════════════
+   EDIT VIEW
+   ═════════════════════════════════════════════════════ */
+function startNewProject() {
+  state.editingProjectId = null;
+  const today = new Date();
+  state.editingScratch = {
+    id: uid(),
+    name: "",
+    location: "",
+    startDate: today.toISOString().slice(0, 10),
+    duration: 90,
+    today: 0,
+    team: { arsitektur:"", interior:"", mep:"", bongkaran:"", utama:"", sub:"" },
+    items: [],
+    photos: []
+  };
+  navigate("edit");
+}
+function startEditProject(id) {
+  const p = state.projects.find(x => x.id === id);
+  if (!p) return;
+  state.editingProjectId = id;
+  state.editingScratch = JSON.parse(JSON.stringify(p));
+  navigate("edit");
+}
+function renderEditView() {
+  const s = state.editingScratch;
+  if (!s) { navigate("dashboard"); return; }
+  document.getElementById("editPageTitle").textContent =
+    state.editingProjectId ? "Ubah Data — " + (s.name || "Tanpa Nama") : "Tambahkan Jadwal Baru";
+  document.getElementById("editName").value = s.name;
+  document.getElementById("editLocation").value = s.location;
+  document.getElementById("editStart").value = s.startDate;
+  document.getElementById("editDuration").value = s.duration;
+  document.getElementById("editToday").value = todayOf(s);
+  Object.keys(s.team).forEach(k => {
+    const el = document.querySelector(`[data-team-edit="${k}"]`);
+    if (el) el.value = s.team[k] || "";
+  });
+  renderEditItemsTable();
+}
+function renderEditItemsTable() {
+  const s = state.editingScratch;
+  const tbody = document.getElementById("editItemsTbody");
+  tbody.innerHTML = "";
+  if (!s.items.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Belum ada pekerjaan. Klik "+ Tambah Pekerjaan" untuk memulai.</td></tr>`;
+    return;
+  }
+  sortedItems(s.items).forEach(it => {
+    backfillItemDates(it, s.startDate);
+    const catKey = normalizedCategory(it.category);
+    const planDur = daysBetweenInclusive(it.planStart, it.planEnd);
+    const actualDur = it.actualStart && it.actualEnd ? daysBetweenInclusive(it.actualStart, it.actualEnd) : null;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+        <div style="font-weight: 500;">${escapeHtml(it.name)}</div>
+        <div style="font-size: 11px; margin-top: 4px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+          <span class="cat-badge cat-${catKey}">${escapeHtml(catLabel(catKey))}</span>
+          <span class="tag">${escapeHtml(it.contractor)}</span>
+        </div>
+      </td>
+      <td>
+        <div style="font-size: 12px; font-variant-numeric: tabular-nums;">${fmtShortISO(it.planStart)} → ${fmtShortISO(it.planEnd)}</div>
+        <div style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">${planDur} hari</div>
+      </td>
+      <td>
+        ${it.actualStart
+          ? `<div style="font-size: 12px; font-variant-numeric: tabular-nums;">${fmtShortISO(it.actualStart)} → ${it.actualEnd ? fmtShortISO(it.actualEnd) : "berjalan"}</div>
+             <div style="font-size: 11px; color: var(--ink-3); margin-top: 2px;">${actualDur ? actualDur + " hari" : "belum tuntas"}</div>`
+          : `<span style="font-size: 12px; color: var(--ink-4);">Belum mulai</span>`
+        }
+      </td>
+      <td class="num">${num(it.weight).toFixed(1)}%</td>
+      <td class="num">${num(it.planPercent).toFixed(1)}%</td>
+      <td class="num">${num(it.actualPercent).toFixed(1)}%</td>
+      <td class="actions-cell">
+        <button class="btn btn-icon sm" data-edit-item="${it.id}" title="Ubah">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn btn-icon sm btn-danger" data-del-item="${it.id}" title="Hapus">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll("[data-edit-item]").forEach(b =>
+    b.addEventListener("click", () => openItemModal(b.getAttribute("data-edit-item"))));
+  tbody.querySelectorAll("[data-del-item]").forEach(b =>
+    b.addEventListener("click", () => {
+      const id = b.getAttribute("data-del-item");
+      if (confirm("Hapus pekerjaan ini?")) {
+        state.editingScratch.items = state.editingScratch.items.filter(x => x.id !== id);
+        renderEditItemsTable();
+        showToast("Pekerjaan dihapus");
+      }
+    }));
+}
+
+/* ═════════════════════════════════════════════════════
+   ITEM MODAL (add/edit inside edit view)
+   ═════════════════════════════════════════════════════ */
+function openItemModal(itemId) {
+  const isEdit = !!itemId;
+  state.editingItemId = itemId || null;
+  document.getElementById("itemModalTitle").textContent = isEdit ? "Ubah Pekerjaan" : "Tambah Pekerjaan";
+  document.getElementById("itemModalSub").textContent = isEdit ? "Perbarui data pekerjaan" : "Detail item baru dalam proyek";
+  const grid = document.getElementById("itemFormGrid");
+  const g = name => grid.querySelector(`[name="${name}"]`);
+  const projectStart = state.editingScratch ? state.editingScratch.startDate : new Date().toISOString().slice(0, 10);
+
+  if (isEdit) {
+    const it = state.editingScratch.items.find(x => x.id === itemId);
+    // Backfill dates from legacy fields if missing
+    backfillItemDates(it, projectStart);
+    g("name").value = it.name || "";
+    g("contractor").value = it.contractor || "Kontraktor Utama";
+    g("category").value = normalizedCategory(it.category);
+    g("planStart").value = it.planStart || "";
+    g("planEnd").value = it.planEnd || "";
+    g("actualStart").value = it.actualStart || "";
+    g("actualEnd").value = it.actualEnd || "";
+    g("weight").value = num(it.weight);
+    g("planPercent").value = num(it.planPercent);
+    g("actualPercent").value = num(it.actualPercent);
+  } else {
+    // New item defaults: plan starts today (or project start), 7-day duration
+    const defaultStart = projectStart;
+    g("name").value = "";
+    g("contractor").value = "Kontraktor Utama";
+    g("category").value = "konstruksi";
+    g("planStart").value = defaultStart;
+    g("planEnd").value = addDaysISO(defaultStart, 6);
+    g("actualStart").value = "";
+    g("actualEnd").value = "";
+    g("weight").value = 10;
+    g("planPercent").value = 0;
+    g("actualPercent").value = 0;
+  }
+  updateDurationDisplays();
+  document.getElementById("itemModal").classList.add("open");
+  setTimeout(() => g("name").focus(), 100);
+}
+function updateDurationDisplays() {
+  const grid = document.getElementById("itemFormGrid");
+  const g = name => grid.querySelector(`[name="${name}"]`);
+  const planStart = g("planStart").value;
+  const planEnd = g("planEnd").value;
+  const actualStart = g("actualStart").value;
+  const actualEnd = g("actualEnd").value;
+  const planDurEl = document.getElementById("planDurDisplay");
+  const actualDurEl = document.getElementById("actualDurDisplay");
+
+  if (planStart && planEnd) {
+    if (planEnd < planStart) {
+      planDurEl.textContent = "Tanggal selesai lebih awal";
+      planDurEl.style.color = "var(--danger)";
+      planDurEl.classList.remove("has-value");
+    } else {
+      const dur = daysBetweenInclusive(planStart, planEnd);
+      planDurEl.textContent = `${dur} hari`;
+      planDurEl.style.color = "";
+      planDurEl.classList.add("has-value");
+    }
+  } else {
+    planDurEl.textContent = "—";
+    planDurEl.style.color = "";
+    planDurEl.classList.remove("has-value");
+  }
+
+  if (actualStart && actualEnd) {
+    if (actualEnd < actualStart) {
+      actualDurEl.textContent = "Tanggal selesai lebih awal";
+      actualDurEl.style.color = "var(--danger)";
+      actualDurEl.classList.remove("has-value");
+    } else {
+      const dur = daysBetweenInclusive(actualStart, actualEnd);
+      actualDurEl.textContent = `${dur} hari`;
+      actualDurEl.style.color = "";
+      actualDurEl.classList.add("has-value");
+    }
+  } else if (actualStart) {
+    actualDurEl.textContent = "Sedang berjalan";
+    actualDurEl.style.color = "";
+    actualDurEl.classList.add("has-value");
+  } else {
+    actualDurEl.textContent = "Belum ada";
+    actualDurEl.style.color = "";
+    actualDurEl.classList.remove("has-value");
+  }
+}
+function saveItemModal() {
+  const grid = document.getElementById("itemFormGrid");
+  const g = name => grid.querySelector(`[name="${name}"]`).value;
+  const projectStart = state.editingScratch.startDate;
+  const planStart = g("planStart") || null;
+  const planEnd = g("planEnd") || null;
+  const actualStart = g("actualStart") || null;
+  const actualEnd = g("actualEnd") || null;
+
+  // Validation
+  if (!g("name").trim()) { showToast("Nama pekerjaan wajib diisi"); return; }
+  if (!planStart || !planEnd) { showToast("Tanggal target mulai & selesai wajib diisi"); return; }
+  if (planEnd < planStart) { showToast("Target selesai tidak boleh lebih awal dari target mulai"); return; }
+  if (actualStart && actualEnd && actualEnd < actualStart) { showToast("Aktual selesai tidak boleh lebih awal dari aktual mulai"); return; }
+  if (projectStart && planStart < projectStart) { showToast("Target mulai lebih awal dari tanggal mulai proyek"); return; }
+
+  const data = {
+    name: g("name").trim(),
+    contractor: g("contractor"),
+    category: normalizedCategory(g("category")),
+    planStart, planEnd, actualStart, actualEnd,
+    weight: num(g("weight")),
+    planPercent: clamp(num(g("planPercent")), 0, 100),
+    actualPercent: clamp(num(g("actualPercent")), 0, 100)
+  };
+  // Compute legacy day fields for rendering
+  data.startDay = Math.max(1, daysFromProjectStart(planStart, projectStart) || 1);
+  data.duration = daysBetweenInclusive(planStart, planEnd);
+
+  if (state.editingItemId) {
+    const it = state.editingScratch.items.find(x => x.id === state.editingItemId);
+    Object.assign(it, data);
+    showToast("Perubahan disimpan");
+  } else {
+    state.editingScratch.items.push({ id: uid(), ...data });
+    showToast("Pekerjaan ditambahkan");
+  }
+  document.getElementById("itemModal").classList.remove("open");
+  renderEditItemsTable();
+}
+
+/* ═════════════════════════════════════════════════════
+   SAVE PROJECT (from edit view)
+   ═════════════════════════════════════════════════════ */
+function readProjectForm() {
+  const s = state.editingScratch;
+  s.name = document.getElementById("editName").value.trim();
+  s.location = document.getElementById("editLocation").value.trim();
+  s.startDate = document.getElementById("editStart").value;
+  s.duration = Math.max(1, parseInt(document.getElementById("editDuration").value) || 1);
+  /* today otomatis dari tanggal berjalan — tidak diinput manual */
+  document.querySelectorAll("[data-team-edit]").forEach(el => {
+    s.team[el.getAttribute("data-team-edit")] = el.value.trim();
+  });
+}
+function saveProject() {
+  readProjectForm();
+  const s = state.editingScratch;
+  if (!s.name) { showToast("Nama proyek wajib diisi"); return; }
+  if (!s.startDate) { showToast("Tanggal mulai wajib diisi"); return; }
+
+  // Ensure all items have consistent date + day fields relative to (possibly new) project start
+  s.items.forEach(it => {
+    backfillItemDates(it, s.startDate);
+    recomputeItemDayFields(it, s.startDate);
+  });
+
+  if (state.editingProjectId) {
+    const idx = state.projects.findIndex(x => x.id === state.editingProjectId);
+    if (idx >= 0) state.projects[idx] = s;
+    showToast("Proyek diperbarui");
+    navigate("project", s.id);
+  } else {
+    state.projects.push(s);
+    showToast("Proyek baru ditambahkan");
+    navigate("project", s.id);
+  }
+  state.editingScratch = null;
+  state.editingProjectId = null;
+  saveProjects();
+}
+
+/* ═════════════════════════════════════════════════════
+   PHOTO UPLOAD
+   ═════════════════════════════════════════════════════ */
+function handlePhotoUpload(files) {
+  const p = state.projects.find(x => x.id === state.currentProjectId);
+  if (!p) return;
+  const list = Array.from(files);
+  if (!list.length) return;
+
+  let processed = 0;
+  const today = new Date().toISOString().slice(0, 10);
+  list.forEach(file => {
+    if (!file.type.startsWith("image/")) { processed++; return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      p.photos.push({
+        id: uid(),
+        src: e.target.result,
+        caption: file.name.replace(/\.[^.]+$/, ""),
+        date: today
+      });
+      processed++;
+      if (processed === list.length) {
+        saveProjects();
+        renderPhotos(p);
+        showToast(list.length === 1 ? "Foto ditambahkan" : list.length + " foto ditambahkan");
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ═════════════════════════════════════════════════════
+   DELETE PROJECT
+   ═════════════════════════════════════════════════════ */
+function deleteCurrentProject() {
+  const p = state.projects.find(x => x.id === state.currentProjectId);
+  if (!p) return;
+  if (!confirm(`Hapus proyek "${p.name}"? Tindakan ini tidak dapat dibatalkan.`)) return;
+  state.projects = state.projects.filter(x => x.id !== state.currentProjectId);
+  saveProjects();
+  showToast("Proyek dihapus");
+  navigate("dashboard");
+}
+
+/* ═════════════════════════════════════════════════════
+   IMPORT / EXPORT
+   ═════════════════════════════════════════════════════ */
+function exportAll() {
+  const payload = { projects: state.projects, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `gantt_portfolio_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Data diekspor");
+}
+function importAll(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      // Support both new format (with .projects) and legacy single-project format
+      const normalizeItem = (x, projectStart) => {
+        const it = { ...x, id: x.id || uid(), category: normalizedCategory(x.category) };
+        backfillItemDates(it, projectStart);
+        recomputeItemDayFields(it, projectStart);
+        return it;
+      };
+      if (parsed.projects && Array.isArray(parsed.projects)) {
+        state.projects = parsed.projects.map(p => ({
+          ...p,
+          id: p.id || uid(),
+          items: (p.items || []).map(x => normalizeItem(x, p.startDate)),
+          photos: (p.photos || []).map(x => ({ ...x, id: x.id || uid() }))
+        }));
+      } else if (parsed.project && parsed.items) {
+        const startDate = (parsed.project && parsed.project.startDate) || new Date().toISOString().slice(0, 10);
+        state.projects = [{
+          id: uid(),
+          ...parsed.project,
+          team: parsed.team || {},
+          items: parsed.items.map(x => normalizeItem(x, startDate)),
+          photos: []
+        }];
+      } else throw new Error("format tidak dikenali");
+      saveProjects();
+      navigate("dashboard");
+      showToast("Data berhasil diimpor");
+    } catch (err) {
+      showToast("Gagal impor: " + err.message);
+    }
+  };
+  r.readAsText(file);
+}
+
+/* ═════════════════════════════════════════════════════
+   EVENT WIRING
+   ═════════════════════════════════════════════════════ */
+function wireEvents() {
+  // Brand → dashboard
+  document.getElementById("brandBtn").addEventListener("click", () => navigate("dashboard"));
+  document.getElementById("portfolioPill").addEventListener("click", () => navigate("dashboard"));
+
+  // Dashboard: add schedule
+  document.getElementById("addScheduleBtn").addEventListener("click", startNewProject);
+
+  // Project detail buttons
+  document.getElementById("backToDashBtn").addEventListener("click", () => navigate("dashboard"));
+  document.getElementById("editProjectBtn").addEventListener("click", () => startEditProject(state.currentProjectId));
+  document.getElementById("deleteProjectBtn").addEventListener("click", deleteCurrentProject);
+
+  // Scale switcher
+  document.getElementById("scaleSwitch").querySelectorAll("button").forEach(b => {
+    b.addEventListener("click", () => {
+      state.ganttScale = b.getAttribute("data-scale");
+      document.getElementById("scaleSwitch").querySelectorAll("button").forEach(bb => bb.classList.toggle("active", bb === b));
+      const p = state.projects.find(x => x.id === state.currentProjectId);
+      if (p) renderGantt(p);
+    });
+  });
+
+  // Photos
+  document.getElementById("addPhotoBtn").addEventListener("click", () => document.getElementById("photoInput").click());
+  document.getElementById("photoInput").addEventListener("change", e => {
+    if (e.target.files.length) handlePhotoUpload(e.target.files);
+    e.target.value = "";
+  });
+
+  // Edit view
+  document.getElementById("editCancelBtn").addEventListener("click", () => {
+    if (state.editingProjectId) navigate("project", state.editingProjectId);
+    else navigate("dashboard");
+    state.editingScratch = null;
+    state.editingProjectId = null;
+  });
+  document.getElementById("editSaveBtn").addEventListener("click", saveProject);
+  document.getElementById("editAddItemBtn").addEventListener("click", () => {
+    readProjectForm(); // capture any project field changes first
+    openItemModal(null);
+  });
+
+  // Item modal
+  document.getElementById("itemModalSave").addEventListener("click", saveItemModal);
+  document.getElementById("itemModalCancel").addEventListener("click", () => document.getElementById("itemModal").classList.remove("open"));
+  document.getElementById("itemModalClose").addEventListener("click", () => document.getElementById("itemModal").classList.remove("open"));
+  document.getElementById("itemModal").addEventListener("click", e => {
+    if (e.target.id === "itemModal") document.getElementById("itemModal").classList.remove("open");
+  });
+  document.getElementById("itemFormGrid").addEventListener("keydown", e => {
+    if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.type !== "date") { e.preventDefault(); saveItemModal(); }
+  });
+  // Live duration update when dates change
+  ["planStart", "planEnd", "actualStart", "actualEnd"].forEach(name => {
+    document.getElementById("itemFormGrid").querySelector(`[name="${name}"]`).addEventListener("change", updateDurationDisplays);
+    document.getElementById("itemFormGrid").querySelector(`[name="${name}"]`).addEventListener("input", updateDurationDisplays);
+  });
+
+  // Bar modal
+  document.getElementById("barModalClose").addEventListener("click", () => document.getElementById("barModal").classList.remove("open"));
+  document.getElementById("barModal").addEventListener("click", e => {
+    if (e.target.id === "barModal") document.getElementById("barModal").classList.remove("open");
+  });
+
+  // Lightbox
+  document.getElementById("lightboxClose").addEventListener("click", () => document.getElementById("lightbox").classList.remove("open"));
+  document.getElementById("lightbox").addEventListener("click", e => {
+    if (e.target.id === "lightbox") document.getElementById("lightbox").classList.remove("open");
+  });
+
+  // Global Escape closes modals/lightbox
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+      document.getElementById("barModal").classList.remove("open");
+      document.getElementById("itemModal").classList.remove("open");
+      document.getElementById("lightbox").classList.remove("open");
+    }
+  });
+
+  // Sample loader
+  document.getElementById("loadSampleBtn").addEventListener("click", () => {
+    if (state.projects.length && !confirm("Ganti semua data saat ini dengan data contoh?")) return;
+    state.projects = buildSample();
+    saveProjects();
+    navigate("dashboard");
+    showToast("Data contoh dimuat");
+  });
+
+  // Import / Export
+  document.getElementById("exportBtn").addEventListener("click", exportAll);
+  document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFile").click());
+  document.getElementById("importFile").addEventListener("change", e => {
+    const f = e.target.files[0];
+    if (f) importAll(f);
+    e.target.value = "";
+  });
+}
+
+/* ═════════════════════════════════════════════════════
+   BOOT
+   ═════════════════════════════════════════════════════ */
+function init() {
+  state.projects = loadProjects() || buildSample();
+  wireEvents();
+  navigate("dashboard");
+  pushToParent();
+}
+init();
+</script>
+</body>
+</html>
