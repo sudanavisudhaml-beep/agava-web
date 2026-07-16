@@ -4,6 +4,10 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AGAVA · Astra General Affairs Virtual Assistant</title>
+<!-- Favicon: simbol "A" AGAVA (chevron) di kepingan kaca gradasi electric→turquoise -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2300c6fb'/%3E%3Cstop offset='.55' stop-color='%230a7cff'/%3E%3Cstop offset='1' stop-color='%230059e8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Cpath d='M15 46 L32 17 L49 46' fill='none' stroke='%23fff' stroke-width='6.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M23.5 39.5 H40.5' stroke='%23fff' stroke-width='5' stroke-linecap='round' opacity='.9'/%3E%3C/svg%3E"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2300c6fb'/%3E%3Cstop offset='.55' stop-color='%230a7cff'/%3E%3Cstop offset='1' stop-color='%230059e8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Cpath d='M15 46 L32 17 L49 46' fill='none' stroke='%23fff' stroke-width='6.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M23.5 39.5 H40.5' stroke='%23fff' stroke-width='5' stroke-linecap='round' opacity='.9'/%3E%3C/svg%3E"/>
+<meta name="theme-color" content="#0a7cff"/>
 <style>
 :root{
   --navy:#0b2546; --navy2:#08203c; --ink:#0f2036; --text:#23344a; --muted:#6b7a90;
@@ -292,6 +296,25 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .rb-room2.space rect{fill:#eef1f5;stroke:#b6c0cd;stroke-width:1.4;cursor:default}
 .rb-room2.space .rb-codebig{fill:#7d8a9a;font-size:15px}
 .rb-room2.space:hover rect{stroke-width:1.4}
+/* ===== AGAVA DATA ENGINE — zona master data ===== */
+.db-zone{margin-top:22px;padding:16px 16px 6px;border-radius:20px;
+  background:linear-gradient(135deg,rgba(0,198,251,.10),rgba(10,124,255,.06) 55%,rgba(0,208,212,.10));
+  border:1.5px solid rgba(10,124,255,.24);backdrop-filter:blur(10px) saturate(1.3);-webkit-backdrop-filter:blur(10px) saturate(1.3)}
+.db-zone-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.db-zone-badge{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);color:#fff;font-size:11px;font-weight:800;
+  letter-spacing:.06em;padding:6px 13px;border-radius:20px;white-space:nowrap;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 4px 12px rgba(10,124,255,.28)}
+.db-panel{margin-bottom:12px}
+.db-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.db-wrap{overflow-x:auto}
+.db-tbl{width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px}
+.db-tbl th{text-align:left;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);
+  font-weight:700;padding:8px 10px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+.db-tbl td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle}
+.db-tbl tbody tr{transition:.12s}
+.db-tbl tbody tr:hover{background:rgba(10,124,255,.06)}
+.db-tbl td.db-act{text-align:right;white-space:nowrap}
+.btn-act.btn-mini{padding:6px 12px;font-size:12px}
 /* ===== Project Development — timeline app (iframe) ===== */
 .pj-frame-wrap{border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.72);
   box-shadow:0 12px 34px rgba(20,40,80,.10),inset 0 1px 0 rgba(255,255,255,.85);background:rgba(255,255,255,.35)}
@@ -2075,7 +2098,8 @@ function gacalPermitsHTML(){
  const over=IZIN_OPS.filter(z=>izinStatus(z.due).k==='overdue');
  const watch=over.concat(near).sort((a,b)=>a.due.localeCompare(b.due));
  return `<div class="gc-permits">
-   <div class="gc-perm-h">📄 Izin Operasional <span>K3 kebakaran · Lift · Genset · Listrik · dll · ${IZIN_OPS.length} izin</span></div>
+   <div class="gc-perm-h">📄 Izin Operasional <span>K3 kebakaran · Lift · Genset · Listrik · dll · ${IZIN_OPS.length} izin</span>
+     ${dbCanEdit()?`<button class="btn-act btn-mini" style="margin-left:auto" onclick="dbOpenForm('izinops')">＋ Tambah Izin</button>`:''}</div>
    <div class="gc-perm-stat">
      <div class="gc-ps ok"><b>${ok}</b><span>✅ Done / Aktif</span></div>
      <div class="gc-ps near"><b>${near.length}</b><span>🟠 Near overdue (≤90 hari)</span></div>
@@ -3277,6 +3301,12 @@ function renderBuilding(){
 
   <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>BM Tickets Unresolved &gt; 1 Month</h2><div class="d">${bmStale.length} open tickets — from Service ticket data</div></div></div>
     <div class="sec-body">${bmStale.length?bmStale.map(t=>`<div class="trow"><div><div class="tj"><b>${t.no}</b> · ${t.judul}</div><div class="tm">${t.lokasi} · ${t.status} · opened ${t.created}</div></div><span class="badge bd-crit">${ticketAge(t.created)} days</span></div>`).join(""):'<div class="muted small" style="padding:8px 0">No BM tickets open &gt; 1 month. 👍</div>'}</div>
+  </div>
+
+  <div class="db-zone">
+    <div class="db-zone-h"><span class="db-zone-badge">🗄️ MASTER DATA · INPUT LANGSUNG DI AGAVA</span>
+      <span class="muted small">Pekerjaan perbaikan & status work permit-nya diinput di sini — langsung tampil di CODEC.</span></div>
+    ${dbPanel("works","status permit ikut menghitung Work Permit di CODEC")}
   </div>`;
 }
 
@@ -3935,6 +3965,152 @@ const IZIN=[
  {name:"Fire System Certificate",site:"ABC BSD",due:"2026-07-15"},
  {name:"Building Permit (PBG)",site:"MA",due:"2026-12-01"}
 ];
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  AGAVA DATA ENGINE — AGAVA ADALAH SUMBER DATA (bukan Excel/SharePoint)   ║
+   ║  Prinsip: Excel/SharePoint hanya BAYANGAN untuk menjalankan flow otomasi; ║
+   ║  kebenaran ada di AGAVA. Daftarkan dataset di DB_SETS → tombol, form,     ║
+   ║  tabel, validasi, penyimpanan & pengiriman ke Power Automate terbentuk    ║
+   ║  otomatis. Menambah master data baru = menambah 1 entri, bukan menulis UI.║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const DB_STORE="agava_db_v1";
+const SITE_OPTS=["AMDI","Menara Astra","ABC BSD","ABC Bandung","Tower","AIHO"];
+const DB_SETS={
+ stnk:{ label:"STNK Kendaraan", ic:"🚗", get:()=>STNK, render:()=>{renderReminder();renderOverview();},
+   fields:[{k:"plate",l:"Nomor Polisi",t:"text",req:1,ph:"B 1234 ABC"},
+           {k:"unit",l:"Unit / Peruntukan",t:"text",req:1,ph:"GA Pool Car"},
+           {k:"due",l:"Jatuh tempo STNK",t:"date",req:1}],
+   cols:[["plate","Nomor Polisi"],["unit","Unit"],["due","Jatuh tempo"]] },
+ pbb:{ label:"PBB — Pajak Bumi & Bangunan", ic:"🏠", get:()=>PBB, render:()=>{renderReminder();renderOverview();},
+   fields:[{k:"obj",l:"Objek Pajak",t:"text",req:1,ph:"AMDI Sunter"},
+           {k:"note",l:"Keterangan",t:"text",ph:"Land & building"},
+           {k:"due",l:"Jatuh tempo",t:"date",req:1}],
+   cols:[["obj","Objek Pajak"],["note","Keterangan"],["due","Jatuh tempo"]] },
+ izin:{ label:"Perizinan — Dokumen Legal", ic:"📄", get:()=>IZIN, render:()=>{renderReminder();renderOverview();},
+   fields:[{k:"name",l:"Nama Izin",t:"text",req:1,ph:"Genset Operation Permit"},
+           {k:"site",l:"Lokasi / Site",t:"select",opts:SITE_OPTS,req:1},
+           {k:"due",l:"Jatuh tempo",t:"date",req:1}],
+   cols:[["name","Nama Izin"],["site","Site"],["due","Jatuh tempo"]] },
+ izinops:{ label:"Izin Operasional", ic:"🔧", get:()=>IZIN_OPS, render:()=>{renderGACal();renderOverview();},
+   fields:[{k:"name",l:"Nama Izin Operasional",t:"text",req:1,ph:"Izin Operasional Lift (SLO)"},
+           {k:"site",l:"Lokasi / Site",t:"select",opts:SITE_OPTS,req:1},
+           {k:"due",l:"Jatuh tempo",t:"date",req:1}],
+   cols:[["name","Nama Izin"],["site","Site"],["due","Jatuh tempo"]] },
+ works:{ label:"Repair Work in Progress", ic:"🔨", get:()=>WORKS, render:()=>{renderBuilding();renderOverview();},
+   fields:[{k:"job",l:"Pekerjaan",t:"text",req:1,ph:"AHU Cleaning — Floor 5A"},
+           {k:"pt",l:"Vendor / PT pelaksana",t:"text",req:1},
+           {k:"orang",l:"Jumlah pekerja",t:"number",req:1},
+           {k:"izin",l:"Work Permit sudah OK?",t:"select",opts:["Ya","Belum"],req:1}],
+   cols:[["job","Pekerjaan"],["pt","Vendor"],["orang","Orang"],["izin","Permit"]],
+   in:o=>{ o.orang=+o.orang||0; o.izin=(o.izin==="Ya"); return o; },
+   out:o=>Object.assign({},o,{izin:o.izin?"Ya":"Belum"}),
+   fmt:(k,v)=>k==="izin"?(v?'<span class="badge bd-ok">OK</span>':'<span class="badge bd-crit">PENDING</span>'):v },
+ contracts:{ label:"Kontrak Vendor", ic:"🏢", get:()=>VENDOR_CONTRACTS, render:()=>{renderVendor();renderOverview();},
+   fields:[{k:"vendor",l:"Nama Vendor",t:"text",req:1},
+           {k:"scope",l:"Lingkup Pekerjaan",t:"text",req:1},
+           {k:"site",l:"Site",t:"text",req:1},
+           {k:"start",l:"Mulai kontrak",t:"date",req:1},
+           {k:"end",l:"Akhir kontrak",t:"date",req:1},
+           {k:"value",l:"Nilai kontrak (Rp juta)",t:"number",req:1},
+           {k:"type",l:"Tipe",t:"select",opts:["HK","BM","Other"],req:1},
+           {k:"pic",l:"PIC vendor",t:"text"},
+           {k:"email",l:"Email PIC",t:"text"}],
+   cols:[["vendor","Vendor"],["scope","Lingkup"],["site","Site"],["value","Nilai (jt)"]],
+   in:o=>{ o.value=+o.value||0; if(o.sla===undefined)o.sla=null; return o; } }
+};
+function dbCanEdit(){ return gRole==="admin" || !viewerOnly(); }
+function dbPersist(){
+  try{ const out={}; Object.keys(DB_SETS).forEach(k=>{ out[k]=DB_SETS[k].get(); });
+       localStorage.setItem(DB_STORE, JSON.stringify(out)); }
+  catch(e){ console.warn("AGAVA DB save:",e); }
+}
+function dbLoadAll(){
+  try{ const raw=localStorage.getItem(DB_STORE); if(!raw)return;
+       const d=JSON.parse(raw);
+       Object.keys(DB_SETS).forEach(k=>{ if(Array.isArray(d[k])){ const a=DB_SETS[k].get(); a.length=0; d[k].forEach(x=>a.push(x)); } }); }
+  catch(e){ console.warn("AGAVA DB load:",e); }
+}
+let dbCur={set:null,idx:-1};
+function dbOpenForm(setKey,idx){
+  const S=DB_SETS[setKey]; if(!S)return;
+  if(!dbCanEdit()){ alert("Peran Anda hanya dapat melihat data ini."); return; }
+  const i=(idx==null?-1:idx);
+  const raw=(i>=0)?S.get()[i]:{};
+  const row=(i>=0&&S.out)?S.out(raw):raw;
+  dbCur={set:setKey,idx:i};
+  const body=S.fields.map(fd=>{
+    const v=(row[fd.k]!=null)?String(row[fd.k]):"";
+    let inp;
+    if(fd.t==="select") inp=`<select id="dbf-${fd.k}">${(fd.opts||[]).map(o=>`<option${o===v?" selected":""}>${esc(o)}</option>`).join("")}</select>`;
+    else if(fd.t==="textarea") inp=`<textarea id="dbf-${fd.k}" rows="3">${esc(v)}</textarea>`;
+    else inp=`<input id="dbf-${fd.k}" type="${fd.t||"text"}" value="${esc(v)}" placeholder="${esc(fd.ph||"")}"/>`;
+    return `<div class="field"><label>${esc(fd.l)}${fd.req?' <span style="color:var(--red)">*</span>':""}</label>${inp}</div>`;
+  }).join("");
+  document.getElementById("drawer").innerHTML=`
+   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button>
+     <div style="font-weight:700;color:var(--ink);font-size:16px">${S.ic} ${i>=0?"Ubah":"Tambah"} ${esc(S.label)}</div>
+     <div class="muted small" style="margin-top:4px">Data tersimpan langsung di AGAVA — tidak perlu Excel/SharePoint terpisah</div></div>
+   <div class="db">${body}
+     <div style="display:flex;gap:10px;margin-top:16px">
+       <button class="btn-act" style="flex:1" onclick="dbSaveForm()">💾 Simpan ke AGAVA</button>
+       ${i>=0?`<button class="btn-out" onclick="dbDelete('${setKey}',${i})">🗑 Hapus</button>`:""}
+     </div>
+   </div>`;
+  document.getElementById("ovl").classList.add("show");
+}
+function dbSaveForm(){
+  const S=DB_SETS[dbCur.set]; if(!S)return;
+  const o={};
+  for(const fd of S.fields){
+    const el=document.getElementById("dbf-"+fd.k);
+    const v=el?String(el.value).trim():"";
+    if(fd.req&&!v){ alert("Wajib diisi: "+fd.l); if(el)el.focus(); return; }
+    o[fd.k]=v;
+  }
+  const rec=S.in?S.in(o):o;
+  const arr=S.get();
+  const mode=(dbCur.idx>=0)?"update":"create";
+  if(dbCur.idx>=0) Object.assign(arr[dbCur.idx],rec); else arr.unshift(rec);
+  dbPersist();
+  triggerFlow("dbUpsert",{dataset:dbCur.set,mode:mode,record:rec});   // bayangan ke SharePoint/Excel lewat flow
+  closeDrawer();
+  if(S.render)S.render();
+  updateBell(); buildNav();
+  alert("✅ Tersimpan di AGAVA — "+S.label+(mode==="create"?" (data baru)":" (diperbarui)"));
+}
+function dbDelete(setKey,idx){
+  const S=DB_SETS[setKey]; if(!S)return;
+  if(!dbCanEdit()){ alert("Peran Anda hanya dapat melihat data ini."); return; }
+  if(!confirm("Hapus data ini dari AGAVA?")) return;
+  const rec=S.get()[idx];
+  S.get().splice(idx,1);
+  dbPersist();
+  triggerFlow("dbUpsert",{dataset:setKey,mode:"delete",record:rec});
+  closeDrawer();
+  if(S.render)S.render();
+  updateBell(); buildNav();
+}
+/* Panel master data generik — tabel + tombol tambah/ubah/hapus */
+function dbPanel(setKey,note){
+  const S=DB_SETS[setKey]; if(!S)return"";
+  const arr=S.get(), can=dbCanEdit();
+  const rows=arr.map((r,i)=>{
+    const disp=S.out?S.out(r):r;
+    return `<tr${can?` onclick="dbOpenForm('${setKey}',${i})" style="cursor:pointer"`:""}>${
+      S.cols.map(([k])=>`<td>${S.fmt?S.fmt(k,disp[k]):esc(String(disp[k]==null?"":disp[k]))}</td>`).join("")
+    }<td class="db-act">${can?`<button class="btn-mini" onclick="event.stopPropagation();dbOpenForm('${setKey}',${i})">Ubah</button>`:'<span class="muted small">—</span>'}</td></tr>`;
+  }).join("");
+  return `<div class="card pad db-panel">
+    <div class="db-head">
+      <div><div class="panel-t" style="margin:0">${S.ic} ${esc(S.label)}</div>
+        <div class="muted small">${arr.length} data · <b>sumber: AGAVA</b>${note?" · "+esc(note):""}</div></div>
+      ${can?`<button class="btn-act" onclick="dbOpenForm('${setKey}')">＋ Tambah Data</button>`:'<span class="badge bd-info">view only</span>'}
+    </div>
+    <div class="db-wrap"><table class="db-tbl">
+      <thead><tr>${S.cols.map(([,l])=>`<th>${esc(l)}</th>`).join("")}<th style="width:70px"></th></tr></thead>
+      <tbody>${rows||`<tr><td colspan="${S.cols.length+1}" class="muted small" style="text-align:center;padding:22px">Belum ada data — klik <b>＋ Tambah Data</b></td></tr>`}</tbody>
+    </table></div>
+  </div>`;
+}
 function dueStatus(due){ const d=Math.floor((new Date(due)-new Date(TODAY_STR))/86400000);
  if(d<0) return {cls:"bd-crit",txt:"Overdue "+Math.abs(d)+"d"};
  if(d<=30) return {cls:"bd-warn",txt:"Due in "+d+"d"};
@@ -3984,6 +4160,14 @@ function renderReminder(){
       <div class="sec-body">${PBB.map(p=>dueRow(p.obj,p.note,p.due)).join("")}</div></div>
     <div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','reminder')}<div><h2>📄 Permits</h2><div class="d">${IZIN.length} permits</div></div></div>
       <div class="sec-body">${IZIN.map(z=>dueRow(z.name,z.site,z.due)).join("")}</div></div>
+  </div>
+
+  <div class="db-zone">
+    <div class="db-zone-h"><span class="db-zone-badge">🗄️ MASTER DATA · INPUT LANGSUNG DI AGAVA</span>
+      <span class="muted small">AGAVA adalah sumber datanya. Excel/SharePoint hanya bayangan untuk menjalankan flow — bukan tempat mengetik data.</span></div>
+    ${dbPanel("stnk","hitung mundur & status jatuh tempo dihitung otomatis")}
+    ${dbPanel("pbb")}
+    ${dbPanel("izin","tampil juga di CODEC → Permit")}
   </div>`;
 }
 
@@ -4527,7 +4711,7 @@ function renderPayment(){
      Bridge (saved to localStorage). URL set → real POST; empty → local sim.
      (HTTP-trigger flow = Premium connector.) */
 const FLOW={
-  endpoints:{ createTicket:"", updateTicket:"", createSO:"", advanceSO:"", sendSPK:"", sendBAST:"" },
+  endpoints:{ createTicket:"", updateTicket:"", createSO:"", advanceSO:"", sendSPK:"", sendBAST:"", dbUpsert:"", workPermit:"" },
   log:[]
 };
 function loadFlowConfig(){ try{ const s=localStorage.getItem('agava_flow_endpoints'); if(s){ const o=JSON.parse(s); Object.keys(FLOW.endpoints).forEach(k=>{ if(typeof o[k]==="string")FLOW.endpoints[k]=o[k]; }); } }catch(e){} }
@@ -4616,7 +4800,7 @@ function ctStatusBadge(st){ return st==="Active"?'<span class="badge bd-ok">Acti
 function renderVendor(){
  const el=document.getElementById("page-vendor"); if(!el)return;
  const b=vendorBudget();
- const FLOWLIST=[['createTicket','Create Ticket (Service)'],['updateTicket','Update Ticket (Service)'],['createSO','Create SO (Procurement)'],['advanceSO','Advance SO stage'],['sendSPK','Send SPK email'],['sendBAST','Send BAST email']];
+ const FLOWLIST=[['createTicket','Create Ticket (Service)'],['updateTicket','Update Ticket (Service)'],['createSO','Create SO (Procurement)'],['advanceSO','Advance SO stage'],['sendSPK','Send SPK email'],['sendBAST','Send BAST email'],['dbUpsert','Master Data → SharePoint (bayangan)'],['workPermit','Work Permit (internal & QR)']];
  const esc=u=>String(u||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
  const bridge=`<div class="card pad" style="margin-top:18px">
    <div class="panel-t">🔗 Power Automate Bridge <span class="badge ${Object.values(FLOW.endpoints).some(Boolean)?'bd-ok':'bd-info'}" style="margin-left:6px">${Object.values(FLOW.endpoints).filter(Boolean).length} connected</span></div>
@@ -4652,6 +4836,11 @@ function renderVendor(){
         <div>${viewerOnly()?'':`<button class="btn-out" style="padding:6px 10px;font-size:12px" onclick="openSLA(${i})">SLA Form</button>`}</div>
       </div>`;
     }).join("")}</div>
+  </div>
+  <div class="db-zone">
+    <div class="db-zone-h"><span class="db-zone-badge">🗄️ MASTER DATA · INPUT LANGSUNG DI AGAVA</span>
+      <span class="muted small">Kontrak vendor didaftarkan di sini — nilai & periode langsung terpakai di kartu atas dan KPI CODEC.</span></div>
+    ${dbPanel("contracts","penilaian SLA lewat tombol SLA Form di atas")}
   </div>
   ${bridge}`;
 }
@@ -4863,7 +5052,116 @@ function renderHSE(){
         <div>${p.uji||'—'}<div style="margin-top:3px">${permitBadge(st)}</div></div>
         <div class="muted small">${rupShort(p.harga)}</div>
       </div>`; }).join("")}</div>
+  </div>
+  ${wpPanelHTML()}`;
+}
+
+/* ╔═══════════════════════════════════════════════════════════════════╗
+   ║  WORK PERMIT — diajukan langsung di AGAVA, ATAU dari luar via QR   ║
+   ║  Pengajuan eksternal (vendor/kontraktor) memakai halaman wp.html   ║
+   ║  yang menulis ke database Firebase yang SAMA — bukan Excel kiriman.║
+   ╚═══════════════════════════════════════════════════════════════════╝ */
+let WORK_PERMITS=[
+ {no:"WP-202607-0001",judul:"Penggantian kompresor AC — Lt.6",vendor:"PT Mekar Jaya",pic:"Andi",pekerja:4,lokasi:"AMDI",mulai:"2026-07-18",selesai:"2026-07-19",risiko:"Sedang",jenis:"Pekerjaan Panas (Hot Work)",status:"Menunggu Review",src:"internal",created:"2026-07-16"},
+ {no:"WP-202607-0002",judul:"Pembersihan fasad gondola sisi utara",vendor:"PT ISS Indonesia",pic:"Uhen",pekerja:6,lokasi:"Menara Astra",mulai:"2026-07-20",selesai:"2026-07-24",risiko:"Tinggi",jenis:"Bekerja di Ketinggian",status:"Disetujui",src:"qr",created:"2026-07-15"}
+];
+const WP_JENIS=["Pekerjaan Umum","Pekerjaan Panas (Hot Work)","Bekerja di Ketinggian","Ruang Terbatas (Confined Space)","Pekerjaan Listrik","Penggalian"];
+const WP_RISIKO=["Rendah","Sedang","Tinggi"];
+function wpSeq(){ return "WP-"+new Date().toISOString().slice(0,7).replace("-","")+"-"+String(1+WORK_PERMITS.length).padStart(4,"0"); }
+function wpBadge(s){ return s==="Disetujui"?'<span class="badge bd-ok">Disetujui</span>':s==="Ditolak"?'<span class="badge bd-crit">Ditolak</span>':'<span class="badge bd-warn">Menunggu Review</span>'; }
+function wpPersist(){ try{ localStorage.setItem("agava_wp_v1",JSON.stringify(WORK_PERMITS)); }catch(e){} }
+function wpLoad(){ try{ const r=localStorage.getItem("agava_wp_v1"); if(r){ const a=JSON.parse(r); if(Array.isArray(a)&&a.length){ WORK_PERMITS.length=0; a.forEach(x=>WORK_PERMITS.push(x)); } } }catch(e){} }
+function wpUrl(){ return location.href.replace(/[^/]*$/,"") + "wp.html"; }
+function wpPanelHTML(){
+  const pend=WORK_PERMITS.filter(w=>w.status==="Menunggu Review").length;
+  const can=dbCanEdit();
+  return `<div class="db-zone">
+    <div class="db-zone-h"><span class="db-zone-badge">🦺 WORK PERMIT · DIAJUKAN LANGSUNG DI AGAVA</span>
+      <span class="muted small">Internal lewat tombol di bawah; vendor/eksternal lewat QR — keduanya masuk ke database AGAVA yang sama.</span></div>
+    <div class="card pad db-panel">
+      <div class="db-head">
+        <div><div class="panel-t" style="margin:0">🦺 Pengajuan Work Permit</div>
+          <div class="muted small">${WORK_PERMITS.length} pengajuan · <b>${pend} menunggu review</b> · sumber: AGAVA</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-out" onclick="wpShowQR()">📱 QR untuk Eksternal</button>
+          ${can?`<button class="btn-act" onclick="wpOpenForm()">＋ Ajukan Work Permit</button>`:''}
+        </div>
+      </div>
+      <div class="db-wrap"><table class="db-tbl">
+        <thead><tr><th>No / Pekerjaan</th><th>Vendor · PIC</th><th>Lokasi</th><th>Jadwal</th><th>Jenis · Risiko</th><th>Status</th><th style="width:120px"></th></tr></thead>
+        <tbody>${WORK_PERMITS.map((w,i)=>`<tr>
+          <td><b>${esc(w.no)}</b><div class="muted small">${esc(w.judul)}</div></td>
+          <td>${esc(w.vendor)}<div class="muted small">${esc(w.pic||'—')} · ${w.pekerja||0} orang</div></td>
+          <td>${esc(w.lokasi)}</td>
+          <td class="muted small">${fmtDay(w.mulai)} → ${fmtDay(w.selesai)}</td>
+          <td class="muted small">${esc(w.jenis)}<div><span class="badge ${w.risiko==='Tinggi'?'bd-crit':w.risiko==='Sedang'?'bd-warn':'bd-ok'}">${esc(w.risiko)}</span></div></td>
+          <td>${wpBadge(w.status)}${w.src==='qr'?'<div class="muted small">📱 via QR</div>':''}</td>
+          <td class="db-act">${can&&w.status==="Menunggu Review"?`<button class="btn-mini ok" onclick="wpAct(${i},'Disetujui')">Setujui</button> <button class="btn-mini no" onclick="wpAct(${i},'Ditolak')">Tolak</button>`:'<span class="muted small">—</span>'}</td>
+        </tr>`).join("")||`<tr><td colspan="7" class="muted small" style="text-align:center;padding:22px">Belum ada pengajuan.</td></tr>`}</tbody>
+      </table></div>
+    </div>
   </div>`;
+}
+function wpOpenForm(){
+  const f=[["judul","Uraian pekerjaan","text",1],["vendor","Vendor / Pelaksana","text",1],["pic","Nama PIC lapangan","text",1],
+           ["pekerja","Jumlah pekerja","number",1],["lokasi","Lokasi","select",1],["jenis","Jenis pekerjaan","select",1],
+           ["risiko","Tingkat risiko","select",1],["mulai","Mulai","date",1],["selesai","Selesai","date",1]];
+  const inp=f.map(([k,l,t,req])=>{
+    let el;
+    if(t==="select"){ const o=(k==="lokasi")?SITE_OPTS:(k==="jenis")?WP_JENIS:WP_RISIKO; el=`<select id="wp-${k}">${o.map(x=>`<option>${esc(x)}</option>`).join("")}</select>`; }
+    else el=`<input id="wp-${k}" type="${t}"/>`;
+    return `<div class="field"><label>${l}${req?' <span style="color:var(--red)">*</span>':''}</label>${el}</div>`;
+  }).join("");
+  document.getElementById("drawer").innerHTML=`
+   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button>
+     <div style="font-weight:700;color:var(--ink);font-size:16px">🦺 Ajukan Work Permit</div>
+     <div class="muted small" style="margin-top:4px">Tersimpan langsung ke database AGAVA</div></div>
+   <div class="db">${inp}
+     <button class="btn-act" style="width:100%;margin-top:14px" onclick="wpSave()">💾 Ajukan ke AGAVA</button></div>`;
+  document.getElementById("ovl").classList.add("show");
+}
+function wpSave(){
+  const g=k=>{const e=document.getElementById("wp-"+k); return e?String(e.value).trim():"";};
+  for(const k of ["judul","vendor","pic","pekerja","mulai","selesai"]) if(!g(k)){ alert("Lengkapi dulu semua kolom wajib."); return; }
+  if(g("selesai")<g("mulai")){ alert("Tanggal selesai tidak boleh lebih awal dari mulai."); return; }
+  const rec={no:wpSeq(),judul:g("judul"),vendor:g("vendor"),pic:g("pic"),pekerja:+g("pekerja")||0,lokasi:g("lokasi"),
+             jenis:g("jenis"),risiko:g("risiko"),mulai:g("mulai"),selesai:g("selesai"),
+             status:"Menunggu Review",src:"internal",created:TODAY_STR};
+  WORK_PERMITS.unshift(rec); wpPersist();
+  wpDbSave(rec);
+  triggerFlow("workPermit",{mode:"create",record:rec});
+  closeDrawer(); renderHSE(); renderOverview();
+  alert("✅ Work Permit "+rec.no+" diajukan — menunggu review.");
+}
+function wpAct(i,st){
+  const w=WORK_PERMITS[i]; if(!w)return;
+  w.status=st; w.reviewedBy=gUser?gUser.name:""; w.reviewedAt=TODAY_STR;
+  wpPersist(); wpDbSave(w);
+  triggerFlow("workPermit",{mode:"review",record:w});
+  renderHSE(); renderOverview();
+  alert((st==="Disetujui"?"✅ ":"⛔ ")+w.no+" — "+st);
+}
+/* Firestore: pengajuan dari luar (QR) & internal disimpan di koleksi yang sama */
+function wpDbSave(w){ if(!AGDB.on||!AGDB.db||!w||!w.no)return; try{ AGDB.db.collection("agava_workpermits").doc(String(w.no)).set(JSON.parse(JSON.stringify(w)),{merge:true}); }catch(e){ console.warn("WP save:",e); } }
+function wpShowQR(){
+  const url=wpUrl();
+  const qr="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data="+encodeURIComponent(url);
+  document.getElementById("drawer").innerHTML=`
+   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button>
+     <div style="font-weight:700;color:var(--ink);font-size:16px">📱 QR Pengajuan Work Permit</div>
+     <div class="muted small" style="margin-top:4px">Tempel di lobby / pos security / kirim ke vendor</div></div>
+   <div class="db" style="text-align:center">
+     <div style="background:#fff;display:inline-block;padding:14px;border-radius:16px;border:1px solid var(--line);box-shadow:0 6px 18px rgba(20,40,80,.10)">
+       <img src="${qr}" alt="QR Work Permit" width="230" height="230" style="display:block"/>
+     </div>
+     <div class="muted small" style="margin:14px 0 6px">Atau bagikan tautan ini:</div>
+     <input value="${esc(url)}" readonly onclick="this.select()" style="text-align:center"/>
+     <div class="card pad" style="margin-top:16px;text-align:left;background:#f4f8ff">
+       <b style="font-size:13px;color:var(--ink)">Cara kerjanya</b>
+       <div class="muted small" style="margin-top:6px;line-height:1.6">Vendor memindai QR → mengisi form di HP-nya → pengajuan <b>langsung masuk ke database AGAVA</b> dan muncul di daftar ini dengan tanda 📱 via QR. Tidak ada Excel yang dikirim, tidak ada data yang diketik ulang.</div>
+     </div>
+   </div>`;
+  document.getElementById("ovl").classList.add("show");
 }
 
 /* ===================== LIVE DATA — local Excel auto-sync =====================
@@ -4981,7 +5279,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.10-14";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.17-1";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -5007,11 +5305,23 @@ function dbInit(){
     });
     if(changed){ renderService(); renderOverview(); renderBuilding(); updateBell(); }
   },err=>{ AGDB.on=false; dbPill("Database: rules tertutup — mode lokal",false); console.warn("AGDB rules/err:",err&&err.code); });
+  /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
+  AGDB.db.collection("agava_workpermits").limit(300).onSnapshot(snap=>{
+    let ch2=false;
+    snap.docChanges().forEach(ch=>{
+      const d=ch.doc.data(); d.no=d.no||ch.doc.id;
+      const i=WORK_PERMITS.findIndex(w=>w.no===d.no);
+      if(ch.type==="removed"){ if(i>=0){WORK_PERMITS.splice(i,1);ch2=true;} }
+      else if(i>=0){ Object.assign(WORK_PERMITS[i],d); ch2=true; }
+      else { WORK_PERMITS.unshift(d); ch2=true; }
+    });
+    if(ch2){ wpPersist(); try{ renderHSE(); }catch(e){} }
+  },err=>{ console.warn("WP rules/err:",err&&err.code); });
  }catch(e){ dbPill("Database: offline — mode lokal",false); console.warn("AGDB init:",e); }
 }
 function dbSaveTicket(t){ if(!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
 
-loadFlowConfig();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();
+loadFlowConfig();dbLoadAll();wpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();
 </script>
 </body>
 </html>
