@@ -2,7 +2,7 @@
   "_petunjuk": "ISI ANGKA NYATA DI SINI. Semua angka di kartu CODEC & modul ditarik dari file ini. Simpan file, refresh AGAVA (Ctrl+Shift+R) — angka langsung berubah. JANGAN hapus tanda kutip & koma. Baris yang diawali _ hanya catatan, boleh diabaikan.",
 
   "_today": "TANGGAL ACUAN AGAVA — dipakai SEMUA modul untuk menghitung jatuh tempo, overdue, 'hari ini', dan garis hari di gantt chart. Kosongkan (\"\") agar AGAVA mengikuti tanggal nyata dan bergerak sendiri tiap hari — ini yang benar begitu data nyata sudah masuk. Isi tanggal (\"2026-06-18\") untuk MEMATOK, berguna saat demo dengan data contoh yang bertanggal Juni. Bila dipatok, AGAVA menandai 'mode demo' di Vendor > Sumber Data supaya tidak menyesatkan.",
-  "today": "2026-06-18",
+  "today": "",
 
   "_budget": "Persentase budget yang SUDAH KELUAR (0-100). Tampil di CODEC > Budget. Hanya persen, tanpa rupiah.",
   "budget": { "opex": 68, "capex": 54 },
