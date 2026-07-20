@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AGAVA · Astra General Affairs Virtual Assistant</title>
 <!-- Favicon: simbol "A" AGAVA (chevron) di kepingan kaca gradasi electric→turquoise -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2300c6fb'/%3E%3Cstop offset='.55' stop-color='%230a7cff'/%3E%3Cstop offset='1' stop-color='%230059e8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Cpath d='M15 46 L32 17 L49 46' fill='none' stroke='%23fff' stroke-width='6.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M23.5 39.5 H40.5' stroke='%23fff' stroke-width='5' stroke-linecap='round' opacity='.9'/%3E%3C/svg%3E"/>
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2300c6fb'/%3E%3Cstop offset='.55' stop-color='%230a7cff'/%3E%3Cstop offset='1' stop-color='%230059e8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='15' fill='url(%23g)'/%3E%3Cpath d='M15 46 L32 17 L49 46' fill='none' stroke='%23fff' stroke-width='6.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M23.5 39.5 H40.5' stroke='%23fff' stroke-width='5' stroke-linecap='round' opacity='.9'/%3E%3C/svg%3E"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23d9f5fd'/%3E%3Cstop offset='1' stop-color='%23a7e0f5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M15 45 L32 19 L49 45' fill='none' stroke='%230a7cff' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23d9f5fd'/%3E%3Cstop offset='1' stop-color='%23a7e0f5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M15 45 L32 19 L49 45' fill='none' stroke='%230a7cff' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"/>
 <meta name="theme-color" content="#0a7cff"/>
 <style>
 :root{
@@ -725,12 +725,12 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .gc-btns button:disabled{opacity:.35;cursor:default}
 .gc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .gc-dow{font-size:10px;letter-spacing:.5px;color:var(--muted);text-transform:uppercase;text-align:center;padding:5px 0;font-weight:700}
-.gc-cell{min-height:96px;border:1px solid var(--line);border-radius:10px;padding:6px;background:#fbfcfe;overflow:hidden;transition:.12s}
+.gc-cell{min-height:96px;border:1px solid var(--line);border-radius:10px;padding:6px;background:#fff;overflow:hidden;transition:.12s}
 .gc-cell.empty{background:transparent;border-color:transparent}
 .gc-cell[onclick]{cursor:pointer}.gc-cell[onclick]:hover{border-color:var(--blue);box-shadow:0 3px 12px rgba(37,99,235,.1)}
 .gc-cell.today{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}
-.gc-cell.conf{background:#fef5f6;border-color:#f6c9cf}
-.gc-cell.conf.cross{border-color:#f5d894;background:#fefaf0}
+.gc-cell.conf{background:#fff;border-color:#f0c9cf}
+.gc-cell.conf.cross{border-color:#efd794;background:#fff}
 .gc-cn{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .gc-dn{font-size:12px;font-weight:700;color:var(--ink)}
 .gc-cell.today .gc-dn{background:var(--amber);color:#fff;width:20px;height:20px;border-radius:6px;display:grid;place-items:center}
@@ -762,6 +762,9 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .gc-viewseg{margin-left:auto;display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .gc-viewseg button{border:none;background:#fff;color:var(--muted);font-size:12.5px;padding:8px 15px;cursor:pointer;font-family:var(--ff)}
 .gc-viewseg button.on{background:var(--blue-s);color:var(--blue);font-weight:600}
+.gc-yearseg button{font-weight:700;letter-spacing:.02em}
+.gc-yearseg button+button{border-left:1px solid var(--line)}
+.gc-yearseg button.on{background:linear-gradient(135deg,rgba(0,198,251,.18),rgba(10,124,255,.14));color:#0559d6}
 /* GA Calendar — month strip (sticky, Jan–Des) */
 .gc-monthstrip{position:sticky;top:0;z-index:18;background:#fff;display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);margin-bottom:10px;flex-wrap:wrap}
 .gc-mlabel{font-size:16px;font-weight:800;color:var(--ink);white-space:nowrap}
@@ -2295,6 +2298,7 @@ const MEETING_ROOMS=["Mahoni","Ebony","Trembesi","Akasia","Angsana","Auditorium"
 /* Agenda buatan user (Acara Baru) — ikut tampil di kalender & deteksi benturan */
 let GACAL_CUSTOM=[];
 let gacalMonth=5;  /* diinit ke bulan TODAY_STR saat renderGACal pertama (hindari TDZ di top-level) */
+let gacalYear=2026;
 let gacalMonthInit=false;
 let gacalFilters={'event':true,'project':true,'payment':true,'maint':true,'legal':true,'contract':true,'ticket':true};
 /* Semua tanggal penting AGAVA terkumpul di sini — tiap sumber ditandai type (=modul). */
@@ -2331,9 +2335,12 @@ function gacalConflicts(){
  Object.values(byKey).forEach(arr=>{ if(arr.length>1)out.push({kind:'double',date:arr[0].date,loc:arr[0].loc,count:arr.length,events:arr.map(x=>x.title)}); });
  return out.sort((a,b)=>a.date.localeCompare(b.date));
 }
-function gacalSetMonth(delta){ gacalMonth=Math.max(0,Math.min(11,gacalMonth+delta)); renderGACal(); }
+/* Kalender mencakup 2 tahun: 2026 (index bulan 0-11) & 2027 (12-23) */
+const GACAL_Y0=2026, GACAL_Y1=2027;
+function gacalSetMonth(delta){ let idx=(gacalYear-GACAL_Y0)*12+gacalMonth+delta; idx=Math.max(0,Math.min(23,idx)); gacalYear=GACAL_Y0+Math.floor(idx/12); gacalMonth=idx%12; renderGACal(); }
 function gacalGoMonth(i){ gacalMonth=Math.max(0,Math.min(11,i)); renderGACal(); }
-function gacalToday(){ gacalMonth=+TODAY_STR.split('-')[1]-1; renderGACal(); }
+function gacalGoYear(y){ gacalYear=Math.max(GACAL_Y0,Math.min(GACAL_Y1,+y)); renderGACal(); }
+function gacalToday(){ gacalYear=Math.max(GACAL_Y0,Math.min(GACAL_Y1,+TODAY_STR.split('-')[0])); gacalMonth=+TODAY_STR.split('-')[1]-1; renderGACal(); }
 function gacalToggle(k){ gacalFilters[k]=!gacalFilters[k]; renderGACal(); }
 function gacalPermitsHTML(){
  const ok=IZIN_OPS.filter(z=>izinStatus(z.due).k==='ok').length;
@@ -2383,23 +2390,23 @@ function gacalSaveEvent(type){
    const t=type==='project'?'project':type==='event'?'event':'maint';
    GACAL_CUSTOM.push({date:date,type:t,loc:loc,title:title,sub:(loc||'—')+(time?' · '+time:''),src:'CUSTOM'});
  }
- gacalMonth=+date.split('-')[1]-1; gacalMonthInit=true;
+ gacalYear=Math.max(2026,Math.min(2027,+date.split('-')[0])); gacalMonth=+date.split('-')[1]-1; gacalMonthInit=true;
  closeDrawer(); renderGACal();
  alert('✅ "'+title+'" ditambahkan ke GA Calendar ('+fmtDay(date)+').'+(type==='meeting'?'\nJuga tercatat di Room Booking (Service).':''));
 }
 function renderGACal(){
  const el=document.getElementById('page-gacal'); if(!el)return;
- if(!gacalMonthInit){ gacalMonth=+TODAY_STR.split('-')[1]-1; gacalMonthInit=true; }
+ if(!gacalMonthInit){ gacalYear=Math.max(2026,Math.min(2027,+TODAY_STR.split('-')[0])); gacalMonth=+TODAY_STR.split('-')[1]-1; gacalMonthInit=true; }
  if(!window._gcMenuBound){ document.addEventListener('click',ev=>{ const mn=document.getElementById('gcNewMenu'); if(mn&&mn.classList.contains('open')&&!ev.target.closest('.gc-newwrap'))mn.classList.remove('open'); }); window._gcMenuBound=true; }
- const m=gacalMonth, year=2026, all=gacalEvents(), conf=gacalConflicts();
- const ym=year+'-'+String(m+1).padStart(2,'0');   // pembanding sadar-tahun — izin 2027 tidak nyasar ke grid 2026
+ const m=gacalMonth, year=gacalYear, all=gacalEvents(), conf=gacalConflicts();
+ const ym=year+'-'+String(m+1).padStart(2,'0');   // pembanding sadar-tahun — event 2026 & 2027 masuk grid tahunnya masing-masing
  const active=Object.keys(gacalFilters).filter(k=>gacalFilters[k]);
  const evs=all.filter(e=>e.date&&e.date.slice(0,7)===ym&&active.includes(e.type));
  const byDay={}; evs.forEach(e=>{ const d=+e.date.split('-')[2]; (byDay[d]=byDay[d]||[]).push(e); });
  // konflik per tanggal (bulan ini)
  const confDay={}; conf.forEach(c=>{ if(c.date.slice(0,7)===ym){ confDay[+c.date.split('-')[2]]=c.kind; } });
  const first=new Date(year,m,1).getDay(), days=new Date(year,m+1,0).getDate();
- const todayD=(+TODAY_STR.split('-')[1]-1===m)?+TODAY_STR.split('-')[2]:-1;
+ const todayD=(TODAY_STR.slice(0,7)===ym)?+TODAY_STR.split('-')[2]:-1;
  const cnt=t=>evs.filter(e=>e.type===t).length;
  const confMonth=conf.filter(c=>c.date.slice(0,7)===ym);
  const crossN=confMonth.filter(c=>c.kind==='cross').length, dblN=confMonth.filter(c=>c.kind==='double').length;
@@ -2415,11 +2422,11 @@ function renderGACal(){
         <div class="gc-newitem" onclick="gacalOpenCreate('meeting')">▦ <span>Meeting <small>Room Booking · Service</small></span></div>
       </div>
     </div>
-    <button class="gc-navbtn" onclick="gacalSetMonth(-1)" ${m===0?'disabled':''} title="Bulan sebelumnya">‹</button>
-    <button class="gc-navbtn" onclick="gacalSetMonth(1)" ${m===11?'disabled':''} title="Bulan berikutnya">›</button>
+    <button class="gc-navbtn" onclick="gacalSetMonth(-1)" ${(year===2026&&m===0)?'disabled':''} title="Bulan sebelumnya">‹</button>
+    <button class="gc-navbtn" onclick="gacalSetMonth(1)" ${(year===2027&&m===11)?'disabled':''} title="Bulan berikutnya">›</button>
     <button class="gc-todaybtn" onclick="gacalToday()">Hari Ini</button>
-    <div class="gc-m">${GACAL_MON[m]} <small>2026</small></div>
-    <div class="gc-viewseg"><button class="on">Bulan</button></div>
+    <div class="gc-m">${GACAL_MON[m]} <small>${year}</small></div>
+    <div class="gc-viewseg gc-yearseg"><button class="${year===2026?'on':''}" onclick="gacalGoYear(2026)">2026</button><button class="${year===2027?'on':''}" onclick="gacalGoYear(2027)">2027</button></div>
   </div>
   <div class="gc-top">
    <div class="gc-stat"><b>${evs.length}</b><span>agenda ${GACAL_MON[m]}</span></div>
@@ -2436,7 +2443,7 @@ function renderGACal(){
   <div class="gc-filters">${Object.entries(GACAL_TYPES).map(([k,t])=>`<span class="gc-chip ${gacalFilters[k]?'':'off'}" onclick="gacalToggle('${k}')" title="Sumber: modul ${t.mod}"><i style="background:${t.color}"></i>${t.ic} ${t.label} <b>${all.filter(e=>e.type===k&&(e.date||'').slice(0,7)===ym).length}</b></span>`).join('')}
    <span class="gc-hint">Warna & ikon = modul asal · klik tanggal untuk detail</span></div>
   <div class="gc-monthstrip">
-    <div class="gc-mlabel">📅 ${GACAL_MON[m]} <b>2026</b></div>
+    <div class="gc-mlabel">📅 ${GACAL_MON[m]} <b>${year}</b></div>
     <div class="gc-mtabs">${GACAL_MON.map((mm,i)=>`<button class="gc-mtab ${i===m?'on':''}" onclick="gacalGoMonth(${i})">${mm.slice(0,3)}</button>`).join('')}</div>
     <span class="gc-swipehint">‹ geser / klik bulan ›</span>
   </div>
@@ -2448,23 +2455,24 @@ function renderGACal(){
    /* ikon kecil per-modul di tiap tanggal — satu titik berwarna + ikon per modul yang punya agenda hari itu */
    const mods=[...new Set(list.map(e=>e.type))];
    const dots=mods.map(ty=>{const t=GACAL_TYPES[ty];const n=list.filter(e=>e.type===ty).length;return `<span class="gc-dot" style="background:${t.color}1f;color:${t.color};border-color:${t.color}55" title="${t.label} (${t.mod}) · ${n}">${t.ic}${n>1?`<b>${n}</b>`:''}</span>`;}).join('');
-   h+=`<div class="gc-cell ${d===todayD?'today':''} ${ck?'conf '+ck:''}" ${list.length?`onclick="gacalOpenDay(${m},${d})"`:''}>
+   h+=`<div class="gc-cell ${d===todayD?'today':''} ${ck?'conf '+ck:''}" ${list.length?`onclick="gacalOpenDay(${year},${m},${d})"`:''}>
      <div class="gc-cn"><span class="gc-dn">${d}</span>${ck?'<span class="gc-cbadge">⚠</span>':(list.length?`<span class="gc-ccnt">${list.length}</span>`:'')}</div>
      ${dots?`<div class="gc-dots">${dots}</div>`:''}`;
    list.slice(0,3).forEach(e=>{ const t=GACAL_TYPES[e.type]; h+=`<div class="gc-ev" style="border-left-color:${t.color};background:${t.color}14;color:${t.color}" title="${esc(e.title)} · ${t.mod}">${t.ic} ${esc(e.title.slice(0,20))}</div>`; });
-   if(list.length>3)h+=`<div class="gc-more" onclick="event.stopPropagation();gacalOpenDay(${m},${d})">+${list.length-3} lainnya</div>`;
+   if(list.length>3)h+=`<div class="gc-more" onclick="event.stopPropagation();gacalOpenDay(${year},${m},${d})">+${list.length-3} lainnya</div>`;
    h+=`</div>`;
  }
  h+=`</div></div>`;
  el.innerHTML=h;
 }
-function gacalOpenDay(m,d){
- const dateStr=`2026-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+function gacalOpenDay(y,m,d){
+ if(d===undefined){ d=m; m=y; y=gacalYear; }   // kompat pemanggilan lama (m,d)
+ const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
  const list=gacalEvents().filter(e=>e.date===dateStr&&gacalFilters[e.type]).sort((a,b)=>Object.keys(GACAL_TYPES).indexOf(a.type)-Object.keys(GACAL_TYPES).indexOf(b.type));
- const dow=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date(2026,m,d).getDay()];
+ const dow=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][new Date(y,m,d).getDay()];
  const dc=gacalConflicts().filter(c=>c.date===dateStr);
  document.getElementById("drawer").innerHTML=`
-  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">${dow}, ${d} ${GACAL_MON[m]} 2026</div><div class="muted small" style="margin-top:4px">${list.length} agenda${dc.length?` · <span style="color:var(--red);font-weight:700">${dc.length} benturan</span>`:''}</div></div>
+  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">${dow}, ${d} ${GACAL_MON[m]} ${y}</div><div class="muted small" style="margin-top:4px">${list.length} agenda${dc.length?` · <span style="color:var(--red);font-weight:700">${dc.length} benturan</span>`:''}</div></div>
   <div class="db">
    ${dc.length?`<div class="card pad" style="background:#fef1f2;border:1px solid #f6c9cf;margin-bottom:12px;font-size:12.5px">${dc.map(c=>c.kind==='cross'?`⚡ <b>${esc(c.event)}</b> (${c.loc}) bentrok fase <b>${esc(c.phase)}</b> — ${esc(c.project)}`:`▦ <b>${c.count} reservasi</b> tumpuk di <b>${c.loc}</b>`).join('<br>')}</div>`:''}
    ${list.length?list.map(e=>{ const t=GACAL_TYPES[e.type]; return `<div class="due-row"><div><div class="dj">${t.ic} ${esc(e.title)}</div><div class="dm">${esc(e.sub)}${e.status?' · '+esc(e.status):''}</div></div><span class="badge" style="background:${t.color}18;color:${t.color}" title="Modul ${t.mod}">${t.label}</span></div>`; }).join(''):'<div class="muted small" style="padding:20px;text-align:center">Tidak ada agenda pada tanggal ini.</div>'}
@@ -5953,7 +5961,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.20-4";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.20-5";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
