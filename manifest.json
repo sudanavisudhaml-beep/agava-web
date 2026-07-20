@@ -1,0 +1,16 @@
+{
+  "name": "AGAVA — Astra General Affairs Virtual Assistant",
+  "short_name": "AGAVA",
+  "description": "GA Virtual Assistant · Services & Field Ops",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#eaf3fc",
+  "theme_color": "#0a7cff",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
