@@ -504,6 +504,53 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   .imp-hero-t{font-size:17px}
   .imp-ba{grid-template-columns:1fr;gap:4px}.imp-ba-ar{text-align:left}
 }
+/* ===== Dokumen Supply Order (cetak / simpan PDF) ===== */
+.sodoc-ovl{position:fixed;inset:0;z-index:400;background:rgba(15,35,65,.55);display:flex;flex-direction:column}
+.sodoc-ovl.hide{display:none}
+.sodoc-bar{display:flex;align-items:center;gap:14px;padding:12px 20px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.sodoc-title{font-weight:800;color:var(--ink);font-size:15px}
+.sodoc-bar .sodoc-btn:last-child{margin-left:auto}
+.sodoc-btn{border:none;border-radius:10px;padding:10px 16px;font-family:var(--ff);font-size:13px;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);box-shadow:0 6px 16px rgba(10,124,255,.3)}
+.sodoc-btn.ghost{background:#fff;color:var(--muted);border:1px solid var(--line);box-shadow:none}
+.sodoc-scroll{flex:1;overflow:auto;padding:24px;display:flex;justify-content:center;align-items:flex-start}
+.sodoc-page{background:#fff;width:820px;max-width:100%;min-height:1050px;padding:52px 56px;color:#111;font-family:Arial,Helvetica,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.4);font-size:13px;line-height:1.5}
+.sod-hd{display:grid;grid-template-columns:1fr auto 58px;align-items:start;gap:10px}
+.sod-company{font-weight:700;font-size:13px}
+.sod-titlewrap{text-align:center;padding-top:2px}
+.sod-title{font-weight:800;font-size:17px;letter-spacing:.5px;border-bottom:2px solid #111;display:inline-block;padding-bottom:2px}
+.sod-nobox{border:1px solid #999;border-radius:16px;padding:5px 0;text-align:center;font-size:14px;color:#555}
+.sod-kepada{margin:22px 0 18px;font-size:13px;line-height:1.6}
+.sod-meta{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:8px;gap:20px}
+.sod-metaL div,.sod-metaR div{margin-bottom:3px;white-space:nowrap}
+.sod-metaR{text-align:right}
+.sod-tbl{width:100%;border-collapse:collapse;margin-top:6px}
+.sod-tbl th,.sod-tbl td{border:1px solid #111;padding:6px 8px;font-size:11px;vertical-align:middle}
+.sod-tbl th{text-align:center;font-weight:700}
+.sod-tbl td{height:26px}
+.sod-tbl td.c{text-align:center}
+.sod-tbl th:nth-child(1){width:32px}.sod-tbl th:nth-child(3){width:50px}.sod-tbl th:nth-child(4),.sod-tbl th:nth-child(5){width:58px}.sod-tbl th:nth-child(6){width:52px}.sod-tbl th:nth-child(7){width:62px}
+.sod-marks{margin-top:52px;font-size:20px;line-height:1.55}
+.sod-sign{display:flex;justify-content:space-between;margin-top:56px;gap:40px}
+.sod-sigcol{text-align:center;width:260px}
+.sod-siglbl{font-size:12.5px;color:#333;margin-bottom:6px}
+.sod-sigimg{height:80px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.sod-sig-png{max-height:80px;max-width:220px}
+.sod-sig-typed{font-family:'Segoe Script','Brush Script MT',cursive;font-size:30px;color:#0a2a6b;line-height:1}
+.sod-sig-stamp{font-size:8.5px;color:#0a7cff;margin-top:2px}
+.sod-pending{font-size:11px;color:#b0006a;font-style:italic}
+.sod-signame{font-weight:700;font-size:12.5px;border-top:1px solid #111;padding-top:4px;display:inline-block;min-width:210px}
+.sod-sigrole{font-size:11px;color:#333;margin-top:2px}
+.so-pdf{margin-left:8px;border:1px solid rgba(10,124,255,.35);background:linear-gradient(135deg,rgba(0,198,251,.12),rgba(10,124,255,.09));color:#0a4bb8;font-family:var(--ff);font-size:11px;font-weight:700;padding:4px 9px;border-radius:8px;cursor:pointer;white-space:nowrap;vertical-align:middle}
+.so-pdf:hover{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);color:#fff;border-color:transparent}
+@media print{
+  body{visibility:hidden!important}
+  #soDoc,#soDoc *{visibility:visible!important}
+  #soDoc{position:absolute!important;inset:0;background:#fff;display:block!important}
+  .sodoc-ovl{background:#fff!important}
+  .sodoc-bar{display:none!important}
+  .sodoc-scroll{overflow:visible!important;padding:0!important;display:block!important}
+  .sodoc-page{box-shadow:none!important;width:auto!important;max-width:100%!important;margin:0!important;padding:20px 24px!important}
+}
 /* ===== Project Development — timeline app (iframe) ===== */
 .pj-frame-wrap{border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.72);
   box-shadow:0 12px 34px rgba(20,40,80,.10),inset 0 1px 0 rgba(255,255,255,.85);background:rgba(255,255,255,.35)}
@@ -1729,6 +1776,16 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
   <div class="drawer" id="drawer"></div>
 </div>
 
+<!-- DOKUMEN SUPPLY ORDER (cetak / simpan PDF) -->
+<div id="soDoc" class="sodoc-ovl hide">
+  <div class="sodoc-bar">
+    <button class="sodoc-btn ghost" onclick="soDocClose()">✕ Tutup</button>
+    <div class="sodoc-title">Dokumen Supply Order</div>
+    <button class="sodoc-btn" onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+  </div>
+  <div class="sodoc-scroll"><div class="sodoc-page" id="soDocPage"></div></div>
+</div>
+
 <!-- SheetJS (local bundle, offline) — reads .xlsx for Live Data sync -->
 <script src="xlsx.full.min.js"></script>
 <!-- AGAVA Database — Firebase Firestore (gagal-anggun: offline → app tetap jalan lokal) -->
@@ -1757,7 +1814,6 @@ const IC={
 const MENU=[
  {id:"overview",ic:"overview",label:"CODEC"},
  {id:"kpiyear",ic:"kpiyear",label:"KPI Tahunan"},
- {id:"impact",ic:"impact",label:"Impact"},
  {id:"building",ic:"building",label:"Building & Utility"},
  {id:"project",ic:"project",label:"Project Development"},
  {id:"gacal",ic:"today",label:"GA Calendar"},
@@ -1773,14 +1829,14 @@ const MENU=[
 ];
 let active="overview";
 let gRole="admin", gUser=null;
-const ALLMENUS=["overview","kpiyear","impact","building","project","gacal","service","procurement","payment","vendor","energy","hse","approvals","assigned","reminder"];
+const ALLMENUS=["overview","kpiyear","building","project","gacal","service","procurement","payment","vendor","energy","hse","approvals","assigned","reminder"];
 const ROLES={
  admin:{label:"Administrator",tier:"*",edit:true,menus:ALLMENUS},
- chief:{label:"Chief of CHCD",tier:"Chief CHCD",menus:["overview","kpiyear","impact","procurement","approvals","reminder"]},
- division:{label:"HCMS Division Head",tier:"Division Head",menus:["overview","kpiyear","impact","procurement","approvals","reminder"]},
+ chief:{label:"Chief of CHCD",tier:"Chief CHCD",menus:["overview","kpiyear","procurement","approvals","reminder"]},
+ division:{label:"HCMS Division Head",tier:"Division Head",menus:["overview","kpiyear","procurement","approvals","reminder"]},
  dept:{label:"GA Dept Head",tier:"Dept Head",menus:ALLMENUS},
  section:{label:"Section Head",tier:"Section Head",menus:ALLMENUS},
- budget:{label:"PIC Budget",tier:"Budget",menus:["overview","kpiyear","impact","procurement","approvals","reminder"]},
+ budget:{label:"PIC Budget",tier:"Budget",menus:["overview","kpiyear","procurement","approvals","reminder"]},
  proc:{label:"PIC Procurement",tier:"Procurement",menus:ALLMENUS},
  analyst:{label:"Analyst",tier:null,menus:["overview","procurement","service","reminder"]},
  staff:{label:"Staff Procurement",tier:null,menus:["overview","procurement","service","assigned","reminder"]},
@@ -1838,7 +1894,6 @@ function go(id){
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="kpiyear"){renderKpiYear();document.getElementById("page-kpiyear").classList.remove("hide");t.textContent="KPI Tahunan · CLA "+KPI_YEAR_META.year;s.textContent="Indikator yang dikontrakkan tahun ini — setiap angka ditarik dari CODEC";}
-  else if(id==="impact"){renderImpact();document.getElementById("page-impact").classList.remove("hide");t.textContent="Impact";s.textContent="Dampak AGAVA untuk organisasi — dihitung sistem dari data hidup, bukan diklaim";}
   else if(id==="procurement"){document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
   else if(id==="building"){renderBuilding();document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
   else if(id==="project"){renderProject();document.getElementById("page-project").classList.remove("hide");t.textContent="Project Development";s.textContent="Project Timeline × Calendar of Event 2026 — radar overlap konstruksi vs reservasi";}
@@ -3580,27 +3635,81 @@ function ini(n){if(!n)return"–";const p=n.split(" ");return (p[0][0]+(p[1]?p[1
 /* ===== SO workflow model (Create → Budget → Proc(assign) → Dept → Staff work → Payment) ===== */
 const STAFF_PROC=["Didi Sutama","Endang Maulana","Khalilul Rahman"];
 const KATEGORI8=["Building & Utility","Tenant & General Services","Project Development","Transport, Logistic & Document","Hospitality","HSE & Sustainability","Room & Event","Asset Management"];
+/* ===== SO — Section Head routing · inisial staff · dokumen manual ===== */
+/* Kategori yang ditangani Yessy (consumable/banquet/catering/service/pantry); sisanya Elok (building/utility/project/infra) */
+const SECTION_YESSY_CATS=["Tenant & General Services","Hospitality","Room & Event"];
+function soSectionApprover(s){ return SECTION_YESSY_CATS.includes(s.kategori)?"Yessy":"Elok Norma Rosediana"; }
+const STAFF_INIT={"Khalilul Rahman":"KRA","Endang Maulana":"EM","Didi Sutama":"DSU"};
+/* Tanda tangan pejabat utk dokumen SO. img = base64 PNG (transparan). Kosong → pakai nama tercetak. */
+const SO_SIGN={
+ "Leonardus Ariyanto Satriawan":{label:"LEONARDUS ARIYANTO S.",role:"GAD Head",img:""},
+ "Elok Norma Rosediana":{label:"ELOK NORMA R",role:"Yang Berwenang",img:""},
+ "Yessy":{label:"YESSY",role:"Yang Berwenang",img:""}
+};
+const SO_COST_CENTER="108";
+function nowStampDoc(){ var d=new Date(),mo=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"]; return ('0'+d.getDate()).slice(-2)+' '+mo[d.getMonth()]+' '+d.getFullYear()+', '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
+function soStaffInit(name){ return STAFF_INIT[name]||(name?name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,3):''); }
+/* ===== Dokumen Supply Order — generate, tanda tangan e-sign, cetak/PDF ===== */
+function soDocDateStr(){ var d=new Date(TODAY_STR+'T00:00:00'); if(isNaN(d))d=new Date(); var mo=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"]; return d.getDate()+' '+mo[d.getMonth()]+' '+d.getFullYear(); }
+function soSigMark(sig,ts){ if(!sig)return''; var body=sig.img?('<img class="sod-sig-png" src="'+sig.img+'"/>'):('<div class="sod-sig-typed">'+sig.label+'</div>'); var stamp=ts?('<div class="sod-sig-stamp">e-signed via AGAVA · '+ts+'</div>'):''; return body+stamp; }
+function soDocNoBox(s){ if(s&&s.no){ var m=s.no.match(/(\d+)$/); if(m)return String(+m[1]); } return '1'; }
+function soDocHTML(s){
+ s=s||{};
+ var its=(s.items&&s.items.length)?s.items:[{item:s.item||'',qty:s.qty||'',spec:s.spec||'',ket:s.lokasi||''}];
+ var n=Math.max(5,its.length), rows='';
+ for(var i=0;i<n;i++){ var it=its[i]||{}; var has=!!(it.item);
+   var inB=has?(s.budgetFlag!=='No'?'1':''):''; var outB=has?(s.budgetFlag==='No'?'1':''):'';
+   rows+='<tr><td class="c">'+(has?(i+1):'')+'</td><td>'+esc(it.item||'')+'</td><td class="c">'+(has?(it.satuan||'pc'):'')+'</td><td class="c">'+inB+'</td><td class="c">'+outB+'</td><td class="c">'+(has?(it.qty||''):'')+'</td><td class="c"></td><td>'+esc(it.ket||it.spec||(has?(s.lokasi||''):''))+'</td></tr>';
+ }
+ var sec=SO_SIGN[s.sectionBy]||SO_SIGN['Elok Norma Rosediana'];
+ var dept=SO_SIGN['Leonardus Ariyanto Satriawan'];
+ var secOk=s.apprSection==='Approved', deptOk=s.apprDept==='Approved';
+ var budgetMark=s.apprBudget==='Approved'?('PIC Budget : OK ('+((s.tsf&&s.tsf.budget)||soDocDateStr())+')'):(s.apprBudget==='Escalated'?('PIC Budget : Ekskalasi ('+((s.tsf&&s.tsf.budget)||'')+')'):'PIC Budget : —');
+ var procMark=s.apprProc==='Approved'?('PIC Procurement : OK ('+((s.tsf&&s.tsf.proc)||soDocDateStr())+')'):'PIC Procurement : —';
+ var fup=s.fup||soStaffInit(s.staffPIC||s.pic||'')||'—';
+ return ''+
+ '<div class="sod-hd"><div class="sod-company">PT ASTRA INTERNATIONAL Tbk.</div>'+
+   '<div class="sod-titlewrap"><div class="sod-title">SUPPLY ORDER</div></div>'+
+   '<div class="sod-nobox">'+soDocNoBox(s)+'</div></div>'+
+ '<div class="sod-kepada">KEPADA,<br><b>GENERAL AFFAIRS DEPT.</b></div>'+
+ '<div class="sod-meta"><div class="sod-metaL">'+
+     '<div>DEPT./DIV : GENERAL AFFAIR</div><div>COST CENTER : '+SO_COST_CENTER+'</div><div>FUP by : '+esc(fup)+'</div></div>'+
+   '<div class="sod-metaR"><div>NO : '+(s.no||'-')+'</div><div>TANGGAL : '+soDocDateStr()+'</div></div></div>'+
+ '<table class="sod-tbl"><thead><tr><th>NO</th><th>URAIAN BARANG</th><th>SATUAN</th><th>DALAM<br>BUDGET</th><th>DILUAR<br>BUDGET</th><th>JUMLAH</th><th>REALISASI</th><th>KETERANGAN</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+ '<div class="sod-marks"><div>'+budgetMark+'</div><div>'+procMark+'</div></div>'+
+ '<div class="sod-sign">'+
+   '<div class="sod-sigcol"><div class="sod-siglbl">DISETUJUI OLEH</div><div class="sod-sigimg">'+(deptOk?soSigMark(dept,s.tsf&&s.tsf.dept):'<span class="sod-pending">menunggu approval Dept Head</span>')+'</div><div class="sod-signame">'+dept.label+'</div><div class="sod-sigrole">'+dept.role+'</div></div>'+
+   '<div class="sod-sigcol"><div class="sod-siglbl">PEMOHON</div><div class="sod-sigimg">'+(secOk?soSigMark(sec,s.tsf&&s.tsf.section):'<span class="sod-pending">menunggu approval Section</span>')+'</div><div class="sod-signame">'+sec.label+'</div><div class="sod-sigrole">'+sec.role+'</div></div>'+
+ '</div>';
+}
+function soDocShow(no){ var s=SO.find(x=>x.no===no); if(!s)return; var pg=document.getElementById('soDocPage'); if(pg)pg.innerHTML=soDocHTML(s); document.getElementById('soDoc').classList.remove('hide'); }
+function soDocClose(){ var d=document.getElementById('soDoc'); if(d)d.classList.add('hide'); }
 const WSTEP_BTN=["Sourcing & Verifikasi","Sudah UPR","Kirim SPK","Kirim BAST"];   // button shown at wstep 0..3
 const WSTEP_DONE=["Assigned — start sourcing","Sourcing done · do UPR","UPR done · send SPK","SPK sent · submit BAST","BAST done"];
 const WSTEP_SLA=["SLA 2–5 working days","SLA max 3 working days","upload SPK & email vendor","upload signed BAST",""];
 function nowStamp(){var d=new Date();return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
 function normalizeSO(){SO.forEach(s=>{
  if(s.apprDept===undefined){s.apprBudget="Approved";s.apprProc="Approved";s.apprDept="Approved";s.staffPIC=s.pic||"";}
+ if(s.apprSection===undefined)s.apprSection="Approved";      // seed SO dianggap sudah lewat gate Section
+ if(s.sectionBy===undefined)s.sectionBy=soSectionApprover(s);
+ if(s.fup===undefined)s.fup=soStaffInit(s.staffPIC||s.pic||"");
  if(s.wstep===undefined){s.wstep=(s.stage<=2)?0:(s.stage==3)?1:(s.stage==4)?2:(s.stage==5)?3:4;}
  if(s.ts===undefined)s.ts={};
+ if(s.tsf===undefined)s.tsf={};
  if(s.invStatus===undefined)s.invStatus=(s.wstep>=4)?"Menunggu Invoice":"";
  if(s.spkNo===undefined)s.spkNo=s.wstep>=3?("SPK-202606-"+String(140+Math.floor(s.nilai)).padStart(4,"0")):"";
  if(s.wstep>=4&&!s.bastDate)s.bastDate="2026-06-11";
 });}
-function soPhase(s){if(s.apprDept==="Rejected")return"rejected";if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"budget";if(s.escalated){if(s.apprDept!=="Approved")return"dept";if(s.apprProc!=="Approved")return"proc";}else{if(s.apprProc!=="Approved")return"proc";if(s.apprDept!=="Approved")return"dept";}if(s.wstep<4)return"work";return"pay";}
+function soPhase(s){if(s.apprDept==="Rejected"||s.apprSection==="Rejected")return"rejected";if(s.apprSection!=="Approved")return"section";if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"budget";if(s.escalated){if(s.apprDept!=="Approved")return"dept";if(s.apprProc!=="Approved")return"proc";}else{if(s.apprProc!=="Approved")return"proc";if(s.apprDept!=="Approved")return"dept";}if(s.wstep<4)return"work";return"pay";}
 function soStatusLabel(s){var p=soPhase(s);
  if(p==="rejected")return{t:"Rejected",c:"bd-crit"};
- if(p==="budget")return{t:"Pending Budget",c:"bd-warn"};
+ if(p==="section")return{t:"Pending Section ("+(soSectionApprover(s)==="Yessy"?"Yessy":"Elok")+")",c:"bd-warn"};
+ if(p==="budget")return{t:"Section OK · Pending Budget",c:"bd-warn"};
  if(p==="proc")return{t:"Budget OK · Pending Proc",c:"bd-warn"};
  if(p==="dept")return{t:"Pending Dept Head",c:"bd-warn"};
  if(p==="work")return{t:WSTEP_DONE[s.wstep],c:"bd-info"};
  return{t: s.invReleased?"Payment released":(s.invReceived?(s.invProcessed?"Invoice di Proses (BPH)":"Invoice Diterima"):"BAST done · Menunggu Invoice"),c:"bd-proc"};}
-function soPip(s){var p=soPhase(s);return (p==="rejected")?"#dc2626":(p==="work")?"#2563eb":(p==="pay")?"#7a4fd0":(p==="budget"||p==="proc"||p==="dept")?"#c2740a":"#15a34a";}
+function soPip(s){var p=soPhase(s);return (p==="rejected")?"#dc2626":(p==="work")?"#2563eb":(p==="pay")?"#7a4fd0":(p==="section"||p==="budget"||p==="proc"||p==="dept")?"#c2740a":"#15a34a";}
 
 function renderProc(){
  const el=document.getElementById("page-procurement");
@@ -3643,7 +3752,7 @@ function renderProc(){
      <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
      <td class="nilai">Rp ${s.nilai} M</td>
      <td><span class="badge bd-neu">${tier(s.nilai)}</span></td>
-     <td><span class="badge ${st.c}">${st.t}</span></td>
+     <td><span class="badge ${st.c}">${st.t}</span>${s.apprDept==="Approved"?`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="Dokumen Supply Order (sah) — cetak / simpan PDF">📄 SO PDF</button>`:''}</td>
      <td>${agingBadge(s.aging)}</td>
    </tr>`}).join("")}
    </tbody></table>
@@ -4483,10 +4592,14 @@ async function submitSO(){
  // Create in-app, then trigger the Power Automate flow for Procurement
  const res=await triggerFlow("createSO",{items:rows,lokasi,kategori:kat,budget,nilai,requester:req})||{};
  const no=res.no||soSeq();
- SO.unshift({no,item:itemStr,items:rows,lokasi:lokasi,req:req,requester:req,pic:"",staffPIC:"",nilai:nilai,jenis:"Goods",kategori:kat,budgetFlag:budget,vendor:"",
-   apprBudget:"Pending",apprProc:"—",apprDept:"—",wstep:0,ts:{created:nowStamp()},invStatus:"",spkNo:"",stage:0,aging:"On Track"});
+ const isSec=(gRole==="section");   // Section Head buat SO sendiri → gate Section otomatis lewat
+ const so={no,item:itemStr,items:rows,lokasi:lokasi,req:req,requester:req,pic:"",staffPIC:"",nilai:nilai,jenis:"Goods",kategori:kat,budgetFlag:budget,vendor:"",fup:"",
+   apprSection:isSec?"Approved":"Pending",sectionBy:"",apprBudget:isSec?"Pending":"—",apprProc:"—",apprDept:"—",wstep:0,ts:{created:nowStamp()},tsf:{},invStatus:"",spkNo:"",stage:0,aging:"On Track"};
+ so.sectionBy=soSectionApprover(so); if(isSec){ so.sectionBy=req; so.tsf.section=nowStampDoc(); so.ts.section=nowStamp(); }
+ SO.unshift(so);
  procFilter="all"; renderProc(); renderApprovals(); renderReminder(); buildNav(); updateBell();
  go("procurement");
+ alert("✅ SO "+no+" dibuat."+(isSec?"\nAnda Section Head → langsung ke PIC Budget.":"\nMasuk approval Section Head: "+(soSectionApprover(so)==="Yessy"?"Yessy (consumable)":"Elok Norma (building/utility/project)")+"."));
 }
 
 /* ============ REMINDER PAGE ============ */
@@ -4752,7 +4865,8 @@ let APPROVALS=[];
    Normal (budget ada):   Budget → Procurement → Dept Head → selesai.
    Eskalasi (budget tdk): Budget(Escalated) → Dept Head → Procurement → selesai. */
 function soGateTier(s){
- if(s.apprDept==="Rejected")return null;
+ if(s.apprDept==="Rejected"||s.apprSection==="Rejected")return null;
+ if(s.apprSection!=="Approved")return"Section Head";
  if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"Budget";
  if(s.escalated){
    if(s.apprDept!=="Approved")return"Dept Head";
@@ -4765,7 +4879,7 @@ function soGateTier(s){
  }
 }
 /* SO yang dieskalasi & masih di Dept Head juga muncul di Inbox PIC Procurement (read-only "waiting"). */
-function soApprovalsForTier(t){ return SO.filter(s=>{ const g=soGateTier(s); if(!g)return false; if(g===t)return true; if(t==="Procurement"&&s.escalated&&g==="Dept Head")return true; return false; }); }
+function soApprovalsForTier(t){ const me=gUser?gUser.name:""; return SO.filter(s=>{ const g=soGateTier(s); if(!g)return false; if(g==="Section Head")return soSectionApprover(s)===me; if(g===t)return true; if(t==="Procurement"&&s.escalated&&g==="Dept Head")return true; return false; }); }
 function soPendingAll(){ return SO.filter(s=>soGateTier(s)).map(s=>({approval:true,tier:soGateTier(s),item:s.no+" — "+s.item,source:"SO",status:soGateTier(s)})); }
 function approvalsForTier(){ return soApprovalsForTier(gTier).length + APPROVALS.filter(a=>a.tier===gTier && a.status==="Pending").length; }
 function pendingApprovals(){ return APPROVALS.filter(a=>a.status==="Pending").concat(soPendingAll()); }
@@ -4773,20 +4887,24 @@ function activeNotifs(){ return NOTIFS.filter(n=>!n.done); }
 function navBadge(id){ let c=0; if(id==="approvals")c=approvalsForTier(); else if(id==="assigned"){ const me=gUser?gUser.name:""; c=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprProc==="Approved" && s.apprDept==="Approved" && s.wstep<4).length; } else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
 function approveSO(no,gate,decision){
  var s=SO.find(x=>x.no===no); if(!s)return;
- s.ts=s.ts||{};
- if(gate==="budget"){
-   if(decision==="Escalate"){ s.apprBudget="Escalated"; s.escalated=true; s.ts.budget=nowStamp(); alert("⏫ SO "+no+" diekskalasi ke GA Dept Head (budget tidak ada).\nJuga tampil di Inbox PIC Procurement — status Waiting Approval Dept Head."); }
-   else { s.apprBudget="Approved"; s.escalated=false; s.ts.budget=nowStamp(); alert("✅ Budget di-approve. SO "+no+" diteruskan ke PIC Procurement."); }
+ s.ts=s.ts||{}; s.tsf=s.tsf||{};
+ if(gate==="section"){
+   if(decision==="Rejected"){ s.apprSection="Rejected"; s.ts.section=nowStamp(); s.tsf.section=nowStampDoc(); alert("⛔ SO "+no+" ditolak Section Head."); }
+   else { s.apprSection="Approved"; s.sectionBy=soSectionApprover(s); s.ts.section=nowStamp(); s.tsf.section=nowStampDoc();
+     alert("✅ Section Head ("+s.sectionBy+") approve.\nTTD Pemohon otomatis terbubuh di dokumen SO.\nSO "+no+" diteruskan ke PIC Budget."); }
+ } else if(gate==="budget"){
+   if(decision==="Escalate"){ s.apprBudget="Escalated"; s.escalated=true; s.ts.budget=nowStamp(); s.tsf.budget=nowStampDoc(); alert("⏫ SO "+no+" diekskalasi ke GA Dept Head (budget tidak ada).\nJuga tampil di Inbox PIC Procurement — status Waiting Approval Dept Head."); }
+   else { s.apprBudget="Approved"; s.escalated=false; s.ts.budget=nowStamp(); s.tsf.budget=nowStampDoc(); alert("✅ Budget di-approve. Marking 'PIC Budget : OK' terbubuh di dokumen.\nSO "+no+" diteruskan ke PIC Procurement."); }
  } else if(gate==="proc"){
    var sel=document.getElementById("assign-"+no); var staff=sel?sel.value:(s.staffPIC||"");
    if(!staff){ alert("Pilih Staff Procurement dulu sebelum Approve."); return; }
-   s.apprProc="Approved"; s.staffPIC=staff; s.pic=staff; s.ts.proc=nowStamp();
-   alert(s.escalated ? ("✅ PIC Procurement approve. SO "+no+" langsung masuk Assigned SO "+staff+" (sudah di-approve Dept Head).")
-                     : ("✅ PIC Procurement approve. SO "+no+" diteruskan ke GA Dept Head. Assigned: "+staff+"."));
+   s.apprProc="Approved"; s.staffPIC=staff; s.pic=staff; s.fup=soStaffInit(staff); s.ts.proc=nowStamp(); s.tsf.proc=nowStampDoc();
+   alert((s.escalated ? ("✅ PIC Procurement approve. SO "+no+" langsung masuk Assigned SO "+staff+" (sudah di-approve Dept Head).")
+                     : ("✅ PIC Procurement approve. SO "+no+" diteruskan ke GA Dept Head. Assigned: "+staff+"."))+"\nFUP by: "+s.fup+" · Marking 'PIC Procurement : OK' terbubuh di dokumen.");
  } else if(gate==="dept"){
-   if(decision==="Rejected"){ s.apprDept="Rejected"; s.ts.dept=nowStamp(); alert("⛔ SO "+no+" ditolak GA Dept Head."); }
-   else { s.apprDept="Approved"; s.ts.dept=nowStamp(); s.stage=Math.max(s.stage||0,2); alert(s.escalated ? ("✅ GA Dept Head approve. SO "+no+" → tombol aksi PIC Procurement kini aktif.")
-                     : ("✅ GA Dept Head approve. SO "+no+" final approved → masuk Assigned SO "+(s.staffPIC||"")+".")); }
+   if(decision==="Rejected"){ s.apprDept="Rejected"; s.ts.dept=nowStamp(); s.tsf.dept=nowStampDoc(); alert("⛔ SO "+no+" ditolak GA Dept Head."); }
+   else { s.apprDept="Approved"; s.ts.dept=nowStamp(); s.tsf.dept=nowStampDoc(); s.stage=Math.max(s.stage||0,2); alert(s.escalated ? ("✅ GA Dept Head approve. SO "+no+" → tombol aksi PIC Procurement kini aktif.")
+                     : ("✅ GA Dept Head approve. TTD 'Disetujui Oleh' (Dept Head) terbubuh — dokumen SO kini SAH & bisa diunduh.\nSO "+no+" masuk Assigned SO "+(s.staffPIC||"")+".")); }
  }
  renderApprovals(); renderProc(); renderAssigned(); renderReminder(); buildNav(); updateBell();
 }
@@ -4857,22 +4975,28 @@ function soApprovalCard(s){
    <div class="muted small" style="margin-top:4px">Requester: ${s.requester||s.req} · ${s.jenis||"—"} · Est. <b style="color:var(--ink)">Rp ${s.nilai} M</b>${s.budgetFlag?` · Budget: ${s.budgetFlag}`:""}${esc?` · <span class="badge bd-warn">Eskalasi (budget tdk ada)</span>`:""}${s.spec?`<br>Spec: ${s.spec}${s.qty?` · Qty: ${s.qty}`:""}`:""}</div>`;
  const clarBox = s.clarify ? `<div class="card pad" style="background:#f8fafd;margin-top:8px;font-size:12.5px"><b>📝 Klarifikasi (${s.clarify.by}):</b> ${s.clarify.note}${s.clarify.answered?`<br><b style="color:var(--green)">Jawaban ${s.requester||s.req}:</b> ${s.clarify.answer}`:` <span class="badge bd-info" style="margin-left:4px">menunggu jawaban requester</span>`}</div>` : "";
  let right="";
- if(tier==="Budget"){
+ if(g==="Section Head"){
+   right=`<div class="muted small" style="text-align:center;margin-bottom:2px">Section: <b>${soSectionApprover(s)==="Yessy"?"Yessy · consumable":"Elok Norma · building/utility/project"}</b></div>
+          <button class="btn-act" onclick="approveSO('${s.no}','section','Approved')">Approve (Section)</button>
+          <button class="btn-out" onclick="approveSO('${s.no}','section','Rejected')">Reject</button>`;
+ } else if(g==="Budget"){
    right=`<button class="btn-act" onclick="approveSO('${s.no}','budget','Approved')">Approve Budget</button>
           <button class="btn-out" onclick="approveSO('${s.no}','budget','Escalate')">Ekskalasi → Dept Head</button>`;
- } else if(tier==="Procurement"){
-   if(esc && g==="Dept Head"){
-     right=`<span class="badge bd-warn" style="text-align:center;padding:8px">Waiting Approval Dept Head</span><div class="muted small" style="text-align:center">Tombol aksi muncul setelah Dept Head approve.</div>`;
-   } else if(s.clarify && !s.clarify.answered){
+ } else if(g==="Procurement"){
+   if(s.clarify && !s.clarify.answered){
      right=`<span class="badge bd-info" style="text-align:center;padding:8px">Menunggu jawaban Requester</span><div class="muted small" style="text-align:center">Terkirim ke ${s.requester||s.req} (Reminder).</div>`;
    } else {
      right=`<select id="assign-${s.no}" style="border:1px solid var(--line);border-radius:9px;padding:9px;font-family:var(--ff);font-size:13px"><option value="">— Pilih Staff Procurement —</option>${STAFF_PROC.map(n=>`<option ${s.staffPIC===n?'selected':''}>${n}</option>`).join("")}</select>
             <button class="btn-act" onclick="approveSO('${s.no}','proc','Approved')">Approve &amp; Assign</button>
             <button class="btn-out" onclick="openClarify('${s.no}')">Klarifikasi</button>`;
    }
- } else { // Dept Head
-   right=`<button class="btn-act" onclick="approveSO('${s.no}','dept','Approved')">Approve</button>
+ } else { // Dept Head gate
+   if(tier==="Procurement" && esc){
+     right=`<span class="badge bd-warn" style="text-align:center;padding:8px">Waiting Approval Dept Head</span><div class="muted small" style="text-align:center">Tombol aksi muncul setelah Dept Head approve.</div>`;
+   } else {
+     right=`<button class="btn-act" onclick="approveSO('${s.no}','dept','Approved')">Approve</button>
           <button class="btn-out" onclick="approveSO('${s.no}','dept','Rejected')">Reject</button>`;
+   }
  }
  return `<div class="card pad" style="margin-bottom:12px;border:1px solid var(--line)">
    <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
@@ -4896,13 +5020,14 @@ function renderApprovals(){
  const others=APPROVALS.filter(a=>a.tier===gTier);
  const oPend=others.filter(a=>a.status==="Pending");
  const tierCtrl=(ROLES[gRole]&&ROLES[gRole].tier==="*")?`<select onchange="setTier(this.value)" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:14px;font-weight:700;color:var(--ink);font-family:var(--ff)">${TIERS.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("")}</select>`:`<span class="badge bd-proc" style="font-size:13px;padding:7px 14px">${gTier||'—'}</span>`;
- const soGate=(gTier==="Budget"||gTier==="Procurement"||gTier==="Dept Head");
+ const soGate=(soList.length>0)||gTier==="Budget"||gTier==="Procurement"||gTier==="Dept Head"||gTier==="Section Head";
+ const gateDesc=gTier==="Section Head"?"Approve SO (Building/Utility/Project — TTD Pemohon terbubuh)":gTier==="Budget"?"Approve budget SO — atau approve Section (consumable) bila SO Anda":gTier==="Procurement"?"Approve & assign Staff Procurement (FUP by)":"Final approval — TTD Disetujui Oleh terbubuh, dokumen jadi sah";
  document.getElementById("page-approvals").innerHTML=`
   <div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="font-size:13px;color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
     <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+oPend.length} pending</span></div>
   </div>
-  ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','procurement')}<div><h2>SO Approvals — ${gTier} gate</h2><div class="d">${gTier==="Budget"?"Approve the budget on the SO":gTier==="Procurement"?"Approve & assign a Staff Procurement":"Final approval — review SO & assigned PIC"}</div></div></div>
+  ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','procurement')}<div><h2>SO Approvals</h2><div class="d">${gateDesc}</div></div></div>
     <div class="sec-body">${soList.length?soList.map(soApprovalCard).join(""):'<div class="muted small" style="padding:24px;text-align:center">No SO waiting at your gate right now.</div>'}</div>
   </div>`:''}
   ${others.length?`<div class="card sec"><div class="sec-h">${secIc('#ede9fe','#7a4fd0','approvals')}<div><h2>Other approvals</h2><div class="d">UPR · SPK/PKS · BAST · Ticket→SO</div></div></div>
@@ -4955,6 +5080,7 @@ function renderAssigned(){
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;min-width:200px;text-align:center">
           ${btn?`<button class="btn-act" onclick="soStep('${s.no}')">${btn} →</button><div class="muted small">${sla}</div>`:`<span class="badge bd-ok">BAST done → Payment Tracker</span>`}
+          <button class="so-pdf" style="align-self:center" onclick="soDocShow('${s.no}')" title="Dokumen Supply Order (sah) — cetak / simpan PDF">📄 SO PDF</button>
         </div>
       </div>
       <div style="margin-top:12px">${stepper}</div>
@@ -5940,7 +6066,7 @@ function applyLiveRooms(rows){
 /* recomputeSummaries dihapus — tidak pernah dipanggil & formula tidak selaras dgn derive live */
 
 function renderAll(){
-  [renderOverview,renderKpiYear,renderImpact,renderProc,renderBuilding,renderService,renderEnergy,renderErsus,renderReminder,renderApprovals,renderAssigned,renderPayment,renderVendor,renderHSE,updateBell]
+  [renderOverview,renderKpiYear,renderProc,renderBuilding,renderService,renderEnergy,renderErsus,renderReminder,renderApprovals,renderAssigned,renderPayment,renderVendor,renderHSE,updateBell]
     .forEach(fn=>{ try{ fn(); }catch(e){ console.warn("render error:",e.message); } });
 }
 
@@ -5961,7 +6087,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.20-5";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-1";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
