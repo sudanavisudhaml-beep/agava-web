@@ -273,6 +273,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .login-btn:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(10,124,255,.46),inset 0 1px 0 rgba(255,255,255,.4)}
 .login-msg{font-size:12px;color:var(--red);min-height:14px;margin:8px 0 0;text-align:center}
 .lf-demo-h{margin:18px 0 8px;font-size:10px;font-weight:700;letter-spacing:.09em;color:#0a7cff}
+.lf-hint2{margin:16px 0 4px;font-size:12px;color:#4a6187;line-height:1.6}
+.lf-hint2 span{font-size:11px;color:#8aa0bd}
+.lf-hint2 b{color:#0a7cff}
 .lf-foot{margin-top:15px;text-align:center;font-size:10px;color:#93a4bd;line-height:1.5}
 .login-accounts{display:flex;flex-direction:column;max-height:188px;overflow:auto;border:1px solid rgba(180,205,235,.6);border-radius:13px;background:rgba(255,255,255,.5)}
 .login-accounts button{text-align:left;border:none;border-bottom:1px solid rgba(180,205,235,.4);background:transparent;padding:9px 13px;cursor:pointer;font-family:var(--ff);color:var(--ink);display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:11px;transition:.12s}
@@ -519,6 +522,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .fo-seg button.on{background:linear-gradient(135deg,rgba(0,198,251,.18),rgba(10,124,255,.14));color:#0559d6}
 .fo-seg button+button{border-left:1px solid var(--line)}
 .fo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.fo-grid.fo-grid-single{grid-template-columns:1fr;max-width:560px}
 .fo-chan{background:rgba(255,255,255,.62);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(20,40,80,.06)}
 .fo-chan-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(0,198,251,.08),rgba(10,124,255,.05))}
 .fo-chan-h b{font-size:13px;color:var(--ink);flex:1;min-width:0}
@@ -1747,8 +1751,7 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
       <div class="lf-row"><label class="lf-check"><input type="checkbox" checked/> Ingat saya</label><span class="lf-forgot">Lupa password?</span></div>
       <button class="login-btn" onclick="doLogin()">&rarr; Masuk ke AGAVA</button>
       <div id="loginMsg" class="login-msg"></div>
-      <div class="lf-demo-h">&#128100; AKUN DEMO &mdash; KLIK UNTUK MASUK SEBAGAI PERAN</div>
-      <div class="login-accounts" id="loginAccounts"></div>
+      <div class="lf-hint2">Masukkan email akun &amp; password untuk masuk.<br><span>Demo: password semua akun = <b>12356</b></span></div>
       <div class="lf-foot"><b>&copy; 2026 &middot; System Development &middot; GA Departemen</b><br>PT. Astra International Tbk</div>
     </div>
   </div>
@@ -1914,12 +1917,29 @@ const USERS=[
  {email:"muhamad.zhaenuri@ai.astra.co.id",name:"M Zhaenuri",role:"general"},
  {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general"},
  {email:"salsa.savila@ai.astra.co.id",name:"Salsa",role:"finance"},
- {email:"fieldops@ai.astra.co.id",name:"Operator Lapangan",role:"fieldops"}
+ {email:"fieldops@ai.astra.co.id",name:"Field Ops - Supervisor",role:"fieldops"},
+ {email:"fieldops.building@ai.astra.co.id",name:"Field Ops - Building & Utility",role:"fieldops",cat:"Building & Utility"},
+ {email:"fieldops.tenant@ai.astra.co.id",name:"Field Ops - Tenant & General Services",role:"fieldops",cat:"Tenant & General Services"},
+ {email:"fieldops.project@ai.astra.co.id",name:"Field Ops - Project Development",role:"fieldops",cat:"Project Development"},
+ {email:"fieldops.transport@ai.astra.co.id",name:"Field Ops - Transport, Logistic & Document",role:"fieldops",cat:"Transport, Logistic & Document"},
+ {email:"fieldops.hospitality@ai.astra.co.id",name:"Field Ops - Hospitality",role:"fieldops",cat:"Hospitality"},
+ {email:"fieldops.hse@ai.astra.co.id",name:"Field Ops - HSE & Sustainability",role:"fieldops",cat:"HSE & Sustainability"},
+ {email:"fieldops.room@ai.astra.co.id",name:"Field Ops - Room & Event",role:"fieldops",cat:"Room & Event"},
+ {email:"fieldops.asset@ai.astra.co.id",name:"Field Ops - Asset Management",role:"fieldops",cat:"Asset Management"}
 ];
 function buildLoginAccounts(){ const el=document.getElementById("loginAccounts"); if(!el)return; el.innerHTML=USERS.map(u=>{ const r=ROLES[u.role]; const t=r.tier==="*"?"All access":(r.tier||""); return `<button onclick="loginAs('${u.email}')"><span class="la-ava">${ini(u.name)}</span><span class="la-main"><b>${u.name}</b><small>${u.email}</small></span><span class="la-right"><span class="la-role">${roleTitle(u)}</span>${t?`<span class="la-tier">${t}</span>`:''}</span></button>`; }).join(""); }
 function loginAs(email){ const u=USERS.find(x=>x.email===email); if(u)applyLogin(u); }
 function loginTogglePass(){ const i=document.getElementById("loginPass"); if(i)i.type=(i.type==="password")?"text":"password"; }
-function doLogin(){ const e=(document.getElementById("loginEmail").value||"").trim().toLowerCase(); const u=USERS.find(x=>x.email.toLowerCase()===e); if(u)applyLogin(u); else { const m=document.getElementById("loginMsg"); if(m)m.textContent="Email not registered. Pick a demo account below."; } }
+const AGAVA_DEMO_PW="12356";   // password demo untuk semua akun (sementara — nanti diganti per-akun)
+function doLogin(){
+ const e=(document.getElementById("loginEmail").value||"").trim().toLowerCase();
+ const pw=(document.getElementById("loginPass")?document.getElementById("loginPass").value:"")||"";
+ const m=document.getElementById("loginMsg");
+ const u=USERS.find(x=>x.email.toLowerCase()===e);
+ if(!u){ if(m)m.textContent="Email akun tidak terdaftar."; return; }
+ if(pw!==AGAVA_DEMO_PW){ if(m)m.textContent="Password salah."; return; }
+ if(m)m.textContent=""; applyLogin(u);
+}
 function applyLogin(u){
  gUser=u; gRole=u.role; var tt=ROLES[gRole].tier; if(tt&&tt!=="*")gTier=tt;
  const sn=document.getElementById("suName"); if(sn)sn.textContent=u.name;
@@ -4189,24 +4209,35 @@ function foTicketCard(t){
 }
 function renderFieldOps(){
   var el=document.getElementById("page-fieldops"); if(!el)return;
+  var myCat=(gUser&&gUser.cat)?gUser.cat:null;   // operator MOBILE per kategori (akun Field Ops - <Kategori>)
   var active=TICKETS.filter(t=>(t.stg||0)<3);
-  var groups={}; active.forEach(t=>{ var k=fieldOpsKey(t); (groups[k]=groups[k]||[]).push(t); });
-  var keys=Object.keys(groups).sort();
+  if(myCat) active=active.filter(t=>(t.cat||'')===myCat);
+  var groups, keys;
+  if(myCat){
+    groups={}; groups[myCat]=active; keys=[myCat];   // hanya 1 channel = kategori akunnya (walau kosong)
+  } else if(fieldOpsGroup==='cat'){
+    groups={}; active.forEach(t=>{ var k=(t.cat||'Lainnya'); (groups[k]=groups[k]||[]).push(t); });
+    keys=KATEGORI8.slice(); Object.keys(groups).forEach(function(k){ if(keys.indexOf(k)<0) keys.push(k); });   // WEB: semua 8 kategori + kategori lain yg ada tiketnya
+  } else {
+    groups={}; active.forEach(t=>{ var k=fieldOpsSite(t); (groups[k]=groups[k]||[]).push(t); });
+    keys=Object.keys(groups).sort();   // per site: hanya site yg ada tiketnya
+  }
   var me=gUser?gUser.name:'';
-  var mine=active.filter(t=>t.pic===me).length;
-  var unassigned=active.filter(t=>!t.pic||t.stg===0).length;
+  var mine=active.filter(function(t){return t.pic===me;}).length;
+  var unassigned=active.filter(function(t){return !t.pic||t.stg===0;}).length;
+  var scope = myCat ? ('Kategori Anda: <b>'+esc(myCat)+'</b>') : ('Channel per '+(fieldOpsGroup==='lokasi'?'Site':'Kategori')+' · '+KATEGORI8.length+' kategori');
   var head='<div class="card pad fo-head">'+
-    '<div><div class="fo-title">📡 Channel per '+(fieldOpsGroup==='lokasi'?'Site':'Kategori')+'</div>'+
-      '<div class="muted small">'+active.length+' tiket aktif · <b style="color:var(--amber)">'+unassigned+'</b> belum diambil · '+mine+' milik Anda · realtime dari Firebase</div></div>'+
-    '<div class="fo-seg"><button class="'+(fieldOpsGroup==='cat'?'on':'')+'" onclick="fieldOpsSetGroup(\'cat\')">Per Kategori</button><button class="'+(fieldOpsGroup==='lokasi'?'on':'')+'" onclick="fieldOpsSetGroup(\'lokasi\')">Per Site</button></div>'+
+    '<div><div class="fo-title">📡 '+(myCat?'Field Ops · '+esc(myCat):'Field Ops')+'</div>'+
+      '<div class="muted small">'+scope+' · '+active.length+' tiket aktif · <b style="color:var(--amber)">'+unassigned+'</b> belum diambil · '+mine+' milik Anda · realtime Firebase</div></div>'+
+    (myCat?'':'<div class="fo-seg"><button class="'+(fieldOpsGroup==='cat'?'on':'')+'" onclick="fieldOpsSetGroup(\'cat\')">Per Kategori</button><button class="'+(fieldOpsGroup==='lokasi'?'on':'')+'" onclick="fieldOpsSetGroup(\'lokasi\')">Per Site</button></div>')+
   '</div>';
   var chans = keys.length ? keys.map(function(k){
-    var list=groups[k].slice().sort(function(a,b){return ((a.stg||0)-(b.stg||0))||String(a.no).localeCompare(String(b.no));});
-    var pri=list.filter(t=>!t.pic||t.stg===0).length;
+    var list=(groups[k]||[]).slice().sort(function(a,b){return ((a.stg||0)-(b.stg||0))||String(a.no).localeCompare(String(b.no));});
+    var pri=list.filter(function(t){return !t.pic||t.stg===0;}).length;
     return '<div class="fo-chan"><div class="fo-chan-h"><b>'+esc(k)+'</b><span class="fo-badge">'+list.length+'</span>'+(pri?'<span class="fo-new">'+pri+' baru</span>':'')+'</div>'+
-      '<div class="fo-chan-body">'+list.map(foTicketCard).join('')+'</div></div>';
-  }).join('') : '<div class="card pad muted small" style="text-align:center;padding:40px;grid-column:1/-1">Tidak ada tiket aktif. Semua sudah selesai 🎉</div>';
-  el.innerHTML=head+'<div class="fo-grid">'+chans+'</div>';
+      '<div class="fo-chan-body">'+(list.length?list.map(foTicketCard).join(''):'<div class="muted small" style="text-align:center;padding:18px">Belum ada tiket masuk</div>')+'</div></div>';
+  }).join('') : '<div class="card pad muted small" style="text-align:center;padding:40px;grid-column:1/-1">Tidak ada tiket aktif. 🎉</div>';
+  el.innerHTML=head+'<div class="fo-grid'+(myCat?' fo-grid-single':'')+'">'+chans+'</div>';
 }
 function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
 function gaServiceButtons(){
@@ -6308,7 +6339,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-8";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-9";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
