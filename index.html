@@ -1202,9 +1202,20 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-card .gd-ch{flex-wrap:wrap}
 .pi-final{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:600}
 .pi-final b{color:#0a4bb8;font-size:15px}
-.pi-2col{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pi-2col{display:grid;grid-template-columns:2fr 3fr;gap:0}
 .pi-panel{padding:14px 16px}
 .pi-panel:first-child{border-right:1px solid var(--line)}
+.pi-row.pi-std{grid-template-columns:46px 1fr 48px}
+.pi-row.pi-key{grid-template-columns:44px 1fr 48px 28px}
+.pi-code2{font-size:11px;font-weight:800;text-align:center;padding:6px 0;border-radius:8px;background:linear-gradient(135deg,rgba(0,198,251,.14),rgba(10,124,255,.10));color:#0a4bb8}
+.pi-chev{font-size:9px;color:var(--muted);transition:transform .2s}
+.pi-row.open .pi-chev{transform:rotate(180deg)}
+.pi-drop{max-height:0;overflow:hidden;transition:max-height .25s ease}
+.pi-row.open .pi-drop{max-height:340px;margin-top:8px}
+.pi-drop-h{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.03em;margin-bottom:6px}
+.pi-comp{display:grid;grid-template-columns:1fr 90px 34px;gap:8px;align-items:center;font-size:11px;color:var(--ink);margin-bottom:4px}
+.pi-comp b{text-align:right;font-weight:700}
+.pi-drop-n{font-size:10px;color:#5478a8;background:#f4f8ff;border-radius:6px;padding:6px 8px;margin-top:6px}
 .pi-h{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:var(--ink);margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid}
 .pi-h span{font-size:10px;font-weight:700;background:#eef4ff;color:#5478a8;border-radius:20px;padding:2px 9px}
 .pi-h-std{border-color:#cfdaeb}
@@ -1232,7 +1243,7 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-x{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:7px;width:24px;height:24px;cursor:pointer;font-size:12px}
 .pi-x:hover{border-color:var(--red);color:var(--red)}
 .gd-kpy-chip{margin-left:auto;font-size:12px;font-weight:800;color:#c2740a;background:#fdf3e3;border:1px solid #f0d9ad;border-radius:20px;padding:6px 13px;white-space:nowrap}
-@media(max-width:900px){.pi-2col{grid-template-columns:1fr}.pi-panel:first-child{border-right:none;border-bottom:1px solid var(--line)}.pi-row{grid-template-columns:24px 1fr 42px 84px}}
+@media(max-width:900px){.pi-2col{grid-template-columns:1fr}.pi-panel:first-child{border-right:none;border-bottom:1px solid var(--line)}.pi-row.pi-std{grid-template-columns:42px 1fr 44px}.pi-row.pi-key{grid-template-columns:40px 1fr 44px 26px}}
 .gd .card{border-radius:14px;box-shadow:0 1px 3px rgba(15,23,42,.04),0 4px 14px rgba(15,23,42,.03)}
 .gd-head{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;margin-bottom:10px;flex-wrap:wrap;gap:10px}
 .gd-hl{display:flex;align-items:center;gap:13px}
@@ -2827,38 +2838,41 @@ function codecSaveKpi(){
  kpiPersist(); closeDrawer(); renderOverview();
  alert("✅ KPI \""+name+"\" ditambahkan ke Key Performance Indicator.");
 }
+function codecStdCode(name){ var i=CODEC_SUBFN.findIndex(function(f){return f.name===name;}); return i>=0?('GA-'+String(i+1).padStart(2,'0')):'—'; }
+function codecPiToggle(i){ var r=document.getElementById('pistd-'+i); if(r)r.classList.toggle('open'); }
 function codecPerfIndicatorHTML(){
  var S=codecSubFnData(), keys=kpiClaRows(), total=kpiClaTotal();
- var isKey=function(name){ return KPI_CLA.some(function(k){return k.from===name && !k.pick;}); };
- var std=S.map(function(f){
+ var std=S.map(function(f,i){
+   var code='GA-'+String(i+1).padStart(2,'0');
    var c=f.ach>=f.target?'var(--green)':f.ach>=f.target*0.8?'#F59E0B':'var(--red)';
-   var key=isKey(f.name);
-   return '<div class="pi-row">'+
-     '<div class="pi-ic">'+f.ic+'</div>'+
-     '<div class="pi-main"><div class="pi-name">'+esc(f.name)+' <span class="pi-type '+f.type+'">'+f.type+'</span></div>'+
-       '<div class="pi-bar"><div class="inv-bar"><div class="fill '+(f.st==='ok'?'':'flow')+'" style="width:'+Math.min(100,f.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,f.target)+'%"></div></div></div></div>'+
+   var comps=(f.comp||[]).map(function(cc){ return '<div class="pi-comp"><span>'+esc(cc.n)+'</span><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,cc.v)+'%;background:'+c+'"></div></div><b>'+cc.v+'%</b></div>'; }).join('');
+   return '<div class="pi-row pi-std" id="pistd-'+i+'">'+
+     '<div class="pi-code2">'+code+'</div>'+
+     '<div class="pi-main"><div class="pi-name" onclick="codecPiToggle('+i+')" title="klik untuk lihat aktivitas / dari mana angka ini">'+esc(f.name)+' <span class="pi-chev">▾</span></div>'+
+       '<div class="pi-bar"><div class="inv-bar"><div class="fill '+(f.st==='ok'?'':'flow')+'" style="width:'+Math.min(100,f.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,f.target)+'%"></div></div></div>'+
+       '<div class="pi-drop"><div class="pi-drop-h">Aktivitas — dari mana angka '+f.ach+'% ini:</div>'+comps+(f.note?'<div class="pi-drop-n">📡 '+esc(f.note)+'</div>':'')+'</div></div>'+
      '<div class="pi-val" style="color:'+c+'">'+f.ach+'%</div>'+
-     '<div class="pi-act">'+(key?'<span class="pi-iskey">✓ Key</span>':'<button class="pi-promote" onclick="codecPromoteKey(\''+f.name.replace(/'/g,"\\'")+'\')" title="Jadikan Key Performance Indicator">★ Jadikan Key</button>')+'</div>'+
    '</div>';
  }).join('');
  var keyRows=keys.length?keys.map(function(r,i){
    var c=r.st==='ok'?'var(--green)':r.st==='warn'?'#F59E0B':'var(--red)';
+   var pcode=r.from?codecStdCode(r.from):'NEW';   // nomor = kelompok mana di 6 standar
    var pc=KPI_PERSP[r.persp]||'#5b6b80';
    return '<div class="pi-row pi-key">'+
-     '<div class="pi-code" style="background:'+pc+'1a;color:'+pc+'">'+r.code+'</div>'+
+     '<div class="pi-code" style="background:'+pc+'1a;color:'+pc+'" title="'+esc(r.from||'KPI baru / custom')+'">'+pcode+'</div>'+
      '<div class="pi-main"><div class="pi-name">'+esc(r.name)+'</div>'+
        '<div class="pi-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,r.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,r.target)+'%"></div></div></div>'+
        '<div class="pi-src">target '+r.target+'% · bobot '+r.weight+'% · '+esc(r.src)+'</div></div>'+
      '<div class="pi-val" style="color:'+c+'">'+r.ach+'%</div>'+
-     '<div class="pi-act"><button class="pi-x" onclick="codecRemoveKey('+i+')" title="hapus dari Key">✕</button></div>'+
+     '<div class="pi-act">'+(viewerOnly()?'':'<button class="pi-x" onclick="codecRemoveKey('+i+')" title="hapus dari Key">✕</button>')+'</div>'+
    '</div>';
- }).join(''):'<div class="muted small" style="padding:24px;text-align:center">Belum ada Key. Klik <b>★ Jadikan Key</b> pada indikator standar, atau <b>+ Tambah KPI Baru</b>.</div>';
+ }).join(''):'<div class="muted small" style="padding:24px;text-align:center">Belum ada Key. Klik <b>+ Tambah KPI Baru</b> (bisa dari indikator standar atau KPI baru).</div>';
  return '<div class="card mt16 pi-card">'+
-   '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div><div class="gd-chs">6 indikator standar (baku) · yang dikontrakkan jadi Key Performance Indicator '+KPI_YEAR_META.year+'</div></div>'+
+   '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div><div class="gd-chs">6 indikator standar (baku) · nomor GA-01..06 = kelompok · Key = yang dikontrakkan tahun '+KPI_YEAR_META.year+'</div></div>'+
      '<span class="pi-final">Skor KPI '+KPI_YEAR_META.year+': <b>'+total.final+'%</b> · '+total.ok+'/'+total.tot+' capai target</span></div>'+
    '<div class="pi-2col">'+
-     '<div class="pi-panel"><div class="pi-h pi-h-std">📋 Standard Performance Indicator <span>6 baku</span></div>'+std+'</div>'+
-     '<div class="pi-panel"><div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+(viewerOnly()?'':'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>')+'</div>'+keyRows+'</div>'+
+     '<div class="pi-panel pi-panel-std"><div class="pi-h pi-h-std">📋 Standard Performance Indicator <span>6 baku</span></div>'+std+'</div>'+
+     '<div class="pi-panel pi-panel-key"><div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+(viewerOnly()?'':'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>')+'</div>'+keyRows+'</div>'+
    '</div></div>';
 }
 function kpiClaTotal(){
@@ -4283,7 +4297,14 @@ function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)ret
    Channel default per kategori layanan; disiapkan agar bisa per Site saat sudah matang. */
 let fieldOpsGroup='cat';   // 'cat' = kategori layanan · 'lokasi' = per site
 function fieldOpsSite(t){ var l=(t.lokasi||'').trim(); if(!l)return'Lainnya'; return l.split(/[ .\-–]/)[0]||'Lainnya'; }
-function fieldOpsKey(t){ return fieldOpsGroup==='lokasi'?fieldOpsSite(t):(t.cat||'Lainnya'); }
+/* Normalisasi kategori tiket lama ke 8 kategori baku (Field Ops dikunci 8 kategori) */
+const FIELDOPS_CAT_MAP={
+ "Civil":"Building & Utility","Sipil":"Building & Utility","ME":"Building & Utility","EE":"Building & Utility",
+ "Housekeeping":"Tenant & General Services","Office Support":"Tenant & General Services","Security":"Tenant & General Services",
+ "Fire & Safety":"HSE & Sustainability"
+};
+function foNormCat(c){ c=c||''; if(KATEGORI8.indexOf(c)>=0)return c; return FIELDOPS_CAT_MAP[c]||"Tenant & General Services"; }
+function fieldOpsKey(t){ return fieldOpsGroup==='lokasi'?fieldOpsSite(t):foNormCat(t.cat); }
 function fieldOpsSetGroup(g){ fieldOpsGroup=g; renderFieldOps(); }
 function fieldOpsPickup(no){
   var t=TICKETS.find(x=>x.no===no); if(!t)return;
@@ -4316,13 +4337,13 @@ function renderFieldOps(){
   var el=document.getElementById("page-fieldops"); if(!el)return;
   var myCat=(gUser&&gUser.cat)?gUser.cat:null;   // operator MOBILE per kategori (akun Field Ops - <Kategori>)
   var active=TICKETS.filter(t=>(t.stg||0)<3);
-  if(myCat) active=active.filter(t=>(t.cat||'')===myCat);
+  if(myCat) active=active.filter(t=>foNormCat(t.cat)===myCat);   // kategori lama dinormalisasi ke 8 baku
   var groups, keys;
   if(myCat){
     groups={}; groups[myCat]=active; keys=[myCat];   // hanya 1 channel = kategori akunnya (walau kosong)
   } else if(fieldOpsGroup==='cat'){
-    groups={}; active.forEach(t=>{ var k=(t.cat||'Lainnya'); (groups[k]=groups[k]||[]).push(t); });
-    keys=KATEGORI8.slice(); Object.keys(groups).forEach(function(k){ if(keys.indexOf(k)<0) keys.push(k); });   // WEB: semua 8 kategori + kategori lain yg ada tiketnya
+    groups={}; active.forEach(t=>{ var k=foNormCat(t.cat); (groups[k]=groups[k]||[]).push(t); });
+    keys=KATEGORI8.slice();   // WEB: DIKUNCI tepat 8 kategori (Civil/ME→Building, Housekeeping/Office Support→Tenant, dst)
   } else {
     groups={}; active.forEach(t=>{ var k=fieldOpsSite(t); (groups[k]=groups[k]||[]).push(t); });
     keys=Object.keys(groups).sort();   // per site: hanya site yg ada tiketnya
@@ -6445,7 +6466,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-10";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-11";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
