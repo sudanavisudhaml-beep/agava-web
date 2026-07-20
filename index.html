@@ -1833,7 +1833,7 @@ const MENU=[
  {id:"building",ic:"building",label:"Building & Utility"},
  {id:"project",ic:"project",label:"Project Development"},
  {id:"gacal",ic:"today",label:"GA Calendar"},
- {id:"service",ic:"service",label:"Service"},
+ {id:"service",ic:"service",label:"Services"},
  {id:"procurement",ic:"procurement",label:"Procurement"},
  {id:"payment",ic:"payment",label:"Payment Tracker"},
  {id:"vendor",ic:"vendor",label:"Vendor Management"},
@@ -1910,11 +1910,11 @@ function go(id){
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="kpiyear"){renderKpiYear();document.getElementById("page-kpiyear").classList.remove("hide");t.textContent="KPI Tahunan · CLA "+KPI_YEAR_META.year;s.textContent="Indikator yang dikontrakkan tahun ini — setiap angka ditarik dari CODEC";}
-  else if(id==="procurement"){document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
+  else if(id==="procurement"){procFilter="all";renderProc();document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
   else if(id==="building"){renderBuilding();document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
   else if(id==="project"){renderProject();document.getElementById("page-project").classList.remove("hide");t.textContent="Project Development";s.textContent="Project Timeline × Calendar of Event 2026 — radar overlap konstruksi vs reservasi";}
   else if(id==="gacal"){renderGACal();document.getElementById("page-gacal").classList.remove("hide");t.textContent="GA Calendar";s.textContent="Kalender terpadu GA — deteksi benturan project × event × ruang meeting";}
-  else if(id==="service"){document.getElementById("page-service").classList.remove("hide");t.textContent="Service";s.textContent="Complaint tickets · response time, PIC & escalations";}
+  else if(id==="service"){renderService();document.getElementById("page-service").classList.remove("hide");t.textContent="Services";s.textContent="4 layanan GA · Ticket, Room Booking, Transport, Rating · response time, PIC & escalations";}
   else if(id==="createticket"){active="service";buildNav();renderCreateTicket();document.getElementById("page-createticket").classList.remove("hide");t.textContent="Create Service Ticket";s.textContent="New GA service request";}
   else if(id==="roombook"){active="service";buildNav();renderRoomBook();document.getElementById("page-roombook").classList.remove("hide");t.textContent="Room Booking";s.textContent="Pilih ruang dari denah lantai · powered by ERSUS";}
   else if(id==="transport"){active="service";buildNav();renderTransport();document.getElementById("page-transport").classList.remove("hide");t.textContent="Transportation";s.textContent="Kendaraan Pool · Voucher Blue Bird · Voucher GoCorp";}
@@ -3753,6 +3753,11 @@ function normalizeSO(){SO.forEach(s=>{
  if(s.spkNo===undefined)s.spkNo=s.wstep>=3?("SPK-202606-"+String(140+Math.floor(s.nilai)).padStart(4,"0")):"";
  if(s.wstep>=4&&!s.bastDate)s.bastDate="2026-06-11";
 });}
+/* Persistensi SO — SO yang dibuat/di-approve di aplikasi tersimpan agar tidak hilang saat refresh */
+const SO_STORE="agava_so_v1";
+function soPersist(){ try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){ console.warn("SO persist:",e.message); } }
+function soLoad(){ try{ var r=localStorage.getItem(SO_STORE); if(r){ var a=JSON.parse(r); if(Array.isArray(a)&&a.length){ SO.length=0; a.forEach(function(x){SO.push(x);}); return true; } } }catch(e){ console.warn("SO load:",e.message); } return false; }
+function soResetDemo(){ try{ localStorage.removeItem(SO_STORE); }catch(e){} location.reload(); }
 function soPhase(s){if(s.apprDept==="Rejected"||s.apprSection==="Rejected")return"rejected";if(s.apprSection!=="Approved")return"section";if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"budget";if(s.escalated){if(s.apprDept!=="Approved")return"dept";if(s.apprProc!=="Approved")return"proc";}else{if(s.apprProc!=="Approved")return"proc";if(s.apprDept!=="Approved")return"dept";}if(s.wstep<4)return"work";return"pay";}
 function soStatusLabel(s){var p=soPhase(s);
  if(p==="rejected")return{t:"Rejected",c:"bd-crit"};
@@ -4222,6 +4227,7 @@ async function submitTicket(){
  const no=res.ticketNo||("GA-202606-"+String(++ticketSeq).padStart(4,"0"));
  TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,ts:{0:nowStamp()}});
  dbSaveTicket(TICKETS[0]);
+ notifySound();   // tiket baru masuk ke inbox layanan / tim lapangan
  svcFilter="all"; renderService(); renderOverview(); renderBuilding(); go("service");
  if(res.ticketNo && !res._sim){ alert("✅ Tiket dibuat & flow Power Automate dijalankan.\nNomor dari flow: "+no+"\nStatus: "+(res.status||"Submitted")); }
 }
@@ -4654,7 +4660,7 @@ async function submitSO(){
  const so={no,item:itemStr,items:rows,lokasi:lokasi,req:req,requester:req,deptDiv:deptDiv,pic:"",staffPIC:"",nilai:nilai,jenis:"Goods",kategori:kat,budgetFlag:budget,vendor:"",fup:"",attachments:attachments,
    apprSection:isSec?"Approved":"Pending",sectionBy:"",apprBudget:isSec?"Pending":"—",apprProc:"—",apprDept:"—",wstep:0,ts:{created:nowStamp()},tsf:{},invStatus:"",spkNo:"",stage:0,aging:"On Track"};
  so.sectionBy=soSectionApprover(so); if(isSec){ so.sectionBy=req; so.tsf.section=nowStampDoc(); so.ts.section=nowStamp(); }
- SO.unshift(so);
+ SO.unshift(so); soPersist();
  procFilter="all"; renderProc(); renderApprovals(); renderReminder(); buildNav(); updateBell();
  notifySound();   // SO baru masuk ke inbox approval Section/Budget
  go("procurement");
@@ -4974,6 +4980,7 @@ function approveSO(no,gate,decision){
                      : ("✅ GA Dept Head approve. TTD 'Disetujui Oleh' (Dept Head) terbubuh — dokumen SO kini SAH & bisa diunduh.\nSO "+no+" masuk Assigned SO "+(s.staffPIC||"")+".")); }
  }
  if(decision!=="Rejected") notifySound();   // flow maju masuk ke gate/assigned berikutnya
+ soPersist();
  renderApprovals(); renderProc(); renderAssigned(); renderReminder(); buildNav(); updateBell();
 }
 /* ===== Klarifikasi: PIC Proc kirim catatan → Requester (Reminder) → jawab → balik ke PIC Proc ===== */
@@ -5125,7 +5132,7 @@ function soStep(no){
  if(s.wstep===3){ openBAST(no); return; }     // Kirim BAST → modal upload
  var keys=["sourcing","upr"]; s.ts[keys[s.wstep]]=nowStamp(); s.wstep++;
  s.stage=Math.max(s.stage||0,s.wstep+2);   // sinkron stage drawer dgn wstep (wstep1→UPR, wstep2→SPK)
- renderAssigned(); renderProc();
+ soPersist(); renderAssigned(); renderProc();
 }
 function renderAssigned(){
  const me=gUser?gUser.name:"";
@@ -6177,7 +6184,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-5";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-6";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -6219,7 +6226,7 @@ function dbInit(){
 }
 function dbSaveTicket(t){ if(!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
 
-loadFlowConfig();dbLoadAll();wpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();
+loadFlowConfig();dbLoadAll();wpLoad();soLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();
 </script>
 </body>
 </html>
