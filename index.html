@@ -539,6 +539,26 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .fo-tik-m{font-size:11px;color:var(--muted)}
 .fo-btn{width:100%;padding:8px;font-size:12.5px;margin-top:2px}
 @media(max-width:820px){.fo-grid{grid-template-columns:1fr}.fo-chan-body{max-height:none}}
+.fo-tik-esc{border-color:rgba(220,38,38,.4)!important}
+/* My Tickets — operator lapangan */
+.mt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.mt-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 4px 14px rgba(20,40,80,.05)}
+.mt-card.mt-esc{border-color:rgba(220,38,38,.4);background:linear-gradient(135deg,rgba(255,240,240,.5),#fff 55%)}
+.mt-h{display:flex;align-items:center;gap:7px;font-size:10.5px}
+.mt-prio{margin-left:auto;font-size:8.5px;font-weight:800;padding:1px 7px;border-radius:20px;text-transform:uppercase}
+.prio-critical{background:#fdecec;color:#dc2626}.prio-high{background:#fdf3e3;color:#c2740a}.prio-medium{background:#eef4ff;color:#2563eb}.prio-low{background:#f2f5f9;color:#6b7a90}
+.mt-t{font-size:14px;font-weight:700;color:var(--ink);margin:6px 0 3px;line-height:1.3}
+.mt-sla{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.mt-sla-i{background:#f6f9fd;border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+.mt-sla-i.breach{background:#fdecec;border-color:#f4c6c6}
+.mt-sla-i span{font-size:9.5px;color:var(--muted);display:block}
+.mt-sla-i b{font-size:15px;color:var(--ink)}
+.mt-sla-i.breach b{color:var(--red)}
+.mt-sla-i small{font-size:9px;color:var(--muted);display:block}
+.mt-acts{display:flex;gap:8px;flex-wrap:wrap}
+.mt-btn{flex:1;padding:8px;font-size:12px;min-width:130px}
+.svc-breach{font-size:9.5px;font-weight:800;color:var(--red);margin-top:2px}
+@media(max-width:820px){.mt-grid{grid-template-columns:1fr}}
 /* ===== Dokumen Supply Order (cetak / simpan PDF) ===== */
 .sodoc-ovl{position:fixed;inset:0;z-index:400;background:rgba(15,35,65,.55);display:flex;flex-direction:column}
 .sodoc-ovl.hide{display:none}
@@ -1845,6 +1865,7 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
       <div id="page-gacal" class="hide"></div>
       <div id="page-service" class="hide"></div>
       <div id="page-fieldops" class="hide"></div>
+      <div id="page-myticket" class="hide"></div>
       <div id="page-createticket" class="hide"></div>
       <div id="page-roombook" class="hide"></div>
       <div id="page-transport" class="hide"></div>
@@ -1910,6 +1931,7 @@ const IC={
  vendor:'<path d="M3 9l1.6-5h14.8L21 9"/><path d="M5 9v10h14V9"/><path d="M9 19v-5h6v5"/><path d="M3 9h18"/>',
  kpiyear:'<path d="M8 21h8"/><path d="M12 17v4"/><path d="M6 3h12v6a6 6 0 0 1-12 0V3z"/><path d="M6 5H3.5v1.5A3.5 3.5 0 0 0 6 9.8"/><path d="M18 5h2.5v1.5A3.5 3.5 0 0 1 18 9.8"/>',
  fieldops:'<circle cx="12" cy="12" r="1.8"/><path d="M8.5 8.5a5 5 0 0 0 0 7"/><path d="M15.5 15.5a5 5 0 0 0 0-7"/><path d="M6 6a9 9 0 0 0 0 12"/><path d="M18 18a9 9 0 0 0 0-12"/>',
+ myticket:'<path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z"/><path d="M9 6v12" stroke-dasharray="2 2"/>',
  impact:'<circle cx="12" cy="12" r="2.2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4"/><path d="M19.1 4.9a10 10 0 0 1 0 14.2"/><path d="M4.9 19.1a10 10 0 0 1 0-14.2"/>'
 };
 const MENU=[
@@ -1919,6 +1941,7 @@ const MENU=[
  {id:"gacal",ic:"today",label:"GA Calendar"},
  {id:"service",ic:"service",label:"Services"},
  {id:"fieldops",ic:"fieldops",label:"Field Ops"},
+ {id:"myticket",ic:"myticket",label:"My Tickets"},
  {id:"procurement",ic:"procurement",label:"Procurement"},
  {id:"payment",ic:"payment",label:"Payment Tracker"},
  {id:"vendor",ic:"vendor",label:"Vendor Management"},
@@ -1943,7 +1966,8 @@ const ROLES={
  staff:{label:"Staff Procurement",tier:null,menus:["overview","procurement","service","assigned","reminder"]},
  general:{label:"Staff (Non-GA)",tier:null,menus:["overview","service","energy","reminder"]},
  finance:{label:"Staff Finance",tier:null,menus:["overview","payment","reminder"]},
- fieldops:{label:"Field Operator",tier:null,menus:["service","fieldops"]}   // persona MOBILE — hanya Services + Field Ops
+ fieldops:{label:"Field Operator",tier:null,menus:["service","fieldops","myticket"]},   // persona MOBILE — Services + Field Ops + My Tickets
+ fieldsup:{label:"Field Ops Supervisor",tier:"Procurement",menus:["service","fieldops","procurement","approvals"]}   // supervisor — terima eskalasi, buat SO
 };
 const USERS=[
  {email:"sudana.visudha@ai.astra.co.id",name:"Sudana Visudha",role:"admin"},
@@ -1962,7 +1986,7 @@ const USERS=[
  {email:"muhamad.zhaenuri@ai.astra.co.id",name:"M Zhaenuri",role:"general"},
  {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general"},
  {email:"salsa.savila@ai.astra.co.id",name:"Salsa",role:"finance"},
- {email:"fieldops@ai.astra.co.id",name:"Field Ops - Supervisor",role:"fieldops"},
+ {email:"fieldops@ai.astra.co.id",name:"Field Ops - Supervisor",role:"fieldsup"},
  {email:"fieldops.building@ai.astra.co.id",name:"Field Ops - Building & Utility",role:"fieldops",cat:"Building & Utility"},
  {email:"fieldops.tenant@ai.astra.co.id",name:"Field Ops - Tenant & General Services",role:"fieldops",cat:"Tenant & General Services"},
  {email:"fieldops.project@ai.astra.co.id",name:"Field Ops - Project Development",role:"fieldops",cat:"Project Development"},
@@ -1993,6 +2017,7 @@ function applyLogin(u){
  buildNav(); renderAll(); renderCreateTicket();
  go(ROLES[gRole].menus[0]);
  document.getElementById("login").classList.add("hide");
+ if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
 }
 function logout(){ gUser=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
 
@@ -2010,7 +2035,7 @@ function closeMobSidebar(){ document.body.classList.remove("side-open"); }
 function go(id){
   closeMobSidebar();
   active=(id==="ersus")?"energy":id; buildNav();
-  ["page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
+  ["page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="procurement"){procFilter="all";renderProc();document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
@@ -2019,6 +2044,7 @@ function go(id){
   else if(id==="gacal"){renderGACal();document.getElementById("page-gacal").classList.remove("hide");t.textContent="GA Calendar";s.textContent="Kalender terpadu GA — deteksi benturan project × event × ruang meeting";}
   else if(id==="service"){renderService();document.getElementById("page-service").classList.remove("hide");t.textContent="Services";s.textContent="4 layanan GA · Ticket, Room Booking, Transport, Rating · response time, PIC & escalations";}
   else if(id==="fieldops"){renderFieldOps();document.getElementById("page-fieldops").classList.remove("hide");t.textContent="Field Ops";s.textContent="Tim lapangan terima lemparan tiket per channel · realtime dari Firebase";}
+  else if(id==="myticket"){renderMyTickets();document.getElementById("page-myticket").classList.remove("hide");t.textContent="My Tickets";s.textContent="Tiket yang Anda pick up · pantau SLA, eskalasi & selesaikan · tercatat di Services";}
   else if(id==="createticket"){active="service";buildNav();renderCreateTicket();document.getElementById("page-createticket").classList.remove("hide");t.textContent="Create Service Ticket";s.textContent="New GA service request";}
   else if(id==="roombook"){active="service";buildNav();renderRoomBook();document.getElementById("page-roombook").classList.remove("hide");t.textContent="Room Booking";s.textContent="Pilih ruang dari denah lantai · powered by ERSUS";}
   else if(id==="transport"){active="service";buildNav();renderTransport();document.getElementById("page-transport").classList.remove("hide");t.textContent="Transportation";s.textContent="Kendaraan Pool · Voucher Blue Bird · Voucher GoCorp";}
@@ -4257,6 +4283,8 @@ function svcPip(s){ return s==="Resolved"?"#15a34a":s==="In Progress"?"#2563eb":
 function svcBadge(s){ const m={"Submitted":"bd-neu","Assigned":"bd-warn","In Progress":"bd-info","Resolved":"bd-ok"}; return `<span class="badge ${m[s]||'bd-neu'}">${s}</span>`; }
 /* normalisasi tiket ke model 4-step: status lama "To Procurement" → In Progress (stg 2) + flag toProc; Resolved lama (stg 4) → stg 3 */
 function normalizeTickets(){ TICKETS.forEach(t=>{
+  if(!t.slaMs){ t.slaMs={}; if(t.created){ t.slaMs.created=new Date(t.created+'T09:00:00').getTime(); if((t.stg||0)>=1)t.slaMs.pickup=new Date(t.created+'T09:30:00').getTime(); if((t.stg||0)>=3)t.slaMs.resolved=new Date((t.closed||t.created)+'T12:00:00').getTime(); } }
+  if(!t.prio&&!t.priority)t.prio=t.esc?'High':'Medium';
   if(t._norm4)return;
   if(t.status==="To Procurement"||t.stg===3){ t.status="In Progress"; t.stg=2; t.toProc=true; }
   else if(t.stg>=4){ t.stg=3; t.status="Resolved"; }
@@ -4264,10 +4292,11 @@ function normalizeTickets(){ TICKETS.forEach(t=>{
 }); }
 function ticketRow(t){
  const bar=[0,1,2,3].map(i=>`<i class="${t.stg>=i?'on':''}"></i>`).join("");
+ const sla=ticketSLA(t);
  return `<div class="svc-row" onclick="openTicket('${t.no}')" style="cursor:pointer">
    <span class="svc-pip" style="background:${svcPip(t.status)}"></span>
-   <div><div class="svc-no">${t.no}${t.esc?' <span class="badge bd-crit">Escalated</span>':''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${t.cat} · ${t.lokasi} · ${t.team}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div></div>
-   <div class="svc-resp"><div class="svc-lbl">Response</div><b>${t.resp}</b></div>
+   <div><div class="svc-no">${t.no}${t.esc?` <span class="badge bd-crit">Escalated${t.escBy?' · '+t.escBy:''}</span>`:''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${foNormCat(t.cat)} · ${t.lokasi} · ${sla.pr}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div></div>
+   <div class="svc-resp"><div class="svc-lbl">Response · Resolution</div><b style="${sla.respBreach?'color:var(--red)':''}">${fmtDur(sla.respMin)}</b> <span class="muted">·</span> <b style="${sla.resBreach?'color:var(--red)':''}">${fmtDur(sla.resMin)}</b>${sla.breach?'<div class="svc-breach">⚠ SLA breach</div>':''}</div>
    <div class="svc-pic">${t.pic?`<span class="avt">${ini(t.pic)}</span>${t.pic}`:'<span class="muted small">Unassigned</span>'}</div>
    <div>${svcBadge(t.status)}${(t.status==="Resolved"&&!t.rating)?`<button class="btn-out" style="margin-top:6px;padding:4px 9px;font-size:11px" onclick="event.stopPropagation();openRate('${t.no}')">★ Rate</button>`:(t.rating?`<div class="small" style="margin-top:4px;color:#f5a623;white-space:nowrap">${'★'.repeat(Math.round(t.rating))}${'☆'.repeat(5-Math.round(t.rating))}</div>`:'')}</div>
  </div>`;
@@ -4292,7 +4321,66 @@ function openTicket(no){
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
-function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)return; t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; if(t.stg===3)t.closed=TODAY_STR; dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,ts:t.ts[t.stg],closed:t.closed||null}); openTicket(no); renderService(); renderOverview(); renderBuilding(); updateBell(); }
+function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)return; t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; t.slaMs=t.slaMs||{}; if(t.stg>=1&&!t.slaMs.pickup)t.slaMs.pickup=nowMs(); if(t.stg===3){t.closed=TODAY_STR; t.slaMs.resolved=nowMs();} dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,ts:t.ts[t.stg],closed:t.closed||null}); openTicket(no); renderService(); renderMyTickets(); renderFieldOps(); renderOverview(); renderBuilding(); updateBell(); }
+/* ===== FIELD OPS — SLA, identitas operator, My Tickets, eskalasi ke Supervisor ===== */
+function nowMs(){ return Date.now(); }
+/* target SLA per prioritas (menit): response = created→pickup · resolution = created→resolved */
+const SLA_TARGETS={ Critical:{resp:15,res:240}, High:{resp:30,res:480}, Medium:{resp:60,res:1440}, Low:{resp:120,res:2880} };
+function fmtDur(min){ if(min==null)return'—'; if(min<1)return'<1 mnt'; if(min<60)return min+' mnt'; if(min<1440)return (Math.round(min/6)/10)+' jam'; return (Math.round(min/144)/10)+' hari'; }
+function ticketSLA(t){
+ var pr=t.prio||t.priority||'Medium'; var tg=SLA_TARGETS[pr]||SLA_TARGETS.Medium;
+ var ms=t.slaMs||{}, now=nowMs();
+ var respMin=(ms.pickup&&ms.created)?Math.round((ms.pickup-ms.created)/60000):(ms.created&&(t.stg||0)<1?Math.round((now-ms.created)/60000):null);
+ var resMin=(ms.resolved&&ms.created)?Math.round((ms.resolved-ms.created)/60000):(ms.created&&(t.stg||0)<3?Math.round((now-ms.created)/60000):null);
+ var respBreach=respMin!=null&&respMin>tg.resp, resBreach=resMin!=null&&resMin>tg.res;
+ return {pr:pr,tg:tg,respMin:respMin,resMin:resMin,respBreach:respBreach,resBreach:resBreach,breach:respBreach||resBreach,respDone:!!ms.pickup,resDone:!!ms.resolved};
+}
+/* Identitas operator lapangan — diisi SEKALI, diingat di perangkat (localStorage) */
+const FIELDOP_STORE="agava_fieldop_v1";
+let fieldOp=null;
+function fieldOpLoad(){ try{ var r=localStorage.getItem(FIELDOP_STORE); if(r)fieldOp=JSON.parse(r); }catch(e){} return fieldOp; }
+function fieldOpSave(o){ fieldOp=o; try{ localStorage.setItem(FIELDOP_STORE,JSON.stringify(o)); }catch(e){} }
+function fieldOpReset(){ if(!confirm("Ganti operator? Identitas (nama/role/shift) di perangkat ini akan dihapus."))return; fieldOp=null; try{ localStorage.removeItem(FIELDOP_STORE); }catch(e){} fieldOpRegister(true); }
+function fieldOpName(){ return (fieldOp&&fieldOp.name)?fieldOp.name:(gUser?gUser.name:''); }
+function fieldOpRegister(force){
+ if(!force && fieldOp && fieldOp.name) return;
+ const shifts=["Pagi (07–15)","Siang (15–23)","Malam (23–07)"];
+ document.getElementById("drawer").innerHTML='<div class="dh"><div style="font-weight:700;color:var(--ink);font-size:16px">👷 Registrasi Operator Lapangan</div><div class="muted small" style="margin-top:4px">Akun '+(gUser?gUser.name:'')+' — isi identitas Anda (diingat di perangkat ini)</div></div>'+
+  '<div class="db">'+
+   '<div class="field"><label>Nama Operator <span style="color:var(--red)">*</span></label><input id="fo-reg-name" placeholder="Nama lengkap Anda" value="'+(fieldOp&&fieldOp.name?esc(fieldOp.name):'')+'"/></div>'+
+   '<div class="field"><label>Role / Jabatan</label><input id="fo-reg-role" placeholder="mis. Teknisi ME, Housekeeping, dll" value="'+(fieldOp&&fieldOp.role?esc(fieldOp.role):'')+'"/></div>'+
+   '<div class="field"><label>Shift</label><select id="fo-reg-shift">'+shifts.map(function(s){return '<option'+(fieldOp&&fieldOp.shift===s?' selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'+
+   '<button class="btn-act" style="width:100%;margin-top:10px" onclick="fieldOpSubmitReg()">✓ Mulai Bertugas</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+ var ov=document.getElementById("ovl"); if(ov)ov.dataset.lockReg=force?"":"1";
+}
+function fieldOpSubmitReg(){
+ var name=(document.getElementById("fo-reg-name").value||"").trim(); if(!name){ alert("Nama operator wajib diisi."); return; }
+ fieldOpSave({name:name, role:(document.getElementById("fo-reg-role").value||"").trim(), shift:document.getElementById("fo-reg-shift").value, account:gUser?gUser.email:""});
+ closeDrawer(); buildNav(); renderFieldOps(); renderMyTickets(); updateBell();
+ alert("✅ Selamat bertugas, "+name+"!\nTiket yang Anda ambil akan muncul di modul My Tickets.");
+}
+/* Eskalasi: operator tak sanggup → naik ke Supervisor kategori, yg lalu buat SO di Procurement */
+function myTicketEscalate(no){
+ var t=TICKETS.find(x=>x.no===no); if(!t)return;
+ var note=prompt("Alasan eskalasi ke Supervisor (mis. butuh pengadaan barang / vendor):",""); if(note===null)return;
+ t.esc=true; t.escBy=fieldOpName(); t.escNote=note||""; t.escAt=nowMs();
+ dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,esc:true,escBy:t.escBy,escNote:t.escNote});
+ renderMyTickets(); renderFieldOps(); renderService(); renderOverview(); updateBell(); notifySound();
+ alert("⏫ Tiket "+no+" dieskalasi ke Supervisor "+(t.cat?foNormCat(t.cat):'')+".\nSupervisor akan menindaklanjuti (mis. membuat SO pengadaan).");
+}
+function myTicketResolve(no){ svcAdvance(no); }   // Selesaikan = advance ke Resolved (mencatat SLA resolution)
+/* Supervisor buat SO dari tiket tereskalasi → prefill Create SO */
+function soFromTicket(no){
+ var t=TICKETS.find(x=>x.no===no); if(!t)return;
+ window._soFromTicket=no;
+ go('createso');
+ var row=document.querySelector('#so-items tr'); if(row){ var inp=row.querySelectorAll('input'); if(inp[0])inp[0].value=t.judul||''; if(inp[1])inp[1].value=(t.escNote||''); }
+ var cat=document.getElementById('so-cat'); if(cat)cat.value=foNormCat(t.cat);
+ var dd=document.getElementById('so-deptdiv'); if(dd)dd.value="GENERAL AFFAIR";
+ alert("📋 Buat SO dari tiket "+no+".\nKategori & item sudah diisi otomatis dari tiket — lengkapi lalu Submit.");
+}
 /* ===== FIELD OPS — tim lapangan terima lemparan tiket per channel (realtime Firebase) =====
    Channel default per kategori layanan; disiapkan agar bisa per Site saat sudah matang. */
 let fieldOpsGroup='cat';   // 'cat' = kategori layanan · 'lokasi' = per site
@@ -4308,27 +4396,31 @@ function fieldOpsKey(t){ return fieldOpsGroup==='lokasi'?fieldOpsSite(t):foNormC
 function fieldOpsSetGroup(g){ fieldOpsGroup=g; renderFieldOps(); }
 function fieldOpsPickup(no){
   var t=TICKETS.find(x=>x.no===no); if(!t)return;
-  var me=gUser?gUser.name:'Operator';
+  if(gRole==='fieldops' && !(fieldOp&&fieldOp.name)){ fieldOpRegister(); return; }   // wajib registrasi dulu
+  var me=fieldOpName()||'Operator';
   t.pic=me; t.stg=Math.max(t.stg||0,1); t.status=TSTAGES[t.stg]; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp();
+  t.slaMs=t.slaMs||{}; if(!t.slaMs.created)t.slaMs.created=nowMs(); if(!t.slaMs.pickup)t.slaMs.pickup=nowMs();
   dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,pic:me});
-  renderFieldOps(); renderService(); renderOverview(); renderBuilding(); updateBell();
-  alert("✅ Tiket "+no+" diambil oleh "+me+".");
+  renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
+  alert("✅ Tiket "+no+" diambil oleh "+me+".\nMuncul di modul My Tickets Anda.");
 }
 function foAdvance(no){
   var t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)return;
-  t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; if(t.stg===3)t.closed=TODAY_STR;
+  t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; t.slaMs=t.slaMs||{}; if(t.stg>=1&&!t.slaMs.pickup)t.slaMs.pickup=nowMs(); if(t.stg===3){t.closed=TODAY_STR; t.slaMs.resolved=nowMs();}
   dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,ts:t.ts[t.stg],closed:t.closed||null});
-  renderFieldOps(); renderService(); renderOverview(); renderBuilding(); updateBell();
+  renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
 }
 function foTicketCard(t){
   var st=t.status||TSTAGES[t.stg||0];
   var pip=t.stg>=3?'#15a34a':t.stg>=1?'#0a7cff':'#c2740a';
   var bar=[0,1,2,3].map(n=>'<i class="'+(t.stg>=n?'on':'')+'"></i>').join('');
   var neu=(!t.pic||t.stg===0);
-  var act = neu ? '<button class="btn-act fo-btn" onclick="fieldOpsPickup(\''+t.no+'\')">🙋 Ambil Tiket</button>'
+  var canSO=ROLES[gRole]&&ROLES[gRole].menus&&ROLES[gRole].menus.indexOf('procurement')>=0;
+  var act = (t.esc&&canSO) ? '<button class="btn-act fo-btn" onclick="soFromTicket(\''+t.no+'\')">📋 Buat SO (eskalasi)</button>'
+    : neu ? '<button class="btn-act fo-btn" onclick="fieldOpsPickup(\''+t.no+'\')">🙋 Ambil Tiket</button>'
     : (t.stg<3 ? '<button class="btn-act fo-btn" onclick="foAdvance(\''+t.no+'\')">'+(t.stg===1?'▶ Mulai Kerjakan':'✓ Selesaikan')+'</button>' : '<span class="badge bd-ok">Selesai</span>');
-  return '<div class="fo-tik'+(neu?' fo-tik-new':'')+'">'+
-    '<div class="fo-tik-h"><span class="so-dot" style="background:'+pip+'"></span><span class="fo-no">'+t.no+'</span>'+(t.esc?'<span class="badge bd-crit" style="font-size:9px">Esc</span>':'')+'<span class="fo-st">'+st+'</span></div>'+
+  return '<div class="fo-tik'+(neu?' fo-tik-new':'')+(t.esc?' fo-tik-esc':'')+'">'+
+    '<div class="fo-tik-h"><span class="so-dot" style="background:'+(t.esc?'#dc2626':pip)+'"></span><span class="fo-no">'+t.no+'</span>'+(t.esc?'<span class="badge bd-crit" style="font-size:9px">Esc: '+esc(t.escBy||'')+'</span>':'')+'<span class="fo-st">'+st+'</span></div>'+
     '<div class="fo-tik-t">'+esc(t.judul||'')+'</div>'+
     '<div class="fo-tik-m">'+esc(t.lokasi||'')+(t.pic?' · 👷 '+esc(t.pic):'')+'</div>'+
     '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+act+'</div>';
@@ -4364,6 +4456,37 @@ function renderFieldOps(){
       '<div class="fo-chan-body">'+(list.length?list.map(foTicketCard).join(''):'<div class="muted small" style="text-align:center;padding:18px">Belum ada tiket masuk</div>')+'</div></div>';
   }).join('') : '<div class="card pad muted small" style="text-align:center;padding:40px;grid-column:1/-1">Tidak ada tiket aktif. 🎉</div>';
   el.innerHTML=head+'<div class="fo-grid'+(myCat?' fo-grid-single':'')+'">'+chans+'</div>';
+}
+function myTicketCard(t){
+ var sla=ticketSLA(t), st=t.status||TSTAGES[t.stg||0];
+ var pip=t.stg>=3?'#15a34a':t.esc?'#dc2626':t.stg>=1?'#0a7cff':'#c2740a';
+ var bar=[0,1,2,3].map(function(n){return '<i class="'+(t.stg>=n?'on':'')+'"></i>';}).join('');
+ var act='';
+ if((t.stg||0)<3){
+   act='<div class="mt-acts"><button class="btn-act mt-btn" onclick="myTicketResolve(\''+t.no+'\')">✓ Selesaikan</button>'+(t.esc?'<span class="badge bd-crit">Sudah dieskalasi ke Supervisor</span>':'<button class="btn-out mt-btn" onclick="myTicketEscalate(\''+t.no+'\')">⏫ Eskalasi ke Supervisor</button>')+'</div>';
+ } else { act='<span class="badge '+(sla.resBreach?'bd-crit':'bd-ok')+'">Selesai · Resolution SLA '+(sla.resBreach?'BREACH':'OK')+'</span>'; }
+ return '<div class="mt-card'+(t.esc?' mt-esc':'')+'">'+
+   '<div class="mt-h"><span class="so-dot" style="background:'+pip+'"></span><span class="fo-no">'+t.no+'</span>'+(t.esc?'<span class="badge bd-crit" style="font-size:9px">Escalated</span>':'')+'<span class="mt-prio prio-'+(sla.pr||'Medium').toLowerCase()+'">'+sla.pr+'</span><span class="fo-st">'+st+'</span></div>'+
+   '<div class="mt-t">'+esc(t.judul||'')+'</div>'+
+   '<div class="fo-tik-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div>'+
+   '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+
+   '<div class="mt-sla">'+
+     '<div class="mt-sla-i'+(sla.respBreach?' breach':'')+'"><span>Response time</span><b>'+fmtDur(sla.respMin)+'</b><small>target '+fmtDur(sla.tg.resp)+(sla.respDone?'':' · berjalan')+'</small></div>'+
+     '<div class="mt-sla-i'+(sla.resBreach?' breach':'')+'"><span>Resolution time</span><b>'+fmtDur(sla.resMin)+'</b><small>target '+fmtDur(sla.tg.res)+(sla.resDone?'':' · berjalan')+'</small></div>'+
+   '</div>'+act+'</div>';
+}
+function renderMyTickets(){
+ var el=document.getElementById("page-myticket"); if(!el)return;
+ var me=fieldOpName();
+ var mine=TICKETS.filter(function(t){return t.pic===me;});
+ var active=mine.filter(function(t){return (t.stg||0)<3;});
+ var done=mine.filter(function(t){return (t.stg||0)>=3;});
+ var breached=mine.filter(function(t){return ticketSLA(t).breach;}).length;
+ var head='<div class="card pad fo-head"><div><div class="fo-title">🎫 My Tickets — '+esc(me)+'</div>'+
+   '<div class="muted small">'+(fieldOp?esc(fieldOp.role||'Operator')+' · '+esc(fieldOp.shift||''):'operator')+' · '+active.length+' aktif · '+done.length+' selesai · <b style="color:var(--red)">'+breached+'</b> SLA breach · tercatat di Services</div></div>'+
+   '<button class="btn-out" onclick="fieldOpReset()">Ganti Operator</button></div>';
+ var cards=mine.length?mine.slice().sort(function(a,b){return (a.stg||0)-(b.stg||0);}).map(myTicketCard).join(''):'<div class="card pad muted small" style="text-align:center;padding:44px;grid-column:1/-1">Belum ada tiket. Ambil tiket di modul <b>Field Ops</b> → langsung muncul di sini.</div>';
+ el.innerHTML=head+'<div class="mt-grid">'+cards+'</div>';
 }
 function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
 function gaServiceButtons(){
@@ -4503,7 +4626,7 @@ async function submitTicket(){
  const res=await triggerFlow("createTicket",{title, cat, priority:prio, lokasi:loc, description:desc, requester:req, requesterEmail:reqEmail, created:TODAY_STR})||{};
  if(res.ok===false){ alert("⚠️ Flow 'Create Ticket' gagal dipanggil ("+(res.error||('HTTP '+(res.httpStatus||'?')))+").\nTiket tetap dibuat lokal di AGAVA.\nCek URL/CORS flow di Vendor Management → Power Automate Bridge."); }
  const no=res.ticketNo||("GA-202606-"+String(++ticketSeq).padStart(4,"0"));
- TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,ts:{0:nowStamp()}});
+ TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,prio:prio,ts:{0:nowStamp()},slaMs:{created:nowMs()}});
  dbSaveTicket(TICKETS[0]);
  notifySound();   // tiket baru masuk ke inbox layanan / tim lapangan
  svcFilter="all"; renderService(); renderOverview(); renderBuilding(); go("service");
@@ -6445,7 +6568,7 @@ function applyLiveRooms(rows){
 /* recomputeSummaries dihapus — tidak pernah dipanggil & formula tidak selaras dgn derive live */
 
 function renderAll(){
-  [renderOverview,renderProc,renderBuilding,renderService,renderFieldOps,renderEnergy,renderErsus,renderReminder,renderApprovals,renderAssigned,renderPayment,renderVendor,renderHSE,updateBell]
+  [renderOverview,renderProc,renderBuilding,renderService,renderFieldOps,renderMyTickets,renderEnergy,renderErsus,renderReminder,renderApprovals,renderAssigned,renderPayment,renderVendor,renderHSE,updateBell]
     .forEach(fn=>{ try{ fn(); }catch(e){ console.warn("render error:",e.message); } });
 }
 
@@ -6466,7 +6589,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-11";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-12";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -6510,7 +6633,7 @@ function dbInit(){
 }
 function dbSaveTicket(t){ if(!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
 
-loadFlowConfig();dbLoadAll();wpLoad();soLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();
+loadFlowConfig();dbLoadAll();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();
 </script>
 </body>
 </html>
