@@ -1,0 +1,61 @@
+{
+  "_petunjuk": "MASTER DATA AWAL. File ini hanya dipakai saat AGAVA PERTAMA KALI dibuka di sebuah perangkat. Begitu Anda menambah/mengubah data lewat tombol '＋ Tambah Data' di dalam AGAVA, input Anda yang dipakai dan file ini diabaikan. Untuk kembali memakai file ini: Vendor Management → Power Automate Bridge → tombol 'Muat ulang dari file data'.",
+  "_saran": "Cara terbaik: isi file ini SEKALI untuk data awal yang banyak, lalu seterusnya kelola lewat tombol di dalam AGAVA (sesuai Prinsip 8: AGAVA adalah sumber datanya).",
+  "_format_tanggal": "SEMUA tanggal wajib format YYYY-MM-DD. Contoh: 2026-12-31.",
+
+  "_stnk": "STNK kendaraan. plate = nomor polisi, unit = peruntukan, due = tanggal jatuh tempo STNK.",
+  "stnk": [
+    { "plate": "B 1234 ABC", "unit": "GA Pool Car", "due": "2026-07-12" },
+    { "plate": "B 5678 DEF", "unit": "Director Vehicle", "due": "2026-06-26" },
+    { "plate": "B 9012 GHI", "unit": "Operational Van", "due": "2026-06-14" },
+    { "plate": "B 3456 JKL", "unit": "GA Pool Car", "due": "2026-09-02" }
+  ],
+
+  "_pbb": "PBB. obj = objek pajak, note = keterangan, due = jatuh tempo bayar.",
+  "pbb": [
+    { "obj": "AMDI Sunter", "note": "Land & building", "due": "2026-08-31" },
+    { "obj": "ABC BSD", "note": "Land & building", "due": "2026-07-05" },
+    { "obj": "MA Warehouse", "note": "Land & building", "due": "2026-06-30" }
+  ],
+
+  "_izin": "Perizinan dokumen legal. site pilih: AMDI / Menara Astra / ABC BSD / ABC Bandung / Tower / AIHO.",
+  "izin": [
+    { "name": "Genset Operation Permit", "site": "AMDI", "due": "2026-09-01" },
+    { "name": "Lift Operation Cert (SLO)", "site": "Tower", "due": "2026-06-22" },
+    { "name": "Fire System Certificate", "site": "ABC BSD", "due": "2026-07-15" },
+    { "name": "Building Permit (PBG)", "site": "MA", "due": "2026-12-01" }
+  ],
+
+  "_izinops": "Izin operasional yang tampil di GA Calendar (hitung mundur otomatis: ≤90 hari = Near overdue).",
+  "izinops": [
+    { "name": "Izin K3 Sistem Kebakaran (Hydrant & Fire Alarm)", "site": "AMDI", "due": "2026-08-15" },
+    { "name": "Izin Operasional Lift (SLO)", "site": "AMDI", "due": "2026-06-22" },
+    { "name": "Izin Operasional Genset (SLO)", "site": "AMDI", "due": "2026-09-01" }
+  ],
+
+  "_maint": "Jadwal Maintenance tahunan (tampil sebagai matriks di modul Building). n = nama pekerjaan, cat = kategori (ME/EE/Sipil/Fire & Safety/Umum), m = 12 angka untuk Jan..Des: 0 = tidak terjadwal, 1 = terjadwal, 2 = sudah selesai. Angka 'maintenance rutin' di CODEC dihitung otomatis dari sini.",
+  "maint": [
+    { "n": "Service AC", "cat": "ME", "m": [2,2,2,2,2,1,1,1,1,1,1,1] },
+    { "n": "Genset Test", "cat": "ME", "m": [2,2,2,2,1,1,1,1,1,1,1,1] },
+    { "n": "Lift Maintenance", "cat": "ME", "m": [2,2,2,2,2,1,1,1,1,1,1,1] },
+    { "n": "Fire System", "cat": "Fire & Safety", "m": [0,0,2,0,0,1,0,0,1,0,0,1] },
+    { "n": "Water Tank Cleaning", "cat": "Sipil", "m": [2,0,0,0,0,0,1,0,0,0,0,0] },
+    { "n": "Electrical Panel", "cat": "EE", "m": [0,0,0,2,0,0,0,0,0,1,0,0] },
+    { "n": "Chiller Overhaul", "cat": "ME", "m": [0,0,0,0,0,0,0,1,0,0,0,0] },
+    { "n": "Facade & Building", "cat": "Sipil", "m": [0,2,0,0,2,0,0,1,0,0,1,0] }
+  ],
+
+  "_works": "Pekerjaan perbaikan berjalan. orang = jumlah pekerja. izin = true bila Work Permit sudah OK, false bila belum.",
+  "works": [
+    { "job": "AHU Cleaning — Floor 5A", "pt": "PT Mekar Jaya", "orang": 4, "izin": true },
+    { "job": "Booster Pump Repair — Basement 1", "pt": "PT Tirta Teknik", "orang": 3, "izin": true },
+    { "job": "Corridor Repainting — AMDI Fl.8", "pt": "PT Cipta Karya", "orang": 6, "izin": false }
+  ],
+
+  "_contracts": "Kontrak vendor. value dalam JUTA rupiah. type: HK (housekeeping) / BM (building maintenance) / Other. sla: null bila belum dinilai.",
+  "contracts": [
+    { "vendor": "PT ISS Indonesia", "scope": "Cleaning & Gondola", "site": "AMDI Sunter", "start": "2026-01-01", "end": "2026-12-31", "value": 4279.2, "type": "HK", "pic": "Uhen", "email": "uhen.suhendra@id.issworld.com", "sla": null },
+    { "vendor": "PT ISS Indonesia", "scope": "Cleaning & Gondola", "site": "Menara Astra", "start": "2026-01-01", "end": "2026-12-31", "value": 2300.4, "type": "HK", "pic": "Uhen", "email": "uhen.suhendra@id.issworld.com", "sla": null },
+    { "vendor": "PT Pro Pacific", "scope": "Cleaning Service", "site": "Bandung", "start": "2026-01-01", "end": "2026-12-31", "value": 786.9, "type": "HK", "pic": "Julius", "email": "julius@propac.co.id", "sla": null }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "_petunjuk": "DATA ENERGI BULANAN. Semua larik (array) HARUS sama panjang dengan 'months'. Menambah bulan = tambahkan 1 angka di SETIAP larik. Dipakai oleh modul Energy & KPI General Facilities Management di CODEC.",
+
+  "_months": "Nama bulan yang sudah ada datanya. Tambah 'Jun', 'Jul', dst. seiring bulan berjalan.",
+  "months": ["Jan", "Feb", "Mar", "Apr", "Mei"],
+
+  "_grk2019": "Emisi GRK baseline 2019 (kg CO2e) per bulan — pembanding tetap.",
+  "grk2019": [374280, 374680, 390480, 407920, 411120],
+
+  "_grk2026": "Emisi GRK tahun berjalan (kg CO2e) per bulan. Target: turun 15% dari baseline.",
+  "grk2026": [250240, 250040, 238920, 287520, 279520],
+
+  "_waterIntensity2019": "Intensitas air baseline 2019 (m3 per orang per bulan).",
+  "waterIntensity2019": [1.07, 1.11, 0.99, 1.08, 0.85],
+
+  "_waterIntensity2026": "Intensitas air tahun berjalan. Target: turun 13% dari baseline.",
+  "waterIntensity2026": [0.98, 0.92, 0.82, 1.08, 0.99],
+
+  "_renewableMixPct": "Bauran energi terbarukan per bulan (%). Target: 8%.",
+  "renewableMixPct": [8, 7, 10, 8, 6],
+
+  "_renewableKwh": "Produksi energi terbarukan per bulan (kWh).",
+  "renewableKwh": [20121, 18035, 24288, 22635, 17612],
+
+  "_wasteTerolah": "Sampah yang berhasil diolah per bulan (kg). Target terolah: 99%.",
+  "wasteTerolah": [3444, 3757, 3039, 3001, 3460],
+
+  "_wasteTidakTerolah": "Sampah yang TIDAK terolah per bulan (kg).",
+  "wasteTidakTerolah": [209, 254, 0, 205, 247]
+}

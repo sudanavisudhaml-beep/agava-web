@@ -1,0 +1,43 @@
+{
+  "_petunjuk": "DAFTAR INDIKATOR KPI TAHUNAN / CLA. File ini HANYA mengatur indikator MANA yang dikontrakkan tahun ini, berikut BOBOT dan TARGET-nya. File ini TIDAK berisi capaian — capaian selalu ditarik otomatis dari modul CODEC. Ini disengaja: supaya angka KPI Tahunan tidak akan pernah berbeda dengan kenyataan operasional.",
+  "_cara_ubah": "Mau menambah indikator? Salin satu blok di dalam 'indikator', ganti isinya. Pastikan 'from' PERSIS sama dengan nama sub-fungsi di CODEC (lihat daftar di bawah), kalau tidak AGAVA akan menampilkan peringatan di baris itu.",
+
+  "_meta": "Identitas dokumen KPI. Muncul di judul halaman & kartu utama.",
+  "meta": {
+    "year": 2026,
+    "unit": "General Affairs — PT Astra International Tbk",
+    "doc": "CLA 2026",
+    "owner": "GA Department Head"
+  },
+
+  "_nama_from_yang_valid": [
+    "General Facilities Management",
+    "General Services Management",
+    "General Administration",
+    "Project Development",
+    "External Relation",
+    "Environment Health & Safety (P2K3L)"
+  ],
+
+  "_arti_kolom": {
+    "code": "Kode indikator di dokumen CLA. Bebas, contoh: GA-01.",
+    "persp": "Perspektif. Pilih: Sustainability / Customer / Financial / Internal Process / External Relation / Safety. Menentukan warna baris.",
+    "name": "Nama indikator seperti tertulis di CLA.",
+    "from": "Sub-fungsi CODEC yang jadi sumber angka. Wajib persis sama dengan daftar '_nama_from_yang_valid' di atas.",
+    "pick": "Kosongkan ('') untuk memakai capaian sub-fungsi secara keseluruhan. Isi dengan nama komponen bila ingin SATU komponen saja di dalam sub-fungsi itu (contoh: 'Asset STO — AIHO Land Bank & STO').",
+    "target": "Target tahunan dalam persen (0-100).",
+    "weight": "Bobot indikator dalam persen. Jumlah seluruh bobot sebaiknya 100.",
+    "nav": "Modul yang dibuka saat tombol 'Buka modul sumber' diklik. Pilih: energy / service / payment / project / procurement / hse / building."
+  },
+
+  "_indikator": "Jumlah seluruh 'weight' di bawah ini = 100. Bila Anda menambah indikator, sesuaikan bobot yang lain agar totalnya tetap 100.",
+  "indikator": [
+    { "code": "GA-01", "persp": "Sustainability",    "name": "Contribute to ASTRA ESG Program 2030",        "from": "General Facilities Management",       "pick": "",                                "target": 90, "weight": 20, "nav": "energy" },
+    { "code": "GA-02", "persp": "Customer",          "name": "Enhance Service & Shuttle Experience",         "from": "General Services Management",         "pick": "",                                "target": 85, "weight": 15, "nav": "service" },
+    { "code": "GA-03", "persp": "Financial",         "name": "Payment BPH terbayar tepat waktu",             "from": "General Administration",              "pick": "Payment BPH terbayar (on-time)",  "target": 95, "weight": 10, "nav": "payment" },
+    { "code": "GA-04", "persp": "Financial",         "name": "Asset Maintenance — AIHO Land Bank & STO",     "from": "General Administration",              "pick": "Asset STO — AIHO Land Bank & STO","target": 85, "weight": 10, "nav": "payment" },
+    { "code": "GA-05", "persp": "Internal Process",  "name": "Rejuvenation AMDI & Advanced Building System", "from": "Project Development",                 "pick": "",                                "target": 90, "weight": 20, "nav": "project" },
+    { "code": "GA-06", "persp": "External Relation", "name": "Procurement Hub across Astra Group",           "from": "External Relation",                   "pick": "",                                "target": 80, "weight": 10, "nav": "procurement" },
+    { "code": "GA-07", "persp": "Safety",            "name": "Compliance with Safety Standard AIHO",         "from": "Environment Health & Safety (P2K3L)", "pick": "",                                "target": 90, "weight": 15, "nav": "hse" }
+  ]
+}

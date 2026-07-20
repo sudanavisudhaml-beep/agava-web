@@ -1,0 +1,94 @@
+{
+  "_petunjuk": "ISI ANGKA NYATA DI SINI. Semua angka di kartu CODEC & modul ditarik dari file ini. Simpan file, refresh AGAVA (Ctrl+Shift+R) — angka langsung berubah. JANGAN hapus tanda kutip & koma. Baris yang diawali _ hanya catatan, boleh diabaikan.",
+
+  "_today": "TANGGAL ACUAN AGAVA — dipakai SEMUA modul untuk menghitung jatuh tempo, overdue, 'hari ini', dan garis hari di gantt chart. Kosongkan (\"\") agar AGAVA mengikuti tanggal nyata dan bergerak sendiri tiap hari — ini yang benar begitu data nyata sudah masuk. Isi tanggal (\"2026-06-18\") untuk MEMATOK, berguna saat demo dengan data contoh yang bertanggal Juni. Bila dipatok, AGAVA menandai 'mode demo' di Vendor > Sumber Data supaya tidak menyesatkan.",
+  "today": "2026-06-18",
+
+  "_budget": "Persentase budget yang SUDAH KELUAR (0-100). Tampil di CODEC > Budget. Hanya persen, tanpa rupiah.",
+  "budget": { "opex": 68, "capex": 54 },
+
+  "_impact": "BASELINE 'SEBELUM AGAVA' untuk modul Impact — satu-satunya isian manual di modul itu (semua angka lain dihitung sistem). jamRekapPerBulan = total jam kerja tim yang dulu habis untuk rekap manual per bulan. biayaPerJam = biaya rata-rata per jam kerja (Rp). dendaTerhindar = total denda keterlambatan yang pernah terjadi/nyaris terjadi (Rp) sebelum ada reminder otomatis. catatan = penjelasan bebas asal-usul angka baseline. Isi 0 bila belum diukur — modul akan menampilkan ajakan mengukur, bukan angka palsu.",
+  "impact": { "jamRekapPerBulan": 0, "biayaPerJam": 0, "dendaTerhindar": 0, "catatan": "" },
+
+  "_assetSTO": "KPI Asset STO (AIHO Land Bank & STO) — bagian dari KPI General Administration. ach = capaian YTD (0-100), target = target tahunan.",
+  "assetSTO": { "ach": 78, "target": 85 },
+
+  "_procurementHub": "KPI External Relation — Procurement Hub across Astra Group.",
+  "procurementHub": { "ach": 72, "target": 80 },
+
+  "_maintenance": "CATATAN: angka maintenance rutin TIDAK lagi diisi di sini. Sekarang dihitung otomatis dari Jadwal Maintenance yang Anda input langsung di modul Building & Utility (tombol ＋ Tambah Jadwal). Untuk mengisi data awal banyak sekaligus, pakai 'maint' di master-data.json.",
+
+  "_workPermit": "overdue = jumlah izin kerja yang lewat tempo. (Active & Pending dihitung otomatis dari data Repair Works di modul Building.)",
+  "workPermit": { "overdue": 1 },
+
+  "_energyMonthlyCap": "Batas maksimum emisi per bulan (kg CO2e). Bila pemakaian bulanan melewati angka ini, CODEC menyalakan peringatan merah.",
+  "energyMonthlyCap": 285000,
+
+  "_hse": "Nilai kepatuhan HSE. score = capaian saat ini (%), target = target tahunan (%).",
+  "hse": {
+    "agc": { "score": 92, "target": 90, "label": "AGC (Astra Green Company)" },
+    "mka": { "score": 88, "target": 90, "label": "MKA (Mandatory Key Action)" },
+    "sgr": { "score": 95, "target": 100, "label": "Safety Golden Rules" }
+  },
+
+  "_chillers": "Status tiap unit chiller. st = Running / Standby / Fault. load = beban (%). Jumlah 'Running' otomatis jadi angka 'Chillers running' di CODEC.",
+  "chillers": [
+    { "n": "Chiller 1", "st": "Running", "load": 72, "c": "ok" },
+    { "n": "Chiller 2", "st": "Running", "load": 65, "c": "ok" },
+    { "n": "Chiller 3", "st": "Standby", "load": 0, "c": "neu" }
+  ],
+
+  "_pumps": "run = pompa yang menyala, total = jumlah pompa.",
+  "pumps": { "run": 5, "total": 5 },
+
+  "_revenue": "Pendapatan GA per sumber. rev dalam MILIAR rupiah (contoh: 0.62 = Rp 620 juta; 1.8 = Rp 1,8 M). ic = emoji ikon.",
+  "revenue": [
+    { "name": "William Soeryadjaya Hall", "ic": "🏛️", "rev": 0.62 },
+    { "name": "Executive Lounge", "ic": "🛋️", "rev": 0.19 },
+    { "name": "Auditorium Lt.3 · AMDI A", "ic": "🎭", "rev": 0.44 },
+    { "name": "Astra Biz Center BSD", "ic": "🏢", "rev": 0.85 },
+    { "name": "Astra Biz Center Bandung", "ic": "🏙️", "rev": 0.53 },
+    { "name": "EVCS — EV Charging Station", "ic": "🔌", "rev": 0.12 },
+    { "name": "Massage Chair", "ic": "💺", "rev": 0.04 }
+  ],
+
+  "_transport": "Biaya transport. cost dalam JUTA rupiah (contoh: 27 = Rp 27 juta).",
+  "transport": {
+    "byType": [
+      { "name": "Kendaraan VIP (BOD)", "cost": 27.0 },
+      { "name": "Bluebird", "cost": 10.8 },
+      { "name": "Trac Management System", "cost": 6.0 },
+      { "name": "Gocorp", "cost": 4.2 }
+    ],
+    "byDiv": [
+      { "name": "GANRA", "cost": 9.5 },
+      { "name": "Corporate Planning", "cost": 8.8 },
+      { "name": "CHCD", "cost": 7.9 },
+      { "name": "Corporate Secretary", "cost": 7.7 },
+      { "name": "Corporate Accounting", "cost": 5.9 },
+      { "name": "Corporate Affairs", "cost": 4.6 },
+      { "name": "Corporate Development", "cost": 3.5 }
+    ]
+  },
+
+  "_vendorPerf": "Penilaian vendor per site, skala 0-3. hk = Housekeeping, bm = Building Maintenance. Rata-ratanya jadi KPI General Services Management.",
+  "vendorPerf": [
+    { "site": "AMDI", "name": "Astra Management Development Institute", "hk": 2.7, "bm": 2.5 },
+    { "site": "MA", "name": "Menara Astra", "hk": 2.3, "bm": 2.6 },
+    { "site": "BSD", "name": "Astra Biz Centre BSD", "hk": 2.9, "bm": 2.4 },
+    { "site": "BDG", "name": "Astra Biz Centre Bandung", "hk": 2.1, "bm": 2.2 }
+  ],
+
+  "_projects": "Proyek untuk KPI Project Development. plan & actual dalam persen (0-100). phase = Getting Requirement / Tender / Construction / Serah Terima. grp = rejuv / abs. CATATAN: bila Anda memakai modul Project Development (timeline), angka dari timeline itu yang dipakai — daftar ini jadi cadangan.",
+  "projects": [
+    { "n": "Multipurpose Space — Lab EHS", "plan": 50, "actual": 35, "phase": "Construction", "grp": "rejuv" },
+    { "n": "Rejuvenate AMDI C", "plan": 55, "actual": 48, "phase": "Construction", "grp": "rejuv" },
+    { "n": "Rejuvenate Corridor & Toilet", "plan": 60, "actual": 56, "phase": "Construction", "grp": "rejuv" },
+    { "n": "Rejuvenate Auditorium", "plan": 30, "actual": 12, "phase": "Tender", "grp": "rejuv" },
+    { "n": "Foundation Advisory & Enablement", "plan": 60, "actual": 64, "phase": "Construction", "grp": "rejuv" },
+    { "n": "Expand Sport Facilities AIHO", "plan": 40, "actual": 28, "phase": "Getting Requirement", "grp": "rejuv" },
+    { "n": "ERSUS — Energy Intelligence", "plan": 75, "actual": 70, "phase": "Construction", "grp": "abs" },
+    { "n": "GAVA (AGAVA)", "plan": 80, "actual": 82, "phase": "Serah Terima", "grp": "abs" },
+    { "n": "Digital Meal Coupon", "plan": 50, "actual": 45, "phase": "Tender", "grp": "abs" }
+  ]
+}
