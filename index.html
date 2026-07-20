@@ -1197,7 +1197,42 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 
 /* ===================== CODEC v3 — ref ga-dashboard.html (light · nav sticky · jam live) ===================== */
 @keyframes gdBlink{0%,100%{opacity:1}50%{opacity:.3}}
-.gd{max-width:1400px}
+.gd{max-width:none}
+/* Performance Indikator — Standard vs Key (2 kolom) */
+.pi-card .gd-ch{flex-wrap:wrap}
+.pi-final{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:600}
+.pi-final b{color:#0a4bb8;font-size:15px}
+.pi-2col{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.pi-panel{padding:14px 16px}
+.pi-panel:first-child{border-right:1px solid var(--line)}
+.pi-h{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:var(--ink);margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid}
+.pi-h span{font-size:10px;font-weight:700;background:#eef4ff;color:#5478a8;border-radius:20px;padding:2px 9px}
+.pi-h-std{border-color:#cfdaeb}
+.pi-h-key{border-color:#f0d9ad}
+.pi-h-key span{background:#fdf3e3;color:#c2740a}
+.pi-addnew{margin-left:auto;border:1px solid rgba(10,124,255,.35);background:linear-gradient(135deg,rgba(0,198,251,.12),rgba(10,124,255,.09));color:#0a4bb8;font-family:var(--ff);font-size:11px;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer}
+.pi-addnew:hover{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);color:#fff;border-color:transparent}
+.pi-row{display:grid;grid-template-columns:26px 1fr 46px 96px;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line)}
+.pi-row:last-child{border-bottom:none}
+.pi-ic{font-size:16px;text-align:center}
+.pi-code{font-size:10px;font-weight:800;text-align:center;padding:4px 0;border-radius:7px}
+.pi-name{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.3}
+.pi-type{font-size:8.5px;font-weight:800;letter-spacing:.03em;padding:1px 6px;border-radius:20px;text-transform:uppercase;vertical-align:middle}
+.pi-type.routine{background:#e9f8ef;color:#15a34a}
+.pi-type.mixed{background:#eef4ff;color:#2563eb}
+.pi-type.nonroutine{background:#f3eefe;color:#7a4fd0}
+.pi-bar{margin-top:5px;position:relative}
+.pi-tgt{position:absolute;top:-2px;width:2px;height:12px;background:var(--ink);opacity:.4;border-radius:2px}
+.pi-src{font-size:10px;color:var(--muted);margin-top:3px}
+.pi-val{font-size:15px;font-weight:800;text-align:right}
+.pi-act{text-align:right}
+.pi-promote{border:1px solid #f0d9ad;background:#fdf9f0;color:#c2740a;font-family:var(--ff);font-size:10px;font-weight:700;padding:4px 8px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.pi-promote:hover{background:#c2740a;color:#fff;border-color:transparent}
+.pi-iskey{font-size:10.5px;font-weight:800;color:#15a34a}
+.pi-x{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:7px;width:24px;height:24px;cursor:pointer;font-size:12px}
+.pi-x:hover{border-color:var(--red);color:var(--red)}
+.gd-kpy-chip{margin-left:auto;font-size:12px;font-weight:800;color:#c2740a;background:#fdf3e3;border:1px solid #f0d9ad;border-radius:20px;padding:6px 13px;white-space:nowrap}
+@media(max-width:900px){.pi-2col{grid-template-columns:1fr}.pi-panel:first-child{border-right:none;border-bottom:1px solid var(--line)}.pi-row{grid-template-columns:24px 1fr 42px 84px}}
 .gd .card{border-radius:14px;box-shadow:0 1px 3px rgba(15,23,42,.04),0 4px 14px rgba(15,23,42,.03)}
 .gd-head{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;margin-bottom:10px;flex-wrap:wrap;gap:10px}
 .gd-hl{display:flex;align-items:center;gap:13px}
@@ -1751,7 +1786,7 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
       <div class="lf-row"><label class="lf-check"><input type="checkbox" checked/> Ingat saya</label><span class="lf-forgot">Lupa password?</span></div>
       <button class="login-btn" onclick="doLogin()">&rarr; Masuk ke AGAVA</button>
       <div id="loginMsg" class="login-msg"></div>
-      <div class="lf-hint2">Masukkan email akun &amp; password untuk masuk.<br><span>Demo: password semua akun = <b>12356</b></span></div>
+      <div class="lf-hint2">Masukkan email akun &amp; password untuk masuk.<br><span>Demo: password semua akun = <b>123456</b></span></div>
       <div class="lf-foot"><b>&copy; 2026 &middot; System Development &middot; GA Departemen</b><br>PT. Astra International Tbk</div>
     </div>
   </div>
@@ -1868,7 +1903,6 @@ const IC={
 };
 const MENU=[
  {id:"overview",ic:"overview",label:"CODEC"},
- {id:"kpiyear",ic:"kpiyear",label:"KPI Tahunan"},
  {id:"building",ic:"building",label:"Building & Utility"},
  {id:"project",ic:"project",label:"Project Development"},
  {id:"gacal",ic:"today",label:"GA Calendar"},
@@ -1885,14 +1919,14 @@ const MENU=[
 ];
 let active="overview";
 let gRole="admin", gUser=null;
-const ALLMENUS=["overview","kpiyear","building","project","gacal","service","fieldops","procurement","payment","vendor","energy","hse","approvals","assigned","reminder"];
+const ALLMENUS=["overview","building","project","gacal","service","fieldops","procurement","payment","vendor","energy","hse","approvals","assigned","reminder"];
 const ROLES={
  admin:{label:"Administrator",tier:"*",edit:true,menus:ALLMENUS},
- chief:{label:"Chief of CHCD",tier:"Chief CHCD",menus:["overview","kpiyear","procurement","approvals","reminder"]},
- division:{label:"HCMS Division Head",tier:"Division Head",menus:["overview","kpiyear","procurement","approvals","reminder"]},
+ chief:{label:"Chief of CHCD",tier:"Chief CHCD",menus:["overview","procurement","approvals","reminder"]},
+ division:{label:"HCMS Division Head",tier:"Division Head",menus:["overview","procurement","approvals","reminder"]},
  dept:{label:"GA Dept Head",tier:"Dept Head",menus:ALLMENUS},
  section:{label:"Section Head",tier:"Section Head",menus:ALLMENUS},
- budget:{label:"PIC Budget",tier:"Budget",menus:["overview","kpiyear","procurement","approvals","reminder"]},
+ budget:{label:"PIC Budget",tier:"Budget",menus:["overview","procurement","approvals","reminder"]},
  proc:{label:"PIC Procurement",tier:"Procurement",menus:ALLMENUS},
  analyst:{label:"Analyst",tier:null,menus:["overview","procurement","service","reminder"]},
  staff:{label:"Staff Procurement",tier:null,menus:["overview","procurement","service","assigned","reminder"]},
@@ -1930,7 +1964,7 @@ const USERS=[
 function buildLoginAccounts(){ const el=document.getElementById("loginAccounts"); if(!el)return; el.innerHTML=USERS.map(u=>{ const r=ROLES[u.role]; const t=r.tier==="*"?"All access":(r.tier||""); return `<button onclick="loginAs('${u.email}')"><span class="la-ava">${ini(u.name)}</span><span class="la-main"><b>${u.name}</b><small>${u.email}</small></span><span class="la-right"><span class="la-role">${roleTitle(u)}</span>${t?`<span class="la-tier">${t}</span>`:''}</span></button>`; }).join(""); }
 function loginAs(email){ const u=USERS.find(x=>x.email===email); if(u)applyLogin(u); }
 function loginTogglePass(){ const i=document.getElementById("loginPass"); if(i)i.type=(i.type==="password")?"text":"password"; }
-const AGAVA_DEMO_PW="12356";   // password demo untuk semua akun (sementara — nanti diganti per-akun)
+const AGAVA_DEMO_PW="123456";   // password demo untuk semua akun (sementara — nanti diganti per-akun)
 function doLogin(){
  const e=(document.getElementById("loginEmail").value||"").trim().toLowerCase();
  const pw=(document.getElementById("loginPass")?document.getElementById("loginPass").value:"")||"";
@@ -1968,7 +2002,6 @@ function go(id){
   ["page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
-  else if(id==="kpiyear"){renderKpiYear();document.getElementById("page-kpiyear").classList.remove("hide");t.textContent="KPI Tahunan · CLA "+KPI_YEAR_META.year;s.textContent="Indikator yang dikontrakkan tahun ini — setiap angka ditarik dari CODEC";}
   else if(id==="procurement"){procFilter="all";renderProc();document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
   else if(id==="building"){renderBuilding();document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
   else if(id==="project"){renderProject();document.getElementById("page-project").classList.remove("hide");t.textContent="Project Development";s.textContent="Project Timeline × Calendar of Event 2026 — radar overlap konstruksi vs reservasi";}
@@ -2742,18 +2775,91 @@ const KPI_PERSP={ "Sustainability":"#0f6e56", "Customer":"#be3a76", "Financial":
 function kpiClaRows(){
  const S=codecSubFnData();
  return KPI_CLA.map(r=>{
-   const f=S.find(x=>x.name===r.from);
-   let ach=0, detail="", src="CODEC → "+r.from, comp=[];
-   if(!f){ detail="⚠ sumber CODEC \""+r.from+"\" tidak ditemukan"; src="—"; }
-   else if(r.pick){
-     const c=f.comp.find(c=>c.n===r.pick);
-     if(c){ ach=c.v; comp=[c]; } else detail="⚠ komponen \""+r.pick+"\" tidak ada di CODEC";
-     src="CODEC → "+r.from+" → "+r.pick;
-   } else { ach=f.ach; comp=f.comp; detail=f.note||""; }
+   let ach=0, detail="", src="CODEC → "+r.from, comp=[], f=null;
+   if(!r.from){ src="Custom · belum ada sumber CODEC"; detail="KPI baru — capaian menyusul saat sumber data tersambung"; }
+   else {
+     f=S.find(x=>x.name===r.from);
+     if(!f){ detail="⚠ sumber CODEC \""+r.from+"\" tidak ditemukan"; src="—"; }
+     else if(r.pick){
+       const c=f.comp.find(c=>c.n===r.pick);
+       if(c){ ach=c.v; comp=[c]; } else detail="⚠ komponen \""+r.pick+"\" tidak ada di CODEC";
+       src="CODEC → "+r.from+" → "+r.pick;
+     } else { ach=f.ach; comp=f.comp; detail=f.note||""; }
+   }
    const score=r.target?Math.min(120,Math.round(ach/r.target*100)):0;
    return {...r, ach, score, comp, detail, src, nav:r.nav||(f?f.nav:"overview"),
            st:ach>=r.target?"ok":ach>=r.target-15?"warn":"bad"};
  });
+}
+/* ===== Performance Indikator (section CODEC) — Standard (6 baku) vs Key (KPI tahun ini) ===== */
+const KPI_STORE="agava_kpi_v1";
+function kpiPersist(){ try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){} }
+function kpiLoad(){ try{ var r=localStorage.getItem(KPI_STORE); if(r){ var d=JSON.parse(r); if(d&&Array.isArray(d.cla)){ KPI_CLA.length=0; d.cla.forEach(function(x){KPI_CLA.push(x);}); if(d.meta)Object.assign(KPI_YEAR_META,d.meta); return true; } } }catch(e){} return false; }
+function kpiNextCode(){ var mx=0; KPI_CLA.forEach(function(k){ var m=String(k.code||'').match(/(\d+)/); if(m)mx=Math.max(mx,+m[1]); }); return 'GA-'+String(mx+1).padStart(2,'0'); }
+function codecPerspFor(name){ return {"General Facilities Management":"Sustainability","General Services Management":"Customer","General Administration":"Financial","Project Development":"Internal Process","External Relation":"External Relation","Environment Health & Safety (P2K3L)":"Safety"}[name]||"Internal Process"; }
+function codecPromoteKey(name){
+ var S=codecSubFnData(), f=S.find(function(x){return x.name===name;}); if(!f)return;
+ if(KPI_CLA.some(function(k){return k.from===name && !k.pick;})){ alert("\""+name+"\" sudah menjadi Key Performance Indicator."); return; }
+ KPI_CLA.push({code:kpiNextCode(),persp:codecPerspFor(name),name:f.kpi||f.name,from:name,pick:"",target:f.target||90,weight:0,nav:f.nav});
+ kpiPersist(); renderOverview();
+}
+function codecRemoveKey(i){ if(i<0||i>=KPI_CLA.length)return; if(!confirm("Hapus \""+KPI_CLA[i].name+"\" dari Key Performance Indicator?"))return; KPI_CLA.splice(i,1); kpiPersist(); renderOverview(); }
+function codecAddKpi(){
+ var S=codecSubFnData();
+ document.getElementById("drawer").innerHTML='<div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:16px">🏆 Tambah Key Performance Indicator</div><div class="muted small" style="margin-top:4px">KPI '+KPI_YEAR_META.year+' — capaian ditarik otomatis dari CODEC</div></div>'+
+  '<div class="db">'+
+   '<div class="field"><label>Nama KPI <span style="color:var(--red)">*</span></label><input id="kpi-name" placeholder="mis. Digitalisasi Layanan GA"/></div>'+
+   '<div class="field"><label>Sumber capaian (Standard Performance Indicator)</label><select id="kpi-from"><option value="">— Baru / Custom (belum ada sumber CODEC) —</option>'+S.map(function(f){return '<option>'+esc(f.name)+'</option>';}).join("")+'</select><div class="hint" style="font-size:11px;color:#9aa7b8">Angka capaian ditarik otomatis dari indikator standar yang dipilih.</div></div>'+
+   '<div class="field"><label>Perspektif</label><select id="kpi-persp">'+Object.keys(KPI_PERSP).map(function(p){return '<option>'+p+'</option>';}).join("")+'</select></div>'+
+   '<div class="two" style="gap:0 12px"><div class="field"><label>Target (%)</label><input id="kpi-target" type="number" value="90"/></div><div class="field"><label>Bobot (%)</label><input id="kpi-weight" type="number" value="10"/></div></div>'+
+   '<button class="btn-act" style="width:100%;margin-top:10px" onclick="codecSaveKpi()">💾 Tambah ke KPI</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+}
+function codecSaveKpi(){
+ var name=(document.getElementById("kpi-name").value||"").trim(); if(!name){ alert("Nama KPI wajib diisi."); return; }
+ var from=document.getElementById("kpi-from").value||"";
+ var persp=document.getElementById("kpi-persp").value||"Internal Process";
+ var target=+document.getElementById("kpi-target").value||90;
+ var weight=+document.getElementById("kpi-weight").value||0;
+ var nav=from?((codecSubFnData().find(function(f){return f.name===from;})||{}).nav||"overview"):"overview";
+ KPI_CLA.push({code:kpiNextCode(),persp:persp,name:name,from:from,pick:"",target:target,weight:weight,nav:nav});
+ kpiPersist(); closeDrawer(); renderOverview();
+ alert("✅ KPI \""+name+"\" ditambahkan ke Key Performance Indicator.");
+}
+function codecPerfIndicatorHTML(){
+ var S=codecSubFnData(), keys=kpiClaRows(), total=kpiClaTotal();
+ var isKey=function(name){ return KPI_CLA.some(function(k){return k.from===name && !k.pick;}); };
+ var std=S.map(function(f){
+   var c=f.ach>=f.target?'var(--green)':f.ach>=f.target*0.8?'#F59E0B':'var(--red)';
+   var key=isKey(f.name);
+   return '<div class="pi-row">'+
+     '<div class="pi-ic">'+f.ic+'</div>'+
+     '<div class="pi-main"><div class="pi-name">'+esc(f.name)+' <span class="pi-type '+f.type+'">'+f.type+'</span></div>'+
+       '<div class="pi-bar"><div class="inv-bar"><div class="fill '+(f.st==='ok'?'':'flow')+'" style="width:'+Math.min(100,f.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,f.target)+'%"></div></div></div></div>'+
+     '<div class="pi-val" style="color:'+c+'">'+f.ach+'%</div>'+
+     '<div class="pi-act">'+(key?'<span class="pi-iskey">✓ Key</span>':'<button class="pi-promote" onclick="codecPromoteKey(\''+f.name.replace(/'/g,"\\'")+'\')" title="Jadikan Key Performance Indicator">★ Jadikan Key</button>')+'</div>'+
+   '</div>';
+ }).join('');
+ var keyRows=keys.length?keys.map(function(r,i){
+   var c=r.st==='ok'?'var(--green)':r.st==='warn'?'#F59E0B':'var(--red)';
+   var pc=KPI_PERSP[r.persp]||'#5b6b80';
+   return '<div class="pi-row pi-key">'+
+     '<div class="pi-code" style="background:'+pc+'1a;color:'+pc+'">'+r.code+'</div>'+
+     '<div class="pi-main"><div class="pi-name">'+esc(r.name)+'</div>'+
+       '<div class="pi-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,r.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,r.target)+'%"></div></div></div>'+
+       '<div class="pi-src">target '+r.target+'% · bobot '+r.weight+'% · '+esc(r.src)+'</div></div>'+
+     '<div class="pi-val" style="color:'+c+'">'+r.ach+'%</div>'+
+     '<div class="pi-act"><button class="pi-x" onclick="codecRemoveKey('+i+')" title="hapus dari Key">✕</button></div>'+
+   '</div>';
+ }).join(''):'<div class="muted small" style="padding:24px;text-align:center">Belum ada Key. Klik <b>★ Jadikan Key</b> pada indikator standar, atau <b>+ Tambah KPI Baru</b>.</div>';
+ return '<div class="card mt16 pi-card">'+
+   '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div><div class="gd-chs">6 indikator standar (baku) · yang dikontrakkan jadi Key Performance Indicator '+KPI_YEAR_META.year+'</div></div>'+
+     '<span class="pi-final">Skor KPI '+KPI_YEAR_META.year+': <b>'+total.final+'%</b> · '+total.ok+'/'+total.tot+' capai target</span></div>'+
+   '<div class="pi-2col">'+
+     '<div class="pi-panel"><div class="pi-h pi-h-std">📋 Standard Performance Indicator <span>6 baku</span></div>'+std+'</div>'+
+     '<div class="pi-panel"><div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+(viewerOnly()?'':'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>')+'</div>'+keyRows+'</div>'+
+   '</div></div>';
 }
 function kpiClaTotal(){
  const R=kpiClaRows(), wsum=R.reduce((a,r)=>a+r.weight,0)||1;
@@ -3207,13 +3313,13 @@ function renderOverview(){
  el.innerHTML=`
  <div class="gd">
   <div class="gd-nav" id="gdNav">
-    ${[['gd-kpi','KPI & Progress'],['gd-svc','Service'],['gd-proc','Procurement & Payment'],['gd-hot','Hot Topic'],['gd-rev','Revenue'],['gd-bud','Budget'],['gd-trans','Transport'],['gd-permit','Permit'],['gd-bld','Building & Utility'],['gd-energy','Energy'],['gd-project','Project'],['gd-hse','HSE']].map(([id,l],i)=>`<a class="${i===0?'on':''}" data-sec="${id}" onclick="gdGo('${id}',this)">${l}</a>`).join('')}
+    ${[['gd-kpi','Performance Indikator'],['gd-svc','Service'],['gd-proc','Procurement & Payment'],['gd-hot','Hot Topic'],['gd-rev','Revenue'],['gd-bud','Budget'],['gd-trans','Transport'],['gd-permit','Permit'],['gd-bld','Building & Utility'],['gd-energy','Energy'],['gd-project','Project'],['gd-hse','HSE']].map(([id,l],i)=>`<a class="${i===0?'on':''}" data-sec="${id}" onclick="gdGo('${id}',this)">${l}</a>`).join('')}
   </div>
 
-  <div class="gd-sec" id="gd-kpi"><i></i>KPI & Progress</div>
+  <div class="gd-sec" id="gd-kpi"><i></i>Performance Indikator</div>
   <div class="card gd-kherowrap">
     <div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Highlight Pencapaian KPI GA Dept</div><div class="gd-chs">— ${codecMonthID()} · derive live & sinkron dari sheet Total Pencapaian YTD</div></div>
-      <button class="btn-out gd-toKpy" onclick="go('kpiyear')" title="Indikator yang dikontrakkan di CLA tahun ini">🏆 KPI Tahunan ${KPI_YEAR_META.year} · ${kpiClaTotal().final}% ›</button></div>
+      <span class="gd-kpy-chip" title="Skor KPI yang dikontrakkan tahun ini — dari section Performance Indikator di bawah">🏆 KPI ${KPI_YEAR_META.year}: ${kpiClaTotal().final}%</span></div>
     <div class="gd-khero">
       <div class="gd-kbig" onclick="codecKpiPop('total')" title="klik untuk rincian sumber">
         <div class="gd-kbig-v">${KPI.total}%</div>
@@ -3228,8 +3334,7 @@ function renderOverview(){
     </div>
     <div class="gd-kpop" id="gdKpiPop"></div>
   </div>
-  <div class="card mt16"><div class="gd-ch"><span class="gd-chi">📈</span><div><div class="gd-cht">Achievement 6 KPI Utama</div><div class="gd-chs">klik salah satu bar untuk lihat komponen achievement-nya</div></div></div>
-    <div class="gd-pad">${gdKpiRows}</div></div>
+  ${codecPerfIndicatorHTML()}
   <div class="card mt16"><div class="gd-ch"><span class="gd-chi">📅</span><div><div class="gd-cht">Progress Bulanan</div><div class="gd-chs">Update otomatis dari modul AGAVA</div></div></div>
     <div class="gd-cells4">
       <div class="gd-cell gd-clickcard" onclick="go('project')" title="klik → Project Development"><div class="gd-cv2" style="color:#7C3AED">${pjAct}%</div><span class="badge" style="background:#EDE9FE;color:#7C3AED">${PJL.length} project</span><div class="gd-cl2">Project Development</div><div class="gd-cl3">${PJ_TIMELINE?'live dari timeline · plan '+pjPlan+'%':'Rejuvenation + Advanced Building System'}</div></div>
@@ -5725,6 +5830,7 @@ async function loadDataFiles(){
     if(ky.meta) Object.assign(KPI_YEAR_META,ky.meta);
     if(ky.indikator&&ky.indikator.length) repl(KPI_CLA,ky.indikator);
   }
+  kpiLoad();   // edit KPI di aplikasi (promote/tambah/hapus) menang atas file
   DATA_LOADED.at=new Date();
   if(DATA_LOADED.files.length){ console.info("AGAVA data dimuat:",DATA_LOADED.files.join(", ")); }
   if(DATA_LOADED.err.length){ console.warn("AGAVA data — file tidak terbaca:",DATA_LOADED.err.join(" | ")); }
@@ -6318,7 +6424,7 @@ function applyLiveRooms(rows){
 /* recomputeSummaries dihapus — tidak pernah dipanggil & formula tidak selaras dgn derive live */
 
 function renderAll(){
-  [renderOverview,renderKpiYear,renderProc,renderBuilding,renderService,renderFieldOps,renderEnergy,renderErsus,renderReminder,renderApprovals,renderAssigned,renderPayment,renderVendor,renderHSE,updateBell]
+  [renderOverview,renderProc,renderBuilding,renderService,renderFieldOps,renderEnergy,renderErsus,renderReminder,renderApprovals,renderAssigned,renderPayment,renderVendor,renderHSE,updateBell]
     .forEach(fn=>{ try{ fn(); }catch(e){ console.warn("render error:",e.message); } });
 }
 
@@ -6339,7 +6445,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-9";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-10";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
