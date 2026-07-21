@@ -1433,6 +1433,50 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .wp-dk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);cursor:pointer;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
 .wp-dk:hover{border-color:var(--blue);background:#f6faff}
 .wp-dk input{width:15px;height:15px;flex:0 0 15px}
+/* ── Baris eskalasi tiket di inbox Approval ── */
+.esc-row{display:flex;gap:14px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.esc-row:last-child{border-bottom:none}
+.esc-main{flex:1;min-width:230px}
+.esc-no{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.esc-no b{font-size:12.5px;color:var(--blue)}
+.esc-age{font-size:10px;color:#9aa7b8}
+.esc-t{font-size:13.5px;font-weight:700;color:var(--ink);margin-top:3px}
+.esc-m{font-size:11.5px;color:var(--muted);margin-top:2px}
+.esc-note{font-size:11.5px;color:#8a5300;background:#fdf6e9;border:1px solid #f0dcb4;border-radius:8px;padding:6px 10px;margin-top:6px;line-height:1.5}
+.esc-act{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+.esc-act .btn-act,.esc-act .btn-out{padding:8px 13px;font-size:12px;white-space:nowrap}
+/* ── GERBANG RATING — kotak tengah layar, wajib diisi ── */
+body.rg-open{overflow:hidden}
+.rg-ovl{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(8,22,45,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.rg-ovl.show{display:flex;animation:rgFade .28s ease}
+@keyframes rgFade{from{opacity:0}to{opacity:1}}
+.rg-box{width:100%;max-width:420px;max-height:92vh;overflow-y:auto;text-align:center;border-radius:22px;padding:26px 24px 20px;
+  background:linear-gradient(160deg,#fff,#f2f9ff 60%,#e8f4ff);border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 24px 70px rgba(6,20,50,.4),inset 0 1px 0 rgba(255,255,255,.95);animation:rgPop .38s cubic-bezier(.2,.9,.3,1.35)}
+@keyframes rgPop{from{transform:translateY(14px) scale(.94);opacity:0}to{transform:none;opacity:1}}
+.rg-burst{font-size:44px;line-height:1;animation:rgBounce 2.6s ease-in-out infinite}
+@keyframes rgBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.rg-h{font-size:20px;font-weight:900;color:var(--ink);margin-top:8px;letter-spacing:-.01em}
+.rg-sub{font-size:12.5px;font-weight:700;color:#0a4bb8;margin-top:4px;overflow-wrap:anywhere}
+.rg-meta{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.65}
+.rg-fotos{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.rg-fotos img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.rg-note{font-size:11.5px;color:var(--text);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 11px;margin-top:10px;text-align:left;line-height:1.5}
+.rg-ask{font-size:12.5px;font-weight:700;color:var(--ink);margin-top:16px}
+.rg-stars{font-size:38px;letter-spacing:7px;color:#f5a623;cursor:pointer;margin-top:6px;user-select:none}
+.rg-stars span{transition:transform .12s;display:inline-block}
+.rg-stars span:hover{transform:scale(1.18)}
+.rg-stars span.on{text-shadow:0 0 14px rgba(245,166,35,.55)}
+.rg-val{font-size:11.5px;color:var(--muted);margin-top:4px;font-weight:600;min-height:16px}
+.rg-val.warn{color:var(--red)}
+.rg-btn{width:100%;margin-top:14px;border:none;border-radius:12px;padding:13px;font-family:var(--ff);font-size:14px;font-weight:800;
+  cursor:pointer;color:#fff;background:#c3d0e0;transition:.2s}
+.rg-btn.ready{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);box-shadow:0 8px 22px rgba(10,124,255,.4)}
+.rg-btn:disabled{cursor:not-allowed}
+.rg-lock{font-size:10.5px;color:#9aa7b8;margin-top:10px}
+@media(max-width:430px){.rg-box{padding:20px 18px 16px}.rg-h{font-size:18px}.rg-stars{font-size:32px;letter-spacing:5px}}
+@media(prefers-reduced-motion:reduce){.rg-box,.rg-burst,.rg-ovl.show{animation:none}}
 /* panel Cloud & Backup */
 .cl-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink)}
 .cl-row b{font-weight:800;color:#0a4bb8;text-align:right}
@@ -2304,6 +2348,7 @@ const ROLES={
 };
 const USERS=[
  {email:"sudana.visudha@ai.astra.co.id",name:"Sudana Visudha",role:"admin"},
+ {email:"dedi@ai.astra.co.id",name:"Dedi Kusnodihardjo",role:"admin"},
  {email:"matilda.esther@ai.astra.co.id",name:"Matilda Esther Rotinsulu",role:"chief"},
  {email:"leonardus.ariyantosatriawan@ai.astra.co.id",name:"Leonardus Ariyanto Satriawan",role:"dept"},
  {email:"elok.normarosediana@ai.astra.co.id",name:"Elok Norma Rosediana",role:"section"},
@@ -2381,6 +2426,7 @@ function applyLogin(u){
  document.getElementById("login").classList.add("hide");
  notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
  auditLog("login", roleTitle(u));   // jejak login tersimpan di Firebase
+ setTimeout(rateGateCheck,800);     // ada tiket selesai yang menunggu dinilai?
  if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
 }
 function logout(){ gUser=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
@@ -5255,10 +5301,16 @@ function fieldOpSubmitReg(){
 function myTicketEscalate(no){
  var t=TICKETS.find(x=>x.no===no); if(!t)return;
  var note=prompt("Alasan eskalasi ke Supervisor (mis. butuh pengadaan barang / vendor):",""); if(note===null)return;
- t.esc=true; t.escBy=fieldOpName(); t.escNote=note||""; t.escAt=nowMs();
+ t.esc=true; t.escBy=fieldOpName(); t.escNote=note||""; t.escAt=nowMs(); t.escDone=false;
  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,esc:true,escBy:t.escBy,escNote:t.escNote});
- renderMyTickets(); renderFieldOps(); renderService(); renderOverview(); updateBell(); notifySound();
- alert("⏫ Tiket "+no+" dieskalasi ke Supervisor "+(t.cat?foNormCat(t.cat):'')+".\nSupervisor akan menindaklanjuti (mis. membuat SO pengadaan).");
+ /* masuk inbox Approval admin AGAVA + bunyi/notif tray */
+ NOTIFS.unshift({ic:"⏫",t:"Eskalasi tiket — perlu SO",
+   d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · oleh "+t.escBy+(t.escNote?" — "+t.escNote:""),
+   at:nowStamp(), sev:"crit", nav:"approvals", done:false});
+ agavaNotify("⏫ Eskalasi tiket — perlu SO", t.no+" · "+(t.judul||"")+" · oleh "+t.escBy);
+ try{ auditLog("escalation", t.no+" · "+foNormCat(t.cat)+" · "+t.escNote); }catch(e){}
+ renderMyTickets(); renderFieldOps(); renderService(); renderApprovals(); renderReminder(); renderOverview(); updateBell();
+ alert("⏫ Tiket "+no+" dieskalasi.\nMasuk ke inbox Approval admin AGAVA — di sana akan dibuatkan SO ke Procurement.");
 }
 /* Selesaikan dari My Tickets — sama seperti Field Ops: WAJIB foto bukti dari kamera */
 function myTicketResolve(no){ foAskPhoto(no); }
@@ -5379,10 +5431,12 @@ function foConfirmClose(){
  t.proof=p.imgs; t.closeNote=note.trim(); t.closedBy=fieldOpName()||t.pic||"";
  t.stg=3; t.status=TSTAGES[3]; t.ts=t.ts||{}; t.ts[3]=nowStamp();
  t.slaMs=t.slaMs||{}; if(!t.slaMs.pickup)t.slaMs.pickup=nowMs(); t.slaMs.resolved=nowMs(); t.closed=TODAY_STR;
+ t.needRate=true;   // ← pemohon wajib memberi rating sebelum tiket benar-benar tuntas
  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:3,status:t.status,ts:t.ts[3],closed:t.closed,proof:t.proof.length});
  closeDrawer(); window._foPhoto=null;
  renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
- alert("✅ Tiket "+t.no+" selesai dengan "+t.proof.length+" foto bukti.\nFoto tampil di tiket pemohon (modul Services).");
+ alert("✅ Tiket "+t.no+" selesai dengan "+t.proof.length+" foto bukti.\nPemohon diminta memberi rating sebelum tiket ditutup.");
+ rateGateCheck();   // kalau pemohonnya adalah user yg sedang login di perangkat ini
 }
 /* ── Log record operator → CSV (khusus kelompok Super) ──
    Dasar penilaian akhir tahun: jumlah pickup, response & resolution time, breach. */
@@ -6126,6 +6180,19 @@ async function submitSO(){
    apprSection:isSec?"Approved":"Pending",sectionBy:"",apprBudget:isSec?"Pending":"—",apprProc:"—",apprDept:"—",wstep:0,ts:{created:nowStamp()},tsf:{},invStatus:"",spkNo:"",stage:0,aging:"On Track"};
  so.sectionBy=soSectionApprover(so); if(isSec){ so.sectionBy=req; so.tsf.section=nowStampDoc(); so.ts.section=nowStamp(); }
  SO.unshift(so); soPersist();
+ /* SO ini lahir dari tiket eskalasi → tautkan balik supaya eskalasinya tertutup
+    dan pemohon bisa melihat tiketnya berlanjut ke Procurement. */
+ var _fromTk=window._soFromTicket; window._soFromTicket=null;
+ if(_fromTk){
+   var tk=TICKETS.find(function(x){return x.no===_fromTk;});
+   if(tk){
+     tk.toProc=true; tk.soNo=no; tk.escDone=true; tk.escSoBy=(gUser&&gUser.name)||""; tk.escSoAt=nowStamp();
+     so.fromTicket=_fromTk;
+     dbSaveTicket(tk);
+     try{ auditLog("escalation-to-so", _fromTk+" → "+no); }catch(e){}
+     try{ renderService(); renderMyTickets(); renderFieldOps(); }catch(e){}
+   }
+ }
  procFilter="all"; renderProc(); renderApprovals(); renderReminder(); buildNav(); updateBell();
  notifySound();   // SO baru masuk ke inbox approval Section/Budget
  go("procurement");
@@ -6346,7 +6413,7 @@ function dueStatus(due){ const d=Math.floor((new Date(due)-new Date(TODAY_STR))/
  return {cls:"bd-ok",txt:d+"d left"}; }
 function dueRow(name,sub,due){ const s=dueStatus(due); return `<div class="due-row"><div><div class="dj">${name}</div><div class="dm">${sub} · due ${due}</div></div><span class="badge ${s.cls}">${s.txt}</span></div>`; }
 function myBookingCount(){ return (typeof RB_BOOKINGS!=="undefined"&&gUser)?RB_BOOKINGS.filter(b=>b.email===gUser.email||b.by===gUser.name).length:0; }
-function updateBell(){ const n=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); appBadge(n); const b=document.getElementById("bellBadge"); if(!b)return; b.textContent=n; b.classList.toggle("hide",n===0); }
+function updateBell(){ const n=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(isSuper()?escalatedTickets().length:0)+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); appBadge(n); const b=document.getElementById("bellBadge"); if(!b)return; b.textContent=n; b.classList.toggle("hide",n===0); }
 function followUp(id){ const x=NOTIFS.find(n=>n.id===id); if(x)x.done=true; renderReminder(); updateBell(); }
 function rbRoomName(id){ for(const k in RB_ROOMS){ const r=RB_ROOMS[k].find(x=>x.id===id); if(r)return r.name; } return id; }
 function renderReminder(){
@@ -6560,7 +6627,41 @@ function otherApprovalRow(a){
    <span>${a.status==='Pending'?`<button class="btn-act" style="padding:6px 11px;font-size:12px" onclick="actApproval(${a.id},'Approved')">Approve</button> <button class="btn-out" style="padding:6px 11px;font-size:12px" onclick="actApproval(${a.id},'Rejected')">Reject</button>`:'<span class="muted small">actioned</span>'}</span>
  </div>`;
 }
+/* ── ESKALASI TIKET → inbox Approval ──
+   Operator tak sanggup menyelesaikan sendiri → tiket naik ke sini. Approver
+   (admin AGAVA / kelompok Super) menindaklanjuti dengan membuat SO ke Procurement. */
+function escalatedTickets(){
+ return TICKETS.filter(function(t){ return t.esc && !t.escDone && (t.stg||0)<3; })
+   .sort(function(a,b){ return (b.escAt||0)-(a.escAt||0); });
+}
+function escTicketRow(t){
+ var umur=t.escAt?Math.round((nowMs()-t.escAt)/60000):null;
+ return '<div class="esc-row">'+
+   '<div class="esc-main">'+
+     '<div class="esc-no"><b>'+esc(t.no)+'</b><span class="badge bd-crit" style="font-size:9px">Eskalasi</span>'+
+       (umur!=null?'<span class="esc-age">'+fmtDur(umur)+' lalu</span>':'')+'</div>'+
+     '<div class="esc-t">'+esc(t.judul||'')+'</div>'+
+     '<div class="esc-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+' · dieskalasi oleh <b>'+esc(t.escBy||'operator')+'</b></div>'+
+     (t.escNote?'<div class="esc-note">💬 '+esc(t.escNote)+'</div>':'')+
+   '</div>'+
+   '<div class="esc-act">'+
+     '<button class="btn-act" onclick="soFromTicket(\''+esc(t.no)+'\')">📋 Buat SO ke Procurement</button>'+
+     '<button class="btn-out" onclick="escDismiss(\''+esc(t.no)+'\')">Tutup tanpa SO</button>'+
+   '</div>'+
+ '</div>';
+}
+function escDismiss(no){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ var alasan=prompt("Alasan menutup eskalasi tanpa membuat SO (tampil di journey tiket):","");
+ if(alasan===null)return;
+ t.escDone=true; t.escCloseNote=String(alasan).trim(); t.escSoBy=(gUser&&gUser.name)||""; t.escSoAt=nowStamp();
+ dbSaveTicket(t);
+ try{ auditLog("escalation-dismissed", no+" · "+t.escCloseNote); }catch(e){}
+ renderApprovals(); renderService(); renderMyTickets(); renderFieldOps(); updateBell();
+ alert("Eskalasi "+no+" ditutup tanpa SO.\nOperator dapat melanjutkan penyelesaian di My Tickets.");
+}
 function renderApprovals(){
+ const escList=isSuper()?escalatedTickets():[];
  const soList=soApprovalsForTier(gTier);
  const others=APPROVALS.filter(a=>a.tier===gTier);
  const oPend=others.filter(a=>a.status==="Pending");
@@ -6570,8 +6671,11 @@ function renderApprovals(){
  document.getElementById("page-approvals").innerHTML=`
   <div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="font-size:13px;color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
-    <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+oPend.length} pending</span></div>
+    <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+oPend.length+escList.length} pending</span></div>
   </div>
+  ${escList.length?`<div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>⏫ Eskalasi Tiket dari Lapangan</h2><div class="d">${escList.length} tiket — operator tidak dapat menyelesaikan sendiri. Tindak lanjut: buat SO ke Procurement.</div></div></div>
+    <div class="sec-body">${escList.map(escTicketRow).join("")}</div>
+  </div>`:''}
   ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','procurement')}<div><h2>SO Approvals</h2><div class="d">${gateDesc}</div></div></div>
     <div class="sec-body">${soList.length?soList.map(soApprovalCard).join(""):'<div class="muted small" style="padding:24px;text-align:center">No SO waiting at your gate right now.</div>'}</div>
   </div>`:''}
@@ -7323,9 +7427,80 @@ function setRate(no,s){ window._rateTmp=s; const wrap=document.getElementById("r
 function saveRate(no){
  const t=TICKETS.find(x=>x.no===no); if(!t)return;
  if(!window._rateTmp){ alert("Pilih bintang dulu."); return; }
- t.rating=window._rateTmp; if(!t.closed)t.closed=TODAY_STR;
+ t.rating=window._rateTmp; t.needRate=false; if(!t.closed)t.closed=TODAY_STR;
  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,rating:t.rating,closed:t.closed});
  closeDrawer(); renderService(); renderOverview();
+}
+/* ══════════════════════════════════════════════════════════════════════════
+   GERBANG RATING — kotak di TENGAH LAYAR, tidak bisa ditutup sebelum diberi
+   bintang. Muncul untuk PEMOHON tiket begitu operator menyelesaikan pekerjaan.
+   ══════════════════════════════════════════════════════════════════════════ */
+let RATE_GATE=null;
+/* tiket milik user yg login, sudah selesai + ada bukti, tapi belum dirating */
+function rateGatePending(){
+ var me=(gUser&&gUser.name)||"", mail=(gUser&&gUser.email)||"";
+ if(!me&&!mail)return [];
+ return TICKETS.filter(function(t){
+   if((t.stg||0)<3 || t.rating) return false;
+   if(!t.needRate) return false;
+   return (t.requester&&t.requester===me) || (t.email&&mail&&t.email===mail);
+ });
+}
+function rateGateCheck(){
+ if(RATE_GATE) return;                 // sudah tampil
+ var list=rateGatePending();
+ if(list.length) rateGateShow(list[0]);
+}
+function rateGateShow(t){
+ RATE_GATE=t.no;
+ window._rateTmp=0;
+ var el=document.getElementById("rateGate");
+ if(!el){ el=document.createElement("div"); el.id="rateGate"; document.body.appendChild(el); }
+ var sla=ticketSLA(t);
+ var fotos=(t.proof||[]).slice(0,4).map(function(u){ return '<img src="'+u+'" alt="bukti"/>'; }).join("");
+ el.className="rg-ovl show";
+ el.innerHTML=
+  '<div class="rg-box" role="dialog" aria-modal="true">'+
+    '<div class="rg-burst">✅</div>'+
+    '<div class="rg-h">Pekerjaan Selesai</div>'+
+    '<div class="rg-sub">'+esc(t.no)+' · '+esc(t.judul||'')+'</div>'+
+    '<div class="rg-meta">Dikerjakan <b>'+esc(t.closedBy||t.pic||'tim GA')+'</b> · '+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+
+      '<br>Waktu penyelesaian <b>'+fmtDur(sla.resMin)+'</b></div>'+
+    (fotos?'<div class="rg-fotos">'+fotos+'</div>':'')+
+    (t.closeNote?'<div class="rg-note">💬 '+esc(t.closeNote)+'</div>':'')+
+    '<div class="rg-ask">Beri penilaian Anda untuk menutup tiket ini</div>'+
+    '<div class="rg-stars" id="rgStars">'+[1,2,3,4,5].map(function(s){
+       return '<span data-s="'+s+'" onclick="rateGateSet('+s+')">☆</span>'; }).join("")+'</div>'+
+    '<div class="rg-val" id="rgVal">Ketuk bintang</div>'+
+    '<button class="rg-btn" id="rgBtn" disabled onclick="rateGateSubmit()">Kirim Penilaian &amp; Tutup</button>'+
+    '<div class="rg-lock">🔒 Kotak ini hanya bisa ditutup setelah Anda memberi bintang</div>'+
+  '</div>';
+ document.body.classList.add("rg-open");
+}
+function rateGateSet(s){
+ window._rateTmp=s;
+ var w=document.getElementById("rgStars");
+ if(w)Array.prototype.forEach.call(w.children,function(el){
+   var on=(+el.dataset.s<=s); el.textContent=on?'★':'☆'; el.classList.toggle('on',on); });
+ var v=document.getElementById("rgVal");
+ if(v)v.textContent=["","Sangat kurang","Kurang","Cukup","Baik","Sangat baik"][s]+" · "+s+"/5";
+ var b=document.getElementById("rgBtn"); if(b){ b.disabled=false; b.classList.add("ready"); }
+}
+function rateGateSubmit(){
+ if(!window._rateTmp){ var v=document.getElementById("rgVal"); if(v){ v.textContent="Pilih bintang dulu"; v.classList.add("warn"); } return; }
+ var t=TICKETS.find(function(x){return x.no===RATE_GATE;});
+ if(t){
+   t.rating=window._rateTmp; t.needRate=false; if(!t.closed)t.closed=TODAY_STR;
+   dbSaveTicket(t);
+   triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,rating:t.rating,closed:t.closed});
+   try{ auditLog("ticket-rated", t.no+" · ★"+t.rating); }catch(e){}
+ }
+ var el=document.getElementById("rateGate");
+ if(el){ el.classList.remove("show"); setTimeout(function(){ el.innerHTML=""; },260); }
+ document.body.classList.remove("rg-open");
+ RATE_GATE=null; window._rateTmp=0;
+ renderService(); renderOverview(); updateBell();
+ setTimeout(rateGateCheck,400);   // masih ada tiket lain yg menunggu dinilai?
 }
 
 /* ===================== HSE & SUSTAINABILITY — Permit compliance =====================
@@ -7818,7 +7993,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-28";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-29";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -7844,7 +8019,9 @@ function dbInit(){
       else if(i>=0){ Object.assign(TICKETS[i],d); syncTicketStage(TICKETS[i],d); changed=true; }
       else { TICKETS.unshift(d); syncTicketStage(d,null); changed=true; if(AGDB.ticketsInit) arrivals.push(d); }
     });
-    if(changed){ renderService(); renderFieldOps(); renderMyTickets(); renderOverview(); renderBuilding(); updateBell(); }
+    if(changed){ renderService(); renderFieldOps(); renderMyTickets(); renderOverview(); renderBuilding(); updateBell();
+      try{ rateGateCheck(); }catch(e){}   // tiket saya baru diselesaikan operator → minta rating
+    }
     /* Tiket baru dari perangkat lain → sound + push notif di tray HP.
        Operator Field Ops per kategori HANYA dibunyikan untuk kategorinya sendiri,
        supaya tidak ada notifikasi yang bukan urusannya. */
