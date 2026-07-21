@@ -8,12 +8,14 @@
 <!-- Favicon: simbol "A" AGAVA (chevron) di kepingan kaca gradasi electric→turquoise -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23d9f5fd'/%3E%3Cstop offset='1' stop-color='%23a7e0f5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M15 45 L32 19 L49 45' fill='none' stroke='%230a7cff' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"/>
 <link rel="apple-touch-icon" href="icon-180.png"/>
-<meta name="theme-color" content="#0a7cff"/>
+<meta name="theme-color" content="#0a4fd0"/>
 <!-- PWA — installable ke HP (Android/iOS), tanpa app store -->
 <link rel="manifest" href="manifest.json"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<!-- black-translucent = konten menembus area status bar/notch, jadi top bar biru
+     penuh sampai tepi atas layar. Isinya digeser turun pakai safe-area-inset-top. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="AGAVA"/>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
 <style>
@@ -1492,9 +1494,10 @@ body.rg-open{overflow:hidden}
   body.side-open .side{transform:translateX(-100%)}
   .main{margin-left:0}
   /* ── TOP BAR ── */
-  /* neon menyentuh tepi paling atas layar — tidak ada bar putih di atasnya */
+  /* Neon menembus area status bar/notch (meta status-bar-style = black-translucent),
+     isinya digeser turun sebesar safe-area-inset-top supaya kolom chat ada DI BAWAH notch. */
   .mtop{display:block;position:sticky;top:0;z-index:60;overflow:hidden;margin-top:0;
-    padding:calc(11px + env(safe-area-inset-top)) 12px 12px;
+    padding:calc(10px + env(safe-area-inset-top)) 12px 12px;
     background:linear-gradient(135deg,#032b6b 0%,#0a4fd0 45%,#0a7cff 78%,#00c6fb 100%);
     box-shadow:0 6px 22px rgba(6,40,110,.38)}
   .mtop-glow{position:absolute;inset:-60% -20% auto;height:190%;pointer-events:none;
@@ -1530,6 +1533,14 @@ body.rg-open{overflow:hidden}
   .mtop-bdg.hide{display:none}
   /* Top bar bawaan desktop TIDAK dipakai di mobile — semua halaman, bukan hanya Beranda */
   .top{display:none!important}
+  /* Halaman login juga menembus notch: beri strip biru di area status bar supaya
+     jam & baterai (teks putih) tetap terbaca, dan isi form tidak tertutup notch. */
+  .login-screen{padding-top:calc(22px + env(safe-area-inset-top))}
+  .login-screen::after{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);
+    background:linear-gradient(135deg,#032b6b,#0a4fd0);z-index:2;pointer-events:none}
+  /* Drawer & form juga mulai di bawah notch */
+  .ovl .drawer{padding-top:env(safe-area-inset-top)}
+  .rg-ovl{padding-top:calc(20px + env(safe-area-inset-top))}
   /* Kartu tombol layanan di modul Services disembunyikan — sudah ada di bottom bar */
   .ga-svc-panel{display:none!important}
   /* Drawer/form harus DI ATAS top bar neon (dulu z-index 50 < 60 → form Overtime tertutup) */
@@ -8795,7 +8806,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-38";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-39";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
