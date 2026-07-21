@@ -1568,6 +1568,8 @@ body.rg-open{overflow:hidden}
   .mh-sh{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
   .mh-sh b{font-size:14px;color:var(--ink)}
   .mh-sh span{font-size:10.5px;color:var(--muted)}
+  .mh-csv{margin-left:auto;border:1px solid rgba(10,124,255,.3);background:rgba(10,124,255,.07);color:#0a4bb8;
+    font-family:var(--ff);font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer}
   /* Daftar order & SO — bergaya baris seperti desktop, klik untuk lihat perjalanan */
   .mh-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
   .mh-row{display:flex;gap:10px;align-items:flex-start;padding:12px 13px;border-bottom:1px solid var(--line);cursor:pointer}
@@ -1612,6 +1614,20 @@ body.rg-open{overflow:hidden}
   body.on-mhome .mbot #mbHome i{color:var(--blue)}
 }
 @media(prefers-reduced-motion:reduce){.mtop-glow{animation:none}}
+/* ── Halaman Overtime — pilih jenis lalu isi form ── */
+.ot-pick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.ot-card{display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;padding:16px 15px;
+  border:1px solid var(--line);border-radius:15px;cursor:pointer;font-family:var(--ff);
+  background:linear-gradient(160deg,#fff,#f3f9ff);transition:.15s;
+  box-shadow:0 3px 12px rgba(10,124,255,.08)}
+.ot-card:hover{border-color:var(--blue);box-shadow:0 8px 22px rgba(10,124,255,.18);transform:translateY(-2px)}
+.ot-card b{font-size:14px;color:var(--ink)}
+.ot-card small{font-size:11px;color:var(--muted);line-height:1.45}
+.ot-ic{font-size:26px;line-height:1}
+.ot-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.ot-note{font-size:11.5px;color:#0a4bb8;background:#eef5ff;border:1px solid #cfe0f8;border-radius:9px;
+  padding:8px 11px;margin:2px 0 12px;line-height:1.5}
+@media(max-width:560px){.ot-pick{grid-template-columns:1fr}}
 /* panel Cloud & Backup */
 .cl-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink)}
 .cl-row b{font-weight:800;color:#0a4bb8;text-align:right}
@@ -2387,6 +2403,7 @@ html,body{max-width:100%}
     </div>
     <div class="wrap">
       <div id="page-mhome" class="hide"></div>
+      <div id="page-overtime" class="hide"></div>
       <div id="page-overview"></div>
       <div id="page-kpiyear" class="hide"></div>
       <div id="page-impact" class="hide"></div>
@@ -2421,7 +2438,7 @@ html,body{max-width:100%}
   <button onclick="go('createticket')"><span>🎫</span><i>Complaint</i></button>
   <button onclick="go('roombook')"><span>🏢</span><i>Room</i></button>
   <button onclick="go('transport')"><span>🚗</span><i>Transport</i></button>
-  <button onclick="openOvertimeForm()"><span>⏱️</span><i>Overtime</i></button>
+  <button onclick="go('overtime')"><span>⏱️</span><i>Overtime</i></button>
 </div>
 
 <!-- DRAWER -->
@@ -2586,7 +2603,9 @@ function applyLogin(u){
  const sr=document.getElementById("suRole"); if(sr)sr.textContent=roleTitle(u);
  const sa=document.getElementById("suAvatar"); if(sa)sa.textContent=ini(u.name);
  buildNav(); renderAll(); renderCreateTicket();
- go(isMobile()?"mhome":ROLES[gRole].menus[0]);   // di HP mendarat di Beranda, bukan modul pertama
+ /* Di HP: operator lapangan langsung masuk modul Field Ops, lainnya ke Beranda */
+ go(isMobile()?(gRole==="fieldops"?"fieldops":"mhome"):ROLES[gRole].menus[0]);
+ mBotSync();
  document.getElementById("login").classList.add("hide");
  notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
  auditLog("login", roleTitle(u));   // jejak login tersimpan di Firebase
@@ -2653,10 +2672,11 @@ function closeMobSidebar(){ document.body.classList.remove("side-open"); }
 function go(id){
   closeMobSidebar();
   active=(id==="ersus")?"energy":id; navSetActive();
-  ["page-mhome","page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
+  ["page-mhome","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   document.body.classList.toggle("on-mhome", id==="mhome");
   if(id==="mhome"){renderMobileHome();document.getElementById("page-mhome").classList.remove("hide");t.textContent="AGAVA";s.textContent="Beranda";mTopSync();}
+  else if(id==="overtime"){active="service";navSetActive();renderOvertime();document.getElementById("page-overtime").classList.remove("hide");t.textContent="Overtime";s.textContent="Perpanjangan AC & manpower lembur";}
   else if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="procurement"){procFilter="all";renderProc();document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
   else if(id==="building"){renderBuilding();document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
@@ -4979,7 +4999,10 @@ function renderProc(){
    </tr>`}).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'}</td></tr>`}
    </tbody></table>
  </div>
- <div style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center">Click a row to see the full lifecycle journey →</div>`;
+ <div style="display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap">
+   <span style="font-size:12px;color:var(--muted)">Click a row to see the full lifecycle journey →</span>
+   <button class="btn-out" style="margin-left:auto;padding:6px 11px;font-size:12px" onclick="exportLog('so')" title="Unduh log SO (CSV/Excel)">⬇ CSV Log SO</button>
+ </div>`;
 }
 
 function openDrawer(no){
@@ -5804,6 +5827,54 @@ function renderMyTickets(){
    Top bar neon · ikon modul · Order Saya · SO Saya · GA Calendar · bottom bar.
    ══════════════════════════════════════════════════════════════════════════ */
 function isMobile(){ return window.matchMedia("(max-width:820px)").matches; }
+/* ══════════════════════════════════════════════════════════════════════════
+   KUSTOMISASI MOBILE PER ROLE
+     umum     : tanpa ikon modul — layanan sudah ada di bottom bar
+     ga-super : seluruh modul
+     ga-biasa : modul operasional + Procurement (khusus Create SO) +
+                HSE (khusus Work Permit)
+     fieldops : langsung ke modul Field Ops, bottom bar khusus
+   Reminder / Approvals / Assigned SO TIDAK ikut ke ikon modul — sudah di top bar.
+   ══════════════════════════════════════════════════════════════════════════ */
+const MOBILE_HIDE_MODS=["reminder","approvals","assigned","myticket"];
+const GA_STAFF_ROLES=["analyst","staff","proc","fieldsup"];   // karyawan GA non-super
+function mobileGroup(){
+ if(gRole==="fieldops") return "fieldops";
+ if(isSuper()) return "ga-super";
+ if(GA_STAFF_ROLES.indexOf(gRole)>=0) return "ga-biasa";
+ return "umum";
+}
+/* modul yang tampil di ikon bar mobile, per kelompok */
+function mobileMods(){
+ var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
+ var grp=mobileGroup();
+ if(grp==="umum"||grp==="fieldops") return [];
+ var boleh;
+ if(grp==="ga-super"){
+   boleh=menus.filter(function(id){ return MOBILE_HIDE_MODS.indexOf(id)<0; });
+ } else {
+   /* daftar tetap untuk karyawan GA — TIDAK disaring hak akses desktop,
+      karena di aplikasi mobile modul ini memang disediakan untuk mereka */
+   boleh=["building","project","gacal","service","fieldops","energy","procurement","hse"];
+ }
+ return MENU.filter(function(m){ return boleh.indexOf(m.id)>=0; })
+   .sort(function(a,b){ return boleh.indexOf(a.id)-boleh.indexOf(b.id); });
+}
+/* GA biasa: Procurement & HSE hanya sebagai pintu ke form, bukan modul penuh */
+function mobileModGo(id){
+ if(mobileGroup()==="ga-biasa"){
+   if(id==="procurement"){ go("createso"); return; }
+   if(id==="hse"){ go("hse"); setTimeout(function(){ try{ wpOpenForm(); }catch(e){} },250); return; }
+ }
+ go(id);
+}
+function mobileModLabel(m){
+ if(mobileGroup()==="ga-biasa"){
+   if(m.id==="procurement") return "Create SO";
+   if(m.id==="hse") return "Work Permit";
+ }
+ return m.label;
+}
 /* ikon peran di top bar: Approval / Assigned SO / My Tickets sesuai role */
 function mRoleTarget(){
  var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
@@ -5813,7 +5884,26 @@ function mRoleTarget(){
  return {id:"service", ic:"🎧", t:"Services", n:0};
 }
 function mRoleGo(){ go(mRoleTarget().id); }
-function mGoHome(){ go("mhome"); }
+function mGoHome(){ go(gRole==="fieldops"?"fieldops":"mhome"); }
+/* Bottom bar berbeda untuk operator lapangan: Home · Complaint (pantau) · My Tickets */
+function mBotSync(){
+ var bar=document.getElementById("mBot"); if(!bar)return;
+ if(gRole==="fieldops"){
+   bar.style.gridTemplateColumns="repeat(3,1fr)";
+   bar.innerHTML=
+     '<button onclick="mGoHome()" id="mbHome"><span>📡</span><i>Field Ops</i></button>'+
+     '<button onclick="go(\'service\')"><span>🎧</span><i>Complaint</i></button>'+
+     '<button onclick="go(\'myticket\')"><span>🎫</span><i>Tiket Saya</i></button>';
+ } else {
+   bar.style.gridTemplateColumns="repeat(5,1fr)";
+   bar.innerHTML=
+     '<button onclick="mGoHome()" id="mbHome"><span>🏠</span><i>Beranda</i></button>'+
+     '<button onclick="go(\'createticket\')"><span>🎫</span><i>Complaint</i></button>'+
+     '<button onclick="go(\'roombook\')"><span>🏢</span><i>Room</i></button>'+
+     '<button onclick="go(\'transport\')"><span>🚗</span><i>Transport</i></button>'+
+     '<button onclick="go(\'overtime\')"><span>⏱️</span><i>Overtime</i></button>';
+ }
+}
 function mTopSync(){
  if(!isMobile())return;
  var d=new Date();
@@ -5855,23 +5945,23 @@ function orderOpen(kind,no){
 function renderMobileHome(){
  var el=document.getElementById("page-mhome"); if(!el||!isMobile())return;
  var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
- var mods=MENU.filter(function(m){return menus.indexOf(m.id)>=0;});
+ var mods=mobileMods();   // per kelompok role — user umum tidak dapat ikon modul
  /* Ikon modul: pakai ikon SVG yang SAMA dengan desktop, ukuran seragam,
     disusun 4 kolom × 2 baris per halaman, digeser mendatar antar halaman. */
  var perPage=8, pages=[];
  for(var i=0;i<mods.length;i+=perPage) pages.push(mods.slice(i,i+perPage));
- var ikon='<div class="mh-modwrap" id="mhModWrap">'+pages.map(function(pg){
+ var ikon=mods.length?('<div class="mh-modwrap" id="mhModWrap">'+pages.map(function(pg){
    return '<div class="mh-modpage">'+pg.map(function(m){
      var b=navBadge(m.id);
      var n=b?b.replace(/<[^>]*>/g,"").trim():"";
-     return '<button class="mh-mod" onclick="go(\''+m.id+'\')">'+
+     return '<button class="mh-mod" onclick="mobileModGo(\''+m.id+'\')">'+
        '<span class="mh-mic"><svg viewBox="0 0 24 24">'+IC[m.ic]+'</svg>'+
        (n?'<i class="mh-mbdg">'+esc(n)+'</i>':'')+'</span>'+
-       '<em>'+esc(m.label)+'</em></button>';
+       '<em>'+esc(mobileModLabel(m))+'</em></button>';
    }).join("")+'</div>';
  }).join("")+'</div>'+
  (pages.length>1?'<div class="mh-dots">'+pages.map(function(_,i){
-   return '<i class="'+(i===0?'on':'')+'" data-p="'+i+'"></i>';}).join("")+'</div>':'');
+   return '<i class="'+(i===0?'on':'')+'" data-p="'+i+'"></i>';}).join("")+'</div>':'')):'';
  /* ── ORDER SAYA — daftar seperti desktop, klik untuk lihat perjalanan ── */
  var ord=myOrders();
  var listOrder=ord.length?'<div class="mh-list">'+ord.map(function(o){
@@ -5890,7 +5980,8 @@ function renderMobileHome(){
  if(menus.indexOf("procurement")>=0){
    var me=(gUser&&gUser.name)||"";
    var mySO=SO.filter(function(s){ return (s.requester||s.req)===me; });
-   soBlok='<div class="mh-sec"><div class="mh-sh"><b>🛒 SO Saya</b><span>'+mySO.length+' supply order</span></div>'+
+   soBlok='<div class="mh-sec"><div class="mh-sh"><b>🛒 SO Saya</b><span>'+mySO.length+' supply order</span>'+
+     (mySO.length?'<button class="mh-csv" onclick="exportLog(\'so\')">⬇ CSV</button>':'')+'</div>'+
      (mySO.length?'<div class="mh-list">'+mySO.map(function(s){
         var st=soStatusLabel(s);
         return '<div class="mh-row" onclick="openDrawer(\''+esc(s.no)+'\')">'+
@@ -5928,7 +6019,8 @@ function renderMobileHome(){
     '<div class="mh-date"><b>'+hari+'</b><span>'+d.getDate()+' '+bulan+' '+d.getFullYear()+'</span></div>'+
   '</div>'+
   ikon+
-  '<div class="mh-sec"><div class="mh-sh"><b>📦 Order Saya</b><span>'+ord.length+' order</span></div>'+listOrder+'</div>'+
+  '<div class="mh-sec"><div class="mh-sh"><b>📦 Order Saya</b><span>'+ord.length+' order</span>'+
+    (ord.length?'<button class="mh-csv" onclick="exportLog(\'all\')">⬇ CSV</button>':'')+'</div>'+listOrder+'</div>'+
   soBlok+kal;
  /* titik halaman ikut posisi geser */
  var wrap=document.getElementById("mhModWrap");
@@ -5939,7 +6031,7 @@ function renderMobileHome(){
 }
 function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
 function gaServiceButtons(){
- if(viewerOnly()) return '';
+ if(viewerOnly()||gRole==="fieldops") return '';   // operator lapangan hanya memantau, tidak membuat
  return gaServiceButtonsRaw();
 }
 function gaServiceButtonsRaw(){
@@ -5949,14 +6041,15 @@ function gaServiceButtonsRaw(){
    <button class="ga-svc-btn" onclick="go('createticket')"><span class="ga-svc-ic" style="background:#eef4ff;color:#2563eb">🎫</span><span class="ga-svc-tx"><b>Complaint Handling</b><small>Lapor keluhan / kerusakan</small></span><span class="ga-svc-go">›</span></button>
    <button class="ga-svc-btn" onclick="go('roombook')"><span class="ga-svc-ic" style="background:#e9f8ef;color:#15a34a">🏢</span><span class="ga-svc-tx"><b>Room Reservation</b><small>Pesan ruang meeting</small></span><span class="ga-svc-go">›</span></button>
    <button class="ga-svc-btn" onclick="go('transport')"><span class="ga-svc-ic" style="background:#fdf3e3;color:#c2740a">🚗</span><span class="ga-svc-tx"><b>Transport Booking</b><small>Pool, Blue Bird, GoCorp</small></span><span class="ga-svc-go">›</span></button>
-   <button class="ga-svc-btn" onclick="openOvertimeForm()"><span class="ga-svc-ic" style="background:#f3eefe;color:#7a4fd0">⏱️</span><span class="ga-svc-tx"><b>Overtime</b><small>Pengajuan lembur & fasilitas</small></span><span class="ga-svc-go">›</span></button>
+   <button class="ga-svc-btn" onclick="go('overtime')"><span class="ga-svc-ic" style="background:#f3eefe;color:#7a4fd0">⏱️</span><span class="ga-svc-tx"><b>Overtime</b><small>Pengajuan lembur & fasilitas</small></span><span class="ga-svc-go">›</span></button>
   </div>
  </div>`;
 }
 function renderService(){
- /* Kelompok user/viewer (di luar SUPER) → hanya tiket buatan sendiri, tanpa Rating & Vendor Performance */
- const sup=isSuper();
- const base=sup?TICKETS:TICKETS.filter(ticketMine);
+ /* Kelompok user/viewer (di luar SUPER) → hanya tiket buatan sendiri, tanpa Rating & Vendor Performance.
+    Operator Field Ops: boleh melihat Rating & Room/Event (pantau), tapi tidak bisa create. */
+ const sup=isSuper()||gRole==="fieldops";
+ const base=isSuper()?TICKETS:(gRole==="fieldops"?TICKETS:TICKETS.filter(ticketMine));
  const total=base.length, ongoing=base.filter(t=>t.status!=="Resolved").length, resolved=base.filter(t=>t.status==="Resolved").length, esc=base.filter(t=>t.esc&&t.status!=="Resolved").length;
  const list=base.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?(t.esc&&t.status!=="Resolved"): svcFilter==="resolved"?t.status==="Resolved":true);
  const pills=[["all","All",total],["open","Ongoing",ongoing],["esc","Escalated",esc],["resolved","Resolved",resolved]];
@@ -5993,7 +6086,8 @@ function renderService(){
       <div class="svc-st-i"><div class="l">Escalated</div><div class="v" style="color:var(--red)">${esc}</div></div>
       <div class="svc-st-i"><div class="l">Resolved</div><div class="v" style="color:var(--green)">${resolved}</div></div>
     </div>
-    <div style="padding:16px 16px 14px;display:flex;gap:8px;flex-wrap:wrap">${pills.map(p=>`<div class="ptab ${svcFilter===p[0]?'on':''}" onclick="svcFilter='${p[0]}';renderService()">${p[1]} <b style="opacity:.7">${p[2]}</b></div>`).join("")}</div>
+    <div style="padding:16px 16px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${pills.map(p=>`<div class="ptab ${svcFilter===p[0]?'on':''}" onclick="svcFilter='${p[0]}';renderService()">${p[1]} <b style="opacity:.7">${p[2]}</b></div>`).join("")}
+      <button class="btn-out" style="margin-left:auto;padding:6px 11px;font-size:12px" onclick="exportLog('ticket')" title="Unduh log tiket (CSV/Excel)">⬇ CSV</button></div>
     <div class="svc-head"><span></span><span>Ticket</span><span style="text-align:center">Response</span><span>PIC</span><span>Status</span></div>
     <div class="svc-list">${list.length?list.map(ticketRow).join(""):('<div class="muted small" style="padding:30px;text-align:center">'+(sup?'No tickets in this filter.':'Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.')+'</div>')}</div>
   </div>`;
@@ -6028,6 +6122,84 @@ function backfillOrderNo(){
    (typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){ if(!b.no)b.no=orderNo("room"); });
    (typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(r){ if(!r.no)r.no=orderNo("transport"); });
  }catch(e){}
+}
+/* ══════════════════════════════════════════════════════════════════════════
+   EKSPOR LOG TIKET → CSV/Excel. Tersedia di tiap layanan & modul, supaya ada
+   rekaman permanen di luar aplikasi.
+   ══════════════════════════════════════════════════════════════════════════ */
+function csvDownload(nama,head,rows){
+ if(!rows.length){ alert("Belum ada data untuk diekspor."); return; }
+ var q=function(v){ v=(v==null?"":String(v)); return '"'+v.replace(/"/g,'""')+'"'; };
+ var lines=[head.map(q).join(";")].concat(rows.map(function(r){ return r.map(q).join(";"); }));
+ var blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8;"});
+ var a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="AGAVA-"+nama+"-"+new Date().toISOString().slice(0,10)+".csv";
+ document.body.appendChild(a); a.click();
+ setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+ try{ auditLog("export-csv", nama+" · "+rows.length+" baris"); }catch(e){}
+}
+function exportLog(jenis){
+ var mail=((gUser&&gUser.email)||"").toLowerCase(), me=(gUser&&gUser.name)||"";
+ var milikSaya=function(by,email){
+   if(isSuper())return true;                       // kelompok Super menarik semua
+   if(email&&mail&&String(email).toLowerCase()===mail)return true;
+   return by&&me&&String(by)===me;
+ };
+ if(jenis==="ticket"){
+   var tk=TICKETS.filter(function(t){ return milikSaya(t.requester,t.email); });
+   csvDownload("Tiket-Complaint",
+     ["No Tiket","Judul","Kategori","Lokasi","Prioritas","Pemohon","Email","PIC","Status","Aging",
+      "Dibuat","Response (mnt)","Ambil→Mulai (mnt)","Resolution (mnt)","SLA Breach","Rating","Ditutup"],
+     tk.map(function(t){ var s=ticketSLA(t);
+       return [t.no,t.judul,foNormCat(t.cat),t.lokasi,s.pr,ticketReqName(t),t.email||"",t.pic||"",
+         t.status,ticketAging(t).t,t.created,s.respMin,s.startMin,s.resMin,s.breach?"YA":"tidak",
+         t.rating||"",t.closed||""]; }));
+ } else if(jenis==="room"){
+   var rb=(typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).filter(function(b){ return milikSaya(b.by,b.email); });
+   csvDownload("Tiket-RoomReservation",
+     ["No Tiket","Ruang","Judul/Agenda","Tanggal","Mulai","Selesai","Pemohon","Email"],
+     rb.map(function(b){ return [b.no||"",(typeof rbRoomName==="function"?rbRoomName(b.room):b.room),
+       b.title||"",b.date,b.start,b.end,b.by||"",b.email||""]; }));
+ } else if(jenis==="transport"){
+   var tr=(typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).filter(function(r){ return milikSaya(r.by,r.email); });
+   csvDownload("Tiket-Transport",
+     ["No Tiket","Jenis","Detail","Tanggal","Jam","Pemohon","Email","Status"],
+     tr.map(function(r){ return [r.no||"",transportLabel(r.type),r.detail||"",r.date||"",r.time||"",
+       r.by||"",r.email||"",r.status||"Diajukan"]; }));
+ } else if(jenis==="overtime"){
+   var ot=OVERTIME_REQ.filter(function(o){ return milikSaya(o.by,o.email); });
+   csvDownload("Tiket-Overtime",
+     ["No Tiket","Jenis","Tanggal","Mulai","Selesai","Lokasi","Ruangan","Personel","Tujuan","Keterangan",
+      "Pemohon","Email","Status","Disetujui Oleh","Waktu Approval","Diajukan"],
+     ot.map(function(o){ return [o.no,otJenis(o.jenis).nama,o.tgl,o.mulai,o.selesai,o.lokasi||"",o.ruang||"",
+       o.pax||0,o.alasan||"",o.desc||"",o.by||"",o.email||"",o.status||"Diajukan",o.by2||"",o.at2||"",o.createdAt||o.created||""]; }));
+ } else if(jenis==="so"){
+   var so=SO.filter(function(s){ return isSuper()||((s.requester||s.req)===me); });
+   csvDownload("SupplyOrder",
+     ["No SO","Item","Kategori","Lokasi","Nilai (Rp jt)","Jenis","Pemohon","Dept/Div","PIC Proc","Vendor",
+      "Section","Budget","Procurement","Dept Head","Status","Aging","Tahap"],
+     so.map(function(s){ var st=soStatusLabel(s), pr=soProgress(s);
+       return [s.no,s.item,s.kategori||"",s.lokasi||"",s.nilai,s.jenis||"",s.requester||s.req||"",s.deptDiv||"",
+         s.staffPIC||s.pic||"",s.vendor||"",s.apprSection||"",s.apprBudget||"",s.apprProc||"",s.apprDept||"",
+         st.t,s.aging||"",pr.p+"/"+LIFECYCLE.length]; }));
+ } else if(jenis==="workpermit"){
+   csvDownload("IzinKerja",
+     ["No","Pekerjaan","Vendor","PIC","Pekerja","Lokasi","Mulai","Selesai","Durasi","Jenis","Risiko",
+      "Dokumen","Status","Direview Oleh","Sumber"],
+     WORK_PERMITS.map(function(w){ return [w.no,w.judul,w.vendor,w.pic||"",w.pekerja||0,w.lokasi,
+       w.mulai,w.selesai,wpDurasi(w),w.jenis,w.risiko,(w.docs||[]).join(" | "),w.status,w.reviewedBy||"",
+       w.src==="qr"?"QR vendor":"internal"]; }));
+ } else if(jenis==="all"){
+   /* satu berkas gabungan semua layanan */
+   var rows=[];
+   TICKETS.forEach(function(t){ if(milikSaya(t.requester,t.email)) rows.push(["Complaint Handling",t.no,t.judul,t.created,ticketReqName(t),t.lokasi||"",ticketAging(t).t]); });
+   (typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){ if(milikSaya(b.by,b.email)) rows.push(["Room Reservation",b.no||"",b.title||"",b.date,b.by||"",(typeof rbRoomName==="function"?rbRoomName(b.room):b.room),"Booked"]); });
+   (typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(r){ if(milikSaya(r.by,r.email)) rows.push(["Transport Booking",r.no||"",transportLabel(r.type)+" · "+(r.detail||""),r.date||"",r.by||"","",r.status||"Diajukan"]); });
+   OVERTIME_REQ.forEach(function(o){ if(milikSaya(o.by,o.email)) rows.push(["Overtime",o.no,otJenis(o.jenis).nama+" · "+(o.desc||""),o.tgl,o.by||"",o.lokasi||"",o.status||"Diajukan"]); });
+   SO.forEach(function(s){ if(isSuper()||((s.requester||s.req)===me)) rows.push(["Supply Order",s.no,s.item||"",s.created||"",s.requester||s.req||"",s.lokasi||"",soStatusLabel(s).t]); });
+   csvDownload("Log-Semua-Layanan",["Layanan","No Tiket","Judul/Detail","Tanggal","Pemohon","Lokasi","Status"],rows);
+ }
 }
 /* Semua order milik user yang login — sumber section "Order Saya" di mobile */
 function myOrders(){
@@ -6320,7 +6492,8 @@ function renderRoomBook(){
  const img=RB_FLOORPLAN[key];
  const rooms=rbLayout(raw);
  el.innerHTML=`
-  <div style="margin-bottom:14px"><button class="btn-out" onclick="go('service')">← Back to Service</button></div>
+  <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="go('service')">← Back to Service</button>
+    <button class="btn-out" style="margin-left:auto" onclick="exportLog('room')" title="Unduh log reservasi ruang (CSV/Excel)">⬇ CSV</button></div>
   <div class="card pad" style="margin-bottom:16px">
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
       <div class="field" style="margin:0;min-width:170px"><label>Site</label><select id="rb-site" onchange="rbSetSite(this.value)">${RB_SITES.map(s=>`<option${s===rbSite?' selected':''}>${s}</option>`).join("")}</select></div>
@@ -6451,7 +6624,8 @@ function renderTransport(){
  const me=gUser?gUser.name:"", seeAll=transportSeeAll(), canAct=isPicTransport()||gRole==="admin";
  const list=seeAll?TRANSPORT_REQ:TRANSPORT_REQ.filter(r=>r.by===me);
  el.innerHTML=`
-  <div style="margin-bottom:14px"><button class="btn-out" onclick="go('service')">← Back to Service</button></div>
+  <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="go('service')">← Back to Service</button>
+    <button class="btn-out" style="margin-left:auto" onclick="exportLog('transport')" title="Unduh log transport (CSV/Excel)">⬇ CSV</button></div>
   <div class="ga-svc-bar" style="grid-template-columns:repeat(3,1fr)">
     <button class="ga-svc-btn" onclick="openTransport('pool')"><span class="ga-svc-ic" style="background:#eef4ff;color:#2563eb">🚗</span><span class="ga-svc-tx"><b>Kendaraan Pool</b><small>Pesan mobil pool GA</small></span></button>
     <button class="ga-svc-btn" onclick="openTransport('bluebird')"><span class="ga-svc-ic" style="background:#eaf3ff;color:#1e63c8">🚕</span><span class="ga-svc-tx"><b>Voucher Blue Bird</b><small>Taksi Blue Bird</small></span></button>
@@ -6493,55 +6667,179 @@ function saveTransport(type){
    Setiap pengajuan dapat nomor tiket OT-. Masuk ke inbox Approval Section Head,
    dan ikut tampil di "Order Saya" pemohon. */
 let OVERTIME_REQ=[];
+/* Dua jenis permintaan lembur yang dilayani GA */
+const OT_JENIS=[
+ {id:"ac",  ic:"❄️", nama:"Perpanjangan AC",        sub:"Tambahan waktu pendingin ruangan setelah jam kerja"},
+ {id:"man", ic:"🧹", nama:"Manpower OB / Cleaning", sub:"Permintaan OB / Cleaning Service lembur"}
+];
 const OT_ALASAN=["Pekerjaan mendesak","Support event / acara","Perbaikan darurat","Closing bulanan","Kunjungan tamu / audit","Lainnya"];
+/* Approver: Section Head Tenant & General Services */
+const OT_APPROVER="Yessy";
 function overtimePending(){ return OVERTIME_REQ.filter(function(o){return (o.status||"Diajukan")==="Diajukan";}).length; }
-function openOvertimeForm(){
- var t=TODAY_STR;
- document.getElementById("drawer").innerHTML=
-  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
-   '<div style="font-weight:700;color:var(--ink);font-size:16px">⏱️ Pengajuan Overtime</div>'+
-   '<div class="muted small" style="margin-top:4px">Diajukan oleh <b>'+esc((gUser&&gUser.name)||"")+'</b> — masuk approval Section Head</div></div>'+
-  '<div class="db">'+
-   '<div class="field"><label>Tanggal lembur <span style="color:var(--red)">*</span></label><input id="ot-tgl" type="date" value="'+t+'"/></div>'+
-   '<div class="two" style="gap:0 12px">'+
-     '<div class="field"><label>Jam mulai <span style="color:var(--red)">*</span></label><input id="ot-mulai" type="time" value="17:00"/></div>'+
-     '<div class="field"><label>Jam selesai <span style="color:var(--red)">*</span></label><input id="ot-selesai" type="time" value="20:00"/></div></div>'+
-   '<div class="field"><label>Lokasi <span style="color:var(--red)">*</span></label>'+
-     '<select id="ot-lokasi">'+SITE_OPTS.map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select></div>'+
-   '<div class="field"><label>Jumlah orang</label><input id="ot-pax" type="number" min="1" value="1"/></div>'+
-   '<div class="field"><label>Alasan lembur <span style="color:var(--red)">*</span></label>'+
-     '<select id="ot-alasan">'+OT_ALASAN.map(function(a){return '<option>'+esc(a)+'</option>';}).join("")+'</select></div>'+
-   '<div class="field"><label>Uraian pekerjaan</label><textarea id="ot-desc" rows="3" placeholder="mis. menyiapkan ruang untuk town hall besok pagi"></textarea></div>'+
-   '<div class="muted small" style="margin-top:4px">Fasilitas gedung (AC, lampu, lift, akses) akan disiapkan sesuai jam yang disetujui.</div>'+
-   '<button class="btn-act" style="width:100%;margin-top:14px" onclick="submitOvertime()">💾 Ajukan Overtime</button>'+
-  '</div>';
- document.getElementById("ovl").classList.add("show");
+function otJenis(id){ return OT_JENIS.find(function(x){return x.id===id;})||OT_JENIS[0]; }
+/* ── ATURAN JAM ──
+   Jam mulai paling cepat 1 jam setelah waktu pengajuan (mis. ajukan 17.00 → mulai 18.00),
+   dan tidak lebih awal dari jam kerja berakhir (17.00). Jam selesai maksimal 00.00. */
+const OT_JAM_KERJA_SELESAI=17;
+function otSlotMulai(tgl){
+ var slots=[], d=new Date(), hariIni=(tgl===realToday()||tgl===TODAY_STR);
+ var minJam=OT_JAM_KERJA_SELESAI+1;
+ if(hariIni){
+   var j=d.getHours()+1;                       // +1 jam dari sekarang
+   if(d.getMinutes()>0)j++;                    // sudah lewat menit → naik lagi
+   minJam=Math.max(minJam,j);
+ }
+ for(var h=minJam;h<=23;h++) slots.push(("0"+h).slice(-2)+":00");
+ return slots;
+}
+function otSlotSelesai(mulai){
+ var slots=[], m=parseInt(String(mulai).slice(0,2),10);
+ if(isNaN(m))return ["00:00"];
+ for(var h=m+1;h<=23;h++) slots.push(("0"+h).slice(-2)+":00");
+ slots.push("00:00");                          // batas akhir tengah malam
+ return slots;
+}
+let otPick=null;   // jenis yang dipilih di layar pertama
+function renderOvertime(){
+ var el=document.getElementById("page-overtime"); if(!el)return;
+ var mine=OVERTIME_REQ.filter(function(o){
+   var mail=((gUser&&gUser.email)||"").toLowerCase();
+   return (o.email&&mail&&o.email.toLowerCase()===mail)||(o.by===((gUser&&gUser.name)||""));
+ });
+ if(!otPick){
+   /* Layar 1 — pilih jenis permintaan */
+   el.innerHTML=
+    '<button class="btn-out" style="margin-bottom:14px" onclick="go(\'service\')">← Kembali</button>'+
+    '<div class="card pad" style="margin-bottom:16px">'+
+      '<div class="panel-t">⏱️ Pengajuan Overtime</div>'+
+      '<div class="muted small">Untuk kebutuhan setelah jam kerja berakhir (pukul '+OT_JAM_KERJA_SELESAI+'.00). Pilih jenis permintaan:</div>'+
+      '<div class="ot-pick">'+OT_JENIS.map(function(j){
+        return '<button class="ot-card" onclick="otChoose(\''+j.id+'\')">'+
+          '<span class="ot-ic">'+j.ic+'</span>'+
+          '<b>'+esc(j.nama)+'</b><small>'+esc(j.sub)+'</small></button>';
+      }).join("")+'</div>'+
+    '</div>'+
+    otRiwayatHTML(mine);
+   return;
+ }
+ /* Layar 2 — form */
+ var j=otJenis(otPick), tgl=TODAY_STR;
+ var slotM=otSlotMulai(tgl);
+ el.innerHTML=
+  '<button class="btn-out" style="margin-bottom:14px" onclick="otPick=null;renderOvertime()">← Ganti jenis permintaan</button>'+
+  '<div class="card pad">'+
+    '<div class="ot-head"><span class="ot-ic">'+j.ic+'</span><div><div class="panel-t" style="margin:0">'+esc(j.nama)+'</div>'+
+      '<div class="muted small">'+esc(j.sub)+'</div></div></div>'+
+    '<div class="field"><label>Tanggal <span style="color:var(--red)">*</span></label>'+
+      '<input id="ot-tgl" type="date" value="'+tgl+'" min="'+tgl+'" onchange="otSyncJam()"/></div>'+
+    '<div class="two" style="gap:0 12px">'+
+      '<div class="field"><label>Jam mulai <span style="color:var(--red)">*</span></label>'+
+        '<select id="ot-mulai" onchange="otSyncSelesai()">'+slotM.map(function(s){return '<option>'+s+'</option>';}).join("")+'</select></div>'+
+      '<div class="field"><label>Jam selesai <span style="color:var(--red)">*</span></label>'+
+        '<select id="ot-selesai"></select></div></div>'+
+    '<div id="ot-jamnote" class="ot-note"></div>'+
+    '<div class="field"><label>Lokasi <span style="color:var(--red)">*</span></label>'+
+      '<select id="ot-lokasi">'+SITE_OPTS.map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select></div>'+
+    '<div class="field"><label>Detail lokasi / ruangan</label><input id="ot-ruang" placeholder="mis. Lantai 6 — Ruang Rapat Besar"/></div>'+
+    (otPick==="man"?'<div class="field"><label>Jumlah personel <span style="color:var(--red)">*</span></label><input id="ot-pax" type="number" min="1" value="1"/></div>'
+                   :'<input id="ot-pax" type="hidden" value="0"/>')+
+    '<div class="field"><label>Tujuan permintaan <span style="color:var(--red)">*</span></label>'+
+      '<select id="ot-alasan">'+OT_ALASAN.map(function(a){return '<option>'+esc(a)+'</option>';}).join("")+'</select></div>'+
+    '<div class="field"><label>Keterangan <span style="color:var(--red)">*</span></label>'+
+      '<textarea id="ot-desc" rows="3" placeholder="jelaskan tujuan permintaan lembur ini"></textarea></div>'+
+    '<div class="muted small">Permintaan masuk ke persetujuan <b>Section Head Tenant &amp; General Services ('+esc(OT_APPROVER)+')</b>. Setelah disetujui, jadwalnya tampil di <b>Room &amp; Event Usage</b>.</div>'+
+    '<button class="btn-act" style="width:100%;margin-top:14px" onclick="submitOvertime()">💾 Ajukan Overtime</button>'+
+  '</div>'+
+  otRiwayatHTML(mine);
+ otSyncSelesai();
+}
+function otChoose(id){ otPick=id; renderOvertime(); }
+function otSyncJam(){
+ var tglEl=document.getElementById("ot-tgl"), mEl=document.getElementById("ot-mulai");
+ if(!tglEl||!mEl)return;
+ var slots=otSlotMulai(tglEl.value);
+ mEl.innerHTML=slots.map(function(s){return '<option>'+s+'</option>';}).join("");
+ otSyncSelesai();
+}
+function otSyncSelesai(){
+ var mEl=document.getElementById("ot-mulai"), sEl=document.getElementById("ot-selesai");
+ if(!mEl||!sEl)return;
+ var slots=otSlotSelesai(mEl.value);
+ sEl.innerHTML=slots.map(function(s){return '<option>'+s+'</option>';}).join("");
+ var n=document.getElementById("ot-jamnote");
+ if(n){
+   var tglEl=document.getElementById("ot-tgl");
+   var hariIni=tglEl&&(tglEl.value===realToday()||tglEl.value===TODAY_STR);
+   n.innerHTML="⏰ Jam mulai paling cepat <b>"+(mEl.options[0]?mEl.options[0].value:"18:00")+"</b>"+
+     (hariIni?" (minimal 1 jam dari sekarang, dan setelah jam kerja "+OT_JAM_KERJA_SELESAI+".00)":" (setelah jam kerja "+OT_JAM_KERJA_SELESAI+".00)")+
+     " · jam selesai maksimal <b>00:00</b>.";
+ }
+}
+function otRiwayatHTML(mine){
+ if(!mine.length) return '<div class="card pad" style="margin-top:16px"><div class="panel-t">Riwayat Overtime Saya</div>'+
+   '<div class="muted small">Belum ada pengajuan.</div></div>';
+ return '<div class="card" style="margin-top:16px">'+
+   '<div style="padding:14px 16px 8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+     '<div class="panel-t" style="margin:0">Riwayat Overtime Saya</div>'+
+     '<span class="muted small">'+mine.length+' pengajuan</span>'+
+     '<button class="btn-out" style="margin-left:auto;padding:6px 11px;font-size:12px" onclick="exportLog(\'overtime\')">⬇ CSV</button></div>'+
+   '<div class="mh-list" style="border:none;border-radius:0">'+mine.map(function(o){
+     var st=o.status||"Diajukan";
+     var c=st==="Disetujui"?"var(--green)":st==="Ditolak"?"var(--red)":"#c2740a";
+     return '<div class="mh-row" style="cursor:default"><span class="mh-rpip k-overtime"></span>'+
+       '<div class="mh-rmain"><div class="mh-rtop"><b>'+esc(o.no)+'</b>'+
+         '<span class="mh-okind k-overtime">'+esc(otJenis(o.jenis).nama)+'</span></div>'+
+         '<div class="mh-rj">'+esc(o.desc||o.alasan||"")+'</div>'+
+         '<div class="mh-rd">'+esc(o.tgl)+' · '+esc(o.mulai)+'–'+esc(o.selesai)+' · '+esc(o.lokasi||"")+
+           (o.ruang?' · '+esc(o.ruang):'')+(o.pax>0?' · '+o.pax+' personel':'')+'</div></div>'+
+       '<div class="mh-rright"><b style="color:'+c+'">'+esc(st)+'</b>'+
+         (o.by2?'<span>oleh '+esc(o.by2)+'</span>':'<span>menunggu '+esc(OT_APPROVER)+'</span>')+'</div></div>';
+   }).join("")+'</div></div>';
 }
 function submitOvertime(){
  var g=function(id){ var e=document.getElementById(id); return e?String(e.value).trim():""; };
- var tgl=g("ot-tgl"), mulai=g("ot-mulai"), selesai=g("ot-selesai");
+ var tgl=g("ot-tgl"), mulai=g("ot-mulai"), selesai=g("ot-selesai"), desc=g("ot-desc");
  if(!tgl||!mulai||!selesai){ alert("Tanggal dan jam lembur wajib diisi."); return; }
- if(selesai<=mulai){ alert("Jam selesai harus setelah jam mulai."); return; }
+ if(!desc){ alert("Keterangan tujuan permintaan wajib diisi."); return; }
+ /* validasi ulang aturan jam (jaga-jaga bila pilihan dimanipulasi) */
+ var boleh=otSlotMulai(tgl);
+ if(boleh.indexOf(mulai)<0){ alert("⏰ Jam mulai paling cepat "+(boleh[0]||"18:00")+"."); return; }
+ if(otSlotSelesai(mulai).indexOf(selesai)<0){ alert("⏰ Jam selesai tidak valid — maksimal 00:00."); return; }
+ var jen=otPick||"ac";
  var no=orderNo("overtime");
- var rec={no:no, tgl:tgl, mulai:mulai, selesai:selesai, lokasi:g("ot-lokasi"),
-   pax:+g("ot-pax")||1, alasan:g("ot-alasan"), desc:g("ot-desc"),
-   by:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"", status:"Diajukan", created:TODAY_STR};
+ var rec={no:no, jenis:jen, tgl:tgl, mulai:mulai, selesai:selesai, lokasi:g("ot-lokasi"), ruang:g("ot-ruang"),
+   pax:+g("ot-pax")||0, alasan:g("ot-alasan"), desc:desc,
+   by:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"",
+   status:"Diajukan", approver:OT_APPROVER, created:TODAY_STR, createdAt:nowStamp()};
  OVERTIME_REQ.unshift(rec);
- NOTIFS.unshift({ic:"⏱️",t:"Pengajuan Overtime",d:no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai+" · "+rec.lokasi,
+ NOTIFS.unshift({ic:"⏱️",t:"Pengajuan Overtime — "+otJenis(jen).nama,
+   d:no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai+" · "+rec.lokasi,
    at:nowStamp(), sev:"warn", nav:"approvals", done:false});
- try{ agavaNotify("⏱️ Pengajuan Overtime", no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai); }catch(e){}
- try{ auditLog("overtime-create", no+" · "+rec.lokasi+" · "+rec.alasan); }catch(e){}
+ try{ agavaNotify("⏱️ Overtime — "+otJenis(jen).nama, no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai); }catch(e){}
+ try{ auditLog("overtime-create", no+" · "+jen+" · "+rec.lokasi); }catch(e){}
  triggerFlow("overtime",{mode:"create",record:rec});
- closeDrawer(); renderApprovals(); renderReminder(); updateBell(); try{ renderMobileHome(); }catch(e){}
- alert("✅ Pengajuan Overtime terkirim.\nNo. tiket: "+no+"\n"+tgl+" · "+mulai+"–"+selesai+" · "+rec.lokasi+"\nMenunggu persetujuan Section Head.");
+ otPick=null; renderOvertime(); renderApprovals(); renderReminder(); updateBell(); try{ renderMobileHome(); }catch(e){}
+ alert("✅ Pengajuan Overtime terkirim.\nNo. tiket: "+no+"\n"+otJenis(jen).nama+"\n"+tgl+" · "+mulai+"–"+selesai+" · "+rec.lokasi+
+   "\n\nMenunggu persetujuan "+OT_APPROVER+" (Section Head Tenant & General Services).");
 }
 function overtimeAct(no,st){
  var o=OVERTIME_REQ.find(function(x){return x.no===no;}); if(!o)return;
  o.status=st; o.by2=(gUser&&gUser.name)||""; o.at2=nowStamp();
+ /* Disetujui → jadwalnya masuk Room & Event Usage di modul Service */
+ if(st==="Disetujui"){
+   try{
+     ROOM_BOOKINGS.unshift({room:(o.ruang||o.lokasi||"—"), event:"Overtime — "+otJenis(o.jenis).nama+" · "+o.by,
+       date:o.tgl, start:o.mulai, end:(o.selesai==="00:00"?"23:59":o.selesai),
+       status:"Booked", src:"overtime", otNo:o.no});
+   }catch(e){}
+ } else if(st==="Ditolak"){
+   for(var i=ROOM_BOOKINGS.length-1;i>=0;i--) if(ROOM_BOOKINGS[i].otNo===o.no)ROOM_BOOKINGS.splice(i,1);
+ }
  try{ agavaNotify(st==="Disetujui"?"✅ Overtime disetujui":"⛔ Overtime ditolak", o.no+" · "+o.by+" · "+o.tgl); }catch(e){}
  try{ auditLog("overtime-"+st.toLowerCase(), o.no); }catch(e){}
- renderApprovals(); renderReminder(); updateBell(); try{ renderMobileHome(); }catch(e){}
- alert((st==="Disetujui"?"✅ ":"⛔ ")+o.no+" — "+st);
+ renderApprovals(); renderReminder(); renderService(); updateBell();
+ try{ renderOvertime(); }catch(e){} try{ renderMobileHome(); }catch(e){}
+ alert((st==="Disetujui"?"✅ ":"⛔ ")+o.no+" — "+st+(st==="Disetujui"?"\nJadwal tampil di Room & Event Usage.":""));
 }
 /* ===================== ROOM BOOKING — ERSUS idle auto-release =====================
    Jika ERSUS mendeteksi ruang idle 30 mnt → notif "jadi digունakan?". Ya → +15 mnt
@@ -8228,7 +8526,8 @@ function wpPanelHTML(){
       <div class="db-head">
         <div><div class="panel-t" style="margin:0">🦺 Pengajuan Work Permit</div>
           <div class="muted small">${WORK_PERMITS.length} pengajuan · <b>${pend} menunggu review</b> · sumber: AGAVA</div></div>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-out" onclick="exportLog('workpermit')" title="Unduh log izin kerja (CSV/Excel)">⬇ CSV</button>
           <button class="btn-out" onclick="wpShowQR()">📱 QR untuk Eksternal</button>
           ${can?`<button class="btn-act" onclick="wpOpenForm()">＋ Ajukan Work Permit</button>`:''}
         </div>
@@ -8474,7 +8773,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-36";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-37";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
