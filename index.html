@@ -2102,6 +2102,7 @@ function applyLogin(u){
  buildNav(); renderAll(); renderCreateTicket();
  go(ROLES[gRole].menus[0]);
  document.getElementById("login").classList.add("hide");
+ notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
  if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
 }
 function logout(){ gUser=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
@@ -2944,7 +2945,7 @@ function kpiClaRows(){
 }
 /* ===== Performance Indikator (section CODEC) — Standard (6 baku) vs Key (KPI tahun ini) ===== */
 const KPI_STORE="agava_kpi_v1";
-function kpiPersist(){ try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){} }
+function kpiPersist(){ try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){} try{ dbSaveKPI(); }catch(e){} }
 /* Peta ulang KPI lama yang sudah tersimpan di perangkat ke sumber CODEC yang baru,
    supaya capaian tidak jatuh ke 0 gara-gara nama komponen berubah. */
 function kpiMigrate(k){
@@ -4102,6 +4103,34 @@ function nowStampDoc(){ var d=new Date(),mo=["Jan","Feb","Mar","Apr","Mei","Jun"
 function soStaffInit(name){ return STAFF_INIT[name]||(name?name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,3):''); }
 /* Sound notifikasi — dipanggil saat flow masuk ke Approval / Assigned SO */
 function notifySound(){ try{ var a=document.getElementById('notifSound'); if(a){ a.currentTime=0; var p=a.play(); if(p&&p.catch)p.catch(function(){}); } }catch(e){} }
+/* ── Push Notification PWA (HP): sound + notif di tray + badge ikon aplikasi ──
+   Notification API + service worker showNotification (muncul di tray Android/desktop,
+   iOS perlu 16.4+ dan app di-Add to Home Screen). Badge angka via App Badging API. */
+function notifPermAsk(){
+ try{
+  if(!("Notification" in window))return;
+  if(Notification.permission==="default"){
+    Notification.requestPermission().then(function(p){
+      if(p==="granted") agavaNotify("AGAVA","🔔 Notifikasi aktif — tiket & SO baru akan muncul di sini.",{noSound:true});
+    });
+  }
+ }catch(e){}
+}
+function agavaNotify(title,body,opt){
+ opt=opt||{};
+ if(!opt.noSound)notifySound();
+ try{
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  var o={body:body||"",icon:"icon-192.png",badge:"icon-192.png",tag:opt.tag||("agava-"+Date.now()),vibrate:[120,60,120],data:{url:"./index.html"}};
+  if(navigator.serviceWorker&&navigator.serviceWorker.ready){
+    navigator.serviceWorker.ready.then(function(reg){
+      if(reg&&reg.showNotification)reg.showNotification(title,o); else new Notification(title,o);
+    }).catch(function(){ try{ new Notification(title,o); }catch(e){} });
+  } else { new Notification(title,o); }
+ }catch(e){}
+}
+/* badge angka di ikon aplikasi (Android/Windows, PWA ter-install) — ikut angka lonceng */
+function appBadge(n){ try{ if("setAppBadge" in navigator){ if(n>0)navigator.setAppBadge(n); else navigator.clearAppBadge(); } }catch(e){} }
 /* ===== Dokumen Supply Order — generate, tanda tangan e-sign, cetak/PDF ===== */
 function soDocDateStr(){ var d=new Date(TODAY_STR+'T00:00:00'); if(isNaN(d))d=new Date(); var mo=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"]; return d.getDate()+' '+mo[d.getMonth()]+' '+d.getFullYear(); }
 function soSigMark(sig,ts){ if(!sig)return''; var body=sig.img?('<img class="sod-sig-png" src="'+sig.img+'"/>'):('<div class="sod-sig-typed">'+sig.label+'</div>'); var stamp=ts?('<div class="sod-sig-stamp">e-signed via AGAVA · '+ts+'</div>'):''; return body+stamp; }
@@ -4203,7 +4232,7 @@ function normalizeSO(){SO.forEach(s=>{
 });}
 /* Persistensi SO — SO yang dibuat/di-approve di aplikasi tersimpan agar tidak hilang saat refresh */
 const SO_STORE="agava_so_v1";
-function soPersist(){ try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){ console.warn("SO persist:",e.message); } }
+function soPersist(){ try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){ console.warn("SO persist:",e.message); } try{ dbSaveSOAll(); }catch(e){} }
 function soLoad(){ try{ var r=localStorage.getItem(SO_STORE); if(r){ var a=JSON.parse(r); if(Array.isArray(a)&&a.length){ SO.length=0; a.forEach(function(x){SO.push(x);}); return true; } } }catch(e){ console.warn("SO load:",e.message); } return false; }
 function soResetDemo(){ try{ localStorage.removeItem(SO_STORE); }catch(e){} location.reload(); }
 function soPhase(s){if(s.apprDept==="Rejected"||s.apprSection==="Rejected")return"rejected";if(s.apprSection!=="Approved")return"section";if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"budget";if(s.escalated){if(s.apprDept!=="Approved")return"dept";if(s.apprProc!=="Approved")return"proc";}else{if(s.apprProc!=="Approved")return"proc";if(s.apprDept!=="Approved")return"dept";}if(s.wstep<4)return"work";return"pay";}
@@ -5545,7 +5574,7 @@ function dueStatus(due){ const d=Math.floor((new Date(due)-new Date(TODAY_STR))/
  return {cls:"bd-ok",txt:d+"d left"}; }
 function dueRow(name,sub,due){ const s=dueStatus(due); return `<div class="due-row"><div><div class="dj">${name}</div><div class="dm">${sub} · due ${due}</div></div><span class="badge ${s.cls}">${s.txt}</span></div>`; }
 function myBookingCount(){ return (typeof RB_BOOKINGS!=="undefined"&&gUser)?RB_BOOKINGS.filter(b=>b.email===gUser.email||b.by===gUser.name).length:0; }
-function updateBell(){ const n=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); const b=document.getElementById("bellBadge"); if(!b)return; b.textContent=n; b.classList.toggle("hide",n===0); }
+function updateBell(){ const n=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); appBadge(n); const b=document.getElementById("bellBadge"); if(!b)return; b.textContent=n; b.classList.toggle("hide",n===0); }
 function followUp(id){ const x=NOTIFS.find(n=>n.id===id); if(x)x.done=true; renderReminder(); updateBell(); }
 function rbRoomName(id){ for(const k in RB_ROOMS){ const r=RB_ROOMS[k].find(x=>x.id===id); if(r)return r.name; } return id; }
 function renderReminder(){
@@ -6240,6 +6269,11 @@ async function loadDataFiles(){
     if(ky.indikator&&ky.indikator.length) repl(KPI_CLA,ky.indikator.map(kpiMigrate));  // file lama tetap nyambung ke CODEC baru
   }
   kpiLoad();   // edit KPI di aplikasi (promote/tambah/hapus) menang atas file
+  /* cloud Firestore menang atas file & lokal — jangan sampai file lama menimpa PDCA bersama */
+  if(typeof AGDB!=="undefined"&&AGDB.kpiCloud&&Array.isArray(AGDB.kpiCloud.cla)&&AGDB.kpiCloud.cla.length){
+    KPI_CLA.length=0; AGDB.kpiCloud.cla.forEach(x=>KPI_CLA.push(kpiMigrate(x)));
+    if(AGDB.kpiCloud.meta)Object.assign(KPI_YEAR_META,AGDB.kpiCloud.meta);
+  }
   DATA_LOADED.at=new Date();
   if(DATA_LOADED.files.length){ console.info("AGAVA data dimuat:",DATA_LOADED.files.join(", ")); }
   if(DATA_LOADED.err.length){ console.warn("AGAVA data — file tidak terbaca:",DATA_LOADED.err.join(" | ")); }
@@ -6854,7 +6888,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-18";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-19";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -6870,18 +6904,51 @@ function dbInit(){
   dbPill("Database: menghubungkan…",false);
   AGDB.db.collection("agava_tickets").orderBy("created","desc").limit(300).onSnapshot(snap=>{
     AGDB.on=true; dbPill("Database: Firebase live · "+snap.size+" tiket",true);
-    let changed=false, newArrivals=0;
+    let changed=false, arrivals=[];
     snap.docChanges().forEach(ch=>{
       const d=ch.doc.data(); d.no=d.no||ch.doc.id;
       const i=TICKETS.findIndex(t=>t.no===d.no);
       if(ch.type==="removed"){ if(i>=0){TICKETS.splice(i,1);changed=true;} }
       else if(i>=0){ Object.assign(TICKETS[i],d); syncTicketStage(TICKETS[i],d); changed=true; }
-      else { TICKETS.unshift(d); syncTicketStage(d,null); changed=true; if(AGDB.ticketsInit) newArrivals++; }
+      else { TICKETS.unshift(d); syncTicketStage(d,null); changed=true; if(AGDB.ticketsInit) arrivals.push(d); }
     });
-    if(changed){ renderService(); renderFieldOps(); renderOverview(); renderBuilding(); updateBell(); }
-    if(newArrivals>0) notifySound();   // tiket baru masuk realtime → bunyi notifikasi (mis. di HP tim lapangan)
+    if(changed){ renderService(); renderFieldOps(); renderMyTickets(); renderOverview(); renderBuilding(); updateBell(); }
+    /* tiket baru dari perangkat lain → sound + push notif di tray HP (tim lapangan) */
+    if(arrivals.length) agavaNotify("🎫 Tiket baru — "+foNormCat(arrivals[0].cat||""), arrivals[0].judul+(arrivals.length>1?" · +"+(arrivals.length-1)+" tiket lainnya":"")+" · "+(arrivals[0].lokasi||""));
     AGDB.ticketsInit=true;
   },err=>{ AGDB.on=false; dbPill("Database: rules tertutup — mode lokal",false); console.warn("AGDB rules/err:",err&&err.code); });
+  /* SO — sinkron antar perangkat (list, approval, PDCA review semua satu sumber) */
+  AGDB.db.collection("agava_so").limit(400).onSnapshot(snap=>{
+    AGDB.soEcho=AGDB.soEcho||{};
+    let ch3=false, soNew=[];
+    snap.docChanges().forEach(ch=>{
+      const d=ch.doc.data(); d.no=d.no||ch.doc.id;
+      const i=SO.findIndex(s=>s.no===d.no);
+      if(ch.type==="removed"){ if(i>=0){SO.splice(i,1);} delete AGDB.soEcho[d.no]; ch3=true; }
+      else if(i>=0){ Object.assign(SO[i],d); AGDB.soEcho[d.no]=JSON.stringify(dbStripSO(SO[i])); ch3=true; }
+      else { SO.unshift(d); AGDB.soEcho[d.no]=JSON.stringify(dbStripSO(d)); ch3=true; if(AGDB.soInit) soNew.push(d); }
+    });
+    if(ch3){
+      normalizeSO();
+      try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){}
+      renderProc(); renderApprovals(); renderAssigned(); renderPayment(); renderOverview(); updateBell();
+    }
+    if(soNew.length) agavaNotify("📋 SO baru masuk", soNew[0].no+" · "+(soNew[0].item||"")+(soNew.length>1?" · +"+(soNew.length-1)+" lainnya":""));
+    if(!AGDB.soInit){ AGDB.soInit=true; dbSaveSOAll(); }   // koneksi pertama → unggah SO lokal yang belum ada di cloud
+  },err=>{ console.warn("SO rules/err:",err&&err.code); });
+  /* KPI + review PDCA bulanan — satu dokumen bersama */
+  AGDB.db.collection("agava_config").doc("kpi").onSnapshot(doc=>{
+    if(!doc.exists){ dbSaveKPI(); return; }     // cloud kosong → seed dari perangkat ini
+    const d=doc.data(); if(!d||!Array.isArray(d.cla)||!d.cla.length)return;
+    AGDB.kpiCloud=d;                            // simpan utk re-apply bila loadDataFiles menimpa belakangan
+    const j=JSON.stringify(d.cla);
+    if(j===JSON.stringify(KPI_CLA))return;      // sama dengan lokal → tidak ada yang perlu diubah
+    AGDB.kpiEcho=j;
+    KPI_CLA.length=0; d.cla.forEach(x=>KPI_CLA.push(kpiMigrate(x)));
+    if(d.meta)Object.assign(KPI_YEAR_META,d.meta);
+    try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){}
+    try{ renderOverview(); }catch(e){}
+  },err=>{ console.warn("KPI rules/err:",err&&err.code); });
   /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
   AGDB.db.collection("agava_workpermits").limit(300).onSnapshot(snap=>{
     let ch2=false;
@@ -6897,6 +6964,29 @@ function dbInit(){
  }catch(e){ dbPill("Database: offline — mode lokal",false); console.warn("AGDB init:",e); }
 }
 function dbSaveTicket(t){ if(!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
+/* ── SO & KPI ikut sinkron Firestore ──
+   SO: koleksi agava_so, 1 dokumen per SO. Lampiran foto/PDF TIDAK ikut ke cloud
+   (bisa >1MB, limit Firestore) — lampiran tetap tersimpan lokal di perangkat pembuat.
+   KPI + PDCA bulanan: 1 dokumen agava_config/kpi. Echo-guard mencegah loop tulis. */
+function dbStripSO(s){ var c=JSON.parse(JSON.stringify(s)); delete c.attachments; delete c.pdfAttachments; return c; }
+function dbSaveSOAll(){
+ if(!AGDB.on||!AGDB.db)return;
+ AGDB.soEcho=AGDB.soEcho||{};
+ SO.forEach(function(s){ if(!s||!s.no)return;
+   var c=dbStripSO(s), j=JSON.stringify(c);
+   if(AGDB.soEcho[s.no]===j)return;              // tidak berubah → jangan tulis ulang
+   AGDB.soEcho[s.no]=j;
+   AGDB.db.collection("agava_so").doc(String(s.no)).set(c,{merge:true}).catch(function(e){ console.warn("SO cloud:",e&&e.code); });
+ });
+}
+function dbSaveKPI(){
+ if(!AGDB.on||!AGDB.db)return;
+ var payload={cla:JSON.parse(JSON.stringify(KPI_CLA)), meta:JSON.parse(JSON.stringify(KPI_YEAR_META)), up:Date.now(), by:(gUser&&gUser.name)||""};
+ var j=JSON.stringify(payload.cla);
+ if(AGDB.kpiEcho===j)return;
+ AGDB.kpiEcho=j;
+ AGDB.db.collection("agava_config").doc("kpi").set(payload).catch(function(e){ console.warn("KPI cloud:",e&&e.code); });
+}
 
 loadFlowConfig();dbLoadAll();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();
 </script>

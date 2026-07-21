@@ -1,7 +1,7 @@
-/* AGAVA Service Worker — installable PWA + offline shell.
+/* AGAVA Service Worker — installable PWA + offline shell + notification.
    Network-first: selalu ambil versi terbaru saat online (hindari "kok belum berubah"),
    pakai cache hanya saat offline. */
-const CACHE = 'agava-v1';
+const CACHE = 'agava-v2';
 const ASSETS = [
   './', './index.html',
   './icon-192.png', './icon-512.png', './icon-180.png',
@@ -14,6 +14,23 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))));
   self.clients.claim();
+});
+/* klik notifikasi di tray → fokuskan aplikasi (atau buka baru bila sudah tertutup) */
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    for (const c of list) { if ('focus' in c) return c.focus(); }
+    return clients.openWindow('./index.html');
+  }));
+});
+/* siap untuk Web Push / FCM (server-initiated) — payload {title, body} */
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data && e.data.text() }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'AGAVA', {
+    body: d.body || '', icon: './icon-192.png', badge: './icon-192.png', vibrate: [120, 60, 120],
+    data: { url: './index.html' }
+  }));
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;                      // biarkan Firebase POST dll lewat
