@@ -41,8 +41,11 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
    Ukuran dikendalikan variabel; navFit() mengecilkannya bertahap bila masih meluap
    (jumlah menu berbeda per role). overflow:hidden = jaring pengaman terakhir. */
 .nav{flex:1;min-height:0;overflow:hidden;padding:2px 12px;display:flex;flex-direction:column;gap:var(--nav-gap,2px)}
+/* transisi DIBATASI ke properti yang tidak mengubah tata letak — supaya perpindahan
+   menu mulus, tidak berkedip dan tidak terlihat "membesar" */
 .nav a{display:flex;align-items:center;gap:var(--nav-icgap,13px);padding:var(--nav-pad,11px) 13px;border-radius:10px;color:#b6c6dc;
-  text-decoration:none;font-size:var(--nav-fs,14px);font-weight:500;cursor:pointer;transition:.15s;border-left:3px solid transparent}
+  text-decoration:none;font-size:var(--nav-fs,14px);font-weight:500;cursor:pointer;border-left:3px solid transparent;
+  transition:background-color .18s ease,color .18s ease,box-shadow .18s ease,border-left-color .18s ease}
 .nav a svg{width:var(--nav-ic,18px);height:var(--nav-ic,18px);flex:0 0 var(--nav-ic,18px);stroke:currentColor;fill:none;stroke-width:1.9}
 .nav a:hover{background:rgba(255,255,255,.06);color:#fff}
 .nav a.active{background:rgba(255,255,255,.10);color:#fff;border-left-color:var(--blue)}
@@ -2001,12 +2004,14 @@ body{background:
     radial-gradient(120% 24% at 50% 102%, rgba(10,124,255,.20), transparent 60%)}
 .logo-img{filter:none}
 .sec-label{color:#5478a8;letter-spacing:1.8px}
+/* Bobot font DISAMAKAN untuk semua state (600). Dulu aktif memakai 700 sehingga
+   label terlihat "membesar" saat berpindah menu. Pembeda cukup warna + latar. */
 .nav a{color:#38507a;border-left:3px solid transparent;font-weight:600}
-.nav a svg{stroke:#4f74ab}
+.nav a svg{stroke:#4f74ab;transition:stroke .18s ease}
 .nav a:hover{background:rgba(255,255,255,.42);color:#0a4fbf}
 .nav a:hover svg{stroke:#0a7cff}
 .nav a.active{background:linear-gradient(135deg,rgba(0,208,232,.42),rgba(10,124,255,.34));color:#053e9e;border-left-color:transparent;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 4px 14px rgba(10,124,255,.22);font-weight:700}
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 4px 14px rgba(10,124,255,.22);font-weight:600}
 .nav a.active svg{stroke:#0559d6}
 .side-user{border-top:1px solid rgba(120,160,210,.28)}
 .side-user .av{background:var(--acc);color:#fff;box-shadow:0 3px 10px rgba(10,124,255,.3)}
@@ -2440,11 +2445,31 @@ function buildNav(){
       <svg viewBox="0 0 24 24">${IC[m.ic]}</svg><span class="nav-txt">${m.label}</span>${navBadge(m.id)}</a>`).join("");
   navFit();
 }
-/* ── navFit: rapatkan menu bertahap sampai SEMUA muat tanpa scroll ──
-   Jumlah menu berbeda tiap role, jadi ukurannya dihitung, bukan ditebak. */
+/* Pindah menu TIDAK membangun ulang nav (dulu innerHTML ditulis ulang tiap klik →
+   elemen dibuat ulang, terlihat berkedip). Cukup tukar kelas aktif + segarkan badge. */
+function navSetActive(){
+ var nav=document.getElementById("nav"); if(!nav)return;
+ if(!nav.children.length){ buildNav(); return; }
+ Array.prototype.forEach.call(nav.children,function(a){
+   var id=a.dataset.id;
+   a.classList.toggle("active", id===active);
+   var want=navBadge(id), cur=a.querySelector(".nav-badge");
+   if(want){
+     var tmp=document.createElement("div"); tmp.innerHTML=want;
+     var txt=tmp.firstChild?tmp.firstChild.textContent:"";
+     if(cur){ if(cur.textContent!==txt)cur.textContent=txt; }
+     else a.insertAdjacentHTML("beforeend",want);
+   } else if(cur){ cur.remove(); }
+ });
+}
+/* ── navFit: pilih ukuran TERBESAR yang masih muat tanpa scroll ──
+   Dulu hanya bisa mengecil sehingga di layar tinggi menu tetap kecil dan
+   menyisakan ruang kosong. Sekarang langkahnya urut dari besar ke kecil. */
 const NAV_STEPS=[
- {pad:11,fs:14,gap:2,ic:18},{pad:9.5,fs:13.5,gap:2,ic:17},{pad:8,fs:13,gap:1.5,ic:16},
- {pad:7,fs:12.5,gap:1,ic:16},{pad:6,fs:12,gap:1,ic:15},{pad:5,fs:11.5,gap:0,ic:14},{pad:4,fs:11,gap:0,ic:14}
+ {pad:17,fs:15.5,gap:6,ic:21},{pad:15,fs:15,gap:5,ic:20},{pad:13.5,fs:14.5,gap:4,ic:19},
+ {pad:12,fs:14,gap:3,ic:19},{pad:11,fs:14,gap:2,ic:18},{pad:9.5,fs:13.5,gap:2,ic:17},
+ {pad:8,fs:13,gap:1.5,ic:16},{pad:7,fs:12.5,gap:1,ic:16},{pad:6,fs:12,gap:1,ic:15},
+ {pad:5,fs:11.5,gap:0,ic:14},{pad:4,fs:11,gap:0,ic:14}
 ];
 function navFit(){
  var nav=document.getElementById("nav"); if(!nav)return;
@@ -2468,7 +2493,7 @@ function toggleMobSidebar(){ document.body.classList.toggle("side-open"); }
 function closeMobSidebar(){ document.body.classList.remove("side-open"); }
 function go(id){
   closeMobSidebar();
-  active=(id==="ersus")?"energy":id; buildNav();
+  active=(id==="ersus")?"energy":id; navSetActive();
   ["page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
@@ -2479,16 +2504,16 @@ function go(id){
   else if(id==="service"){renderService();document.getElementById("page-service").classList.remove("hide");t.textContent="Services";s.textContent="4 layanan GA · Ticket, Room Booking, Transport, Rating · response time, PIC & escalations";}
   else if(id==="fieldops"){renderFieldOps();document.getElementById("page-fieldops").classList.remove("hide");t.textContent="Field Ops";s.textContent="Tim lapangan terima lemparan tiket per channel · realtime dari Firebase";}
   else if(id==="myticket"){renderMyTickets();document.getElementById("page-myticket").classList.remove("hide");t.textContent="My Tickets";s.textContent="Tiket yang Anda pick up · pantau SLA, eskalasi & selesaikan · tercatat di Services";}
-  else if(id==="createticket"){active="service";buildNav();renderCreateTicket();document.getElementById("page-createticket").classList.remove("hide");t.textContent="Create Service Ticket";s.textContent="New GA service request";}
-  else if(id==="roombook"){active="service";buildNav();renderRoomBook();document.getElementById("page-roombook").classList.remove("hide");t.textContent="Room Booking";s.textContent="Pilih ruang dari denah lantai · powered by ERSUS";}
-  else if(id==="transport"){active="service";buildNav();renderTransport();document.getElementById("page-transport").classList.remove("hide");t.textContent="Transportation";s.textContent="Kendaraan Pool · Voucher Blue Bird · Voucher GoCorp";}
-  else if(id==="createso"){active="procurement";buildNav();renderCreateSO();document.getElementById("page-createso").classList.remove("hide");t.textContent="Create Supply Order";s.textContent="Register a new SO into Procurement";}
+  else if(id==="createticket"){active="service";navSetActive();renderCreateTicket();document.getElementById("page-createticket").classList.remove("hide");t.textContent="Create Service Ticket";s.textContent="New GA service request";}
+  else if(id==="roombook"){active="service";navSetActive();renderRoomBook();document.getElementById("page-roombook").classList.remove("hide");t.textContent="Room Booking";s.textContent="Pilih ruang dari denah lantai · powered by ERSUS";}
+  else if(id==="transport"){active="service";navSetActive();renderTransport();document.getElementById("page-transport").classList.remove("hide");t.textContent="Transportation";s.textContent="Kendaraan Pool · Voucher Blue Bird · Voucher GoCorp";}
+  else if(id==="createso"){active="procurement";navSetActive();renderCreateSO();document.getElementById("page-createso").classList.remove("hide");t.textContent="Create Supply Order";s.textContent="Register a new SO into Procurement";}
   else if(id==="approvals"){document.getElementById("page-approvals").classList.remove("hide");t.textContent="Approvals";s.textContent="Approvals routed to your tier — review & action";}
   else if(id==="assigned"){document.getElementById("page-assigned").classList.remove("hide");t.textContent="Assigned SO";s.textContent="Your SO worklist — follow up, UPR, SPK, handover";}
   else if(id==="payment"){document.getElementById("page-payment").classList.remove("hide");t.textContent="Payment Tracker";s.textContent="SPK · BAST · Invoice status & overdue alerts";}
   else if(id==="vendor"){renderVendor();document.getElementById("page-vendor").classList.remove("hide");t.textContent="Vendor Management";s.textContent="Contracts, budget consumption & SLA scoring";}
   else if(id==="hse"){renderHSE();document.getElementById("page-hse").classList.remove("hide");t.textContent="HSE & Sustainability";s.textContent="Permit & legal compliance · re-test schedule";}
-  else if(id==="sla"){active="vendor";buildNav();renderSLAPage();document.getElementById("page-sla").classList.remove("hide");t.textContent="SLA Assessment";s.textContent="Lembar Evaluasi Vendor · auto-scoring";}
+  else if(id==="sla"){active="vendor";navSetActive();renderSLAPage();document.getElementById("page-sla").classList.remove("hide");t.textContent="SLA Assessment";s.textContent="Lembar Evaluasi Vendor · auto-scoring";}
   else if(id==="reminder"){document.getElementById("page-reminder").classList.remove("hide");t.textContent="Reminder";s.textContent="Notification log & compliance reminders";}
   else if(id==="energy"){document.getElementById("page-energy").classList.remove("hide");t.textContent="Energy";s.textContent="Energy insights & actions — powered by ERSUS";}
   else if(id==="ersus"){document.getElementById("page-ersus").classList.remove("hide");t.textContent="ERSUS · Energy Intelligence";s.textContent="Insights & notifications that need action";}
@@ -6193,7 +6218,7 @@ async function submitSO(){
      try{ renderService(); renderMyTickets(); renderFieldOps(); }catch(e){}
    }
  }
- procFilter="all"; renderProc(); renderApprovals(); renderReminder(); buildNav(); updateBell();
+ procFilter="all"; renderProc(); renderApprovals(); renderReminder(); navSetActive(); updateBell();
  notifySound();   // SO baru masuk ke inbox approval Section/Budget
  go("procurement");
  alert("✅ SO "+no+" dibuat."+(isSec?"\nAnda Section Head → langsung ke PIC Budget.":"\nMasuk approval Section: "+soSectionApprover(so)+" (kategori "+kat+").")+((att.images.length||att.pdfs.length)?"\n"+att.images.length+" foto + "+att.pdfs.length+" PDF terlampir"+(att.pdfs.length?" (dijahit ke SO PDF)":"")+".":""));
@@ -6370,7 +6395,7 @@ function dbSaveForm(){
   triggerFlow("dbUpsert",{dataset:dbCur.set,mode:mode,record:rec});   // bayangan ke SharePoint/Excel lewat flow
   closeDrawer();
   if(S.render)S.render();
-  updateBell(); buildNav();
+  updateBell(); navSetActive();
   alert("✅ Tersimpan di AGAVA — "+S.label+(mode==="create"?" (data baru)":" (diperbarui)"));
 }
 function dbDelete(setKey,idx){
@@ -6383,7 +6408,7 @@ function dbDelete(setKey,idx){
   triggerFlow("dbUpsert",{dataset:setKey,mode:"delete",record:rec});
   closeDrawer();
   if(S.render)S.render();
-  updateBell(); buildNav();
+  updateBell(); navSetActive();
 }
 /* Panel master data generik — tabel + tombol tambah/ubah/hapus */
 function dbPanel(setKey,note){
@@ -6518,7 +6543,7 @@ function approveSO(no,gate,decision){
  }
  if(decision!=="Rejected") notifySound();   // flow maju masuk ke gate/assigned berikutnya
  soPersist();
- renderApprovals(); renderProc(); renderAssigned(); renderReminder(); buildNav(); updateBell();
+ renderApprovals(); renderProc(); renderAssigned(); renderReminder(); navSetActive(); updateBell();
 }
 /* ===== Klarifikasi: PIC Proc kirim catatan → Requester (Reminder) → jawab → balik ke PIC Proc ===== */
 function openClarify(no){
@@ -6537,7 +6562,7 @@ function sendClarify(no){
  var note=(document.getElementById("clar-note").value||"").trim();
  if(!note){ alert("Isi catatan klarifikasi dulu."); return; }
  s.clarify={ note:note, by:(gUser?gUser.name:"PIC Procurement"), date:nowStamp(), answer:"", answered:false };
- closeDrawer(); renderApprovals(); renderReminder(); buildNav(); updateBell();
+ closeDrawer(); renderApprovals(); renderReminder(); navSetActive(); updateBell();
  alert("📨 Klarifikasi terkirim ke "+(s.requester||s.req)+". Muncul di Reminder mereka.");
 }
 function openClarifyAnswer(no){
@@ -6556,7 +6581,7 @@ function submitClarifyAnswer(no){
  var ans=(document.getElementById("clar-ans").value||"").trim();
  if(!ans){ alert("Isi jawaban dulu."); return; }
  s.clarify.answer=ans; s.clarify.answered=true; s.clarify.ansDate=nowStamp();
- closeDrawer(); renderReminder(); renderApprovals(); buildNav(); updateBell();
+ closeDrawer(); renderReminder(); renderApprovals(); navSetActive(); updateBell();
  alert("✅ Jawaban terkirim. SO "+no+" kembali ke review PIC Procurement.");
 }
 function myClarifySO(){ const me=gUser?gUser.name:""; return SO.filter(s=>s.clarify&&!s.clarify.answered&&((s.requester||"")===me||(s.req||"")===me)); }
@@ -6567,7 +6592,7 @@ function clarifyReminderHTML(){
    <div class="sec-body">${list.map(s=>`<div class="due-row"><div><div class="dj">${s.no} · ${s.item}</div><div class="dm">📝 ${s.clarify.by}: ${s.clarify.note}</div></div><button class="btn-act" style="padding:6px 12px;font-size:12px" onclick="openClarifyAnswer('${s.no}')">Jawab &amp; Submit</button></div>`).join("")}</div>
  </div>`;
 }
-function setTier(t){ gTier=t; renderApprovals(); buildNav(); }
+function setTier(t){ gTier=t; renderApprovals(); navSetActive(); }
 function actApproval(id,decision){
  const a=APPROVALS.find(x=>x.id===id); if(!a)return;
  if(decision==="Rejected"){ a.status="Rejected"; }
@@ -6579,7 +6604,7 @@ function actApproval(id,decision){
    a.status="Approved";
    if(a.soDraft){ SO.unshift(a.soDraft); renderProc(); }   // final OK → SO listed in Procurement & assigned to staff
  }
- renderApprovals(); renderReminder(); renderAssigned(); buildNav(); updateBell();
+ renderApprovals(); renderReminder(); renderAssigned(); navSetActive(); updateBell();
 }
 function soApprovalCard(s){
  const g=soGateTier(s), tier=gTier, esc=!!s.escalated;
@@ -6781,7 +6806,7 @@ function openBAST(no){
 function sendBAST(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
  s.ts.bast=nowStamp(); s.bastDate=TODAY_STR; s.wstep=4; s.invStatus="Menunggu Invoice"; s.stage=7;
- closeDrawer(); renderAssigned(); renderProc(); renderPayment(); buildNav(); updateBell();
+ closeDrawer(); renderAssigned(); renderProc(); renderPayment(); navSetActive(); updateBell();
  alert("✅ BAST submitted & dikirim balik ke "+(s.vendor||"vendor")+".\nMuncul di Payment Tracker — status: Menunggu Invoice (SLA 5 hari kerja).");
 }
 
@@ -7993,7 +8018,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-29";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-30";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
