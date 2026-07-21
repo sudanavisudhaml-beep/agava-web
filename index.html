@@ -521,7 +521,14 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .fo-seg button{border:none;background:#fff;color:var(--muted);font-size:12.5px;font-weight:700;padding:8px 14px;cursor:pointer;font-family:var(--ff)}
 .fo-seg button.on{background:linear-gradient(135deg,rgba(0,198,251,.18),rgba(10,124,255,.14));color:#0559d6}
 .fo-seg button+button{border-left:1px solid var(--line)}
-.fo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.fo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}   /* desktop: 8 kategori → 4 atas + 4 bawah */
+@media(max-width:1200px){.fo-grid{grid-template-columns:repeat(2,1fr)}}
+/* Ticket Status — embed di kartu list tiket (Services) */
+.svc-status{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.svc-st-i{background:#fff;padding:12px 16px}
+.svc-st-i .l{font-size:11px;color:var(--muted);font-weight:600}
+.svc-st-i .v{font-size:24px;font-weight:800;color:var(--ink);line-height:1.15;margin-top:2px}
+@media(max-width:820px){.svc-status{grid-template-columns:repeat(2,1fr)}}
 .fo-grid.fo-grid-single{grid-template-columns:1fr;max-width:560px}
 .fo-chan{background:rgba(255,255,255,.62);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(20,40,80,.06)}
 .fo-chan-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(0,198,251,.08),rgba(10,124,255,.05))}
@@ -1241,6 +1248,24 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-h-std{border-color:#cfdaeb}
 .pi-h-key{border-color:#f0d9ad}
 .pi-h-key span{background:#fdf3e3;color:#c2740a}
+/* ── Box highlight di atas tiap kolom: kiri = rata2 standard, kanan = total KPI + routine/non-routine ── */
+.pi-hl{border:1px solid var(--line);border-radius:14px;padding:13px 15px 12px;margin-bottom:14px;background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(244,249,255,.85));box-shadow:0 4px 14px rgba(20,40,80,.06)}
+.pi-hl-std{cursor:pointer;transition:.15s}
+.pi-hl-std:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(20,40,80,.11);border-color:#bcd3f5}
+.pi-hl-key{background:linear-gradient(135deg,rgba(255,251,243,.95),rgba(253,243,227,.7));border-color:#f0d9ad}
+.pi-hl-cap{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.pi-hl-row{display:flex;align-items:flex-end;gap:12px;margin-top:3px}
+.pi-hl-v{font-size:38px;font-weight:900;line-height:1}
+.pi-hl-v small{font-size:19px;font-weight:800;margin-left:1px}
+.pi-hl-meta{font-size:11px;color:var(--muted);line-height:1.45;padding-bottom:4px}
+.pi-hl-meta b{color:var(--ink)}
+.pi-hl-bar{margin-top:9px}
+.pi-hl-minis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
+.pi-hl-mini{border:1px solid var(--line);border-radius:11px;padding:8px 11px;background:rgba(255,255,255,.82)}
+.pi-hl-mn{font-size:21px;font-weight:900;line-height:1.1}
+.pi-hl-ml{font-size:10.5px;font-weight:700;color:var(--muted);margin-top:1px}
+.pi-hl-ml span{display:block;font-size:9.5px;font-weight:600;color:#9aa7b8;margin-top:1px}
+@media(max-width:820px){.pi-hl-v{font-size:31px}.pi-hl-mn{font-size:18px}}
 .pi-addnew{margin-left:auto;border:1px solid rgba(10,124,255,.35);background:linear-gradient(135deg,rgba(0,198,251,.12),rgba(10,124,255,.09));color:#0a4bb8;font-family:var(--ff);font-size:11px;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer}
 .pi-addnew:hover{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);color:#fff;border-color:transparent}
 .pi-row{display:grid;grid-template-columns:26px 1fr 46px 96px;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line)}
@@ -2718,9 +2743,9 @@ window.agavaTimelineSync=agavaTimelineSync;
 const CODEC_SUBFN=[
  {ic:"🔧",name:"General Facilities Management",sub:"Maintenance & Utilities (ESG)",kpi:"Contribute to ASTRA ESG Program 2030",target:90,nav:"energy",type:"routine"},
  {ic:"🛎️",name:"General Services Management",sub:"Penilaian Vendor",kpi:"Enhance Shuttle Experience",target:85,nav:"service",type:"routine"},
- {ic:"📋",name:"General Administration",sub:"Payment BPH & Asset STO",kpi:"Asset Maintenance · AIHO Land Bank & STO",target:85,nav:"payment",type:"mixed"},
- {ic:"🏗️",name:"Project Development",sub:"Rejuvenation AMDI & Advanced Building System",kpi:"Rejuvenation · Advanced Building System",target:90,nav:"project",type:"nonroutine"},
- {ic:"🤝",name:"External Relation",sub:"Procurement Hub across Astra Group",kpi:"Procurement Hub across Astra Group",target:80,nav:"procurement",type:"nonroutine"},
+ {ic:"📋",name:"General Administration",sub:"Payment Tracker · Procurement · PBB · STNK",kpi:"Administrasi & Pembayaran tepat waktu",target:85,nav:"payment",type:"routine"},
+ {ic:"🏗️",name:"Project Development",sub:"Rejuvenation AMDI · Advanced Building System · Procurement Hub",kpi:"Rejuvenation · Advanced Building System · Procurement Hub",target:90,nav:"project",type:"nonroutine"},
+ {ic:"🤝",name:"External Relation",sub:"Perizinan HSE · Kontrak & SLA Vendor",kpi:"Perizinan & Vendor Governance",target:80,nav:"hse",type:"routine"},
  {ic:"🌿",name:"Environment Health & Safety (P2K3L)",sub:"AGC · MKA · Safety Golden Rules",kpi:"Compliance with Safety Standard AIHO",target:90,nav:"hse",type:"routine"}
 ];
 /* Klik bar sub-function → langsung ke modul sumbernya (board = scroll ke Papan Kolaborasi) */
@@ -2760,18 +2785,38 @@ function codecSubFnData(){
  // 2. GSM ← SERVICE: penilaian vendor per site (routine · shuttle experience)
  const gsmComp=VENDOR_PERF.map(v=>{const sc=(v.hk+v.bm)/2;return {n:v.site+" · "+vendorTier(sc).n,v:Math.round(sc/3*100),type:"routine"};});
  const gsm=Math.round(avgA(gsmComp.map(c=>c.v)));
- // 3. GA Administration ← Payment BPH (routine, live) + Asset STO (non-routine, sheet)
+ // 3. GA Administration ← Payment Tracker · Procurement · PBB · STNK (semua routine, live)
  const rel=SO.filter(s=>s.invReleased), relOk=rel.filter(s=>!invRelEst(s)||(s.invReleaseDate&&s.invReleaseDate<=invRelEst(s))).length;
  const late=SO.filter(s=>invReleaseOverdue(s)).length, den=rel.length+late;
  const payBPH=den?Math.round(relOk/den*100):100;
- const admComp=[{n:"Payment BPH terbayar (on-time)",v:payBPH,type:"routine"},{n:"Asset STO — AIHO Land Bank & STO",v:CODEC_ASSET_STO.ach,type:"nonroutine"}];
+ /* GA-03 ← Payment Tracker · Procurement · PBB · STNK. (Asset STO & Land Bank pindah ke KEY — modulnya belum ada di AGAVA) */
+ const soOk=SO.filter(s=>s.aging==="On Track").length, procPct=SO.length?Math.round(soOk/SO.length*100):100;
+ const pbbOk=PBB.filter(x=>x.due>=TODAY_STR).length, pbbPct=PBB.length?Math.round(pbbOk/PBB.length*100):100;
+ const stnkOk=STNK.filter(x=>x.due>=TODAY_STR).length, stnkPct=STNK.length?Math.round(stnkOk/STNK.length*100):100;
+ const admComp=[
+   {n:"Payment BPH on-time — Payment Tracker",v:payBPH,type:"routine"},
+   {n:"SO on-track — Procurement",v:procPct,type:"routine"},
+   {n:"Pembayaran PBB tidak lewat tempo ("+pbbOk+"/"+PBB.length+" objek)",v:pbbPct,type:"routine"},
+   {n:"STNK tidak lewat tempo ("+stnkOk+"/"+STNK.length+" kendaraan)",v:stnkPct,type:"routine"}
+ ];
  const adm=Math.round(avgA(admComp.map(c=>c.v)));
- // 4. Project Development ← Rejuvenation + Advanced Building System (non-routine)
+ // 4. Project Development ← Rejuvenation + Advanced Building System + Procurement Hub
  const pdComp=codecProjects().map(p=>({n:p.n,v:p.actual,type:"nonroutine"}));
+ pdComp.push({n:"Procurement Hub across Astra Group",v:CODEC_PROC_HUB.ach,type:"nonroutine"});
  const psd=Math.round(avgA(pdComp.map(c=>c.v)));
- // 5. External Relation ← Procurement Hub across Astra Group (non-routine)
- const extComp=[{n:"Procurement Hub across Astra Group",v:CODEC_PROC_HUB.ach,type:"nonroutine"}];
- const ext=CODEC_PROC_HUB.ach;
+ /* GA-05 External Relation ← Perizinan (HSE) · Kontrak vendor · rata-rata form SLA vendor */
+ const izinAll=IZIN.concat(typeof IZIN_OPS!=='undefined'?IZIN_OPS:[]);
+ const izinOk=izinAll.filter(z=>z.due>=TODAY_STR).length, izinPct=izinAll.length?Math.round(izinOk/izinAll.length*100):100;
+ const konOk=VENDOR_CONTRACTS.filter(c=>c.end>=TODAY_STR).length, konPct=VENDOR_CONTRACTS.length?Math.round(konOk/VENDOR_CONTRACTS.length*100):100;
+ const slaSet=VENDOR_CONTRACTS.filter(c=>c.sla!=null).map(c=>+c.sla);
+ const slaRated=slaSet.length, slaPct=slaRated?Math.round(avgA(slaSet)/3*100):0;
+ const extComp=[
+   {n:"Perizinan sudah diurus — HSE",v:izinPct,type:"routine"},
+   {n:"Kontrak vendor diperpanjang/berlaku",v:konPct,type:"routine"},
+   {n:"Rata-rata penilaian SLA vendor"+(slaRated?" ("+slaRated+"/"+VENDOR_CONTRACTS.length+" form terisi)":" — belum ada SLA Form terisi"),v:slaPct,type:"routine"}
+ ];
+ /* SLA vendor belum dinilai → tampilkan gap-nya, tapi jangan seret skor GA-05 (bukan performa, tapi data belum diisi) */
+ const ext=Math.round(avgA(slaRated?extComp.map(c=>c.v):[izinPct,konPct]));
  // 6. EHS (P2K3L) ← AGC · MKA · SGR — Compliance safety AIHO (routine)
  const p=HSE_P2K3L;
  const ehsComp=[{n:"AGC — Astra Green Company",v:p.agc.score,type:"routine"},{n:"MKA — Mandatory Key Action",v:p.mka.score,type:"routine"},{n:"SGR — Safety Golden Rules",v:p.sgr.score,type:"routine"}];
@@ -2781,9 +2826,9 @@ function codecSubFnData(){
  const notes=[
    "GRK −"+(Math.round(grkRed*10)/10)+"% ✓ · Water −"+(Math.round(watRed*10)/10)+"% · REM "+(Math.round(avgA(REM_PCT)*10)/10)+"% · Waste "+(Math.round(wOk/wTot*1000)/10)+"% · dari modul Energy",
    VENDOR_PERF.length+" site dinilai · avg "+gsm+"% · dari modul Service",
-   (late?late+" payment lewat estimasi":"payment BPH on-time")+" · Asset STO "+CODEC_ASSET_STO.ach+"% · Payment Tracker",
-   codecProjects().length+" project"+(PJ_TIMELINE?" · live dari modul Project Development":"")+" · "+delayed+" di bawah 50%",
-   "Procurement Hub "+CODEC_PROC_HUB.ach+"% menuju target "+CODEC_PROC_HUB.target+"% · across Astra Group",
+   "Payment "+payBPH+"% · Procurement "+procPct+"% · PBB "+pbbPct+"% · STNK "+stnkPct+"% · (Asset STO & Land Bank ada di KEY — modul belum ada)",
+   codecProjects().length+" project"+(PJ_TIMELINE?" · live dari modul Project Development":"")+" · "+delayed+" di bawah 50% · + Procurement Hub "+CODEC_PROC_HUB.ach+"%",
+   "Perizinan "+izinPct+"% (HSE) · Kontrak vendor "+konPct+"% · rata-rata SLA vendor "+slaPct+"% (Vendor Management)",
    "AGC "+p.agc.score+"% · MKA "+p.mka.score+"% · SGR "+p.sgr.score+"% · Compliance AIHO"
  ];
  return CODEC_SUBFN.map((f,i)=>({...f,ach:vals[i],comp:comps[i],note:notes[i],st:vals[i]>=f.target?"ok":vals[i]>=f.target-15?"warn":"bad"}));
@@ -2800,10 +2845,10 @@ let KPI_YEAR_META={year:2026, unit:"General Affairs — PT Astra International T
 let KPI_CLA=[
  {code:"GA-01",persp:"Sustainability",   name:"Contribute to ASTRA ESG Program 2030",      from:"General Facilities Management",        pick:"", target:90, weight:20, nav:"energy"},
  {code:"GA-02",persp:"Customer",         name:"Enhance Service & Shuttle Experience",       from:"General Services Management",          pick:"", target:85, weight:15, nav:"service"},
- {code:"GA-03",persp:"Financial",        name:"Payment BPH terbayar tepat waktu",           from:"General Administration",               pick:"Payment BPH terbayar (on-time)", target:95, weight:10, nav:"payment"},
- {code:"GA-04",persp:"Financial",        name:"Asset Maintenance — AIHO Land Bank & STO",   from:"General Administration",               pick:"Asset STO — AIHO Land Bank & STO", target:85, weight:10, nav:"payment"},
+ {code:"GA-03",persp:"Financial",        name:"Payment BPH terbayar tepat waktu",           from:"General Administration",               pick:"Payment BPH on-time — Payment Tracker", target:95, weight:10, nav:"payment"},
+ {code:"GA-04",persp:"Financial",        name:"Asset Maintenance — AIHO Land Bank & STO",   from:"General Administration",               pick:"", manual:true, ach:78, type:"nonroutine", target:85, weight:10, nav:"payment"},
  {code:"GA-05",persp:"Internal Process", name:"Rejuvenation AMDI & Advanced Building System",from:"Project Development",                 pick:"", target:90, weight:20, nav:"project"},
- {code:"GA-06",persp:"External Relation",name:"Procurement Hub across Astra Group",         from:"External Relation",                    pick:"", target:80, weight:10, nav:"procurement"},
+ {code:"GA-06",persp:"External Relation",name:"Procurement Hub across Astra Group",         from:"Project Development",                  pick:"Procurement Hub across Astra Group", target:80, weight:10, nav:"procurement"},
  {code:"GA-07",persp:"Safety",           name:"Compliance with Safety Standard AIHO",       from:"Environment Health & Safety (P2K3L)",  pick:"", target:90, weight:15, nav:"hse"}
 ];
 const KPI_PERSP={ "Sustainability":"#0f6e56", "Customer":"#be3a76", "Financial":"#c2740a", "Internal Process":"#7a4fd0", "External Relation":"#2563eb", "Safety":"#15a34a" };
@@ -2813,7 +2858,8 @@ function kpiClaRows(){
  const S=codecSubFnData();
  return KPI_CLA.map(r=>{
    let ach=0, detail="", src="CODEC → "+r.from, comp=[], f=null;
-   if(!r.from){ src="Custom · belum ada sumber CODEC"; detail="KPI baru — capaian menyusul saat sumber data tersambung"; }
+   if(r.manual){ ach=(typeof r.ach==='number')?r.ach:0; src="Manual · modul belum ada di AGAVA"; detail="Diisi manual sampai modulnya tersedia"; }
+   else if(!r.from){ src="Custom · belum ada sumber CODEC"; detail="KPI baru — capaian menyusul saat sumber data tersambung"; }
    else {
      f=S.find(x=>x.name===r.from);
      if(!f){ detail="⚠ sumber CODEC \""+r.from+"\" tidak ditemukan"; src="—"; }
@@ -2824,14 +2870,34 @@ function kpiClaRows(){
      } else { ach=f.ach; comp=f.comp; detail=f.note||""; }
    }
    const score=r.target?Math.min(120,Math.round(ach/r.target*100)):0;
-   return {...r, ach, score, comp, detail, src, nav:r.nav||(f?f.nav:"overview"),
+   /* routine vs non-routine: ikut komponen yg dipilih → kalau ambil satu sub-fungsi utuh ikut sifat sub-fungsinya
+      → KPI baru/custom dianggap inisiatif (non-routine) sampai sumbernya tersambung */
+   let kind=r.type||"";
+   if(!kind){
+     if(r.pick&&comp.length) kind=comp[0].type||"routine";
+     else if(f) kind=(f.type==="mixed"?"routine":f.type)||"routine";
+     else kind="nonroutine";
+   }
+   return {...r, ach, score, comp, detail, src, kind, nav:r.nav||(f?f.nav:"overview"),
            st:ach>=r.target?"ok":ach>=r.target-15?"warn":"bad"};
  });
 }
 /* ===== Performance Indikator (section CODEC) — Standard (6 baku) vs Key (KPI tahun ini) ===== */
 const KPI_STORE="agava_kpi_v1";
 function kpiPersist(){ try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){} }
-function kpiLoad(){ try{ var r=localStorage.getItem(KPI_STORE); if(r){ var d=JSON.parse(r); if(d&&Array.isArray(d.cla)){ KPI_CLA.length=0; d.cla.forEach(function(x){KPI_CLA.push(x);}); if(d.meta)Object.assign(KPI_YEAR_META,d.meta); return true; } } }catch(e){} return false; }
+/* Peta ulang KPI lama yang sudah tersimpan di perangkat ke sumber CODEC yang baru,
+   supaya capaian tidak jatuh ke 0 gara-gara nama komponen berubah. */
+function kpiMigrate(k){
+ if(k.pick==="Payment BPH terbayar (on-time)") k.pick="Payment BPH on-time — Payment Tracker";
+ if(k.pick==="Asset STO — AIHO Land Bank & STO"){                 // modulnya belum ada di AGAVA → jadi Key manual
+   k.pick=""; k.manual=true; k.type="nonroutine"; if(typeof k.ach!=="number")k.ach=78;
+ }
+ if(/Procurement Hub/i.test(k.name||"") && k.from==="External Relation"){  // Procurement Hub pindah ke Project Development
+   k.from="Project Development"; k.pick="Procurement Hub across Astra Group"; k.nav=k.nav||"procurement";
+ }
+ return k;
+}
+function kpiLoad(){ try{ var r=localStorage.getItem(KPI_STORE); if(r){ var d=JSON.parse(r); if(d&&Array.isArray(d.cla)){ KPI_CLA.length=0; d.cla.forEach(function(x){KPI_CLA.push(kpiMigrate(x));}); if(d.meta)Object.assign(KPI_YEAR_META,d.meta); kpiPersist(); return true; } } }catch(e){} return false; }
 function kpiNextCode(){ var mx=0; KPI_CLA.forEach(function(k){ var m=String(k.code||'').match(/(\d+)/); if(m)mx=Math.max(mx,+m[1]); }); return 'GA-'+String(mx+1).padStart(2,'0'); }
 function codecPerspFor(name){ return {"General Facilities Management":"Sustainability","General Services Management":"Customer","General Administration":"Financial","Project Development":"Internal Process","External Relation":"External Relation","Environment Health & Safety (P2K3L)":"Safety"}[name]||"Internal Process"; }
 function codecPromoteKey(name){
@@ -2897,15 +2963,53 @@ function codecPerfIndicatorHTML(){
    '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div><div class="gd-chs">6 indikator standar (baku) · nomor GA-01..06 = kelompok · Key = yang dikontrakkan tahun '+KPI_YEAR_META.year+'</div></div>'+
      '<span class="pi-final">Skor KPI '+KPI_YEAR_META.year+': <b>'+total.final+'%</b> · '+total.ok+'/'+total.tot+' capai target</span></div>'+
    '<div class="pi-2col">'+
-     '<div class="pi-panel pi-panel-std"><div class="pi-h pi-h-std">📋 Standard Performance Indicator <span>6 baku</span></div>'+std+'</div>'+
-     '<div class="pi-panel pi-panel-key"><div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+(viewerOnly()?'':'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>')+'</div>'+keyRows+'</div>'+
-   '</div></div>';
+     '<div class="pi-panel pi-panel-std">'+
+       codecHlStd(S)+
+       '<div class="pi-h pi-h-std">📋 Standard Performance Indicator <span>6 baku</span></div>'+std+'</div>'+
+     '<div class="pi-panel pi-panel-key">'+
+       codecHlKey(total)+
+       '<div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+(viewerOnly()?'':'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>')+'</div>'+keyRows+'</div>'+
+   '</div>'+
+   '<div class="gd-kpop" id="gdKpiPop"></div></div>';
+}
+/* Box highlight kiri — rata-rata 6 indikator standar saja */
+function codecHlStd(S){
+ var avg=Math.round(S.reduce(function(a,x){return a+x.ach;},0)/(S.length||1));
+ var ok=S.filter(function(x){return x.ach>=x.target;}).length;
+ var c=avg>=90?'var(--green)':avg>=75?'#F59E0B':'var(--red)';
+ return '<div class="pi-hl pi-hl-std" onclick="codecKpiPop(\'total\')" title="klik untuk lihat dari data apa">'+
+   '<div class="pi-hl-cap">Rata-rata Standard Performance</div>'+
+   '<div class="pi-hl-row"><div class="pi-hl-v" style="color:'+c+'">'+avg+'<small>%</small></div>'+
+     '<div class="pi-hl-meta">dari '+S.length+' indikator baku<br><b>'+ok+'/'+S.length+'</b> capai target</div></div>'+
+   '<div class="pi-hl-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,avg)+'%;background:'+c+'"></div></div></div>'+
+ '</div>';
+}
+/* Box highlight kanan — % total pencapaian KPI + box kecil routine / non-routine */
+function codecHlKey(T){
+ var c=T.final>=90?'var(--green)':T.final>=75?'#F59E0B':'var(--red)';
+ var mini=function(k,lbl,sym,col){
+   return '<div class="pi-hl-mini" title="'+k.n+' KPI · bobot '+k.w+'%">'+
+     '<div class="pi-hl-mn" style="color:'+(k.n?col:'#9aa7b8')+'">'+(k.n?k.pct+'%':'—')+'</div>'+
+     '<div class="pi-hl-ml">'+sym+' '+lbl+'<span>'+k.n+' KPI</span></div></div>';
+ };
+ return '<div class="pi-hl pi-hl-key">'+
+   '<div class="pi-hl-cap">Total Pencapaian KPI '+KPI_YEAR_META.year+'</div>'+
+   '<div class="pi-hl-row"><div class="pi-hl-v" style="color:'+c+'">'+T.final+'<small>%</small></div>'+
+     '<div class="pi-hl-meta">tertimbang '+T.wsum+'% bobot<br><b>'+T.ok+'/'+T.tot+'</b> capai target'+(T.risk?' · <b style="color:var(--red)">'+T.risk+'</b> at risk':'')+'</div></div>'+
+   '<div class="pi-hl-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,T.final)+'%;background:'+c+'"></div></div></div>'+
+   '<div class="pi-hl-minis">'+mini(T.rout,'Routine','●','var(--green)')+mini(T.nonr,'Non-Routine','◆','#7C3AED')+'</div>'+
+ '</div>';
 }
 function kpiClaTotal(){
  const R=kpiClaRows(), wsum=R.reduce((a,r)=>a+r.weight,0)||1;
  const final=Math.round(R.reduce((a,r)=>a+Math.min(100,r.score)*r.weight,0)/wsum);
+ /* pecah rutin vs non-rutin — tertimbang bobot bila ada, kalau tidak rata-rata biasa */
+ const grp=k=>{ const g=R.filter(r=>r.kind===k), w=g.reduce((a,r)=>a+r.weight,0);
+   const pct=!g.length?0:(w?Math.round(g.reduce((a,r)=>a+Math.min(100,r.score)*r.weight,0)/w)
+                            :Math.round(g.reduce((a,r)=>a+Math.min(100,r.score),0)/g.length));
+   return {n:g.length, w, pct}; };
  return {R, wsum, final, ok:R.filter(r=>r.ach>=r.target).length, tot:R.length,
-         risk:R.filter(r=>r.st==="bad").length};
+         risk:R.filter(r=>r.st==="bad").length, rout:grp("routine"), nonr:grp("nonroutine")};
 }
 /* Berapa persen tahun sudah berjalan — pembanding wajar utk capaian YTD */
 function kpiYearElapsed(){
@@ -3297,19 +3401,7 @@ function renderOverview(){
  const stnkO=STNK.filter(v=>dueD(v.due)<0).length, stnk30=STNK.filter(v=>{const d=dueD(v.due);return d>=0&&d<=30;}).length, stnkOK=STNK.length-stnkO-stnk30;
  const pbbO=PBB.filter(v=>dueD(v.due)<0).length, pbb30=PBB.filter(v=>{const d=dueD(v.due);return d>=0&&d<=30;}).length, pbbOK=PBB.length-pbbO-pbb30;
  const gdBar=(v,max,c,h)=>`<div class="gd-pbar" style="height:${h||6}px"><i style="width:${Math.min(v/max*100,100)}%;background:${c}"></i></div>`;
- const KPI=codecKPI();
- const typeBadge=t=>t==='routine'?'<span class="gd-ktag rt">Routine</span>':t==='nonroutine'?'<span class="gd-ktag nr">Non-Routine</span>':'<span class="gd-ktag mx">Mixed</span>';
- const gdKpiRows=S.map((f,i)=>{ const c=f.ach>=f.target?'var(--green)':f.ach>=f.target*0.8?'#F59E0B':'var(--red)';
-   const comps=f.comp.map(cc=>{const cc2=cc.v>=85?'var(--green)':cc.v>=65?'#F59E0B':'var(--red)';return `<div class="gd-kcomp"><span class="gd-kcn">${cc.type==='nonroutine'?'◆':'●'} ${cc.n}</span><div class="gd-kcbar">${gdBar(cc.v,100,cc2,4)}<b style="color:${cc2}">${cc.v}%</b></div></div>`;}).join('');
-   return `<div class="gd-krow2" id="gdk-${i}">
-     <div class="gd-krh" onclick="codecSubToggle(${i})">
-       <span class="gd-kic">${f.ic}</span>
-       <div class="gd-kinfo"><div class="gd-kname">${f.name} ${typeBadge(f.type)}</div><div class="gd-kdet">${f.sub} · ${f.note}</div></div>
-       <div class="gd-kbar">${gdBar(f.ach,100,c,6)}<span class="gd-kpct" style="color:${c}">${f.ach}%</span></div>
-       <span class="gd-kchev">⌄</span>
-     </div>
-     <div class="gd-kbody"><div class="gd-kbody-h">Komponen achievement — <b>${f.kpi}</b><a class="gd-kopen" onclick="event.stopPropagation();codecGoSub('${f.nav}')">buka modul →</a></div>${comps}</div>
-   </div>`; }).join("");
+ /* detail per sub-fungsi kini hidup di section Performance Indikator (codecPerfIndicatorHTML) */
  const gdRating=[5,4,3,2,1].map((s,i)=>{const cnt=R.cnt?R.cnt[i]:0;return `<div class="gd-rrow"><span>${'★'.repeat(s)}</span><div class="gd-rtrack"><i style="width:${R.dist[i]}%"></i></div><b>${R.dist[i]}%</b><em>${cnt}</em></div>`;}).join("");
  const gdEvents=EVENTS.slice().sort((a,b)=>a.start.localeCompare(b.start)).slice(0,8).map(e=>{ const live=/·\s*Running/i.test(e.ev); const nm=e.ev.replace(/\s*·\s*Running/i,'');
    return `<div class="gd-erow"><span class="gd-etime">${e.start}</span><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px">${live?'<span class="gd-livedot">LIVE</span>':''}<b class="gd-eroom">${e.room}</b></div><div class="gd-ename">${nm}</div><div class="gd-emeta"><span style="color:${e.hot?'var(--red)':'#3B82F6'}">🌡 ${e.temp}°C</span><span>👥 ${e.pax}</span><span>🍽 ${e.sr}</span></div></div></div>`; }).join("");
@@ -3357,23 +3449,6 @@ function renderOverview(){
   </div>
 
   <div class="gd-sec" id="gd-kpi"><i></i>Performance Indikator</div>
-  <div class="card gd-kherowrap">
-    <div class="gd-ch"><span class="gd-chi">🔥</span><div><div class="gd-cht">Highlight Pencapaian KPI GA Dept</div><div class="gd-chs">— ${codecMonthID()} · derive live & sinkron dari sheet Total Pencapaian YTD</div></div>
-      <span class="gd-kpy-chip" title="Skor KPI yang dikontrakkan tahun ini — dari section Performance Indikator di bawah">🏆 KPI ${KPI_YEAR_META.year}: ${kpiClaTotal().final}%</span></div>
-    <div class="gd-khero">
-      <div class="gd-kbig" onclick="codecKpiPop('total')" title="klik untuk rincian sumber">
-        <div class="gd-kbig-v">${KPI.total}%</div>
-        <div class="gd-kbig-l">Total Achievement KPI GA</div>
-        <div class="gd-kbig-h">👆 klik angka untuk lihat dari data apa</div>
-      </div>
-      <div class="gd-kside">
-        <div class="gd-kmini" onclick="codecKpiPop('achieved')"><div class="gd-kmv" style="color:#2563EB">${KPI.achieved}<small>/${KPI.tot}</small></div><div class="gd-kml">KPI Utama Tercapai</div></div>
-        <div class="gd-kmini" onclick="codecKpiPop('nonroutine')"><div class="gd-kmv" style="color:#7C3AED">${KPI.nonPct}%</div><div class="gd-kml">KPI Non-Routine ◆</div></div>
-        <div class="gd-kmini" onclick="codecKpiPop('routine')"><div class="gd-kmv" style="color:var(--green)">${KPI.routPct}%</div><div class="gd-kml">KPI Routine ●</div></div>
-      </div>
-    </div>
-    <div class="gd-kpop" id="gdKpiPop"></div>
-  </div>
   ${codecPerfIndicatorHTML()}
   <div class="card mt16"><div class="gd-ch"><span class="gd-chi">📅</span><div><div class="gd-cht">Progress Bulanan</div><div class="gd-chs">Update otomatis dari modul AGAVA</div></div></div>
     <div class="gd-cells4">
@@ -4530,7 +4605,7 @@ function renderService(){
  const el=document.getElementById("page-service");
  el.innerHTML=`
   ${gaServiceButtons()}
-  <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:18px;margin-bottom:18px;align-items:start">
+  <div style="margin-bottom:18px">
     <div class="card pad">
       <div class="panel-t">⭐ Service Rating · last ${r.n} closed tickets</div>
       <div style="display:flex;align-items:center;gap:18px;margin-bottom:10px">
@@ -4538,15 +4613,6 @@ function renderService(){
         <div><div style="color:#f5a623;font-size:20px;letter-spacing:2px">${stars}</div><div class="muted small" style="margin-top:2px">avg of ${r.n} most recent closed</div></div>
       </div>
       ${r.list.map(t=>`<div class="trow" style="padding:7px 0"><div class="tj" style="font-size:12.5px">${t.no} · ${t.judul}</div><span style="color:#f5a623;white-space:nowrap">${'★'.repeat(t.rating)}${'☆'.repeat(5-t.rating)}</span></div>`).join("")}
-    </div>
-    <div>
-      <div class="panel-t" style="margin-bottom:12px">Ticket Status</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div class="card kpi"><div class="l">Total tickets</div><div class="v">${total}</div></div>
-        <div class="card kpi"><div class="l">Ongoing</div><div class="v" style="color:var(--blue)">${ongoing}</div></div>
-        <div class="card kpi"><div class="l">Escalated</div><div class="v" style="color:var(--red)">${esc}</div></div>
-        <div class="card kpi"><div class="l">Resolved</div><div class="v" style="color:var(--green)">${resolved}</div></div>
-      </div>
     </div>
   </div>
   <div class="card pad" style="margin-bottom:18px">
@@ -4556,6 +4622,12 @@ function renderService(){
   </div>
   ${roomEventCard()}
   <div class="card">
+    <div class="svc-status">
+      <div class="svc-st-i"><div class="l">Total tickets</div><div class="v">${total}</div></div>
+      <div class="svc-st-i"><div class="l">Ongoing</div><div class="v" style="color:var(--blue)">${ongoing}</div></div>
+      <div class="svc-st-i"><div class="l">Escalated</div><div class="v" style="color:var(--red)">${esc}</div></div>
+      <div class="svc-st-i"><div class="l">Resolved</div><div class="v" style="color:var(--green)">${resolved}</div></div>
+    </div>
     <div style="padding:16px 16px 14px;display:flex;gap:8px;flex-wrap:wrap">${pills.map(p=>`<div class="ptab ${svcFilter===p[0]?'on':''}" onclick="svcFilter='${p[0]}';renderService()">${p[1]} <b style="opacity:.7">${p[2]}</b></div>`).join("")}</div>
     <div class="svc-head"><span></span><span>Ticket</span><span style="text-align:center">Response</span><span>PIC</span><span>Status</span></div>
     <div class="svc-list">${list.length?list.map(ticketRow).join(""):'<div class="muted small" style="padding:30px;text-align:center">No tickets in this filter.</div>'}</div>
@@ -5972,7 +6044,7 @@ async function loadDataFiles(){
   if(ky){
     DATA_LOADED.files.push("kpi-tahunan.json");
     if(ky.meta) Object.assign(KPI_YEAR_META,ky.meta);
-    if(ky.indikator&&ky.indikator.length) repl(KPI_CLA,ky.indikator);
+    if(ky.indikator&&ky.indikator.length) repl(KPI_CLA,ky.indikator.map(kpiMigrate));  // file lama tetap nyambung ke CODEC baru
   }
   kpiLoad();   // edit KPI di aplikasi (promote/tambah/hapus) menang atas file
   DATA_LOADED.at=new Date();
@@ -6589,7 +6661,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-12";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-13";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";

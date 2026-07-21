@@ -19,12 +19,24 @@
     "Environment Health & Safety (P2K3L)"
   ],
 
+  "_sumber_tiap_sub_fungsi": {
+    "General Facilities Management": "Energy — GRK, Water Intensity, REM, Waste",
+    "General Services Management": "Service — penilaian vendor per site",
+    "General Administration": "Payment Tracker (BPH on-time) · Procurement (SO on-track) · Pembayaran PBB · STNK",
+    "Project Development": "Timeline project (Rejuvenation + Advanced Building System) + Procurement Hub across Astra Group",
+    "External Relation": "HSE (perizinan sudah diurus) · Vendor Management (kontrak diperpanjang + rata-rata penilaian SLA Form vendor)",
+    "Environment Health & Safety (P2K3L)": "HSE — AGC, MKA, Safety Golden Rules"
+  },
+
   "_arti_kolom": {
     "code": "Kode indikator di dokumen CLA. Bebas, contoh: GA-01.",
     "persp": "Perspektif. Pilih: Sustainability / Customer / Financial / Internal Process / External Relation / Safety. Menentukan warna baris.",
     "name": "Nama indikator seperti tertulis di CLA.",
     "from": "Sub-fungsi CODEC yang jadi sumber angka. Wajib persis sama dengan daftar '_nama_from_yang_valid' di atas.",
-    "pick": "Kosongkan ('') untuk memakai capaian sub-fungsi secara keseluruhan. Isi dengan nama komponen bila ingin SATU komponen saja di dalam sub-fungsi itu (contoh: 'Asset STO — AIHO Land Bank & STO').",
+    "pick": "Kosongkan ('') untuk memakai capaian sub-fungsi secara keseluruhan. Isi dengan nama komponen bila ingin SATU komponen saja di dalam sub-fungsi itu (contoh: 'Procurement Hub across Astra Group').",
+    "manual": "true = capaian diisi tangan lewat kolom 'ach', dipakai untuk KPI yang modulnya BELUM ada di AGAVA. Kalau true, 'from' dan 'pick' diabaikan.",
+    "ach": "Capaian (persen) untuk indikator manual saja. Diabaikan bila 'manual' tidak true.",
+    "type": "routine / nonroutine — dipakai box kecil Routine & Non-Routine di highlight Key Performance. Boleh dikosongkan; AGAVA menebak dari sumbernya.",
     "target": "Target tahunan dalam persen (0-100).",
     "weight": "Bobot indikator dalam persen. Jumlah seluruh bobot sebaiknya 100.",
     "nav": "Modul yang dibuka saat tombol 'Buka modul sumber' diklik. Pilih: energy / service / payment / project / procurement / hse / building."
@@ -32,12 +44,12 @@
 
   "_indikator": "Jumlah seluruh 'weight' di bawah ini = 100. Bila Anda menambah indikator, sesuaikan bobot yang lain agar totalnya tetap 100.",
   "indikator": [
-    { "code": "GA-01", "persp": "Sustainability",    "name": "Contribute to ASTRA ESG Program 2030",        "from": "General Facilities Management",       "pick": "",                                "target": 90, "weight": 20, "nav": "energy" },
-    { "code": "GA-02", "persp": "Customer",          "name": "Enhance Service & Shuttle Experience",         "from": "General Services Management",         "pick": "",                                "target": 85, "weight": 15, "nav": "service" },
-    { "code": "GA-03", "persp": "Financial",         "name": "Payment BPH terbayar tepat waktu",             "from": "General Administration",              "pick": "Payment BPH terbayar (on-time)",  "target": 95, "weight": 10, "nav": "payment" },
-    { "code": "GA-04", "persp": "Financial",         "name": "Asset Maintenance — AIHO Land Bank & STO",     "from": "General Administration",              "pick": "Asset STO — AIHO Land Bank & STO","target": 85, "weight": 10, "nav": "payment" },
-    { "code": "GA-05", "persp": "Internal Process",  "name": "Rejuvenation AMDI & Advanced Building System", "from": "Project Development",                 "pick": "",                                "target": 90, "weight": 20, "nav": "project" },
-    { "code": "GA-06", "persp": "External Relation", "name": "Procurement Hub across Astra Group",           "from": "External Relation",                   "pick": "",                                "target": 80, "weight": 10, "nav": "procurement" },
-    { "code": "GA-07", "persp": "Safety",            "name": "Compliance with Safety Standard AIHO",         "from": "Environment Health & Safety (P2K3L)", "pick": "",                                "target": 90, "weight": 15, "nav": "hse" }
+    { "code": "GA-01", "persp": "Sustainability",    "name": "Contribute to ASTRA ESG Program 2030",        "from": "General Facilities Management",       "pick": "",                                     "target": 90, "weight": 20, "nav": "energy" },
+    { "code": "GA-02", "persp": "Customer",          "name": "Enhance Service & Shuttle Experience",         "from": "General Services Management",         "pick": "",                                     "target": 85, "weight": 15, "nav": "service" },
+    { "code": "GA-03", "persp": "Financial",         "name": "Payment BPH terbayar tepat waktu",             "from": "General Administration",              "pick": "Payment BPH on-time — Payment Tracker","target": 95, "weight": 10, "nav": "payment" },
+    { "code": "GA-04", "persp": "Financial",         "name": "Asset Maintenance — AIHO Land Bank & STO",     "from": "General Administration",              "pick": "", "manual": true, "ach": 78, "type": "nonroutine", "target": 85, "weight": 10, "nav": "payment" },
+    { "code": "GA-05", "persp": "Internal Process",  "name": "Rejuvenation AMDI & Advanced Building System", "from": "Project Development",                 "pick": "",                                     "target": 90, "weight": 20, "nav": "project" },
+    { "code": "GA-06", "persp": "External Relation", "name": "Procurement Hub across Astra Group",           "from": "Project Development",                 "pick": "Procurement Hub across Astra Group",   "target": 80, "weight": 10, "nav": "procurement" },
+    { "code": "GA-07", "persp": "Safety",            "name": "Compliance with Safety Standard AIHO",         "from": "Environment Health & Safety (P2K3L)", "pick": "",                                     "target": 90, "weight": 15, "nav": "hse" }
   ]
 }
