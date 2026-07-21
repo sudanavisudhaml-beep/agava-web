@@ -1489,6 +1489,11 @@ body.rg-open{overflow:hidden}
    ══════════════════════════════════════════════════════════════════════════ */
 .mtop,.mbot,.mswipe-hint{display:none}
 @media(max-width:820px){
+  /* Jaring pengaman: bila iOS/Android menyisakan celah di tepi atas, warnanya
+     ikut biru — bukan putih. (Penyebab utamanya tetap mode status bar; PWA yang
+     sudah terpasang harus dihapus & di-Add to Home Screen ulang agar berubah.) */
+  html{background:#032b6b}
+  body{background-color:transparent}
   /* sidebar & hamburger DIHILANGKAN di HP — navigasi lewat ikon modul + bottom bar */
   .side,#mobBackdrop,.mob-menu{display:none!important}
   body.side-open .side{transform:translateX(-100%)}
@@ -1629,14 +1634,27 @@ body.rg-open{overflow:hidden}
   .mh-rright span{font-size:9.5px;color:#9aa7b8}
   .mh-empty{font-size:11.5px;color:var(--muted);text-align:center;padding:22px 14px;border:1px dashed var(--line);
     border-radius:14px;background:#fbfdff}
-  .mh-kal{display:flex;flex-direction:column;gap:7px}
-  .mh-kev{display:flex;gap:11px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 11px;
-    background:#fff;cursor:pointer}
-  .mh-kd{flex:0 0 40px;text-align:center;border-right:1px solid var(--line);padding-right:9px}
-  .mh-kd b{display:block;font-size:17px;font-weight:800;color:var(--blue);line-height:1}
-  .mh-kd span{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase}
-  .mh-ktj{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.3}
-  .mh-ktm{font-size:10.5px;color:var(--muted);margin-top:1px}
+  /* Papan GA Calendar — acara ruangan besar 3 hari ke depan (bukan tautan) */
+  .mh-kal{display:flex;flex-direction:column;gap:10px}
+  .mh-kday{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+  .mh-kdh{display:flex;align-items:baseline;gap:8px;padding:9px 12px;background:linear-gradient(135deg,#eef5ff,#f7fbff);
+    border-bottom:1px solid var(--line)}
+  .mh-kdh b{font-size:12.5px;color:#0a4bb8}
+  .mh-kdh span{font-size:10.5px;color:var(--muted)}
+  .mh-kdh i{margin-left:auto;font-style:normal;font-size:9.5px;font-weight:700;color:#9aa7b8}
+  .mh-kev{display:flex;gap:11px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line)}
+  .mh-kev:last-child{border-bottom:none}
+  .mh-kev.live{background:linear-gradient(90deg,rgba(21,163,74,.07),transparent 60%)}
+  .mh-kjam{flex:0 0 46px;font-size:11.5px;font-weight:800;color:var(--blue);line-height:1.25;
+    border-right:1px solid var(--line);padding-right:9px}
+  .mh-kjam small{display:block;font-size:9.5px;font-weight:600;color:#9aa7b8}
+  .mh-kt{flex:1;min-width:0}
+  .mh-ktj{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.3;overflow-wrap:anywhere}
+  .mh-ktm{font-size:10.5px;color:var(--muted);margin-top:1px;overflow-wrap:anywhere}
+  .mh-klive{flex:0 0 auto;font-size:8.5px;font-weight:900;letter-spacing:.05em;color:#fff;background:var(--green);
+    border-radius:20px;padding:3px 7px}
+  .mh-knone{padding:12px;text-align:center;font-size:11px;color:#9aa7b8}
+  .mh-knote{font-size:10.5px;color:var(--muted);margin-top:8px;text-align:center}
 
   /* ── BOTTOM BAR ── */
   .mbot{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;position:fixed;left:0;right:0;bottom:0;z-index:70;
@@ -2655,7 +2673,7 @@ function applyLogin(u){
  go(isMobile()?(gRole==="fieldops"?"fieldops":"mhome"):ROLES[gRole].menus[0]);
  mBotSync();
  document.getElementById("login").classList.add("hide");
- var cb=document.getElementById("cloudBtn"); if(cb)cb.classList.toggle("hide",!isSuper());   // Cloud & Backup: khusus Super
+ var cb=document.getElementById("cloudBtn"); if(cb)cb.classList.toggle("hide",!isOwner());   // Cloud & Backup: KHUSUS OWNER
  notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
  auditLog("login", roleTitle(u));   // jejak login tersimpan di Firebase
  setTimeout(rateGateCheck,800);     // ada tiket selesai yang menunggu dinilai?
@@ -2945,6 +2963,10 @@ function isEndUser(){ return gRole==="general"; }
    Di luar ini = kelompok user/viewer: hanya melihat tiket yang DIA buat sendiri. */
 const SUPER_ROLES=["admin","section","dept","chief","proc","budget"];
 function isSuper(){ return SUPER_ROLES.indexOf(gRole)>=0; }
+/* OWNER — satu-satunya akun yang boleh membuka panel Cloud & Backup
+   (dorong data, unduh backup, restore, jejak login). Bukan sekadar admin. */
+const AGAVA_OWNER="sudana.visudha@ai.astra.co.id";
+function isOwner(){ return !!(gUser&&String(gUser.email).toLowerCase()===AGAVA_OWNER); }
 /* tiket milik siapa — dipakai filter list Services untuk kelompok user/viewer */
 function ticketMine(t){
  if(!gUser)return false;
@@ -6057,6 +6079,58 @@ function mTopSync(){
 /* modul yang tampil sebagai ikon — mengikuti hak akses role */
 const MHOME_IC={overview:"📊",building:"🏢",project:"📈",gacal:"🗓️",service:"🎧",fieldops:"📡",myticket:"🎫",
  procurement:"🛒",payment:"💳",vendor:"🤝",energy:"⚡",hse:"🦺",approvals:"📋",assigned:"💼",reminder:"🔔"};
+/* ── RUANGAN BESAR — dipakai papan GA Calendar di Beranda ──
+   Besar = nama ruang serbaguna/aula, atau kapasitas >= 20 orang di denah RB_ROOMS. */
+const BIG_ROOM_MIN_CAP=20;
+const BIG_ROOM_KEYS=["auditorium","william soeryadjaja","executive lounge","ballroom",
+  "training class","conference room","studio","multipurpose","town hall","aula"];
+function isBigRoom(nama,pax){
+ if((+pax||0)>=BIG_ROOM_MIN_CAP) return true;   // jumlah peserta sudah membuktikan acaranya besar
+ if(!nama)return false;
+ var n=String(nama).toLowerCase().trim();
+ if(BIG_ROOM_KEYS.some(function(k){ return n.indexOf(k)>=0; })) return true;
+ try{
+   for(var k in RB_ROOMS){
+     var r=RB_ROOMS[k].find(function(x){ return String(x.name).toLowerCase()===n||x.id===nama; });
+     if(r) return (+r.cap||0)>=BIG_ROOM_MIN_CAP;
+   }
+ }catch(e){}
+ return false;
+}
+/* Tanggal lokal — jangan pakai toISOString(), di WIB (UTC+7) hasilnya mundur satu hari */
+function ymdLokal(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+/* Papan GA Calendar di Beranda — acara ruangan besar untuk 3 hari ke depan */
+function mhKalenderHTML(){
+ var hari=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+ var bln=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+ var mulai=new Date(TODAY_STR+"T00:00:00");
+ var tgl=[0,1,2].map(function(i){ var d=new Date(mulai); d.setDate(d.getDate()+i);
+   return ymdLokal(d); });
+ var ev=(typeof ROOM_BOOKINGS!=="undefined"?ROOM_BOOKINGS:[])
+   .filter(function(b){ return tgl.indexOf(b.date)>=0 && isBigRoom(b.room,b.pax); })
+   .sort(function(a,b){ return (a.date+a.start).localeCompare(b.date+b.start); });
+ var isi=tgl.map(function(t,i){
+   var d=new Date(t+"T00:00:00");
+   var pada=ev.filter(function(b){ return b.date===t; });
+   var label=i===0?"Hari ini":i===1?"Besok":hari[d.getDay()];
+   return '<div class="mh-kday">'+
+     '<div class="mh-kdh"><b>'+label+'</b><span>'+d.getDate()+' '+bln[d.getMonth()]+'</span>'+
+       '<i>'+pada.length+' acara</i></div>'+
+     (pada.length?pada.map(function(b){
+       var live=(t===TODAY_STR&&b.status==="In use");
+       return '<div class="mh-kev'+(live?' live':'')+'">'+
+         '<span class="mh-kjam">'+esc(b.start)+'<small>'+esc(b.end)+'</small></span>'+
+         '<div class="mh-kt"><div class="mh-ktj">'+esc(b.event||"—")+'</div>'+
+         '<div class="mh-ktm">'+esc(b.room||"")+(b.pax?' · '+b.pax+' pax':'')+'</div></div>'+
+         (live?'<span class="mh-klive">LIVE</span>':'')+'</div>';
+     }).join(""):'<div class="mh-knone">Tidak ada acara</div>')+
+   '</div>';
+ }).join("");
+ return '<div class="mh-sec"><div class="mh-sh"><b>🗓️ GA Calendar</b>'+
+   '<span>acara ruangan besar · 3 hari ke depan</span></div>'+
+   '<div class="mh-kal">'+isi+'</div>'+
+   '<div class="mh-knote">Papan informasi — buka <b>modul GA Calendar</b> untuk agenda lengkap.</div></div>';
+}
 /* buka rincian order — complaint pakai Lifecycle Journey penuh seperti desktop */
 function orderOpen(kind,no){
  if(kind==="complaint"){ openTicket(no); return; }
@@ -6129,21 +6203,9 @@ function renderMobileHome(){
           '<div class="mh-rright"><b>'+esc(st.t)+'</b><span>'+esc(s.jenis||"")+'</span></div></div>';
       }).join("")+'</div>':'<div class="mh-empty">Belum ada SO yang Anda buat.</div>')+'</div>';
  }
- /* ── GA CALENDAR — pengguna umum hanya Room & Event ── */
- var ev=[];
- try{
-   ev=gacalEvents().filter(function(e){ return isSuper()?true:(e.type==="event"); })
-     .filter(function(e){ return e.date>=TODAY_STR; })
-     .sort(function(a,b){ return a.date.localeCompare(b.date); }).slice(0,6);
- }catch(e){}
- var kal='<div class="mh-sec"><div class="mh-sh"><b>🗓️ GA Calendar</b><span>'+(isSuper()?"semua agenda":"Room &amp; Event")+'</span></div>'+
-   (ev.length?'<div class="mh-kal">'+ev.map(function(e){
-      var d=new Date(e.date+"T00:00:00");
-      return '<div class="mh-kev" onclick="go(\'gacal\')">'+
-        '<div class="mh-kd"><b>'+d.getDate()+'</b><span>'+["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][d.getMonth()]+'</span></div>'+
-        '<div class="mh-kt"><div class="mh-ktj">'+esc(e.title||e.t||"")+'</div>'+
-        '<div class="mh-ktm">'+esc(e.sub||e.d||"")+'</div></div></div>';
-    }).join("")+'</div>':'<div class="mh-empty">Tidak ada agenda terdekat.</div>')+'</div>';
+ /* ── GA CALENDAR di Beranda — HANYA papan info: acara di RUANGAN BESAR,
+      3 hari ke depan. Tidak mengalihkan ke modul; akses penuh lewat ikon modul. ── */
+ var kal=mhKalenderHTML();
  /* hari & tanggal pindah ke sini — sejajar sapaan, rata kanan */
  var d=new Date();
  var hari=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][d.getDay()];
@@ -6151,7 +6213,7 @@ function renderMobileHome(){
  el.innerHTML=
   '<div class="mh-hirow">'+
     '<div class="mh-hi">Halo, <b>'+esc((gUser&&gUser.name)||"")+'</b>'+
-      (isSuper()?'<button class="mh-ico" onclick="agavaCloudPanel()" title="Cloud &amp; Backup">☁️</button>':'')+
+      (isOwner()?'<button class="mh-ico" onclick="agavaCloudPanel()" title="Cloud &amp; Backup">☁️</button>':'')+
       '<button class="mh-ico mh-exit" onclick="agavaLogout()" title="Keluar dari aplikasi">'+
         '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>'+
       '<span>'+esc(roleTitle(gUser||{role:gRole}))+'</span></div>'+
@@ -8912,7 +8974,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-40";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-41";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -9141,6 +9203,9 @@ function agavaRestoreFile(input){
 }
 /* Panel Cloud & Backup — hanya kelompok Super */
 function agavaCloudPanel(){
+ /* kunci di fungsinya sendiri — panel ini bisa mendorong, mengunduh, dan menimpa
+    seluruh data, jadi jangan hanya mengandalkan tombolnya disembunyikan */
+ if(!isOwner()){ alert("⛔ Panel Cloud & Backup hanya dapat dibuka oleh pemilik sistem AGAVA."); return; }
  var snap=agavaSnapshot();
  var st=AGDB.on?'<span class="badge bd-ok">🟢 Firebase terhubung</span>':'<span class="badge bd-warn">⚪ Offline — data hanya di perangkat ini</span>';
  var row=function(l,v,note){ return '<div class="cl-row"><span>'+l+'</span><b>'+v+'</b><em>'+(note||'')+'</em></div>'; };
