@@ -1271,7 +1271,7 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-drop{max-height:0;overflow:hidden;transition:max-height .25s ease}
 .pi-row.open .pi-drop{max-height:340px;margin-top:8px}
 .pi-drop-h{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.03em;margin-bottom:6px}
-.pi-comp{display:grid;grid-template-columns:1fr 90px 34px;gap:8px;align-items:center;font-size:11px;color:var(--ink);margin-bottom:4px}
+.pi-comp{display:grid;grid-template-columns:1fr 90px 34px 13px;gap:8px;align-items:center;font-size:11px;color:var(--ink);margin-bottom:4px;padding:3px 5px}
 .pi-comp b{text-align:right;font-weight:700}
 .pi-drop-n{font-size:10px;color:#5478a8;background:#f4f8ff;border-radius:6px;padding:6px 8px;margin-top:6px}
 .pi-h{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:var(--ink);margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid}
@@ -1279,24 +1279,58 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-h-std{border-color:#cfdaeb}
 .pi-h-key{border-color:#f0d9ad}
 .pi-h-key span{background:#fdf3e3;color:#c2740a}
-/* ── Box highlight di atas tiap kolom: kiri = rata2 standard, kanan = total KPI + routine/non-routine ── */
-.pi-hl{border:1px solid var(--line);border-radius:14px;padding:13px 15px 12px;margin-bottom:14px;background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(244,249,255,.85));box-shadow:0 4px 14px rgba(20,40,80,.06)}
-.pi-hl-std{cursor:pointer;transition:.15s}
-.pi-hl-std:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(20,40,80,.11);border-color:#bcd3f5}
-.pi-hl-key{background:linear-gradient(135deg,rgba(255,251,243,.95),rgba(253,243,227,.7));border-color:#f0d9ad}
-.pi-hl-cap{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-.pi-hl-row{display:flex;align-items:flex-end;gap:12px;margin-top:3px}
-.pi-hl-v{font-size:38px;font-weight:900;line-height:1}
-.pi-hl-v small{font-size:19px;font-weight:800;margin-left:1px}
-.pi-hl-meta{font-size:11px;color:var(--muted);line-height:1.45;padding-bottom:4px}
-.pi-hl-meta b{color:var(--ink)}
-.pi-hl-bar{margin-top:9px}
-.pi-hl-minis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
-.pi-hl-mini{border:1px solid var(--line);border-radius:11px;padding:8px 11px;background:rgba(255,255,255,.82)}
-.pi-hl-mn{font-size:21px;font-weight:900;line-height:1.1}
-.pi-hl-ml{font-size:10.5px;font-weight:700;color:var(--muted);margin-top:1px}
-.pi-hl-ml span{display:block;font-size:9.5px;font-weight:600;color:#9aa7b8;margin-top:1px}
-@media(max-width:820px){.pi-hl-v{font-size:31px}.pi-hl-mn{font-size:18px}}
+/* ── Box highlight: neon dark blue, aurora bergerak lambat ── */
+.pi-hl{position:relative;overflow:hidden;isolation:isolate;border:1px solid rgba(64,180,255,.30);border-radius:16px;
+  padding:15px 17px 14px;margin-bottom:14px;color:#e8f5ff;
+  background:linear-gradient(152deg,#071233 0%,#0a1b45 46%,#050e26 100%);
+  box-shadow:0 14px 38px rgba(4,14,44,.42),inset 0 1px 0 rgba(140,210,255,.18)}
+/* lapisan aurora — gerak sangat pelan, tidak mengganggu baca angka */
+.pi-hl::before{content:"";position:absolute;inset:-45%;z-index:-1;pointer-events:none;
+  background:radial-gradient(38% 46% at 22% 30%,rgba(0,198,251,.34),transparent 62%),
+             radial-gradient(34% 44% at 78% 70%,rgba(96,110,255,.30),transparent 64%),
+             radial-gradient(30% 38% at 56% 10%,rgba(0,228,205,.22),transparent 66%);
+  filter:blur(4px);animation:hlAurora 28s ease-in-out infinite alternate}
+@keyframes hlAurora{
+  0%{transform:translate3d(-6%,-4%,0) scale(1)}
+  50%{transform:translate3d(5%,4%,0) scale(1.14)}
+  100%{transform:translate3d(-3%,6%,0) scale(1.05)}}
+/* garis neon menyapu pelan di tepi atas */
+.pi-hl::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#00e5ff 38%,#6f9dff 58%,transparent);
+  background-size:220% 100%;animation:hlSweep 11s linear infinite}
+@keyframes hlSweep{0%{background-position:200% 0}100%{background-position:-100% 0}}
+.pi-hl-std{cursor:pointer;transition:.25s}
+.pi-hl-std:hover{transform:translateY(-2px);border-color:rgba(0,229,255,.55);
+  box-shadow:0 18px 46px rgba(4,14,44,.5),0 0 0 1px rgba(0,229,255,.22),inset 0 1px 0 rgba(140,210,255,.24)}
+.pi-hl-key{border-color:rgba(122,146,255,.34)}
+.pi-hl-cap{font-size:10.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#7cc6ee}
+.pi-hl-row{display:flex;align-items:flex-end;gap:12px;margin-top:4px}
+.pi-hl-v{font-size:42px;font-weight:900;line-height:1;letter-spacing:-.02em;
+  text-shadow:0 0 20px currentColor,0 0 52px rgba(0,170,255,.35);animation:hlGlow 7s ease-in-out infinite}
+@keyframes hlGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.16)}}
+.pi-hl-v small{font-size:20px;font-weight:800;margin-left:1px;opacity:.9}
+.pi-hl-meta{font-size:11px;color:#8fb4d8;line-height:1.45;padding-bottom:5px}
+.pi-hl-meta b{color:#e8f5ff}
+.pi-hl-bar{margin-top:10px}
+.pi-hl .inv-bar{background:rgba(255,255,255,.11);box-shadow:inset 0 0 0 1px rgba(140,200,255,.12)}
+.pi-hl .inv-bar .fill{box-shadow:0 0 12px currentColor,0 0 22px rgba(0,190,255,.35)}
+.pi-hl-minis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.pi-hl-mini{border:1px solid rgba(120,175,235,.22);border-radius:12px;padding:8px 11px;background:rgba(10,28,68,.55)}
+.pi-hl-mn{font-size:22px;font-weight:900;line-height:1.1;text-shadow:0 0 16px currentColor}
+.pi-hl-ml{font-size:10.5px;font-weight:700;color:#8fb4d8;margin-top:1px}
+.pi-hl-ml span{display:block;font-size:9.5px;font-weight:600;color:#6f8fb5;margin-top:1px}
+@media(max-width:820px){.pi-hl-v{font-size:33px}.pi-hl-mn{font-size:18px}}
+@media(prefers-reduced-motion:reduce){.pi-hl::before,.pi-hl::after,.pi-hl-v{animation:none}}
+/* baris komponen di dropdown → klik langsung ke modul sumbernya */
+.pi-comp.go{cursor:pointer;border-radius:8px;transition:.15s}
+.pi-comp.go:hover{background:rgba(10,124,255,.07)}
+.pi-comp.go:hover span:first-child{color:#0a4bb8}
+.pi-go{flex:0 0 auto;width:13px;text-align:right;font-size:11px;font-weight:800;color:#c3d3e8;transition:.15s}
+.pi-comp.go:hover .pi-go{color:#0a7cff;transform:translateX(2px)}
+.pi-drop-go{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
+.pi-drop-go button{border:1px solid rgba(10,124,255,.32);background:linear-gradient(135deg,rgba(0,198,251,.12),rgba(10,124,255,.09));
+  color:#0a4bb8;font-family:var(--ff);font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:8px;cursor:pointer;transition:.15s}
+.pi-drop-go button:hover{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);color:#fff;border-color:transparent}
 .pi-addnew{margin-left:auto;border:1px solid rgba(10,124,255,.35);background:linear-gradient(135deg,rgba(0,198,251,.12),rgba(10,124,255,.09));color:#0a4bb8;font-family:var(--ff);font-size:11px;font-weight:700;padding:5px 11px;border-radius:8px;cursor:pointer}
 .pi-addnew:hover{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);color:#fff;border-color:transparent}
 .pi-row{display:grid;grid-template-columns:26px 1fr 46px 96px;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid var(--line)}
@@ -1660,7 +1694,7 @@ body{background:
 .gc-toolbar,.gc-monthstrip{background:rgba(255,255,255,.60);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
 .gd-cells3,.gd-cells2,.gd-cells4{background:rgba(150,175,210,.28)}
 .gd-cell{background:rgba(255,255,255,.60)}
-.gd-tile,.gd-util,.gd-income,.pi-hl,.pi-hl-mini,.pr-row,.gd-stream,.mini-panel,.hl2-tile,.up2{backdrop-filter:blur(8px) saturate(1.3);-webkit-backdrop-filter:blur(8px) saturate(1.3)}
+.gd-tile,.gd-util,.gd-income,.pr-row,.gd-stream,.mini-panel,.hl2-tile,.up2{backdrop-filter:blur(8px) saturate(1.3);-webkit-backdrop-filter:blur(8px) saturate(1.3)}
 .gd-stream{background:rgba(255,255,255,.50);border:1px solid rgba(255,255,255,.7)}
 /* ---- sidebar → kaca electric-blue × turquoise, futuristik & transparan ---- */
 .side{background:
@@ -2770,10 +2804,11 @@ function codecSubFnData(){
  const watRed=(1-avgA(WATER_INT_2026)/avgA(WATER_INT_2019))*100, watAtt=Math.max(0,Math.min(100,watRed/13*100));
  const remAtt=Math.min(100,avgA(REM_PCT)/8*100);
  const wOk=WASTE_OK.reduce((a,b)=>a+b,0), wTot=WASTE_OK.reduce((a,b,i)=>a+b+WASTE_NO[i],0), wstAtt=Math.min(100,(wOk/wTot*100)/99*100);
- const gfmComp=[{n:"GRK / Emisi — ESG 2030",v:Math.round(grkAtt),type:"routine"},{n:"Water Intensity",v:Math.round(watAtt),type:"routine"},{n:"REM — Renewable/Efficiency",v:Math.round(remAtt),type:"routine"},{n:"Waste terolah",v:Math.round(wstAtt),type:"routine"}];
+ /* 'nav' = modul tempat angka ini dihitung — dipakai supaya tiap komponen bisa diklik ke sumbernya */
+ const gfmComp=[{n:"GRK / Emisi — ESG 2030",v:Math.round(grkAtt),type:"routine",nav:"energy"},{n:"Water Intensity",v:Math.round(watAtt),type:"routine",nav:"energy"},{n:"REM — Renewable/Efficiency",v:Math.round(remAtt),type:"routine",nav:"energy"},{n:"Waste terolah",v:Math.round(wstAtt),type:"routine",nav:"energy"}];
  const gfm=Math.round(avgA(gfmComp.map(c=>c.v)));
  // 2. GSM ← SERVICE: penilaian vendor per site (routine · shuttle experience)
- const gsmComp=VENDOR_PERF.map(v=>{const sc=(v.hk+v.bm)/2;return {n:v.site+" · "+vendorTier(sc).n,v:Math.round(sc/3*100),type:"routine"};});
+ const gsmComp=VENDOR_PERF.map(v=>{const sc=(v.hk+v.bm)/2;return {n:v.site+" · "+vendorTier(sc).n,v:Math.round(sc/3*100),type:"routine",nav:"service"};});
  const gsm=Math.round(avgA(gsmComp.map(c=>c.v)));
  // 3. GA Administration ← Payment Tracker · Procurement · PBB · STNK (semua routine, live)
  const rel=SO.filter(s=>s.invReleased), relOk=rel.filter(s=>!invRelEst(s)||(s.invReleaseDate&&s.invReleaseDate<=invRelEst(s))).length;
@@ -2784,15 +2819,15 @@ function codecSubFnData(){
  const pbbOk=PBB.filter(x=>x.due>=TODAY_STR).length, pbbPct=PBB.length?Math.round(pbbOk/PBB.length*100):100;
  const stnkOk=STNK.filter(x=>x.due>=TODAY_STR).length, stnkPct=STNK.length?Math.round(stnkOk/STNK.length*100):100;
  const admComp=[
-   {n:"Payment BPH on-time — Payment Tracker",v:payBPH,type:"routine"},
-   {n:"SO on-track — Procurement",v:procPct,type:"routine"},
-   {n:"Pembayaran PBB tidak lewat tempo ("+pbbOk+"/"+PBB.length+" objek)",v:pbbPct,type:"routine"},
-   {n:"STNK tidak lewat tempo ("+stnkOk+"/"+STNK.length+" kendaraan)",v:stnkPct,type:"routine"}
+   {n:"Payment BPH on-time — Payment Tracker",v:payBPH,type:"routine",nav:"payment"},
+   {n:"SO on-track — Procurement",v:procPct,type:"routine",nav:"procurement"},
+   {n:"Pembayaran PBB tidak lewat tempo ("+pbbOk+"/"+PBB.length+" objek)",v:pbbPct,type:"routine",nav:"reminder"},
+   {n:"STNK tidak lewat tempo ("+stnkOk+"/"+STNK.length+" kendaraan)",v:stnkPct,type:"routine",nav:"reminder"}
  ];
  const adm=Math.round(avgA(admComp.map(c=>c.v)));
  // 4. Project Development ← Rejuvenation + Advanced Building System + Procurement Hub
- const pdComp=codecProjects().map(p=>({n:p.n,v:p.actual,type:"nonroutine"}));
- pdComp.push({n:"Procurement Hub across Astra Group",v:CODEC_PROC_HUB.ach,type:"nonroutine"});
+ const pdComp=codecProjects().map(p=>({n:p.n,v:p.actual,type:"nonroutine",nav:"project"}));
+ pdComp.push({n:"Procurement Hub across Astra Group",v:CODEC_PROC_HUB.ach,type:"nonroutine",nav:"procurement"});
  const psd=Math.round(avgA(pdComp.map(c=>c.v)));
  /* GA-05 External Relation ← Perizinan (HSE) · Kontrak vendor · rata-rata form SLA vendor */
  const izinAll=IZIN.concat(typeof IZIN_OPS!=='undefined'?IZIN_OPS:[]);
@@ -2801,15 +2836,15 @@ function codecSubFnData(){
  const slaSet=VENDOR_CONTRACTS.filter(c=>c.sla!=null).map(c=>+c.sla);
  const slaRated=slaSet.length, slaPct=slaRated?Math.round(avgA(slaSet)/3*100):0;
  const extComp=[
-   {n:"Perizinan sudah diurus — HSE",v:izinPct,type:"routine"},
-   {n:"Kontrak vendor diperpanjang/berlaku",v:konPct,type:"routine"},
-   {n:"Rata-rata penilaian SLA vendor"+(slaRated?" ("+slaRated+"/"+VENDOR_CONTRACTS.length+" form terisi)":" — belum ada SLA Form terisi"),v:slaPct,type:"routine"}
+   {n:"Perizinan sudah diurus — HSE",v:izinPct,type:"routine",nav:"hse"},
+   {n:"Kontrak vendor diperpanjang/berlaku",v:konPct,type:"routine",nav:"vendor"},
+   {n:"Rata-rata penilaian SLA vendor"+(slaRated?" ("+slaRated+"/"+VENDOR_CONTRACTS.length+" form terisi)":" — belum ada SLA Form terisi"),v:slaPct,type:"routine",nav:"vendor"}
  ];
  /* SLA vendor belum dinilai → tampilkan gap-nya, tapi jangan seret skor GA-05 (bukan performa, tapi data belum diisi) */
  const ext=Math.round(avgA(slaRated?extComp.map(c=>c.v):[izinPct,konPct]));
  // 6. EHS (P2K3L) ← AGC · MKA · SGR — Compliance safety AIHO (routine)
  const p=HSE_P2K3L;
- const ehsComp=[{n:"AGC — Astra Green Company",v:p.agc.score,type:"routine"},{n:"MKA — Mandatory Key Action",v:p.mka.score,type:"routine"},{n:"SGR — Safety Golden Rules",v:p.sgr.score,type:"routine"}];
+ const ehsComp=[{n:"AGC — Astra Green Company",v:p.agc.score,type:"routine",nav:"hse"},{n:"MKA — Mandatory Key Action",v:p.mka.score,type:"routine",nav:"hse"},{n:"SGR — Safety Golden Rules",v:p.sgr.score,type:"routine",nav:"hse"}];
  const ehs=Math.round(avgA(ehsComp.map(c=>c.v)));
  const vals=[gfm,gsm,adm,psd,ext,ehs], comps=[gfmComp,gsmComp,admComp,pdComp,extComp,ehsComp];
  const delayed=codecProjects().filter(p=>p.actual<50).length;
@@ -2920,6 +2955,8 @@ function codecSaveKpi(){
  kpiPersist(); closeDrawer(); renderOverview();
  alert("✅ KPI \""+name+"\" ditambahkan ke Key Performance Indicator.");
 }
+/* nama modul untuk label tombol "buka sumber" */
+function modLabel(id){ var m=MENU.find(function(x){return x.id===id;}); return m?m.label:id; }
 function codecStdCode(name){ var i=CODEC_SUBFN.findIndex(function(f){return f.name===name;}); return i>=0?('GA-'+String(i+1).padStart(2,'0')):'—'; }
 function codecPiToggle(i){ var r=document.getElementById('pistd-'+i); if(r)r.classList.toggle('open'); }
 function codecPerfIndicatorHTML(){
@@ -2927,12 +2964,21 @@ function codecPerfIndicatorHTML(){
  var std=S.map(function(f,i){
    var code='GA-'+String(i+1).padStart(2,'0');
    var c=f.ach>=f.target?'var(--green)':f.ach>=f.target*0.8?'#F59E0B':'var(--red)';
-   var comps=(f.comp||[]).map(function(cc){ return '<div class="pi-comp"><span>'+esc(cc.n)+'</span><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,cc.v)+'%;background:'+c+'"></div></div><b>'+cc.v+'%</b></div>'; }).join('');
+   /* tiap komponen bisa diklik langsung ke modul tempat angkanya dihitung */
+   var comps=(f.comp||[]).map(function(cc){
+     var nv=cc.nav||f.nav;
+     return '<div class="pi-comp'+(nv?' go':'')+'"'+(nv?' onclick="event.stopPropagation();go(\''+nv+'\')" title="buka '+esc(modLabel(nv))+' — sumber angka ini"':'')+'>'+
+       '<span>'+esc(cc.n)+'</span><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,cc.v)+'%;background:'+c+'"></div></div><b>'+cc.v+'%</b>'+
+       (nv?'<span class="pi-go">→</span>':'<span class="pi-go"></span>')+'</div>';
+   }).join('');
+   var srcs=[];(f.comp||[]).forEach(function(cc){var nv=cc.nav||f.nav; if(nv&&srcs.indexOf(nv)<0)srcs.push(nv);});
+   var opens='<div class="pi-drop-go">'+srcs.map(function(nv){
+     return '<button onclick="event.stopPropagation();go(\''+nv+'\')">🔗 '+esc(modLabel(nv))+' →</button>';}).join('')+'</div>';
    return '<div class="pi-row pi-std" id="pistd-'+i+'">'+
      '<div class="pi-code2">'+code+'</div>'+
-     '<div class="pi-main"><div class="pi-name" onclick="codecPiToggle('+i+')" title="klik untuk lihat aktivitas / dari mana angka ini">'+esc(f.name)+' <span class="pi-chev">▾</span></div>'+
+     '<div class="pi-main"><div class="pi-name" onclick="codecPiToggle('+i+')" title="klik untuk lihat dari mana angka ini dihitung">'+esc(f.name)+' <span class="pi-chev">▾</span></div>'+
        '<div class="pi-bar"><div class="inv-bar"><div class="fill '+(f.st==='ok'?'':'flow')+'" style="width:'+Math.min(100,f.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,f.target)+'%"></div></div></div>'+
-       '<div class="pi-drop"><div class="pi-drop-h">Aktivitas — dari mana angka '+f.ach+'% ini:</div>'+comps+(f.note?'<div class="pi-drop-n">📡 '+esc(f.note)+'</div>':'')+'</div></div>'+
+       '<div class="pi-drop"><div class="pi-drop-h">Dari mana angka '+f.ach+'% ini — klik tiap baris untuk buka sumbernya:</div>'+comps+(f.note?'<div class="pi-drop-n">📡 '+esc(f.note)+'</div>':'')+opens+'</div></div>'+
      '<div class="pi-val" style="color:'+c+'">'+f.ach+'%</div>'+
    '</div>';
  }).join('');
@@ -2962,32 +3008,32 @@ function codecPerfIndicatorHTML(){
    '</div>'+
    '<div class="gd-kpop" id="gdKpiPop"></div></div>';
 }
-/* Box highlight kiri — rata-rata 6 indikator standar saja */
+/* Warna neon di atas latar dark blue — hijau/amber/merah versi menyala */
+function hlNeon(v){ return v>=90?'#2ff5b0':v>=75?'#ffc44d':'#ff6b8a'; }
+/* Box highlight kiri — rata-rata 6 indikator standar saja (tanpa keterangan tambahan) */
 function codecHlStd(S){
  var avg=Math.round(S.reduce(function(a,x){return a+x.ach;},0)/(S.length||1));
- var ok=S.filter(function(x){return x.ach>=x.target;}).length;
- var c=avg>=90?'var(--green)':avg>=75?'#F59E0B':'var(--red)';
+ var c=hlNeon(avg);
  return '<div class="pi-hl pi-hl-std" onclick="codecKpiPop(\'total\')" title="klik untuk lihat dari data apa">'+
    '<div class="pi-hl-cap">Rata-rata Standard Performance</div>'+
-   '<div class="pi-hl-row"><div class="pi-hl-v" style="color:'+c+'">'+avg+'<small>%</small></div>'+
-     '<div class="pi-hl-meta">dari '+S.length+' indikator baku<br><b>'+ok+'/'+S.length+'</b> capai target</div></div>'+
+   '<div class="pi-hl-row"><div class="pi-hl-v" style="color:'+c+'">'+avg+'<small>%</small></div></div>'+
    '<div class="pi-hl-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,avg)+'%;background:'+c+'"></div></div></div>'+
  '</div>';
 }
 /* Box highlight kanan — % total pencapaian KPI + box kecil routine / non-routine */
 function codecHlKey(T){
- var c=T.final>=90?'var(--green)':T.final>=75?'#F59E0B':'var(--red)';
+ var c=hlNeon(T.final);
  var mini=function(k,lbl,sym,col){
    return '<div class="pi-hl-mini" title="'+k.n+' KPI · bobot '+k.w+'%">'+
-     '<div class="pi-hl-mn" style="color:'+(k.n?col:'#9aa7b8')+'">'+(k.n?k.pct+'%':'—')+'</div>'+
+     '<div class="pi-hl-mn" style="color:'+(k.n?col:'#6f86ad')+'">'+(k.n?k.pct+'%':'—')+'</div>'+
      '<div class="pi-hl-ml">'+sym+' '+lbl+'<span>'+k.n+' KPI</span></div></div>';
  };
  return '<div class="pi-hl pi-hl-key">'+
    '<div class="pi-hl-cap">Total Pencapaian KPI '+KPI_YEAR_META.year+'</div>'+
    '<div class="pi-hl-row"><div class="pi-hl-v" style="color:'+c+'">'+T.final+'<small>%</small></div>'+
-     '<div class="pi-hl-meta">tertimbang '+T.wsum+'% bobot<br><b>'+T.ok+'/'+T.tot+'</b> capai target'+(T.risk?' · <b style="color:var(--red)">'+T.risk+'</b> at risk':'')+'</div></div>'+
+     '<div class="pi-hl-meta">tertimbang '+T.wsum+'% bobot<br><b>'+T.ok+'/'+T.tot+'</b> capai target'+(T.risk?' · <b style="color:#ff6b8a">'+T.risk+'</b> at risk':'')+'</div></div>'+
    '<div class="pi-hl-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,T.final)+'%;background:'+c+'"></div></div></div>'+
-   '<div class="pi-hl-minis">'+mini(T.rout,'Routine','●','var(--green)')+mini(T.nonr,'Non-Routine','◆','#7C3AED')+'</div>'+
+   '<div class="pi-hl-minis">'+mini(T.rout,'Routine','●','#3ef0b4')+mini(T.nonr,'Non-Routine','◆','#a98bff')+'</div>'+
  '</div>';
 }
 function kpiClaTotal(){
@@ -3383,9 +3429,9 @@ function renderOverview(){
  /* ====== CODEC v3 — layout ref: ga-dashboard.html (light, nav sticky, jam live) ====== */
  const S=codecSubFnData();
  const R=gaServiceRating();
- const tkTot=TICKETS.length, tkUn=TICKETS.filter(t=>t.stg===0).length, tkAsg=TICKETS.filter(t=>t.stg===1).length, tkIp=TICKETS.filter(t=>t.stg===2).length, tkFu=TICKETS.filter(t=>t.toProc).length, tkRes=TICKETS.filter(t=>t.stg===3).length;
+ const tkTot=TICKETS.length, tkUn=TICKETS.filter(t=>t.stg===0).length, tkAsg=TICKETS.filter(t=>t.stg===1).length, tkIp=TICKETS.filter(t=>t.stg===2).length, tkRes=TICKETS.filter(t=>t.stg===3).length;
  const soTot=SO.length, soUpr=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=2).length, soSpk=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=3).length, soBast=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=4).length;
- const pipeN=SO.filter(s=>s.invReceived&&!s.invReleased).length, relN=SO.filter(s=>s.invReleased).length;
+ const pipeN=SO.filter(s=>s.invReceived&&!s.invReleased).length;
  const eAvg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, eAvg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length, eRed=Math.round((1-eAvg26/eAvg19)*1000)/10;
  const dueD=x=>Math.floor((new Date(x)-new Date(TODAY_STR))/86400000);
  const stnkO=STNK.filter(v=>dueD(v.due)<0).length, stnk30=STNK.filter(v=>{const d=dueD(v.due);return d>=0&&d<=30;}).length, stnkOK=STNK.length-stnkO-stnk30;
@@ -3440,13 +3486,6 @@ function renderOverview(){
 
   <div class="gd-sec" id="gd-kpi"><i></i>Performance Indikator</div>
   ${codecPerfIndicatorHTML()}
-  <div class="card mt16"><div class="gd-ch"><span class="gd-chi">📅</span><div><div class="gd-cht">Progress Bulanan</div><div class="gd-chs">Update otomatis dari modul AGAVA</div></div></div>
-    <div class="gd-cells4">
-      <div class="gd-cell gd-clickcard" onclick="go('project')" title="klik → Project Development"><div class="gd-cv2" style="color:#7C3AED">${pjAct}%</div><span class="badge" style="background:#EDE9FE;color:#7C3AED">${PJL.length} project</span><div class="gd-cl2">Project Development</div><div class="gd-cl3">${PJ_TIMELINE?'live dari timeline · plan '+pjPlan+'%':'Rejuvenation + Advanced Building System'}</div></div>
-      <div class="gd-cell"><div class="gd-cv2" style="color:#2563EB">${tkRes} <small>dari ${tkTot}</small></div><div class="gd-cl2">Tiket Selesai</div><div class="gd-cl3">+${tkFu} lanjut ke procurement</div></div>
-      <div class="gd-cell"><div class="gd-cv2" style="color:#8B5CF6">${pipeN}</div><span class="badge" style="background:#EDE9FE;color:#8B5CF6">pipeline aktif</span><div class="gd-cl2">Payment Progress</div><div class="gd-cl3">${relN} released · dari Payment Tracker</div></div>
-      <div class="gd-cell"><div class="gd-cv2" style="color:var(--green)">−${eRed}%</div><div class="gd-cl2">Konsumsi Energi</div><div class="gd-cl3">vs baseline 2019 · ${ENERGY_MONTHS[ENERGY_MONTHS.length-1]} 2026</div></div>
-    </div></div>
   <div class="card mt16 gd-ratcard" onclick="go('service')" title="klik → buka modul Service">
     <div class="gd-ch"><span class="gd-chi">⭐</span><div><div class="gd-cht">Rating Pelayanan GA — ${codecMonthID()}</div><div class="gd-chs">rata-rata rating resolved ticket · sinkron dari modul Service · klik → buka Service</div></div><span class="gd-rgo">buka Service →</span></div>
     <div class="gd-rating">
@@ -6713,7 +6752,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-15";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-16";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
