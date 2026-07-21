@@ -621,6 +621,8 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 /* Services = mode pantau */
 .tk-monitor{font-size:11.5px;color:#0a4bb8;background:linear-gradient(135deg,#eef5ff,#f8fbff);border:1px solid #cfe0f8;border-radius:10px;padding:10px 12px;line-height:1.55}
 .svc-aging{font-size:10px;font-weight:700;margin-top:3px;line-height:1.25}
+.svc-req{font-size:11px;color:var(--muted);margin-top:3px}
+.svc-req b{color:var(--ink);font-weight:700}
 .mt-sla-i{background:#f6f9fd;border:1px solid var(--line);border-radius:9px;padding:8px 10px}
 .mt-sla-i.breach{background:#fdecec;border-color:#f4c6c6}
 .mt-sla-i span{font-size:9.5px;color:var(--muted);display:block}
@@ -5106,9 +5108,29 @@ const TSTAGES=["Submitted","Assigned","In Progress","Resolved"];
 function svcPip(s){ return s==="Resolved"?"#15a34a":s==="In Progress"?"#2563eb":s==="Assigned"?"#c2740a":"#9aa7b8"; }
 function svcBadge(s){ const m={"Submitted":"bd-neu","Assigned":"bd-warn","In Progress":"bd-info","Resolved":"bd-ok"}; return `<span class="badge ${m[s]||'bd-neu'}">${s}</span>`; }
 /* normalisasi tiket ke model 4-step: status lama "To Procurement" → In Progress (stg 2) + flag toProc; Resolved lama (stg 4) → stg 3 */
-function normalizeTickets(){ TICKETS.forEach(t=>{
+/* Pemohon tiket SELALU diambil dari akun AGAVA — bukan nama ketikan.
+   Tiket seed lama tidak punya field requester, jadi dipetakan ke akun nyata
+   agar nama pemohon selalu tampil dan gerbang rating bisa menemukan orangnya. */
+const TICKET_REQ_SEED=["mujibur@ai.astra.co.id","muhamad.zhaenuri@ai.astra.co.id","maria.paulina@ai.astra.co.id",
+ "alma.tasyafiandara@ai.astra.co.id","stevano.wicaksana@ai.astra.co.id","sugianto@ai.astra.co.id","dedi@ai.astra.co.id"];
+function ticketReqName(t){
+ if(!t)return "—";
+ if(t.requester)return t.requester;
+ var u=t.email?USERS.find(function(x){return x.email===t.email;}):null;
+ return u?u.name:"—";
+}
+function normalizeTickets(){ TICKETS.forEach((t,i)=>{
   if(!t.slaMs){ t.slaMs={}; if(t.created){ t.slaMs.created=new Date(t.created+'T09:00:00').getTime(); if((t.stg||0)>=1)t.slaMs.pickup=new Date(t.created+'T09:30:00').getTime(); if((t.stg||0)>=3)t.slaMs.resolved=new Date((t.closed||t.created)+'T12:00:00').getTime(); } }
   if(!t.prio&&!t.priority)t.prio=t.esc?'High':'Medium';
+  /* lengkapi pemohon dari akun bila belum ada; kalau ada nama tapi tak ada email,
+     cocokkan ke akun supaya identitasnya tetap satu sumber */
+  if(!t.requester&&!t.email){
+    var acc=USERS.find(function(x){return x.email===TICKET_REQ_SEED[i%TICKET_REQ_SEED.length];});
+    if(acc){ t.requester=acc.name; t.email=acc.email; }
+  } else if(t.requester&&!t.email){
+    var m=USERS.find(function(x){return x.name===t.requester;});
+    if(m)t.email=m.email;
+  }
   if(t._norm4)return;
   if(t.status==="To Procurement"||t.stg===3){ t.status="In Progress"; t.stg=2; t.toProc=true; }
   else if(t.stg>=4){ t.stg=3; t.status="Resolved"; }
@@ -5142,10 +5164,11 @@ function ticketRow(t){
  return `<div class="svc-row" onclick="openTicket('${t.no}')" style="cursor:pointer">
    <span class="svc-pip" style="background:${svcPip(t.status)}"></span>
    <div><div class="svc-no">${t.no}${t.esc?` <span class="badge bd-crit">Escalated${t.escBy?' · '+t.escBy:''}</span>`:''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${foNormCat(t.cat)} · ${t.lokasi} · ${sla.pr}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div>
+     <div class="svc-req">🙋 Pemohon: <b>${esc(ticketReqName(t))}</b></div>
      <div class="svc-m2">${t.pic?`<span><span class="avt">${ini(t.pic)}</span> <b>${t.pic}</b></span>`:'<span>Belum ada PIC</span>'}<span class="m2-sep">·</span><span>⏱ <b class="${sla.respBreach?'m2-br':''}">${fmtDur(sla.respMin)}</b> / <b class="${sla.resBreach?'m2-br':''}">${fmtDur(sla.resMin)}</b></span>${sla.breach?'<span class="m2-br">⚠ SLA breach</span>':''}</div>${svcProofStrip(t)}</div>
    <div class="svc-resp"><div class="svc-lbl">Response · Resolution</div><b style="${sla.respBreach?'color:var(--red)':''}">${fmtDur(sla.respMin)}</b> <span class="muted">·</span> <b style="${sla.resBreach?'color:var(--red)':''}">${fmtDur(sla.resMin)}</b>${sla.breach?'<div class="svc-breach">⚠ SLA breach</div>':''}</div>
    <div class="svc-pic">${t.pic?`<span class="avt">${ini(t.pic)}</span>${t.pic}`:'<span class="muted small">Unassigned</span>'}</div>
-   <div>${svcBadge(t.status)}<div class="svc-aging" style="color:${ticketAging(t).c}">${esc(ticketAging(t).t)}</div>${(t.status==="Resolved"&&!t.rating)?`<button class="btn-out" style="margin-top:6px;padding:4px 9px;font-size:11px" onclick="event.stopPropagation();openRate('${t.no}')">★ Rate</button>`:(t.rating?`<div class="small" style="margin-top:4px;color:#f5a623;white-space:nowrap">${'★'.repeat(Math.round(t.rating))}${'☆'.repeat(5-Math.round(t.rating))}</div>`:'')}</div>
+   <div>${svcBadge(t.status)}<div class="svc-aging" style="color:${ticketAging(t).c}">${esc(ticketAging(t).t)}</div>${(t.status==="Resolved"&&!t.rating)?`<button class="btn-out" style="margin-top:6px;padding:4px 9px;font-size:11px" onclick="event.stopPropagation();rateGateOpen('${t.no}')">★ Rate</button>`:(t.rating?`<div class="small" style="margin-top:4px;color:#f5a623;white-space:nowrap">${'★'.repeat(Math.round(t.rating))}${'☆'.repeat(5-Math.round(t.rating))}</div>`:'')}</div>
  </div>`;
 }
 function svcRating(){
@@ -5193,6 +5216,7 @@ function openTicket(no){
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div class="sono" style="font-size:15px">${t.no}${t.esc?' <span class="badge bd-crit">Escalated</span>':''}</div><div style="font-size:14.5px;color:var(--ink);font-weight:700;margin-top:5px">${t.judul}</div><div class="muted small" style="margin-top:3px">${t.cat} · ${t.lokasi} · ${t.team} · PIC ${t.pic||'—'}</div></div>
   <div class="db">
     <div class="kv">
+      <span class="k">Pemohon</span><span class="v"><span class="avt">${ini(ticketReqName(t))}</span> ${esc(ticketReqName(t))}${t.email?`<div class="muted small" style="font-weight:400">${esc(t.email)}</div>`:''}</span>
       <span class="k">Aging</span><span class="v" style="color:${ag.c}">${esc(ag.t)}</span>
       <span class="k">Response time</span><span class="v">${fmtDur(sla.respMin)} <span class="muted small" style="font-weight:400">· maks ${SLA_PICK_MAX} mnt${sla.respBreach?' · ⚠ breach':''}</span></span>
       <span class="k">Ambil → mulai</span><span class="v">${fmtDur(sla.startMin)} <span class="muted small" style="font-weight:400">· maks ${SLA_START_MAX} mnt${sla.startBreach?' · ⚠ breach':''}</span></span>
@@ -5705,6 +5729,23 @@ function renderService(){
   </div>`;
 }
 let ticketSeq=143;
+/* Nomor tiket harus UNIK. Dulu urutannya dipatok di kode, jadi tiket baru bisa
+   bentrok dengan nomor yang sudah ada di Firestore — dua tiket bernomor sama
+   membuat pencarian tiket menunjuk ke objek yang salah. Sekarang nomor diturunkan
+   dari nomor tertinggi yang benar-benar ada, lalu dipastikan belum terpakai. */
+function nextTicketNo(){
+ var pre="GA-"+String(TODAY_STR).slice(0,7).replace("-","")+"-";
+ var max=0;
+ TICKETS.forEach(function(t){
+   var m=String(t.no||"").match(/^GA-\d{6}-(\d+)$/);
+   if(m)max=Math.max(max,+m[1]);
+ });
+ var n=Math.max(max,ticketSeq)+1, no;
+ do{ no=pre+String(n).padStart(4,"0"); n++; }
+ while(TICKETS.some(function(t){return t.no===no;}));
+ ticketSeq=n-1;
+ return no;
+}
 function soSeq(){ const nums=SO.map(s=>parseInt((String(s.no).match(/(\d+)$/)||["0"])[0],10)).filter(n=>!isNaN(n)); return "SO-202606-"+String(Math.max(0,...nums)+1).padStart(4,"0"); }
 
 /* Room & Event (Service module) — usage schedule fed from Excel ("Rooms" sheet) via Connect */
@@ -5768,7 +5809,7 @@ async function submitTicket(){
  // Payload key = schema yang harus didaftarkan di trigger "When an HTTP request is received".
  const res=await triggerFlow("createTicket",{title, cat, priority:prio, lokasi:loc, description:desc, requester:req, requesterEmail:reqEmail, created:TODAY_STR})||{};
  if(res.ok===false){ alert("⚠️ Flow 'Create Ticket' gagal dipanggil ("+(res.error||('HTTP '+(res.httpStatus||'?')))+").\nTiket tetap dibuat lokal di AGAVA.\nCek URL/CORS flow di Vendor Management → Power Automate Bridge."); }
- const no=res.ticketNo||("GA-202606-"+String(++ticketSeq).padStart(4,"0"));
+ const no=res.ticketNo||nextTicketNo();
  TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,email:reqEmail,prio:prio,desc:desc,ts:{0:nowStamp()},slaMs:{created:nowMs()}});
  dbSaveTicket(TICKETS[0]);
  notifySound();   // tiket baru masuk ke inbox layanan / tim lapangan
@@ -6877,7 +6918,7 @@ async function cpConfirmTicket(){
  cpPush('bot','⏳ Membuat tiket… <span class="muted small">(payload sama dgn form → flow Power Automate → database)</span>');
  let res={};
  try{ res=await triggerFlow("createTicket",{title:d.title,cat:d.cat,priority:d.prio,lokasi:d.loc,description:d.desc,requester:(gUser?gUser.name:""),requesterEmail:(gUser&&gUser.email)||"",created:TODAY_STR})||{}; }catch(e){}
- const no=res.ticketNo||("GA-202606-"+String(++ticketSeq).padStart(4,"0"));
+ const no=res.ticketNo||nextTicketNo();
  TICKETS.unshift({no,judul:d.title,team:"BM",cat:d.cat,lokasi:d.loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:(gUser?gUser.name:""),ts:{0:nowStamp()}});
  try{ dbSaveTicket(TICKETS[0]); }catch(e){}
  try{ renderService(); renderOverview(); updateBell(); }catch(e){}
@@ -7217,7 +7258,7 @@ async function testFlow(name){
   else { alert("✅ Flow "+name+" merespons:\n"+JSON.stringify(res).slice(0,400)); }
 }
 function simulateFlow(name,payload){
-  if(name==="createTicket") return { ticketNo:"GA-202606-"+String(++ticketSeq).padStart(4,"0"), status:"Submitted", stg:0 };
+  if(name==="createTicket") return { ticketNo:nextTicketNo(), status:"Submitted", stg:0 };
   if(name==="createSO")     return { no: soSeq(), status:"Submitted" };
   return { ok:true };
 }
@@ -7461,20 +7502,31 @@ function saveRate(no){
    bintang. Muncul untuk PEMOHON tiket begitu operator menyelesaikan pekerjaan.
    ══════════════════════════════════════════════════════════════════════════ */
 let RATE_GATE=null;
-/* tiket milik user yg login, sudah selesai + ada bukti, tapi belum dirating */
+/* Tiket milik user yang login, sudah diselesaikan operator, tapi belum dirating.
+   Cocokkan lewat EMAIL akun dulu (unik), baru nama — supaya tidak meleset karena
+   beda ejaan. needRate ditandai saat operator menutup tiket; tiket lama yang sudah
+   ditutup dengan foto bukti tapi belum dirating juga ikut diminta rating. */
 function rateGatePending(){
- var me=(gUser&&gUser.name)||"", mail=(gUser&&gUser.email)||"";
+ var me=((gUser&&gUser.name)||"").trim().toLowerCase();
+ var mail=((gUser&&gUser.email)||"").trim().toLowerCase();
  if(!me&&!mail)return [];
  return TICKETS.filter(function(t){
    if((t.stg||0)<3 || t.rating) return false;
-   if(!t.needRate) return false;
-   return (t.requester&&t.requester===me) || (t.email&&mail&&t.email===mail);
+   if(!t.needRate && !(t.proof&&t.proof.length)) return false;
+   var tm=String(t.email||"").trim().toLowerCase();
+   if(tm&&mail) return tm===mail;
+   return me && String(t.requester||"").trim().toLowerCase()===me;
  });
 }
 function rateGateCheck(){
  if(RATE_GATE) return;                 // sudah tampil
  var list=rateGatePending();
  if(list.length) rateGateShow(list[0]);
+}
+/* buka gerbang rating untuk satu tiket tertentu (tombol ★ Rate di daftar) */
+function rateGateOpen(no){
+ var t=TICKETS.find(function(x){return x.no===no;});
+ if(t && !t.rating && (t.stg||0)>=3) rateGateShow(t);
 }
 function rateGateShow(t){
  RATE_GATE=t.no;
@@ -8018,7 +8070,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-30";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-32";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -8044,7 +8096,9 @@ function dbInit(){
       else if(i>=0){ Object.assign(TICKETS[i],d); syncTicketStage(TICKETS[i],d); changed=true; }
       else { TICKETS.unshift(d); syncTicketStage(d,null); changed=true; if(AGDB.ticketsInit) arrivals.push(d); }
     });
-    if(changed){ renderService(); renderFieldOps(); renderMyTickets(); renderOverview(); renderBuilding(); updateBell();
+    if(changed){
+      normalizeTickets();   // tiket dari perangkat lain ikut dilengkapi pemohon & SLA
+      renderService(); renderFieldOps(); renderMyTickets(); renderOverview(); renderBuilding(); updateBell();
       try{ rateGateCheck(); }catch(e){}   // tiket saya baru diselesaikan operator → minta rating
     }
     /* Tiket baru dari perangkat lain → sound + push notif di tray HP.
