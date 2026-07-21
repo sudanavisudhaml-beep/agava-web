@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<!-- viewport-fit=cover + maximum-scale bebas → Android/iOS sama-sama pas & tetap bisa dizoom -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>AGAVA · Astra General Affairs Virtual Assistant</title>
 <!-- Favicon: simbol "A" AGAVA (chevron) di kepingan kaca gradasi electric→turquoise -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23d9f5fd'/%3E%3Cstop offset='1' stop-color='%23a7e0f5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M15 45 L32 19 L49 45' fill='none' stroke='%230a7cff' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"/>
@@ -259,6 +260,24 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 @keyframes lgPulse{0%,100%{opacity:.4;transform:scale(.88)}50%{opacity:.85;transform:scale(1.1)}}
 /* --- right form --- */
 .login-form{padding:36px 36px 28px;display:flex;flex-direction:column;overflow-y:auto;background:rgba(255,255,255,.34)}
+/* Quick access akun demo — untuk UAT & review (dilipat, klik judul untuk buka) */
+.lf-quick{margin-top:12px;border:1px solid rgba(10,124,255,.26);border-radius:12px;background:rgba(255,255,255,.55);overflow:hidden}
+.lf-quick-h{display:flex;align-items:center;gap:8px;padding:10px 13px;cursor:pointer;user-select:none}
+.lf-quick-h b{font-size:12.5px;color:#0a4bb8}
+.lf-quick-h span{font-size:10.5px;color:var(--muted);margin-left:auto}
+.lf-quick-h i{font-style:normal;color:#0a7cff;font-size:12px;transition:transform .2s}
+.lf-quick.open .lf-quick-h i{transform:rotate(180deg)}
+.lf-quick-b{max-height:0;overflow:hidden;transition:max-height .28s ease}
+.lf-quick.open .lf-quick-b{max-height:520px;overflow-y:auto;padding:0 11px 11px}
+.lf-qg{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#7d8ca3;margin:9px 0 5px}
+.lf-qrow{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lf-qrow button{display:flex;align-items:center;gap:8px;text-align:left;padding:7px 9px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer;font-family:var(--ff);transition:.15s;min-width:0}
+.lf-qrow button:hover{border-color:var(--blue);background:#f2f8ff;box-shadow:0 3px 10px rgba(10,124,255,.13)}
+.lf-qav{flex:0 0 26px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:9.5px;font-weight:800;color:#0a4bb8;background:linear-gradient(135deg,#d9f0ff,#bfe2ff)}
+.lf-qn{min-width:0;line-height:1.25}
+.lf-qn b{display:block;font-size:11px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lf-qn small{display:block;font-size:9px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:820px){.lf-qrow{grid-template-columns:1fr}.lf-quick.open .lf-quick-b{max-height:340px}}
 .lf-head h3{font-size:22px;font-weight:800;color:var(--ink);margin:0 0 4px;letter-spacing:-.01em}
 .lf-head p{font-size:12px;color:var(--muted);margin:0 0 20px}
 .lf-lab{font-size:10.5px;font-weight:700;letter-spacing:.12em;color:#6b7f9e;margin:0 0 6px;display:block}
@@ -619,8 +638,11 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .sodoc-bar .sodoc-btn:last-child{margin-left:auto}
 .sodoc-btn{border:none;border-radius:10px;padding:10px 16px;font-family:var(--ff);font-size:13px;font-weight:700;cursor:pointer;color:#fff;background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);box-shadow:0 6px 16px rgba(10,124,255,.3)}
 .sodoc-btn.ghost{background:#fff;color:var(--muted);border:1px solid var(--line);box-shadow:none}
-.sodoc-scroll{flex:1;overflow:auto;padding:24px;display:flex;justify-content:center;align-items:flex-start}
-.sodoc-page{background:#fff;width:820px;max-width:100%;padding:48px 56px 40px;color:#111;font-family:Arial,Helvetica,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.4);font-size:13px;line-height:1.5}
+.sodoc-scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:24px;display:flex;justify-content:center;align-items:flex-start}
+.sodoc-hold{position:relative}
+/* Dokumen SELALU dirender pada lebar asli 820px lalu DISKALAKAN proporsional agar utuh
+   di layar HP (dulu di-squash max-width:100% sehingga tabel & kolom kanan terpotong). */
+.sodoc-page{background:#fff;width:820px;padding:48px 56px 40px;color:#111;font-family:Arial,Helvetica,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.4);font-size:13px;line-height:1.5;transform-origin:top left}
 .sod-hd{display:grid;grid-template-columns:1fr auto 58px;align-items:start;gap:10px}
 .sod-company{font-weight:700;font-size:13px}
 .sod-titlewrap{text-align:center;padding-top:2px}
@@ -1231,12 +1253,12 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .work-row .tj{font-size:13px;color:var(--ink);font-weight:500}
 .work-row .tm{font-size:11px;color:var(--muted);margin-top:1px}
 .bu-alert-note,.vp-note{font-size:11px;color:#9aa7b8;font-style:italic;margin-bottom:10px}
-.vtier{display:inline-block;margin-top:6px;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:12px}
+.vtier{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:12px;white-space:nowrap;flex:0 0 auto}
 .vt-silver{background:#eef1f6;color:#64748b}.vt-gold{background:#fdf3e3;color:#c2740a}.vt-plat{background:#ede9fe;color:#7a4fd0}
 /* SharePoint-style vendor cards */
 .sp-card{background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden;box-shadow:0 1px 4px rgba(16,32,54,.07)}
 .sp-head{min-height:54px;display:flex;align-items:center;gap:11px;padding:10px 12px;position:relative}
-.sp-htitle{color:#fff;font-size:12.5px;font-weight:700;line-height:1.25}
+.sp-htitle{color:#fff;font-size:12px;font-weight:700;line-height:1.3;min-width:0;overflow-wrap:anywhere}
 .sp-tile{width:40px;height:40px;flex:0 0 40px;border-radius:4px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12.5px;background:rgba(0,0,0,.22)}
 .logo-mini svg{width:28px;height:28px}
 .sp-star{position:absolute;right:12px;top:9px;color:#fff;opacity:.9;font-size:15px}
@@ -1244,10 +1266,13 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .sp-title{font-size:14px;font-weight:700;color:var(--ink)}
 .sp-sub{font-size:11.5px;color:var(--muted);margin-bottom:10px}
 .sp-name{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.35;margin-bottom:10px}
-.sp-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px}
+/* baris skor: teks fleksibel, angka & badge tier tidak boleh terpotong (dulu badge "Platinum" kepotong) */
+.sp-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line);font-size:12.5px;min-width:0}
 .sp-row:first-of-type{border-top:none}
+.sp-row b{flex:0 0 auto;margin-left:auto}
+.sp-row .vtier{margin-left:0}
 .sp-row .sp-ic{width:24px;height:24px;border-radius:50%;background:#eef1f6;display:grid;place-items:center;font-size:12px;flex:0 0 24px}
-.sp-row .sp-rtext{flex:1;color:var(--muted)}
+.sp-row .sp-rtext{flex:1 1 92px;min-width:0;color:var(--muted);line-height:1.3}
 .sp-row b{color:var(--ink);font-size:13.5px}
 /* ESG scorecard table */
 .esg-tbl{width:100%;border-collapse:collapse;font-size:11px;min-width:800px}
@@ -1959,6 +1984,29 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
   .kd-param{font-size:9px}
   [style*="grid-template-columns:repeat(4"]{grid-template-columns:1fr 1fr!important}
   [style*="grid-template-columns:repeat(5"]{grid-template-columns:1fr 1fr!important}
+  /* kartu vendor di layar sempit: skor & tier turun ke baris sendiri agar tak berdesakan */
+  .sp-body{padding:10px 12px 12px}
+  .sp-row{gap:6px}
+  .sp-row .sp-rtext{flex:1 1 100%}
+  .sp-row b{margin-left:0}
+}
+/* ── ANDROID/HP: pastikan seluruh aplikasi benar-benar fit, tak ada yang terpotong ── */
+html,body{max-width:100%;overflow-x:hidden}
+body{overscroll-behavior-y:contain}
+/* aman dari notch / gesture bar (Android & iOS) */
+.side{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+@media (max-width:820px){
+  .top{padding-top:calc(9px + env(safe-area-inset-top))}
+  .wrap{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  #dbPill{bottom:calc(7px + env(safe-area-inset-bottom))}
+  /* Dokumen SO: bar tetap muat, halaman diskalakan (lihat soDocFit) */
+  .sodoc-bar{padding:calc(9px + env(safe-area-inset-top)) 12px 9px;gap:8px;flex-wrap:nowrap}
+  .sodoc-btn{padding:9px 12px;font-size:12px;white-space:nowrap;flex:0 0 auto}
+  .sodoc-bar>div,.sodoc-bar>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+  .sodoc-scroll{padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom));display:block}
+  /* input ≥16px supaya Android/iOS tidak auto-zoom saat fokus (bikin layout "lompat") */
+  input,select,textarea{font-size:16px!important}
+  .pik-num,.pik-ytd input{font-size:16px!important}
 }
 </style>
 </head>
@@ -1990,6 +2038,8 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
       <button class="login-btn" onclick="doLogin()">&rarr; Masuk ke AGAVA</button>
       <div id="loginMsg" class="login-msg"></div>
       <div class="lf-hint2">Masukkan email akun &amp; password untuk masuk.<br><span>Demo: password semua akun = <b>123456</b></span></div>
+      <!-- Quick access akun demo — untuk UAT & review. Dinonaktifkan saat go-live. -->
+      <div class="lf-quick" id="lfQuick"></div>
       <div class="lf-foot"><b>&copy; 2026 &middot; System Development &middot; GA Departemen</b><br>PT. Astra International Tbk</div>
     </div>
   </div>
@@ -2068,7 +2118,7 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
     <div class="sodoc-title">Dokumen Supply Order</div>
     <button class="sodoc-btn" id="soDocSaveBtn" onclick="soDocSave()">💾 Simpan PDF</button>
   </div>
-  <div class="sodoc-scroll"><div class="sodoc-page" id="soDocPage"></div></div>
+  <div class="sodoc-scroll"><div class="sodoc-hold" id="soDocHold"><div class="sodoc-page" id="soDocPage"></div></div></div>
 </div>
 
 <!-- Sound notifikasi — flow masuk ke Approval / Assigned SO -->
@@ -2171,6 +2221,35 @@ const USERS=[
 ];
 function buildLoginAccounts(){ const el=document.getElementById("loginAccounts"); if(!el)return; el.innerHTML=USERS.map(u=>{ const r=ROLES[u.role]; const t=r.tier==="*"?"All access":(r.tier||""); return `<button onclick="loginAs('${u.email}')"><span class="la-ava">${ini(u.name)}</span><span class="la-main"><b>${u.name}</b><small>${u.email}</small></span><span class="la-right"><span class="la-role">${roleTitle(u)}</span>${t?`<span class="la-tier">${t}</span>`:''}</span></button>`; }).join(""); }
 function loginAs(email){ const u=USERS.find(x=>x.email===email); if(u)applyLogin(u); }
+/* ── QUICK ACCESS akun demo (UAT & review) — isi email+password lalu langsung masuk.
+   Dikelompokkan: kelompok Super · pengguna · operator Field Ops per kategori. ── */
+function buildLoginQuick(){
+ const el=document.getElementById("lfQuick"); if(!el)return;
+ const pick=function(role){ return USERS.filter(function(u){return u.role===role;}); };
+ const grup=[
+   {t:"Kelompok Super", u:[].concat(pick("admin"),pick("section"),pick("dept"),pick("chief"),pick("proc"),pick("budget"))},
+   {t:"Pengguna & Staff", u:[].concat(pick("general"),pick("staff"),pick("analyst"),pick("finance"),pick("division"))},
+   {t:"Field Ops (operator per kategori)", u:[].concat(pick("fieldsup"),pick("fieldops"))}
+ ];
+ el.innerHTML='<div class="lf-quick-h" onclick="document.getElementById(\'lfQuick\').classList.toggle(\'open\')">'+
+   '<b>⚡ Quick Access Akun Demo</b><span>'+USERS.length+' akun · untuk UAT &amp; review</span><i>▾</i></div>'+
+   '<div class="lf-quick-b">'+grup.map(function(g){
+     if(!g.u.length)return'';
+     return '<div class="lf-qg">'+esc(g.t)+'</div><div class="lf-qrow">'+g.u.map(function(u){
+       return '<button type="button" onclick="quickLogin(\''+u.email+'\')" title="'+esc(u.email)+'">'+
+         '<span class="lf-qav">'+ini(u.name)+'</span><span class="lf-qn"><b>'+esc(u.name)+'</b>'+
+         '<small>'+esc(roleTitle(u))+(u.cat?' · '+esc(u.cat):'')+'</small></span></button>';
+     }).join('')+'</div>';
+   }).join('')+'</div>';
+}
+/* isi form dulu supaya user melihat kredensialnya, baru masuk */
+function quickLogin(email){
+ const u=USERS.find(function(x){return x.email===email;}); if(!u)return;
+ const e=document.getElementById("loginEmail"), p=document.getElementById("loginPass");
+ if(e)e.value=u.email; if(p)p.value=AGAVA_DEMO_PW;
+ const m=document.getElementById("loginMsg"); if(m)m.textContent="";
+ applyLogin(u);
+}
 function loginTogglePass(){ const i=document.getElementById("loginPass"); if(i)i.type=(i.type==="password")?"text":"password"; }
 const AGAVA_DEMO_PW="123456";   // password demo untuk semua akun (sementara — nanti diganti per-akun)
 function doLogin(){
@@ -2270,11 +2349,10 @@ function vendorCard(v){
  const hk=(hkS!=null)?hkS:v.hk, bm=(bmS!=null)?bmS:v.bm;
  const th=vendorTier(hk), tb=vendorTier(bm);
  return `<div class="sp-card">
-   <div class="sp-head" style="background:var(--blue)"><div class="sp-tile">${v.site}</div><div class="sp-htitle">${v.site}</div></div>
+   <div class="sp-head" style="background:var(--blue)"><div class="sp-tile">${v.site}</div><div class="sp-htitle">${v.name}</div></div>
    <div class="sp-body">
-     <div class="sp-name">${v.name}</div>
-     <div class="sp-row"><span class="sp-rtext">Housekeeping${hkS!=null?' <span title="from SLA assessment" style="color:var(--green)">●</span>':''}</span><b>${hk.toFixed(1)}</b><span class="vtier ${th.c}">${th.n}</span></div>
-     <div class="sp-row"><span class="sp-rtext">BM · Technician${bmS!=null?' <span title="from SLA assessment" style="color:var(--green)">●</span>':''}</span><b>${bm.toFixed(1)}</b><span class="vtier ${tb.c}">${tb.n}</span></div>
+     <div class="sp-row"><span class="sp-rtext">Housekeeping${hkS!=null?' <span title="dari penilaian SLA" style="color:var(--green)">●</span>':''}</span><b>${hk.toFixed(1)}</b><span class="vtier ${th.c}">${th.n}</span></div>
+     <div class="sp-row"><span class="sp-rtext">BM · Technician${bmS!=null?' <span title="dari penilaian SLA" style="color:var(--green)">●</span>':''}</span><b>${bm.toFixed(1)}</b><span class="vtier ${tb.c}">${tb.n}</span></div>
    </div>
  </div>`; }
 const TICKET_CAT=[
@@ -4397,8 +4475,25 @@ function soDocHTML(s){
  '<div class="sod-watermark">'+(logoSrc?'<img class="sod-wm-logo" src="'+logoSrc+'"/>':'')+'<div class="sod-wm-txt">generated by AGAVA · Astra General Affairs Virtual Assistant</div></div>';
 }
 let soDocCur=null;
-function soDocShow(no){ var s=SO.find(x=>x.no===no); if(!s)return; soDocCur=no; var pg=document.getElementById('soDocPage'); if(pg)pg.innerHTML=soDocHTML(s); document.getElementById('soDoc').classList.remove('hide'); }
+function soDocShow(no){ var s=SO.find(x=>x.no===no); if(!s)return; soDocCur=no; var pg=document.getElementById('soDocPage'); if(pg)pg.innerHTML=soDocHTML(s); document.getElementById('soDoc').classList.remove('hide'); soDocFit(); }
 function soDocClose(){ var d=document.getElementById('soDoc'); if(d)d.classList.add('hide'); }
+/* Skalakan dokumen agar UTUH di lebar layar (HP/tablet) tanpa merusak tata letak A4.
+   Dipanggil saat dibuka, saat layar diputar, dan sebelum/sesudah render ulang. */
+function soDocFit(){
+ var wrap=document.querySelector('.sodoc-scroll'), hold=document.getElementById('soDocHold'), pg=document.getElementById('soDocPage');
+ if(!wrap||!hold||!pg)return;
+ pg.style.transform='none'; hold.style.width=''; hold.style.height='';
+ var natural=pg.offsetWidth||820;
+ var avail=wrap.clientWidth-(parseFloat(getComputedStyle(wrap).paddingLeft)+parseFloat(getComputedStyle(wrap).paddingRight));
+ if(avail>0&&avail<natural){
+   var sc=avail/natural;
+   pg.style.transform='scale('+sc+')';
+   hold.style.width=avail+'px';
+   hold.style.height=(pg.offsetHeight*sc)+'px';
+ }
+}
+window.addEventListener('resize',function(){ var d=document.getElementById('soDoc'); if(d&&!d.classList.contains('hide'))soDocFit(); });
+window.addEventListener('orientationchange',function(){ setTimeout(soDocFit,250); });
 /* Simpan Dokumen SO → PDF 1 halaman (ukuran mengikuti isi, tanpa halaman kosong), langsung ke folder Downloads */
 async function soDocSave(){
  var page=document.getElementById('soDocPage'); if(!page)return;
@@ -4407,6 +4502,8 @@ async function soDocSave(){
  var pdfs=s.pdfAttachments||[];
  var btn=document.getElementById('soDocSaveBtn'); var lbl=btn?btn.textContent:''; if(btn){ btn.textContent='⏳ Menyimpan…'; btn.disabled=true; }
  var fname=(soDocCur?String(soDocCur).replace(/[^\w-]+/g,'_'):'Supply_Order')+'.pdf';
+ /* lepas dulu skala tampilan HP — PDF harus ditangkap pada ukuran asli 820px, bukan versi mengecil */
+ var prevTf=page.style.transform; page.style.transform='none';
  try{
    var canvas=await html2canvas(page,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:page.scrollWidth,windowHeight:page.scrollHeight});
    var imgUrl=canvas.toDataURL('image/png');
@@ -4436,6 +4533,7 @@ async function soDocSave(){
      if(pdfs.length) alert("Dokumen SO tersimpan.\n(Lampiran PDF belum bisa dijahit — pdf-lib belum termuat, coba refresh.)");
    } else { alert("Library PDF belum termuat — coba refresh (Ctrl+Shift+R)."); }
  }catch(e){ console.warn('soDocSave',e); alert("Gagal membuat PDF: "+e.message); }
+ page.style.transform=prevTf; soDocFit();      // kembalikan skala tampilan layar
  if(btn){ btn.textContent=lbl; btn.disabled=false; }
 }
 const WSTEP_BTN=["Sourcing & Verifikasi","Sudah UPR","Kirim SPK","Kirim BAST"];   // button shown at wstep 0..3
@@ -7282,7 +7380,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-22";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-23";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -7550,7 +7648,7 @@ function agavaAuditCSV(){
  });
 }
 
-loadFlowConfig();dbLoadAll();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();
+loadFlowConfig();dbLoadAll();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();
 </script>
 </body>
 </html>
