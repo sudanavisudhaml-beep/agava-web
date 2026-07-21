@@ -1535,7 +1535,6 @@ body.rg-open{overflow:hidden}
   .top{top:0}
 
   /* ── BERANDA ── */
-  .wrap{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
   .mh-hi{font-size:15px;color:var(--ink);margin:2px 0 12px}
   .mh-hi b{font-weight:800}
   .mh-hi span{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
@@ -2197,8 +2196,8 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
   .cp-label,.live-chip span:last-child{display:none}
   .copilot-btn{padding:7px 9px}.icon-btn{width:34px;height:34px}
 
-  /* Konten lebih rapat & kecil */
-  .wrap{padding:11px}
+  /* Konten lebih rapat & kecil — sisa bawah untuk bottom bar mobile */
+  .wrap{padding:11px 11px calc(86px + env(safe-area-inset-bottom))}
   .card{border-radius:12px;margin-bottom:12px}
   .card.pad{padding:12px 13px}
   .sec-body{padding:0 13px 14px}
@@ -2271,7 +2270,8 @@ html,body{max-width:100%}
 .side{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 @media (max-width:820px){
   .top{padding-top:calc(9px + env(safe-area-inset-top))}
-  .wrap{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  /* sisa bawah = tinggi bottom bar + area aman, supaya konten terakhir tidak tertutup */
+  .wrap{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
   #dbPill{bottom:calc(7px + env(safe-area-inset-bottom))}
   /* Dokumen SO: bar tetap muat, halaman diskalakan (lihat soDocFit) */
   .sodoc-bar{padding:calc(9px + env(safe-area-inset-top)) 12px 9px;gap:8px;flex-wrap:nowrap}
@@ -2318,6 +2318,23 @@ html,body{max-width:100%}
     </div>
   </div>
 </div>
+<!-- ══ TOP BAR MOBILE — electric blue neon, futuristik.
+     HARUS di luar .app (yang display:flex) — kalau di dalam, ia jadi kolom di samping. ══ -->
+<div class="mtop" id="mTop">
+  <div class="mtop-glow"></div>
+  <div class="mtop-grid"></div>
+  <div class="mtop-in">
+    <div class="mtop-clock"><span id="mDate">—</span><b id="mTime">--:--</b></div>
+    <div class="mtop-row">
+      <button class="mtop-ask" onclick="openCopilot()">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/></svg>
+        <span>ASK AGAVA COPILOT</span>
+      </button>
+      <button class="mtop-ic" id="mRoleBtn" onclick="mRoleGo()" title="—"><span id="mRoleIc">📋</span><i class="mtop-bdg hide" id="mRoleBdg">0</i></button>
+      <button class="mtop-ic" onclick="go('reminder')" title="Reminder">🔔<i class="mtop-bdg hide" id="mBellBdg">0</i></button>
+    </div>
+  </div>
+</div>
 <div class="app">
   <!-- SIDEBAR -->
   <aside class="side" id="side">
@@ -2333,23 +2350,6 @@ html,body{max-width:100%}
     </div>
   </aside>
   <div id="mobBackdrop" onclick="closeMobSidebar()"></div>
-
-  <!-- ══ TOP BAR MOBILE — electric blue neon, futuristik ══ -->
-  <div class="mtop" id="mTop">
-    <div class="mtop-glow"></div>
-    <div class="mtop-grid"></div>
-    <div class="mtop-in">
-      <div class="mtop-clock"><span id="mDate">—</span><b id="mTime">--:--</b></div>
-      <div class="mtop-row">
-        <button class="mtop-ask" onclick="openCopilot()">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/></svg>
-          <span>ASK AGAVA COPILOT</span>
-        </button>
-        <button class="mtop-ic" id="mRoleBtn" onclick="mRoleGo()" title="—"><span id="mRoleIc">📋</span><i class="mtop-bdg hide" id="mRoleBdg">0</i></button>
-        <button class="mtop-ic" onclick="go('reminder')" title="Reminder">🔔<i class="mtop-bdg hide" id="mBellBdg">0</i></button>
-      </div>
-    </div>
-  </div>
 
   <!-- MAIN -->
   <div class="main">
@@ -8405,7 +8405,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-34";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-35";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
