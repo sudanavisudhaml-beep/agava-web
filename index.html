@@ -1366,47 +1366,12 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .gd-rtrack{flex:1;height:9px;background:#F1F5F9;border-radius:5px;overflow:hidden}
 .gd-rtrack i{display:block;height:100%;background:linear-gradient(90deg,#F59E0B,#fbbf24);border-radius:5px;transform-origin:left;animation:rGrow 1s cubic-bezier(.2,.8,.2,1)}
 @keyframes rGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-/* ===== KPI hero (a/b/c/d) ===== */
-.gd-kherowrap{overflow:visible}
-.gd-khero{display:flex;gap:16px;padding:16px 20px;flex-wrap:wrap}
-.gd-kbig{flex:1.4;min-width:230px;border-radius:14px;padding:20px 22px;cursor:pointer;color:#fff;background:linear-gradient(120deg,#1d4ed8,#2563eb 55%,#0e9f8f);box-shadow:0 6px 18px rgba(37,99,235,.28);transition:.15s;position:relative}
-.gd-kbig:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(37,99,235,.34)}
-.gd-kbig-v{font-size:56px;font-weight:900;line-height:1}
-.gd-kbig-l{font-size:14px;font-weight:700;margin-top:4px;opacity:.96}
-.gd-kbig-h{font-size:11px;opacity:.82;margin-top:8px}
-.gd-kside{flex:1;min-width:230px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:12px}
-.gd-kmini{border:1px solid var(--line);border-radius:13px;padding:14px 16px;cursor:pointer;background:#fbfcfe;transition:.15s;display:flex;flex-direction:column;justify-content:center}
-.gd-kmini:first-child{grid-column:1/3}
-.gd-kmini:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(20,40,80,.10);border-color:#bcd3f5}
-.gd-kmv{font-size:30px;font-weight:900;line-height:1}
-.gd-kmv small{font-size:16px;color:#94A3B8;font-weight:700}
-.gd-kml{font-size:11.5px;color:#64748B;margin-top:4px;font-weight:600}
+/* Popover "dari data apa" — dipakai box highlight Standard di section Performance Indikator */
 .gd-kpop{max-height:0;overflow:hidden;opacity:0;transition:.28s;margin:0 20px;font-size:12px;color:#334155;line-height:1.55;border-left:3px solid #2563EB;padding-left:0}
 .gd-kpop.show{max-height:260px;opacity:1;padding:12px 14px;margin:0 20px 16px;background:#f4f8ff;border-radius:0 10px 10px 0}
 .gd-kpop b{color:#0F172A}
-/* ===== 6 KPI utama — bar + komponen expand ===== */
-.gd-krow2{border:1px solid var(--line);border-radius:12px;margin-bottom:9px;overflow:hidden;background:#fff;transition:.15s}
-.gd-krow2:hover{border-color:#cdd9ee}
-.gd-krh{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer}
-.gd-krow2 .gd-kic{font-size:16px;flex:0 0 auto}
-.gd-krow2 .gd-kinfo{flex:1;min-width:0}
-.gd-kname{font-size:13px;font-weight:700;color:#1E293B;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-.gd-kdet{font-size:10px;color:#94A3B8;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gd-krow2 .gd-kbar{width:150px;flex:0 0 150px;display:flex;align-items:center;gap:7px}
-.gd-krow2 .gd-kpct{font-size:14px;font-weight:800;min-width:40px;text-align:right}
-.gd-kchev{color:#c3cfe2;font-weight:800;font-size:15px;transition:.2s}
-.gd-krow2.open .gd-kchev{transform:rotate(180deg);color:#2563EB}
-.gd-ktag{font-size:8.5px;font-weight:800;letter-spacing:.03em;padding:2px 7px;border-radius:10px;text-transform:uppercase}
-.gd-ktag.rt{background:#D1FAE5;color:#047857}.gd-ktag.nr{background:#EDE9FE;color:#7C3AED}.gd-ktag.mx{background:#DBEAFE;color:#2563EB}
-.gd-kbody{max-height:0;overflow:hidden;transition:.3s;background:#f8fafc}
-.gd-krow2.open .gd-kbody{max-height:420px}
-.gd-kbody-h{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#64748B;padding:10px 14px 6px;flex-wrap:wrap;gap:6px}
+/* rincian 6 indikator kini di .pi-row / .pi-drop (section Performance Indikator) */
 .gd-kopen{color:#2563EB;font-weight:700;cursor:pointer;white-space:nowrap}
-.gd-kcomp{display:flex;align-items:center;gap:10px;padding:6px 14px}
-.gd-kcn{flex:1;min-width:0;font-size:11.5px;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gd-kcbar{width:130px;flex:0 0 130px;display:flex;align-items:center;gap:6px}
-.gd-kcbar b{font-size:11px;min-width:34px;text-align:right}
-.gd-kbody .gd-kcomp:last-child{padding-bottom:12px}
 /* ===== rating card ===== */
 .gd-ratcard{cursor:pointer;transition:.15s}
 .gd-ratcard:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(20,40,80,.12)}
@@ -1457,7 +1422,6 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .gd-pjb{height:6px;background:#F1F5F9;border-radius:4px;overflow:hidden}
 .gd-pjb i{display:block;height:100%;border-radius:4px;transform-origin:left;animation:rGrow .9s cubic-bezier(.2,.8,.2,1)}
 @media(max-width:900px){.gd-pjbars{width:110px;flex-basis:110px}.gd-spark,.gd-wk{height:90px}}
-@media(max-width:900px){.gd-krow2 .gd-kbar{width:110px;flex-basis:110px}.gd-kside{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){.gd-rtrack i{animation:none}}
 .gd-erow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #F1F5F9;align-items:flex-start}
 .gd-etime{font-size:12px;font-weight:700;color:#2563EB;min-width:40px}
@@ -1665,9 +1629,8 @@ body{background:
 .gc-toolbar,.gc-monthstrip{background:rgba(255,255,255,.60);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
 .gd-cells3,.gd-cells2,.gd-cells4{background:rgba(150,175,210,.28)}
 .gd-cell{background:rgba(255,255,255,.60)}
-.gd-tile,.gd-util,.gd-income,.gd-kmini,.gd-krow2,.pr-row,.gd-stream,.mini-panel,.hl2-tile,.up2{backdrop-filter:blur(8px) saturate(1.3);-webkit-backdrop-filter:blur(8px) saturate(1.3)}
+.gd-tile,.gd-util,.gd-income,.pi-hl,.pi-hl-mini,.pr-row,.gd-stream,.mini-panel,.hl2-tile,.up2{backdrop-filter:blur(8px) saturate(1.3);-webkit-backdrop-filter:blur(8px) saturate(1.3)}
 .gd-stream{background:rgba(255,255,255,.50);border:1px solid rgba(255,255,255,.7)}
-.gd-krow2{background:rgba(255,255,255,.45)}
 /* ---- sidebar → kaca electric-blue × turquoise, futuristik & transparan ---- */
 .side{background:
     linear-gradient(168deg, rgba(0,198,251,.20) 0%, rgba(10,124,255,.13) 44%, rgba(0,208,212,.20) 100%),
@@ -1712,9 +1675,6 @@ body{background:
 button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outline-offset:2px}
 /* ---- aksen electric/turquoise ---- */
 .gd-ctime2{background:linear-gradient(120deg,#0059e8,#0a7cff,#00c6fb,#00e0c9,#0059e8);background-size:300% 100%}
-.gd-kbig{background:linear-gradient(135deg,rgba(0,198,251,.94),rgba(10,124,255,.94) 55%,rgba(0,89,232,.94));
-  border:1px solid rgba(255,255,255,.45);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 10px 26px rgba(10,124,255,.32)}
 .gd-vhead{background:linear-gradient(135deg,#0a7cff,#00c6d4)}
 .gd-sec i{background:linear-gradient(180deg,#00c6fb,#0a7cff)}
 .gd-logo{background:var(--acc)}
@@ -2772,7 +2732,6 @@ function codecKpiPop(which){
  else if(which==='routine') h='<b>● KPI Routine = '+K.routPct+'%</b> — operasional BAU: '+K.rout.map(c=>c.n+' '+c.v+'%').join(' · ');
  el.innerHTML=h; el.classList.add('show'); el.dataset.on=which;
 }
-function codecSubToggle(i){ const r=document.getElementById('gdk-'+i); if(r)r.classList.toggle('open'); }
 function codecSubFnData(){
  const avgA=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
  // 1. GFM ← ENERGY: GRK · Water · REM · Waste (routine · ESG 2030)
@@ -6661,7 +6620,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-13";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-14";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
