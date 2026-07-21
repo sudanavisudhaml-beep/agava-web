@@ -4451,23 +4451,8 @@ function soGroupState(s){
    return "pending";
  });
 }
+ /* Data SO dimulai KOSONG — diisi lewat Create SO di modul Procurement. */
 const SO=[
- {no:"SO-202606-0037",item:"Speaker TOA Menara (Masjid Astra)",req:"GA",pic:"Endang Maulana",nilai:8.5,jenis:"Service",stage:6,aging:"On Track",vendor:"PT Dwi Pesona"},
- {no:"SO-202606-0036",item:"Service TV Samsung 40\" & 55\"",req:"GA",pic:"Didi Sutama",nilai:6.2,jenis:"Service",stage:7,aging:"On Track",vendor:"PT Sentra Elektronik"},
- {no:"SO-202606-0035",item:"Dinding mengelupas Lt.4A AMDI",req:"GA AMDI",pic:"Khalilul Rahman",nilai:24,jenis:"Service",stage:6,aging:"Warning",vendor:"PT Tricon"},
- {no:"SO-202606-0027",item:"Lampu PJU mati all area — ABC Bdg",req:"Elok",pic:"Endang Maulana",nilai:42,jenis:"Goods",stage:4,aging:"On Track",vendor:"PT Pantraya"},
- {no:"SO-202606-0014",item:"Trolly Barang ABC BSD",req:"Ditya A.",pic:"Didi Sutama",nilai:15.5,jenis:"Goods",stage:5,aging:"Warning",vendor:"CV Kanitra"},
- {no:"SO-202606-0005",item:"Air Fan Hydrant, Lampu PJU & Sorot",req:"Elok",pic:"Khalilul Rahman",nilai:128,jenis:"Goods",stage:6,aging:"On Track",vendor:"PT Jameson"},
- {no:"SO-202606-0009",item:"Dinding & plafond Gd.A Lt.1–8 AMDI",req:"Elok",pic:"Khalilul Rahman",nilai:185,jenis:"Service",stage:3,aging:"Warning",vendor:"PT Pantraya"},
- {no:"SO-202606-0015",item:"Tenda Payung ABC BSD",req:"Elok N.",pic:"Endang Maulana",nilai:35,jenis:"Goods",stage:3,aging:"On Track",vendor:"Nice Awning"},
- {no:"SO-202606-0024",item:"Panel MCFA basement Affco",req:"Aspro",pic:"Khalilul Rahman",nilai:52,jenis:"Service",stage:3,aging:"On Track",vendor:"PT Dwi Pesona"},
- {no:"SO-202606-0006",item:"Gudang Catering 3A — siku & ramp",req:"Yessy",pic:"Khalilul Rahman",nilai:9.5,jenis:"Service",stage:2,aging:"On Track",vendor:""},
- {no:"SO-202606-0007",item:"Perbaikan bocor GD Affco",req:"Aspro",pic:"Khalilul Rahman",nilai:18,jenis:"Service",stage:2,aging:"Warning",vendor:""},
- {no:"SO-202606-0010",item:"Lampu PJU 27 pcs",req:"Project",pic:"Didi Sutama",nilai:31,jenis:"Goods",stage:2,aging:"On Track",vendor:""},
- {no:"SO-202606-0020",item:"Sendok & Garpu OB 10 lusin",req:"Yessy",pic:"Yessy",nilai:3.2,jenis:"Goods",stage:1,aging:"On Track",vendor:""},
- {no:"SO-202606-0022",item:"Kebutuhan Pantry",req:"Alwin H.",pic:"Alwin Hadikusuma",nilai:5.8,jenis:"Goods",stage:1,aging:"On Track",vendor:""},
- {no:"SO-202606-0026",item:"AC Split Wall (kurang freon)",req:"Aspro",pic:"",nilai:4.5,jenis:"Service",stage:0,aging:"On Track",vendor:""},
- {no:"SO-202606-0028",item:"Kontrol level switch & kapasitor pompa",req:"Elok",pic:"",nilai:12,jenis:"Goods",stage:0,aging:"On Track",vendor:""}
 ];
 const ERSUS_ALERTS=[
  {sev:"crit",t:"Main Lobby — 28.4°C",d:"Above 25°C setpoint for over 1 hour. AC capacity check needed.",act:"Create repair SO"},
@@ -4487,22 +4472,9 @@ const ERSUS_ALERTS=[
 function realToday(){ return new Date().toLocaleDateString('en-CA'); }
 let TODAY_PIN="2026-06-18";
 let TODAY_STR=TODAY_PIN||realToday();
+ /* Data tiket dimulai KOSONG — diisi lewat Create Ticket. Backup data lama:
+    GAVA/AGAVA-Backup-SebelumReset-2026-07-21.json */
 const TICKETS=[
- {no:"GA-202606-0142",judul:"AC not cooling — Meeting Room 6B",team:"BM",cat:"ME",lokasi:"AMDI Fl.6",created:"2026-06-18",status:"In Progress",stg:2,resp:"8 min",pic:"Khalilul R.",esc:false},
- {no:"GA-202606-0141",judul:"Corridor lights off — Fl.3",team:"BM",cat:"Civil",lokasi:"ABC BSD",created:"2026-06-18",status:"Submitted",stg:0,resp:"—",pic:"",esc:false},
- {no:"GA-202606-0140",judul:"Glass door jammed — Lobby",team:"BM",cat:"Civil",lokasi:"AMDI",created:"2026-06-18",status:"Assigned",stg:1,resp:"5 min",pic:"Didi S.",esc:false},
- {no:"GA-202606-0139",judul:"Pantry deep cleaning request",team:"HK",cat:"Housekeeping",lokasi:"ABC BSD Fl.2",created:"2026-06-18",status:"Submitted",stg:0,resp:"—",pic:"",esc:false},
- {no:"GA-202606-0135",judul:"Stationery restock — Treasury",team:"Office",cat:"Office Support",lokasi:"AMDI Fl.7",created:"2026-06-17",status:"In Progress",stg:2,resp:"12 min",pic:"Michelle",esc:false},
- {no:"GA-202605-0089",judul:"Ceiling leak — Archive Room",team:"BM",cat:"Civil",lokasi:"AMDI Fl.4",created:"2026-05-09",status:"To Procurement",stg:3,resp:"15 min",pic:"Khalilul R.",esc:true},
- {no:"GA-202605-0061",judul:"Tower lift abnormal noise",team:"BM",cat:"ME",lokasi:"Tower",created:"2026-05-05",status:"To Procurement",stg:3,resp:"9 min",pic:"Didi S.",esc:true},
- {no:"GA-202605-0044",judul:"Toilet 8A exhaust fan dead",team:"BM",cat:"ME",lokasi:"AMDI Fl.8",created:"2026-05-02",status:"In Progress",stg:2,resp:"20 min",pic:"Khalilul R.",esc:true},
- {no:"GA-202604-0203",judul:"Basement wall seepage",team:"BM",cat:"Civil",lokasi:"ABC BSD",created:"2026-04-28",status:"To Procurement",stg:3,resp:"30 min",pic:"Endang M.",esc:true},
- {no:"GA-202606-0137",judul:"Access card not working",team:"Security",cat:"Security",lokasi:"AMDI Gate",created:"2026-06-18",status:"Resolved",stg:4,resp:"4 min",pic:"Yessy",esc:false,rating:5,closed:"2026-06-18"},
- {no:"GA-202606-0130",judul:"Pest control — kitchen",team:"HK",cat:"Housekeeping",lokasi:"MA",created:"2026-06-16",status:"Resolved",stg:4,resp:"6 min",pic:"Alwin H.",esc:false,rating:4,closed:"2026-06-17"},
- {no:"GA-202606-0128",judul:"CCTV review request",team:"Security",cat:"Security",lokasi:"ABC BSD",created:"2026-06-16",status:"Resolved",stg:4,resp:"7 min",pic:"Yessy",esc:false,rating:5,closed:"2026-06-16"},
- {no:"GA-202606-0125",judul:"Meeting room setup — Auditorium",team:"Office",cat:"Room & Event",lokasi:"Auditorium",created:"2026-06-15",status:"Resolved",stg:4,resp:"10 min",pic:"Michelle",esc:false,rating:4,closed:"2026-06-16"},
- {no:"GA-202606-0119",judul:"Water dispenser refill",team:"HK",cat:"Housekeeping",lokasi:"AMDI Fl.5",created:"2026-06-14",status:"Resolved",stg:4,resp:"9 min",pic:"Alwin H.",esc:false,rating:3,closed:"2026-06-15"},
- {no:"GA-202606-0110",judul:"Lamp replacement — Fl.2",team:"BM",cat:"ME",lokasi:"ABC BSD",created:"2026-06-12",status:"Resolved",stg:4,resp:"11 min",pic:"Didi S.",esc:false,rating:5,closed:"2026-06-13"}
 ];
 function ticketAge(d){ return Math.floor((new Date(TODAY_STR)-new Date(d))/86400000); }
 let procFilter="all";
@@ -4844,7 +4816,7 @@ function renderProc(){
      <td><span class="badge bd-neu">${tier(s.nilai)}</span></td>
      <td><div class="so-stage"><span class="badge ${st.c}">${st.t}</span>${s.apprDept==="Approved"?`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="Dokumen Supply Order (sah) — cetak / simpan PDF">📄 SO PDF</button>`:''}</div></td>
      <td>${agingBadge(s.aging)}</td>
-   </tr>`}).join("")}
+   </tr>`}).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'}</td></tr>`}
    </tbody></table>
  </div>
  <div style="font-size:12px;color:var(--muted);margin-top:14px;text-align:center">Click a row to see the full lifecycle journey →</div>`;
@@ -8070,7 +8042,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-32";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-33";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
