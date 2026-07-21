@@ -612,7 +612,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .sod-pending{font-size:11px;color:#b0006a;font-style:italic}
 .sod-signame{font-weight:700;font-size:12.5px;padding-top:4px;display:inline-block;min-width:210px}
 .sod-sigrole{font-size:11px;color:#333;margin-top:2px}
-.so-pdf{margin-left:8px;border:1px solid rgba(10,124,255,.35);background:linear-gradient(135deg,rgba(0,198,251,.12),rgba(10,124,255,.09));color:#0a4bb8;font-family:var(--ff);font-size:11px;font-weight:700;padding:4px 9px;border-radius:8px;cursor:pointer;white-space:nowrap;vertical-align:middle}
+/* kolom Stage: badge di atas, tombol SO PDF SELALU di bawahnya & rata kiri */
+.so-stage{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.so-pdf{border:1px solid rgba(10,124,255,.35);background:linear-gradient(135deg,rgba(0,198,251,.12),rgba(10,124,255,.09));color:#0a4bb8;font-family:var(--ff);font-size:11px;font-weight:700;padding:4px 9px;border-radius:8px;cursor:pointer;white-space:nowrap}
 .so-pdf:hover{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);color:#fff;border-color:transparent}
 @media print{
   body{visibility:hidden!important}
@@ -805,9 +807,12 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.it span{font-size:11.5px;color:var(--muted)}
 .stg{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;white-space:nowrap}
 .stg .pip{width:8px;height:8px;border-radius:50%}
+/* status bar 5 tahap — warna tiap segmen = warna kelompok besar di Lifecycle Journey */
 .mini{display:flex;gap:3px;margin-top:6px}
-.mini i{height:4px;width:14px;border-radius:3px;background:#e6eaf0}
-.mini i.on{background:var(--blue)}
+.mini i{height:4px;width:14px;border-radius:3px;background:#e6eaf0;transition:.2s}
+.mini i.done{background:var(--gc)}
+.mini i.active{background:var(--gc);opacity:.45;box-shadow:0 0 0 2px color-mix(in srgb,var(--gc) 22%,transparent)}
+.mini i.rejected{background:var(--red)}
 .badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:14px}
 .bd-ok{background:var(--green-s);color:var(--green)} .bd-warn{background:var(--amber-s);color:var(--amber)}
 .bd-bad{background:#fdecec;color:#dc2626}
@@ -1126,9 +1131,35 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
   border:2px solid #cfd8e3;display:grid;place-items:center;font-size:10px;color:#9aa7b8}
 .ts.done .nd{background:var(--green);border-color:var(--green);color:#fff}
 .ts.active .nd{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--blue-s)}
+.ts.rejected .nd{background:var(--red);border-color:var(--red);color:#fff}
 .ts .tt{font-size:13.5px;font-weight:600;color:var(--ink)}
 .ts.pending .tt{color:#9aa7b8;font-weight:500}
+.ts.rejected .tt{color:var(--red)}
 .ts .td{font-size:12px;color:var(--muted);margin-top:2px}
+/* ── 12 langkah dikelompokkan ke 5 tahap besar (sama dgn status bar di daftar SO) ── */
+.jgbar{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
+.jgb i{display:block;height:5px;border-radius:3px;background:#e6eaf0}
+.jgb span{display:block;font-size:9.5px;font-weight:700;color:#9aa7b8;margin-top:5px;line-height:1.25}
+.jgb.done i{background:var(--gc)} .jgb.done span{color:var(--gc)}
+.jgb.active i{background:var(--gc);opacity:.45} .jgb.active span{color:var(--gc)}
+.jgb.rejected i{background:var(--red)} .jgb.rejected span{color:var(--red)}
+.jg{border-left:3px solid #e6eaf0;padding-left:13px;margin-bottom:6px}
+.jg.done,.jg.active{border-left-color:var(--gc)}
+.jg.rejected{border-left-color:var(--red)}
+.jg-h{display:flex;align-items:center;gap:9px;padding:7px 0 9px}
+.jg-n{flex:0 0 auto;width:21px;height:21px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;background:#eef1f6;color:#9aa7b8}
+.jg.done .jg-n,.jg.active .jg-n{background:var(--gc);color:#fff}
+.jg.rejected .jg-n{background:var(--red);color:#fff}
+.jg-tt{flex:1;min-width:0}
+.jg-name{font-size:12.5px;font-weight:800;color:var(--ink);letter-spacing:.01em}
+.jg.pending .jg-name{color:#9aa7b8}
+.jg-bar{font-size:10px;color:#9aa7b8;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jg-st{flex:0 0 auto;font-size:10px;font-weight:700;color:#9aa7b8;background:#f2f5f9;border-radius:20px;padding:3px 9px;white-space:nowrap}
+.jg.done .jg-st,.jg.active .jg-st{color:var(--gc);background:color-mix(in srgb,var(--gc) 12%,#fff)}
+.jg.rejected .jg-st{color:var(--red);background:#fdecec}
+.jg.active{background:linear-gradient(90deg,color-mix(in srgb,var(--gc) 7%,transparent),transparent 62%);border-radius:0 12px 12px 0}
+.jg .tl{margin-top:0}
+.jg .ts:last-child{padding-bottom:10px}
 .gate-chip{font-size:10.5px;font-weight:700;color:#7a4fd0;background:#f1ecfc;padding:2px 8px;border-radius:10px;margin-left:8px}
 
 @media(max-width:1040px){.kpis,.grid3{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}
@@ -3816,20 +3847,59 @@ function energy(t,v,b,pct,col,foot,fc){return `<div class="pcard"><div class="pa
 
 /* ============ PROCUREMENT PAGE ============ */
 const STAGES=["Submitted","SO Approved","Sourcing","UPR","SPK","Execution","BAST","Invoice","Closed"];
-// 11-step lifecycle mapped from stage index
-const LIFECYCLE=[
- {t:"SO submitted",map:0,tk:"created"},
- {t:"Approval SO",sub:"Budget Control → Dept Head",gate:1,map:1,tk:"dept"},
- {t:"Source 3 vendors",map:2,tk:"sourcing"},
- {t:"UPR released",map:3,tk:"upr"},
- {t:"Approval UPR",sub:"tiered by value",gate:1,map:3.5},
- {t:"SPK issued → email vendor",map:4,tk:"spk"},
- {t:"SPK received by vendor",map:4.5},
- {t:"ETA / Kick-Off",map:5},
- {t:"Handover (PIC END)",map:5.9},
- {t:"BAST + approval",sub:"Section → Dept Head",gate:1,map:6,tk:"bast"},
- {t:"Invoice / Payment",sub:"status from Finance GA",map:7,tk:"invIn"}
+/* 5 KELOMPOK BESAR — sama persis dengan 5 status bar (pip) di baris SO dan label WSTEP_DONE.
+   Satu sumber: dipakai bareng oleh Lifecycle Journey (detail) dan status bar (list),
+   supaya detail dan list tidak pernah beda cerita. */
+const SO_GROUPS=[
+ {n:"SO & Approval",   bar:"Assigned — start sourcing", col:"#0a7cff"},
+ {n:"Sourcing",        bar:"Sourcing done · do UPR",    col:"#00b0a6"},
+ {n:"UPR",             bar:"UPR done · send SPK",       col:"#7C3AED"},
+ {n:"SPK & Execution", bar:"SPK sent · submit BAST",    col:"#F59E0B"},
+ {n:"BAST & Invoice",  bar:"BAST done",                 col:"#15a34a"}
 ];
+/* 12 langkah detail — 'g' menunjuk ke kelompok besar di atas */
+const LIFECYCLE=[
+ {t:"SO submitted",              g:0, tk:"created"},
+ {t:"Approval Section Head",     g:0, gate:1, sub:"sesuai kategori SO",                     tk:"section"},
+ {t:"Approval SO",               g:0, gate:1, sub:"Budget Control → Procurement → Dept Head", tk:"dept"},
+ {t:"Source 3 vendors",          g:1, tk:"sourcing"},
+ {t:"UPR released",              g:2, tk:"upr"},
+ {t:"Approval UPR",              g:2, gate:1, sub:"tiered by value"},
+ {t:"SPK issued → email vendor", g:3, tk:"spk"},
+ {t:"SPK received by vendor",    g:3},
+ {t:"ETA / Kick-Off",            g:3},
+ {t:"Handover (PIC END)",        g:3},
+ {t:"BAST + approval",           g:4, gate:1, sub:"Section → Dept Head",                    tk:"bast"},
+ {t:"Invoice / Payment",         g:4, sub:"status dari Finance GA",                         tk:"invIn"}
+];
+/* Berapa langkah yang sudah tuntas — DITURUNKAN dari flag approval + wstep yang dipakai list,
+   bukan dari s.stage. Ini yang membuat Journey dan status bar selalu tally. */
+function soProgress(s){
+ if(s.apprSection==="Rejected") return {p:1, rej:1};
+ if(s.apprDept==="Rejected")    return {p:2, rej:2};
+ var p=1;                                   // SO submitted selalu tuntas
+ if(s.apprSection==="Approved") p=2;
+ if(s.apprDept==="Approved")    p=3;
+ if(p<3) return {p:p, rej:-1};              // masih tertahan di gate approval
+ if(s.wstep>=1) p=4;                        // sourcing tuntas
+ if(s.wstep>=2) p=6;                        // UPR released + approval UPR tuntas
+ if(s.wstep>=3) p=7;                        // SPK terkirim, tinggal diterima vendor → handover
+ if(s.wstep>=4) p=11;                       // BAST tuntas, tinggal invoice
+ if(s.invReleased) p=12;                    // payment released → seluruh journey tuntas
+ return {p:p, rej:-1};
+}
+/* Status tiap kelompok besar: done / active / pending (+ rejected bila gate-nya ditolak) */
+function soGroupState(s){
+ var pr=soProgress(s);
+ return SO_GROUPS.map(function(_,gi){
+   var idx=LIFECYCLE.map(function(L,i){return L.g===gi?i:-1;}).filter(function(i){return i>=0;});
+   if(pr.rej>=0 && idx.indexOf(pr.rej)>=0) return "rejected";
+   var last=idx[idx.length-1], first=idx[0];
+   if(pr.p>last) return "done";
+   if(pr.p>=first) return "active";
+   return "pending";
+ });
+}
 const SO=[
  {no:"SO-202606-0037",item:"Speaker TOA Menara (Masjid Astra)",req:"GA",pic:"Endang Maulana",nilai:8.5,jenis:"Service",stage:6,aging:"On Track",vendor:"PT Dwi Pesona"},
  {no:"SO-202606-0036",item:"Service TV Samsung 40\" & 55\"",req:"GA",pic:"Didi Sutama",nilai:6.2,jenis:"Service",stage:7,aging:"On Track",vendor:"PT Sentra Elektronik"},
@@ -4072,11 +4142,11 @@ function renderProc(){
    </tr></thead><tbody>
    ${list.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;return `<tr onclick="openDrawer('${s.no}')">
      <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0"><div class="so-no-sm">${s.no}</div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span>
-        <div class="mini">${[0,1,2,3,4].map(n=>`<i class="${s.wstep>=n?'on':''}"></i>`).join("")}</div></div></div></td>
+        ${soMiniPips(s)}</div></div></td>
      <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
      <td class="nilai">Rp ${s.nilai} M</td>
      <td><span class="badge bd-neu">${tier(s.nilai)}</span></td>
-     <td><span class="badge ${st.c}">${st.t}</span>${s.apprDept==="Approved"?`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="Dokumen Supply Order (sah) — cetak / simpan PDF">📄 SO PDF</button>`:''}</td>
+     <td><div class="so-stage"><span class="badge ${st.c}">${st.t}</span>${s.apprDept==="Approved"?`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="Dokumen Supply Order (sah) — cetak / simpan PDF">📄 SO PDF</button>`:''}</div></td>
      <td>${agingBadge(s.aging)}</td>
    </tr>`}).join("")}
    </tbody></table>
@@ -4087,15 +4157,8 @@ function renderProc(){
 function openDrawer(no){
  const s=SO.find(x=>x.no===no);if(!s)return;
  const d=document.getElementById("drawer");
- const steps=LIFECYCLE.map(L=>{
-   let cls="pending";
-   if(s.stage>L.map+0.4)cls="done";
-   else if(s.stage>=Math.floor(L.map)&&s.stage<=Math.ceil(L.map))cls=(s.stage===Math.ceil(L.map)&&L.map%1!==0)?"active":(Math.floor(L.map)===s.stage?"active":"done");
-   if(s.stage>=Math.ceil(L.map)&&L.map%1===0&&s.stage>L.map)cls="done";
-   if(Math.floor(L.map)===s.stage)cls="active";
-   if(s.stage>L.map)cls="done";
-   return {...L,cls};
- });
+ const pr=soProgress(s), gst=soGroupState(s);
+ const steps=LIFECYCLE.map((L,i)=>({...L, cls: i===pr.rej?"rejected":(i<pr.p?"done":(i===pr.p?"active":"pending"))}));
  d.innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button>
     <div class="sono" style="font-size:16px">${s.no}</div>
@@ -4109,18 +4172,48 @@ function openDrawer(no){
       <span class="k">Est. value</span><span class="v">Rp ${s.nilai} M</span>
       <span class="k">UPR Approver</span><span class="v">${tier(s.nilai)} <span class="muted" style="font-weight:400">(by value)</span></span>
       <span class="k">Vendor</span><span class="v">${s.vendor||'— not sourced yet'}</span>
-      <span class="k">Current stage</span><span class="v"><span class="stg"><span class="pip" style="background:${stagePip(s.stage)}"></span>${STAGES[s.stage]}</span></span>
+      <span class="k">Tahap saat ini</span><span class="v">${(()=>{const gi=gst.indexOf("rejected")>=0?gst.indexOf("rejected"):(gst.indexOf("active")>=0?gst.indexOf("active"):SO_GROUPS.length-1);
+        return `<span class="stg"><span class="pip" style="background:${gst[gi]==='rejected'?'var(--red)':SO_GROUPS[gi].col}"></span>${gi+1}/${SO_GROUPS.length} · ${SO_GROUPS[gi].n}</span>`;})()}
+        <div class="muted small" style="font-weight:400;margin-top:2px">langkah ${Math.min(pr.p+1,LIFECYCLE.length)} dari ${LIFECYCLE.length} · status bar: ${esc(soStatusLabel(s).t)}</div></span>
     </div>
-    <div class="panel-t" style="margin-bottom:14px">Lifecycle Journey</div>
-    <div class="tl">
-      ${steps.map(st=>{ const tv=st.tk==='invIn'?(s.invRecvDate||''):(st.tk&&s.ts?s.ts[st.tk]:''); return `<div class="ts ${st.cls}"><div class="nd">${st.cls==='done'?'✓':''}</div>
-        <div class="tt">${st.t}${st.gate?'<span class="gate-chip">◆ approval</span>':''}</div>
-        ${st.sub?`<div class="td">${st.sub}</div>`:''}${(st.cls==='done'&&tv)?`<div class="td" style="color:var(--blue);font-weight:600">🕐 ${tv}</div>`:''}</div>`; }).join("")}
-    </div>
+    <div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>
+    <div class="muted small" style="margin-bottom:12px">${LIFECYCLE.length} langkah · dikelompokkan ke ${SO_GROUPS.length} tahap besar yang sama dengan status bar di daftar SO</div>
+    ${soGroupBarHTML(s,gst)}
+    ${SO_GROUPS.map((G,gi)=>{
+      const inner=steps.map((st,i)=>({st,i})).filter(x=>x.st.g===gi);
+      const st5=gst[gi];
+      return `<div class="jg ${st5}" style="--gc:${G.col}">
+        <div class="jg-h">
+          <span class="jg-n">${gi+1}</span>
+          <div class="jg-tt"><div class="jg-name">${G.n}</div><div class="jg-bar">status bar: ${G.bar}</div></div>
+          <span class="jg-st">${st5==='done'?'✓ selesai':st5==='active'?'● berjalan':st5==='rejected'?'⛔ ditolak':'belum'}</span>
+        </div>
+        <div class="tl">
+          ${inner.map(({st,i})=>{ const tv=st.tk==='invIn'?(s.invRecvDate||''):(st.tk&&s.ts?s.ts[st.tk]:'');
+            return `<div class="ts ${st.cls}"><div class="nd">${st.cls==='done'?'✓':st.cls==='rejected'?'✕':''}</div>
+            <div class="tt">${i+1}. ${st.t}${st.gate?'<span class="gate-chip">◆ approval</span>':''}</div>
+            ${st.sub?`<div class="td">${st.sub}</div>`:''}${((st.cls==='done'||st.cls==='rejected')&&tv)?`<div class="td" style="color:var(--blue);font-weight:600">🕐 ${tv}</div>`:''}</div>`; }).join("")}
+        </div>
+      </div>`;
+    }).join("")}
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
 function closeDrawer(){document.getElementById("ovl").classList.remove("show");}
+/* Bar 5 tahap di kepala Journey — bentuk besar dari pip yang sama di baris SO */
+function soGroupBarHTML(s,gst){
+ gst=gst||soGroupState(s);
+ return '<div class="jgbar">'+SO_GROUPS.map(function(G,gi){
+   return '<div class="jgb '+gst[gi]+'" style="--gc:'+G.col+'" title="'+esc(G.bar)+'"><i></i><span>'+esc(G.n)+'</span></div>';
+ }).join("")+'</div>';
+}
+/* Pip 5 tahap di baris daftar SO — warna & urutan persis kelompok besar di Journey */
+function soMiniPips(s){
+ var gst=soGroupState(s);
+ return '<div class="mini">'+SO_GROUPS.map(function(G,gi){
+   return '<i class="'+gst[gi]+'" style="--gc:'+G.col+'" title="'+esc((gi+1)+". "+G.n+" — "+(gst[gi]==='done'?'selesai':gst[gi]==='active'?'berjalan':gst[gi]==='rejected'?'ditolak':'belum'))+'"></i>';
+ }).join("")+'</div>';
+}
 
 /* ============ ENERGY PAGE (feed ERSUS) ============ */
 function insightCard(a){
@@ -6620,7 +6713,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-14";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-15";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
