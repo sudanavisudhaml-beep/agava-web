@@ -31,12 +31,16 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 
 /* ---------- Sidebar ---------- */
 .side{width:240px;flex:0 0 240px;background:linear-gradient(180deg,var(--navy),var(--navy2));
-  color:#cdd9ea;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:0}
+  color:#cdd9ea;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;height:100dvh;padding:0}
 .logo-wrap{padding:26px 22px 16px}
 .logo-plate{background:transparent;padding:0;box-shadow:none}
 .logo-img{width:100%;height:auto;display:block;filter:brightness(0) invert(1)}
 .sec-label{font-size:10.5px;letter-spacing:1.8px;color:#64779a;padding:8px 26px 8px;font-weight:700}
-.nav{flex:1;padding:2px 14px;display:flex;flex-direction:column;gap:2px}
+/* min-height:0 + overflow → daftar menu panjang bisa di-scroll, akun di bawah selalu terjangkau */
+.nav{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px 14px;display:flex;flex-direction:column;gap:2px}
+.nav::-webkit-scrollbar{width:5px}
+.nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+.nav::-webkit-scrollbar-track{background:transparent}
 .nav a{display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:10px;color:#b6c6dc;
   text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;transition:.15s;border-left:3px solid transparent}
 .nav a svg{width:18px;height:18px;flex:0 0 18px;stroke:currentColor;fill:none;stroke-width:1.9}
@@ -1284,13 +1288,20 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-h-key span{background:#fdf3e3;color:#c2740a}
 /* ── Box highlight: Liquid Glass AGAVA — kaca semi transparan, aksen electric/neon blue,
      aurora bergerak lambat, TANPA garis progres ── */
-.pi-hl{position:relative;overflow:hidden;isolation:isolate;border-radius:16px;
+.pi-hl{position:relative;overflow:hidden;isolation:isolate;border-radius:18px;
   display:flex;align-items:center;gap:18px;flex-wrap:wrap;
-  padding:14px 18px;margin-bottom:14px;color:var(--ink);
-  background:linear-gradient(135deg,rgba(255,255,255,.62),rgba(224,242,255,.38));
-  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5);
-  border:1px solid rgba(255,255,255,.78);
-  box-shadow:0 10px 30px rgba(10,124,255,.10),inset 0 1px 0 rgba(255,255,255,.85)}
+  padding:17px 20px;margin-bottom:16px;color:var(--ink);
+  background:linear-gradient(160deg,rgba(255,255,255,.88) 0%,rgba(226,243,255,.66) 45%,rgba(198,228,255,.55) 100%);
+  backdrop-filter:blur(16px) saturate(1.7);-webkit-backdrop-filter:blur(16px) saturate(1.7);
+  border:1px solid rgba(255,255,255,.9);
+  /* 3D: bevel terang di atas, shading biru di dasar, bayangan kontak + ambient berlapis */
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,.95),
+    inset 0 -22px 34px rgba(10,124,255,.12),
+    inset 0 0 0 1px rgba(160,215,255,.35),
+    0 2px 4px rgba(10,60,140,.10),
+    0 12px 24px rgba(10,124,255,.18),
+    0 26px 52px rgba(10,124,255,.14)}
 /* lapisan aurora electric-blue — gerak sangat pelan */
 .pi-hl::before{content:"";position:absolute;inset:-45%;z-index:-1;pointer-events:none;
   background:radial-gradient(36% 44% at 20% 30%,rgba(0,198,251,.22),transparent 62%),
@@ -1307,21 +1318,32 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
   background-size:220% 100%;opacity:.85;animation:hlSweep 11s linear infinite}
 @keyframes hlSweep{0%{background-position:200% 0}100%{background-position:-100% 0}}
 .pi-hl-std{cursor:pointer;transition:.25s}
-.pi-hl-std:hover{transform:translateY(-2px);border-color:rgba(0,198,251,.6);
-  box-shadow:0 16px 38px rgba(10,124,255,.16),0 0 0 1px rgba(0,198,251,.30),inset 0 1px 0 rgba(255,255,255,.9)}
+.pi-hl-std:hover{transform:translateY(-3px);border-color:rgba(0,198,251,.65);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,.95),
+    inset 0 -22px 34px rgba(10,124,255,.14),
+    0 0 0 1px rgba(0,198,251,.35),
+    0 4px 8px rgba(10,60,140,.12),
+    0 18px 34px rgba(10,124,255,.24),
+    0 34px 64px rgba(10,124,255,.18)}
 .pi-hl-l{min-width:210px}
 .pi-hl-cap{font-size:10.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#0a6ad6}
-.pi-hl-v{font-size:42px;font-weight:900;line-height:1.05;letter-spacing:-.02em;margin-top:2px;
-  text-shadow:0 0 18px color-mix(in srgb,currentColor 42%,transparent);animation:hlGlow 7s ease-in-out infinite}
+.pi-hl-v{font-size:47px;font-weight:900;line-height:1.05;letter-spacing:-.02em;margin-top:2px;
+  text-shadow:0 2px 0 rgba(255,255,255,.65),0 0 20px color-mix(in srgb,currentColor 46%,transparent),0 8px 18px color-mix(in srgb,currentColor 28%,transparent);
+  animation:hlGlow 7s ease-in-out infinite}
 @keyframes hlGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
 .pi-hl-v small{font-size:20px;font-weight:800;margin-left:1px;opacity:.85}
 .pi-hl-meta{font-size:11px;color:var(--muted);line-height:1.5;margin-top:3px}
 .pi-hl-meta b{color:var(--ink)}
 .pi-hl-minis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-left:auto;flex:0 1 360px;min-width:260px}
-.pi-hl-mini{border:1px solid rgba(255,255,255,.8);border-radius:12px;padding:9px 13px;
-  background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(230,245,255,.35));
+.pi-hl-mini{border:1px solid rgba(255,255,255,.92);border-radius:13px;padding:10px 14px;
+  background:linear-gradient(160deg,rgba(255,255,255,.82),rgba(224,242,255,.55));
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  box-shadow:0 4px 14px rgba(10,124,255,.07),inset 0 1px 0 rgba(255,255,255,.8)}
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -10px 16px rgba(10,124,255,.09),
+    0 2px 4px rgba(10,60,140,.08),
+    0 8px 18px rgba(10,124,255,.14)}
 .pi-hl-mn{font-size:22px;font-weight:900;line-height:1.1;text-shadow:0 0 14px color-mix(in srgb,currentColor 35%,transparent)}
 .pi-hl-ml{font-size:10.5px;font-weight:700;color:var(--muted);margin-top:1px}
 .pi-hl-ml span{display:block;font-size:9.5px;font-weight:600;color:#9aa7b8;margin-top:1px}
@@ -1791,7 +1813,7 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
 #mobBackdrop{display:none}
 @media (max-width:820px){
   /* Sidebar → DRAWER geser via hamburger; konten pakai LEBAR PENUH */
-  .side{position:fixed;left:0;top:0;bottom:0;z-index:70;width:228px;flex-basis:228px;transform:translateX(-100%);transition:transform .24s ease;box-shadow:2px 0 22px rgba(0,0,0,.28);height:100vh}
+  .side{position:fixed;left:0;top:0;bottom:0;z-index:70;width:228px;flex-basis:228px;transform:translateX(-100%);transition:transform .24s ease;box-shadow:2px 0 22px rgba(0,0,0,.28);height:100vh;height:100dvh}
   body.side-open .side{transform:translateX(0)}
   .side .logo-wrap{display:block;padding:16px 18px 8px}
   .side .logo-mini,.rail-toggle{display:none!important}
@@ -1852,10 +1874,14 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
   [style*="grid-template-columns:repeat(4"]{grid-template-columns:1fr 1fr!important}
   [style*="grid-template-columns:repeat(3"]{grid-template-columns:1fr!important}
 
-  /* Tabel/list panjang → scroll halus di dalam kartu, tak ada yang terpotong */
-  .card{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .card table{min-width:520px}
+  /* Tabel/list panjang → scroll halus di dalam kartu, tak ada yang terpotong.
+     !important: kalahkan inline style (mis. overflow:hidden di kartu tabel) */
+  .card{overflow-x:auto!important;-webkit-overflow-scrolling:touch}
+  .card table{min-width:640px}
   .sec-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .pik-row{min-width:0}
+  .db{overflow-x:hidden}
+  .db .jt,.db .kv{max-width:100%}
   .svc-head,.svc-row{min-width:540px}
   .nlog-head,.nlog-row{min-width:540px}
   .cp-headrow{display:none}
@@ -1997,6 +2023,7 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
 <!-- AGAVA Database — Firebase Firestore (gagal-anggun: offline → app tetap jalan lokal) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
 <script>
 /* ---------- icons ---------- */
 const IC={
@@ -4111,9 +4138,9 @@ function notifPermAsk(){
   if(!("Notification" in window))return;
   if(Notification.permission==="default"){
     Notification.requestPermission().then(function(p){
-      if(p==="granted") agavaNotify("AGAVA","🔔 Notifikasi aktif — tiket & SO baru akan muncul di sini.",{noSound:true});
+      if(p==="granted"){ agavaNotify("AGAVA","🔔 Notifikasi aktif — tiket & SO baru akan muncul di sini.",{noSound:true}); fcmInit(); }
     });
-  }
+  } else if(Notification.permission==="granted"){ fcmInit(); }
  }catch(e){}
 }
 function agavaNotify(title,body,opt){
@@ -4131,6 +4158,35 @@ function agavaNotify(title,body,opt){
 }
 /* badge angka di ikon aplikasi (Android/Windows, PWA ter-install) — ikut angka lonceng */
 function appBadge(n){ try{ if("setAppBadge" in navigator){ if(n>0)navigator.setAppBadge(n); else navigator.clearAppBadge(); } }catch(e){} }
+/* ── FCM server push (notifikasi saat aplikasi TERTUTUP) ──
+   Isi AGAVA_FCM_VAPID dengan Web Push certificate key dari Firebase Console
+   (Project settings → Cloud Messaging → Web Push certificates → Generate key pair).
+   Kosong = FCM dilewati; notifikasi realtime biasa tetap jalan. Panduan: FCM-SETUP.md */
+const AGAVA_FCM_VAPID="";
+function fcmInit(){
+ try{
+  if(!AGAVA_FCM_VAPID)return;
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  if(typeof firebase==="undefined"||!firebase.messaging)return;
+  if(firebase.messaging.isSupported&&!firebase.messaging.isSupported())return;
+  if(AGDB.fcmToken)return;                                     // sudah terdaftar sesi ini
+  navigator.serviceWorker.ready.then(function(reg){
+    var msg=firebase.messaging();
+    msg.getToken({vapidKey:AGAVA_FCM_VAPID,serviceWorkerRegistration:reg}).then(function(tok){
+      if(!tok)return;
+      AGDB.fcmToken=tok;
+      /* simpan token per perangkat → dipakai Cloud Function utk kirim push */
+      if(AGDB.db)AGDB.db.collection("agava_fcm_tokens").doc(tok).set({
+        token:tok, user:(gUser&&gUser.email)||"", name:(gUser&&gUser.name)||"", role:gRole||"",
+        cat:(gUser&&gUser.cat)||"", ua:(navigator.userAgent||"").slice(0,140), up:Date.now()
+      },{merge:true}).catch(function(){});
+      console.info("FCM aktif — token perangkat terdaftar.");
+    }).catch(function(e){ console.warn("FCM token:",e&&e.message); });
+    /* pesan FCM saat app di FOREGROUND tidak otomatis tampil → tampilkan sendiri */
+    msg.onMessage(function(p){ var n=(p&&p.notification)||{}; agavaNotify(n.title||"AGAVA",n.body||""); });
+  });
+ }catch(e){ console.warn("FCM init:",e); }
+}
 /* ===== Dokumen Supply Order — generate, tanda tangan e-sign, cetak/PDF ===== */
 function soDocDateStr(){ var d=new Date(TODAY_STR+'T00:00:00'); if(isNaN(d))d=new Date(); var mo=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"]; return d.getDate()+' '+mo[d.getMonth()]+' '+d.getFullYear(); }
 function soSigMark(sig,ts){ if(!sig)return''; var body=sig.img?('<img class="sod-sig-png" src="'+sig.img+'"/>'):('<div class="sod-sig-typed">'+sig.label+'</div>'); var stamp=ts?('<div class="sod-sig-stamp">e-signed via AGAVA · '+ts+'</div>'):''; return body+stamp; }
@@ -4277,7 +4333,7 @@ function renderProc(){
    <div class="ptab ${procFilter==='bast'?'on':''}" onclick="procFilter='bast';renderProc()">BAST & Invoice</div>
  </div>
 
- <div class="card" style="overflow:hidden">
+ <div class="card" style="overflow-x:auto">
    <table><thead><tr>
      <th>Item</th><th>PIC</th><th>Value</th><th>Approver</th><th>Stage</th><th>Status</th>
    </tr></thead><tbody>
@@ -6888,7 +6944,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-19";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-20";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";

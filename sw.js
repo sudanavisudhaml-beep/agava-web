@@ -23,13 +23,15 @@ self.addEventListener('notificationclick', e => {
     return clients.openWindow('./index.html');
   }));
 });
-/* siap untuk Web Push / FCM (server-initiated) — payload {title, body} */
+/* Web Push / FCM (server-initiated) — dukung payload polos {title,body}
+   maupun bentuk FCM {notification:{title,body}, data:{...}} */
 self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data && e.data.text() }; }
-  e.waitUntil(self.registration.showNotification(d.title || 'AGAVA', {
-    body: d.body || '', icon: './icon-192.png', badge: './icon-192.png', vibrate: [120, 60, 120],
-    data: { url: './index.html' }
+  const n = d.notification || d;
+  e.waitUntil(self.registration.showNotification(n.title || 'AGAVA', {
+    body: n.body || '', icon: './icon-192.png', badge: './icon-192.png', vibrate: [120, 60, 120],
+    data: { url: (d.data && d.data.url) || './index.html' }
   }));
 });
 self.addEventListener('fetch', e => {
