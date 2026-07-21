@@ -1262,9 +1262,10 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-card .gd-ch{flex-wrap:wrap}
 .pi-final{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:600}
 .pi-final b{color:#0a4bb8;font-size:15px}
-.pi-2col{display:grid;grid-template-columns:2fr 3fr;gap:0}
-.pi-panel{padding:14px 16px}
-.pi-panel:first-child{border-right:1px solid var(--line)}
+/* layout atas-bawah: Standard di atas, Key (PDCA bulanan) di bawah */
+.pi-stack{display:block}
+.pi-panel{padding:14px 18px}
+.pi-panel-key2{border-top:1px solid var(--line)}
 .pi-row.pi-std{grid-template-columns:46px 1fr 48px}
 .pi-row.pi-key{grid-template-columns:44px 1fr 48px 28px}
 .pi-code2{font-size:11px;font-weight:800;text-align:center;padding:6px 0;border-radius:8px;background:linear-gradient(135deg,rgba(0,198,251,.14),rgba(10,124,255,.10));color:#0a4bb8}
@@ -1281,48 +1282,80 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-h-std{border-color:#cfdaeb}
 .pi-h-key{border-color:#f0d9ad}
 .pi-h-key span{background:#fdf3e3;color:#c2740a}
-/* ── Box highlight: neon dark blue, aurora bergerak lambat ── */
-.pi-hl{position:relative;overflow:hidden;isolation:isolate;border:1px solid rgba(64,180,255,.30);border-radius:16px;
-  padding:15px 17px 14px;margin-bottom:14px;color:#e8f5ff;
-  background:linear-gradient(152deg,#071233 0%,#0a1b45 46%,#050e26 100%);
-  box-shadow:0 14px 38px rgba(4,14,44,.42),inset 0 1px 0 rgba(140,210,255,.18)}
-/* lapisan aurora — gerak sangat pelan, tidak mengganggu baca angka */
+/* ── Box highlight: Liquid Glass AGAVA — kaca semi transparan, aksen electric/neon blue,
+     aurora bergerak lambat, TANPA garis progres ── */
+.pi-hl{position:relative;overflow:hidden;isolation:isolate;border-radius:16px;
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  padding:14px 18px;margin-bottom:14px;color:var(--ink);
+  background:linear-gradient(135deg,rgba(255,255,255,.62),rgba(224,242,255,.38));
+  backdrop-filter:blur(14px) saturate(1.5);-webkit-backdrop-filter:blur(14px) saturate(1.5);
+  border:1px solid rgba(255,255,255,.78);
+  box-shadow:0 10px 30px rgba(10,124,255,.10),inset 0 1px 0 rgba(255,255,255,.85)}
+/* lapisan aurora electric-blue — gerak sangat pelan */
 .pi-hl::before{content:"";position:absolute;inset:-45%;z-index:-1;pointer-events:none;
-  background:radial-gradient(38% 46% at 22% 30%,rgba(0,198,251,.34),transparent 62%),
-             radial-gradient(34% 44% at 78% 70%,rgba(96,110,255,.30),transparent 64%),
-             radial-gradient(30% 38% at 56% 10%,rgba(0,228,205,.22),transparent 66%);
-  filter:blur(4px);animation:hlAurora 28s ease-in-out infinite alternate}
+  background:radial-gradient(36% 44% at 20% 30%,rgba(0,198,251,.22),transparent 62%),
+             radial-gradient(32% 42% at 80% 72%,rgba(10,124,255,.18),transparent 64%),
+             radial-gradient(28% 36% at 58% 8%,rgba(0,224,201,.15),transparent 66%);
+  filter:blur(6px);animation:hlAurora 28s ease-in-out infinite alternate}
 @keyframes hlAurora{
   0%{transform:translate3d(-6%,-4%,0) scale(1)}
   50%{transform:translate3d(5%,4%,0) scale(1.14)}
   100%{transform:translate3d(-3%,6%,0) scale(1.05)}}
-/* garis neon menyapu pelan di tepi atas */
-.pi-hl::after{content:"";position:absolute;left:0;right:0;top:0;height:1px;pointer-events:none;
-  background:linear-gradient(90deg,transparent,#00e5ff 38%,#6f9dff 58%,transparent);
-  background-size:220% 100%;animation:hlSweep 11s linear infinite}
+/* garis neon menyapu pelan di tepi atas kaca */
+.pi-hl::after{content:"";position:absolute;left:0;right:0;top:0;height:1.5px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,#00c6fb 38%,#0a7cff 58%,transparent);
+  background-size:220% 100%;opacity:.85;animation:hlSweep 11s linear infinite}
 @keyframes hlSweep{0%{background-position:200% 0}100%{background-position:-100% 0}}
 .pi-hl-std{cursor:pointer;transition:.25s}
-.pi-hl-std:hover{transform:translateY(-2px);border-color:rgba(0,229,255,.55);
-  box-shadow:0 18px 46px rgba(4,14,44,.5),0 0 0 1px rgba(0,229,255,.22),inset 0 1px 0 rgba(140,210,255,.24)}
-.pi-hl-key{border-color:rgba(122,146,255,.34)}
-.pi-hl-cap{font-size:10.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#7cc6ee}
-.pi-hl-row{display:flex;align-items:flex-end;gap:12px;margin-top:4px}
-.pi-hl-v{font-size:42px;font-weight:900;line-height:1;letter-spacing:-.02em;
-  text-shadow:0 0 20px currentColor,0 0 52px rgba(0,170,255,.35);animation:hlGlow 7s ease-in-out infinite}
-@keyframes hlGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.16)}}
-.pi-hl-v small{font-size:20px;font-weight:800;margin-left:1px;opacity:.9}
-.pi-hl-meta{font-size:11px;color:#8fb4d8;line-height:1.45;padding-bottom:5px}
-.pi-hl-meta b{color:#e8f5ff}
-.pi-hl-bar{margin-top:10px}
-.pi-hl .inv-bar{background:rgba(255,255,255,.11);box-shadow:inset 0 0 0 1px rgba(140,200,255,.12)}
-.pi-hl .inv-bar .fill{box-shadow:0 0 12px currentColor,0 0 22px rgba(0,190,255,.35)}
-.pi-hl-minis{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
-.pi-hl-mini{border:1px solid rgba(120,175,235,.22);border-radius:12px;padding:8px 11px;background:rgba(10,28,68,.55)}
-.pi-hl-mn{font-size:22px;font-weight:900;line-height:1.1;text-shadow:0 0 16px currentColor}
-.pi-hl-ml{font-size:10.5px;font-weight:700;color:#8fb4d8;margin-top:1px}
-.pi-hl-ml span{display:block;font-size:9.5px;font-weight:600;color:#6f8fb5;margin-top:1px}
-@media(max-width:820px){.pi-hl-v{font-size:33px}.pi-hl-mn{font-size:18px}}
+.pi-hl-std:hover{transform:translateY(-2px);border-color:rgba(0,198,251,.6);
+  box-shadow:0 16px 38px rgba(10,124,255,.16),0 0 0 1px rgba(0,198,251,.30),inset 0 1px 0 rgba(255,255,255,.9)}
+.pi-hl-l{min-width:210px}
+.pi-hl-cap{font-size:10.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#0a6ad6}
+.pi-hl-v{font-size:42px;font-weight:900;line-height:1.05;letter-spacing:-.02em;margin-top:2px;
+  text-shadow:0 0 18px color-mix(in srgb,currentColor 42%,transparent);animation:hlGlow 7s ease-in-out infinite}
+@keyframes hlGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+.pi-hl-v small{font-size:20px;font-weight:800;margin-left:1px;opacity:.85}
+.pi-hl-meta{font-size:11px;color:var(--muted);line-height:1.5;margin-top:3px}
+.pi-hl-meta b{color:var(--ink)}
+.pi-hl-minis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-left:auto;flex:0 1 360px;min-width:260px}
+.pi-hl-mini{border:1px solid rgba(255,255,255,.8);border-radius:12px;padding:9px 13px;
+  background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(230,245,255,.35));
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:0 4px 14px rgba(10,124,255,.07),inset 0 1px 0 rgba(255,255,255,.8)}
+.pi-hl-mn{font-size:22px;font-weight:900;line-height:1.1;text-shadow:0 0 14px color-mix(in srgb,currentColor 35%,transparent)}
+.pi-hl-ml{font-size:10.5px;font-weight:700;color:var(--muted);margin-top:1px}
+.pi-hl-ml span{display:block;font-size:9.5px;font-weight:600;color:#9aa7b8;margin-top:1px}
+@media(max-width:820px){.pi-hl-v{font-size:33px}.pi-hl-mn{font-size:18px}.pi-hl-minis{margin-left:0;flex:1 1 100%}}
 @media(prefers-reduced-motion:reduce){.pi-hl::before,.pi-hl::after,.pi-hl-v{animation:none}}
+/* ── tabel Key Performance — review PDCA bulanan ── */
+.pik-row{display:grid;grid-template-columns:minmax(230px,2.2fr) 60px 84px 150px minmax(200px,1.6fr) 30px;gap:10px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--line)}
+.pik-row:last-child{border-bottom:none}
+.pik-head{padding:6px;border-bottom:2px solid #cfdaeb;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3}
+.pik-head span:nth-child(2),.pik-head span:nth-child(3){text-align:center}
+.pik-kpi{display:flex;gap:10px;align-items:flex-start;min-width:0}
+.pik-name{font-size:13px;font-weight:700;color:var(--ink)}
+.pik-src{font-size:10.5px;color:#9aa7b8;margin-top:1px}
+.pik-bar{margin-top:6px;max-width:300px}
+.pik-c{font-size:12.5px;font-weight:700;color:var(--ink);text-align:center}
+.pik-ytd{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.pik-ytd input{width:64px;padding:6px 8px;border:1px solid rgba(10,124,255,.30);border-radius:8px;font-family:var(--ff);font-size:13.5px;font-weight:800;color:var(--ink);background:rgba(255,255,255,.8);text-align:right}
+.pik-ytd input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,124,255,.14)}
+.pik-ytd>span{font-size:12px;font-weight:800;color:var(--muted)}
+.pik-ytd em{display:block;width:100%;font-style:normal;font-size:9.5px;color:#9aa7b8}
+.pik-note textarea{width:100%;resize:vertical;min-height:38px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;font-family:var(--ff);font-size:11.5px;line-height:1.45;color:var(--ink);background:rgba(255,255,255,.75)}
+.pik-note textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,124,255,.12)}
+.pik-notetx{font-size:11.5px;color:var(--ink);line-height:1.45;white-space:pre-wrap}
+.pik-monwrap{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px}
+.pik-mon{border:1px solid rgba(10,124,255,.32);border-radius:8px;padding:5px 8px;font-family:var(--ff);font-size:11.5px;font-weight:700;color:#0a4bb8;background:rgba(255,255,255,.85);cursor:pointer}
+.pik-saved{font-size:10.5px;font-weight:800;color:var(--green);opacity:0;transition:.4s;white-space:nowrap}
+.pi-h-key .pi-addnew{margin-left:10px}
+@media(max-width:960px){
+  .pik-head{display:none}
+  .pik-row{grid-template-columns:1fr 1fr;gap:8px}
+  .pik-kpi{grid-column:1/3}
+  .pik-note{grid-column:1/3}
+  .pik-c{text-align:left}
+}
 /* baris komponen di dropdown → klik langsung ke modul sumbernya */
 .pi-comp.go{cursor:pointer;border-radius:8px;transition:.15s}
 .pi-comp.go:hover{background:rgba(10,124,255,.07)}
@@ -2984,58 +3017,94 @@ function codecPerfIndicatorHTML(){
      '<div class="pi-val" style="color:'+c+'">'+f.ach+'%</div>'+
    '</div>';
  }).join('');
+ /* ── Key Performance = tabel review PDCA bulanan ──
+    kolom: KPI · Bobot · Target FY · Pencapaian YTD (editable per bulan) · Catatan bulan.
+    Bulan berjalan default angka live CODEC; bisa dioverride & disimpan (localStorage, ikut kpiPersist). */
+ var m=kpiMonthNow(), curM=(m===kpiCurMonth());
+ var monOpts=kpiMonths().map(function(o){return '<option value="'+o.v+'"'+(o.v===m?' selected':'')+'>'+o.l+'</option>';}).join('');
+ var head='<div class="pik-row pik-head"><span>KPI</span><span>Bobot</span><span>Target FY</span><span>Pencapaian YTD</span><span>Catatan '+kpiMonLabel(m)+'</span><span></span></div>';
  var keyRows=keys.length?keys.map(function(r,i){
-   var c=r.st==='ok'?'var(--green)':r.st==='warn'?'#F59E0B':'var(--red)';
-   var pcode=r.from?codecStdCode(r.from):'NEW';   // nomor = kelompok mana di 6 standar
+   var e=(r.mon&&r.mon[m])||{};
+   var ytd=(e.ytd!==undefined)?e.ytd:(curM?r.ach:null);
+   var c=(ytd==null)?'#9aa7b8':(ytd>=r.target?'var(--green)':ytd>=r.target-15?'#F59E0B':'var(--red)');
+   var pcode=r.from?codecStdCode(r.from):(r.manual?'MAN':'NEW');
    var pc=KPI_PERSP[r.persp]||'#5b6b80';
-   return '<div class="pi-row pi-key">'+
-     '<div class="pi-code" style="background:'+pc+'1a;color:'+pc+'" title="'+esc(r.from||'KPI baru / custom')+'">'+pcode+'</div>'+
-     '<div class="pi-main"><div class="pi-name">'+esc(r.name)+'</div>'+
-       '<div class="pi-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,r.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,r.target)+'%"></div></div></div>'+
-       '<div class="pi-src">target '+r.target+'% · bobot '+r.weight+'% · '+esc(r.src)+'</div></div>'+
-     '<div class="pi-val" style="color:'+c+'">'+r.ach+'%</div>'+
-     '<div class="pi-act">'+(viewerOnly()?'':'<button class="pi-x" onclick="codecRemoveKey('+i+')" title="hapus dari Key">✕</button>')+'</div>'+
+   return '<div class="pik-row">'+
+     '<div class="pik-kpi"><span class="pi-code" style="background:'+pc+'1a;color:'+pc+'" title="'+esc(r.from||'KPI baru / custom')+'">'+pcode+'</span>'+
+       '<div style="min-width:0;flex:1"><div class="pik-name">'+esc(r.name)+'</div><div class="pik-src">'+esc(r.src)+'</div>'+
+       '<div class="pik-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,ytd||0)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,r.target)+'%"></div></div></div></div></div>'+
+     '<div class="pik-c">'+r.weight+'%</div>'+
+     '<div class="pik-c">'+r.target+'%</div>'+
+     '<div class="pik-ytd">'+(viewerOnly()
+        ?'<b style="color:'+c+';font-size:15px">'+(ytd==null?'—':ytd+'%')+'</b>'
+        :'<input type="number" min="0" max="120" step="1" value="'+(ytd==null?'':ytd)+'" placeholder="—" onchange="kpiMonSave('+i+',\'ytd\',this.value);renderOverview()"/><span>%</span>')+
+      '<em>'+((e.ytd!==undefined)?'✍ manual '+kpiMonLabel(m):(curM?'📡 live CODEC':'belum diisi'))+'</em></div>'+
+     '<div class="pik-note">'+(viewerOnly()
+        ?'<span class="pik-notetx">'+(e.note?esc(e.note):'—')+'</span>'
+        :'<textarea rows="2" placeholder="progress / kendala / tindak lanjut bulan ini…" onchange="kpiMonSave('+i+',\'note\',this.value)">'+(e.note?esc(e.note):'')+'</textarea>')+'</div>'+
+     '<div class="pik-c">'+(viewerOnly()?'':'<button class="pi-x" onclick="codecRemoveKey('+i+')" title="hapus dari Key">✕</button>')+'</div>'+
    '</div>';
  }).join(''):'<div class="muted small" style="padding:24px;text-align:center">Belum ada Key. Klik <b>+ Tambah KPI Baru</b> (bisa dari indikator standar atau KPI baru).</div>';
  return '<div class="card mt16 pi-card">'+
-   '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div><div class="gd-chs">6 indikator standar (baku) · nomor GA-01..06 = kelompok · Key = yang dikontrakkan tahun '+KPI_YEAR_META.year+'</div></div>'+
+   '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div></div>'+
      '<span class="pi-final">Skor KPI '+KPI_YEAR_META.year+': <b>'+total.final+'%</b> · '+total.ok+'/'+total.tot+' capai target</span></div>'+
-   '<div class="pi-2col">'+
-     '<div class="pi-panel pi-panel-std">'+
+   '<div class="pi-stack">'+
+     '<div class="pi-panel">'+
        codecHlStd(S)+
-       '<div class="pi-h pi-h-std">📋 Standard Performance Indicator <span>6 baku</span></div>'+std+'</div>'+
-     '<div class="pi-panel pi-panel-key">'+
+       '<div class="pi-h pi-h-std">📋 Standard Performance Indicator</div>'+std+'</div>'+
+     '<div class="pi-panel pi-panel-key2">'+
        codecHlKey(total)+
-       '<div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+(viewerOnly()?'':'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>')+'</div>'+keyRows+'</div>'+
+       '<div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+
+         '<span class="pik-monwrap" title="Review PDCA bulanan — pilih bulan">📆 <select class="pik-mon" onchange="kpiSetMonth(this.value)">'+monOpts+'</select></span>'+
+         '<span id="pik-saved" class="pik-saved">✓ tersimpan</span>'+
+         (viewerOnly()?'':'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>')+'</div>'+
+       '<div class="muted small" style="margin:4px 0 8px">Review PDCA bulanan: pilih bulan, isi <b>Pencapaian YTD</b> &amp; <b>catatan</b> per KPI lalu tersimpan otomatis. Bulan berjalan memakai angka live CODEC dan bisa dioverride.</div>'+
+       head+keyRows+'</div>'+
    '</div>'+
    '<div class="gd-kpop" id="gdKpiPop"></div></div>';
 }
-/* Warna neon di atas latar dark blue — hijau/amber/merah versi menyala */
-function hlNeon(v){ return v>=90?'#2ff5b0':v>=75?'#ffc44d':'#ff6b8a'; }
-/* Box highlight kiri — rata-rata 6 indikator standar saja (tanpa keterangan tambahan) */
+/* ── PDCA bulanan: state bulan terpilih + simpan YTD/catatan per KPI per bulan ── */
+const KPI_MON_ID=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+let kpiMonthSel=null;
+function kpiCurMonth(){ return TODAY_STR.slice(0,7); }
+/* jangan cache sebelum user memilih — TODAY_STR bisa berubah saat data config selesai dimuat */
+function kpiMonthNow(){ return kpiMonthSel||kpiCurMonth(); }
+function kpiSetMonth(v){ kpiMonthSel=v; renderOverview(); }
+function kpiMonLabel(m){ var p=m.split("-"); return KPI_MON_ID[+p[1]-1]||m; }
+function kpiMonths(){ var y=KPI_YEAR_META.year, a=[]; for(var i=0;i<12;i++){ a.push({v:y+"-"+String(i+1).padStart(2,"0"), l:KPI_MON_ID[i]+" "+y}); } return a; }
+function kpiMonSave(i,field,val){
+ var k=KPI_CLA[i]; if(!k)return; var m=kpiMonthNow();
+ k.mon=k.mon||{}; var e=k.mon[m]=k.mon[m]||{};
+ if(field==='ytd'){ var n=parseFloat(val); if(isNaN(n)){ delete e.ytd; } else e.ytd=Math.max(0,Math.min(120,Math.round(n))); }
+ else { e.note=(val||"").trim(); if(!e.note)delete e.note; }
+ if(e.ytd===undefined&&!e.note)delete k.mon[m];
+ kpiPersist();
+ var s=document.getElementById('pik-saved'); if(s){ s.style.opacity=1; setTimeout(function(){ s.style.opacity=0; },1500); }
+}
+/* Warna capaian di atas kaca terang — hijau/amber/merah versi menyala */
+function hlNeon(v){ return v>=90?'#00b884':v>=75?'#f59e0b':'#ff4d6d'; }
+/* Box highlight Standard — hanya angka rata-rata, tanpa garis */
 function codecHlStd(S){
  var avg=Math.round(S.reduce(function(a,x){return a+x.ach;},0)/(S.length||1));
  var c=hlNeon(avg);
  return '<div class="pi-hl pi-hl-std" onclick="codecKpiPop(\'total\')" title="klik untuk lihat dari data apa">'+
-   '<div class="pi-hl-cap">Rata-rata Standard Performance</div>'+
-   '<div class="pi-hl-row"><div class="pi-hl-v" style="color:'+c+'">'+avg+'<small>%</small></div></div>'+
-   '<div class="pi-hl-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,avg)+'%;background:'+c+'"></div></div></div>'+
+   '<div class="pi-hl-l"><div class="pi-hl-cap">Rata-rata Standard Performance</div>'+
+   '<div class="pi-hl-v" style="color:'+c+'">'+avg+'<small>%</small></div></div>'+
  '</div>';
 }
-/* Box highlight kanan — % total pencapaian KPI + box kecil routine / non-routine */
+/* Box highlight Key — % total pencapaian + box kecil routine / non-routine, tanpa garis */
 function codecHlKey(T){
  var c=hlNeon(T.final);
  var mini=function(k,lbl,sym,col){
    return '<div class="pi-hl-mini" title="'+k.n+' KPI · bobot '+k.w+'%">'+
-     '<div class="pi-hl-mn" style="color:'+(k.n?col:'#6f86ad')+'">'+(k.n?k.pct+'%':'—')+'</div>'+
+     '<div class="pi-hl-mn" style="color:'+(k.n?col:'#9aa7b8')+'">'+(k.n?k.pct+'%':'—')+'</div>'+
      '<div class="pi-hl-ml">'+sym+' '+lbl+'<span>'+k.n+' KPI</span></div></div>';
  };
  return '<div class="pi-hl pi-hl-key">'+
-   '<div class="pi-hl-cap">Total Pencapaian KPI '+KPI_YEAR_META.year+'</div>'+
-   '<div class="pi-hl-row"><div class="pi-hl-v" style="color:'+c+'">'+T.final+'<small>%</small></div>'+
-     '<div class="pi-hl-meta">tertimbang '+T.wsum+'% bobot<br><b>'+T.ok+'/'+T.tot+'</b> capai target'+(T.risk?' · <b style="color:#ff6b8a">'+T.risk+'</b> at risk':'')+'</div></div>'+
-   '<div class="pi-hl-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,T.final)+'%;background:'+c+'"></div></div></div>'+
-   '<div class="pi-hl-minis">'+mini(T.rout,'Routine','●','#3ef0b4')+mini(T.nonr,'Non-Routine','◆','#a98bff')+'</div>'+
+   '<div class="pi-hl-l"><div class="pi-hl-cap">Total Pencapaian KPI '+KPI_YEAR_META.year+'</div>'+
+   '<div class="pi-hl-v" style="color:'+c+'">'+T.final+'<small>%</small></div>'+
+   '<div class="pi-hl-meta">tertimbang '+T.wsum+'% bobot · <b>'+T.ok+'/'+T.tot+'</b> capai target'+(T.risk?' · <b style="color:var(--red)">'+T.risk+'</b> at risk':'')+'</div></div>'+
+   '<div class="pi-hl-minis">'+mini(T.rout,'Routine','●','#0aa574')+mini(T.nonr,'Non-Routine','◆','#7C3AED')+'</div>'+
  '</div>';
 }
 function kpiClaTotal(){
@@ -6785,7 +6854,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-17";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-18";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
