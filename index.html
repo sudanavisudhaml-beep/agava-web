@@ -810,7 +810,7 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 /* status bar 5 tahap — warna tiap segmen = warna kelompok besar di Lifecycle Journey */
 .mini{display:flex;gap:3px;margin-top:6px}
 .mini i{height:4px;width:14px;border-radius:3px;background:#e6eaf0;transition:.2s}
-.mini i.done{background:var(--gc)}
+.mini i.done{background:var(--gc);box-shadow:0 0 6px rgba(10,124,255,.4)}
 .mini i.active{background:var(--gc);opacity:.45;box-shadow:0 0 0 2px color-mix(in srgb,var(--gc) 22%,transparent)}
 .mini i.rejected{background:var(--red)}
 .badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:14px}
@@ -1123,43 +1123,45 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .db{padding:22px 24px}
 .kv{display:grid;grid-template-columns:120px 1fr;gap:8px 14px;font-size:13px;margin-bottom:18px}
 .kv .k{color:var(--muted)} .kv .v{color:var(--ink);font-weight:600}
-/* timeline */
-.tl{position:relative;padding-left:30px;margin-top:8px}
-.tl::before{content:"";position:absolute;left:9px;top:8px;bottom:8px;width:2px;background:var(--line)}
-.ts{position:relative;padding-bottom:18px}
-.ts .nd{position:absolute;left:-30px;top:1px;width:20px;height:20px;border-radius:50%;background:#fff;
-  border:2px solid #cfd8e3;display:grid;place-items:center;font-size:10px;color:#9aa7b8}
-.ts.done .nd{background:var(--green);border-color:var(--green);color:#fff}
-.ts.active .nd{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 0 4px var(--blue-s)}
-.ts.rejected .nd{background:var(--red);border-color:var(--red);color:#fff}
-.ts .tt{font-size:13.5px;font-weight:600;color:var(--ink)}
-.ts.pending .tt{color:#9aa7b8;font-weight:500}
-.ts.rejected .tt{color:var(--red)}
-.ts .td{font-size:12px;color:var(--muted);margin-top:2px}
-/* ── 12 langkah dikelompokkan ke 5 tahap besar (sama dgn status bar di daftar SO) ── */
+/* ── Bar tahap di kepala Journey (segmen = checkpoint, semua biru neon) ── */
 .jgbar{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
 .jgb i{display:block;height:5px;border-radius:3px;background:#e6eaf0}
 .jgb span{display:block;font-size:9.5px;font-weight:700;color:#9aa7b8;margin-top:5px;line-height:1.25}
-.jgb.done i{background:var(--gc)} .jgb.done span{color:var(--gc)}
+.jgb.done i{background:var(--gc);box-shadow:0 0 8px rgba(10,124,255,.45)} .jgb.done span{color:var(--gc)}
 .jgb.active i{background:var(--gc);opacity:.45} .jgb.active span{color:var(--gc)}
 .jgb.rejected i{background:var(--red)} .jgb.rejected span{color:var(--red)}
-.jg{border-left:3px solid #e6eaf0;padding-left:13px;margin-bottom:6px}
-.jg.done,.jg.active{border-left-color:var(--gc)}
-.jg.rejected{border-left-color:var(--red)}
-.jg-h{display:flex;align-items:center;gap:9px;padding:7px 0 9px}
-.jg-n{flex:0 0 auto;width:21px;height:21px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;background:#eef1f6;color:#9aa7b8}
-.jg.done .jg-n,.jg.active .jg-n{background:var(--gc);color:#fff}
-.jg.rejected .jg-n{background:var(--red);color:#fff}
-.jg-tt{flex:1;min-width:0}
-.jg-name{font-size:12.5px;font-weight:800;color:var(--ink);letter-spacing:.01em}
-.jg.pending .jg-name{color:#9aa7b8}
-.jg-bar{font-size:10px;color:#9aa7b8;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.jg-st{flex:0 0 auto;font-size:10px;font-weight:700;color:#9aa7b8;background:#f2f5f9;border-radius:20px;padding:3px 9px;white-space:nowrap}
-.jg.done .jg-st,.jg.active .jg-st{color:var(--gc);background:color-mix(in srgb,var(--gc) 12%,#fff)}
-.jg.rejected .jg-st{color:var(--red);background:#fdecec}
-.jg.active{background:linear-gradient(90deg,color-mix(in srgb,var(--gc) 7%,transparent),transparent 62%);border-radius:0 12px 12px 0}
-.jg .tl{margin-top:0}
-.jg .ts:last-child{padding-bottom:10px}
+/* ── Journey (SO & Tiket): satu garis perjalanan — CHECKPOINT BESAR biru neon,
+     perjalanan kecil abu-abu terang di antaranya ── */
+.jt{position:relative;padding-left:36px;margin-top:10px}
+.jt::before{content:"";position:absolute;left:13px;top:12px;bottom:16px;width:2px;background:#dde5ef}
+.jt-s{position:relative;padding:0 0 12px}
+.jt-sd{position:absolute;left:-28px;top:2px;width:12px;height:12px;border-radius:50%;background:#f1f4f8;border:2px solid #d7dfe9;display:grid;place-items:center;font-size:7px;font-weight:800;color:#93a1b4}
+.jt-s.done .jt-sd{background:#e2e8f0;border-color:#c9d3e0;color:#64748b}
+.jt-s.active .jt-sd{background:#fff;border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,124,255,.16)}
+.jt-s.rejected .jt-sd{background:var(--red);border-color:var(--red);color:#fff}
+.jt-s1{font-size:12.5px;font-weight:600;color:#8391a5}
+.jt-s.done .jt-s1{color:#64748b}
+.jt-s.active .jt-s1{color:var(--ink)}
+.jt-s.rejected .jt-s1{color:var(--red)}
+.jt-s2{font-size:11px;color:#a3aebf;margin-top:1px}
+.jt-cp{position:relative;display:flex;gap:10px;align-items:center;padding:3px 0 16px}
+.jt-cp:last-child{padding-bottom:2px}
+.jt-cd{position:absolute;left:-36px;top:0;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;background:#fff;border:2px solid #cfd8e3;color:#9aa7b8;z-index:1}
+.jt-cp.done .jt-cd{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 0 10px rgba(10,124,255,.55),0 0 24px rgba(0,166,255,.30)}
+.jt-cp.active .jt-cd{border-color:var(--blue);color:var(--blue);animation:jtPulse 2.4s ease-in-out infinite}
+.jt-cp.rejected .jt-cd{background:var(--red);border-color:var(--red);color:#fff}
+@keyframes jtPulse{0%,100%{box-shadow:0 0 0 4px rgba(10,124,255,.14),0 0 12px rgba(10,124,255,.30)}50%{box-shadow:0 0 0 7px rgba(10,124,255,.08),0 0 22px rgba(0,166,255,.55)}}
+.jt-cb{flex:1;min-width:0}
+.jt-cn{font-size:13.5px;font-weight:800;color:var(--ink);letter-spacing:.01em}
+.jt-cp.done .jt-cn,.jt-cp.active .jt-cn{color:#0a4bb8}
+.jt-cp.pending .jt-cn{color:#9aa7b8}
+.jt-cp.rejected .jt-cn{color:var(--red)}
+.jt-cm{font-size:11px;color:#8fa0b5;margin-top:1px}
+.jt-cs{flex:0 0 auto;font-size:10px;font-weight:700;border-radius:20px;padding:3px 9px;white-space:nowrap;background:#f2f5f9;color:#9aa7b8}
+.jt-cp.done .jt-cs{background:#e7f1ff;color:var(--blue)}
+.jt-cp.active .jt-cs{background:var(--blue);color:#fff;box-shadow:0 0 10px rgba(10,124,255,.45)}
+.jt-cp.rejected .jt-cs{background:#fdecec;color:var(--red)}
+@media(prefers-reduced-motion:reduce){.jt-cp.active .jt-cd{animation:none}}
 .gate-chip{font-size:10.5px;font-weight:700;color:#7a4fd0;background:#f1ecfc;padding:2px 8px;border-radius:10px;margin-left:8px}
 
 @media(max-width:1040px){.kpis,.grid3{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}
@@ -3889,12 +3891,15 @@ const STAGES=["Submitted","SO Approved","Sourcing","UPR","SPK","Execution","BAST
 /* 5 KELOMPOK BESAR — sama persis dengan 5 status bar (pip) di baris SO dan label WSTEP_DONE.
    Satu sumber: dipakai bareng oleh Lifecycle Journey (detail) dan status bar (list),
    supaya detail dan list tidak pernah beda cerita. */
+/* Satu warna untuk semua checkpoint: BIRU NEON. Sub-langkah kecil memakai light grey —
+   kontras besar/kecil inilah yang menggambarkan "5 checkpoint besar, perjalanan kecil di antaranya". */
+const JT_NEON="#0a7cff";
 const SO_GROUPS=[
- {n:"SO & Approval",   bar:"Assigned — start sourcing", col:"#0a7cff"},
- {n:"Sourcing",        bar:"Sourcing done · do UPR",    col:"#00b0a6"},
- {n:"UPR",             bar:"UPR done · send SPK",       col:"#7C3AED"},
- {n:"SPK & Execution", bar:"SPK sent · submit BAST",    col:"#F59E0B"},
- {n:"BAST & Invoice",  bar:"BAST done",                 col:"#15a34a"}
+ {n:"SO & Approval",   bar:"Assigned — start sourcing", col:JT_NEON},
+ {n:"Sourcing",        bar:"Sourcing done · do UPR",    col:JT_NEON},
+ {n:"UPR",             bar:"UPR done · send SPK",       col:JT_NEON},
+ {n:"SPK & Execution", bar:"SPK sent · submit BAST",    col:JT_NEON},
+ {n:"BAST & Invoice",  bar:"BAST done",                 col:JT_NEON}
 ];
 /* 12 langkah detail — 'g' menunjuk ke kelompok besar di atas */
 const LIFECYCLE=[
@@ -3995,7 +4000,6 @@ const TICKETS=[
 function ticketAge(d){ return Math.floor((new Date(TODAY_STR)-new Date(d))/86400000); }
 let procFilter="all";
 function tier(n){return n<=10?"Dept Head":n<=100?"Division Head":"Chief CHCD";}
-function stagePip(s){return s>=6?"#15a34a":s>=4?"#c2740a":s>=3?"#6a7bff":"#2563eb";}
 function agingBadge(a){return a==="Needs Attention"?'<span class="badge bd-crit">Needs Attention</span>':a==="Warning"?'<span class="badge bd-warn">Warning</span>':'<span class="badge bd-ok">On Track</span>';}
 function ini(n){if(!n)return"–";const p=n.split(" ");return (p[0][0]+(p[1]?p[1][0]:"")).toUpperCase();}
 
@@ -4216,29 +4220,38 @@ function openDrawer(no){
         <div class="muted small" style="font-weight:400;margin-top:2px">langkah ${Math.min(pr.p+1,LIFECYCLE.length)} dari ${LIFECYCLE.length} · status bar: ${esc(soStatusLabel(s).t)}</div></span>
     </div>
     <div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>
-    <div class="muted small" style="margin-bottom:12px">${LIFECYCLE.length} langkah · dikelompokkan ke ${SO_GROUPS.length} tahap besar yang sama dengan status bar di daftar SO</div>
+    <div class="muted small" style="margin-bottom:12px">${SO_GROUPS.length} checkpoint besar · ${LIFECYCLE.length} perjalanan kecil di antaranya — sama dengan status bar di daftar SO</div>
     ${soGroupBarHTML(s,gst)}
-    ${SO_GROUPS.map((G,gi)=>{
-      const inner=steps.map((st,i)=>({st,i})).filter(x=>x.st.g===gi);
-      const st5=gst[gi];
-      return `<div class="jg ${st5}" style="--gc:${G.col}">
-        <div class="jg-h">
-          <span class="jg-n">${gi+1}</span>
-          <div class="jg-tt"><div class="jg-name">${G.n}</div><div class="jg-bar">status bar: ${G.bar}</div></div>
-          <span class="jg-st">${st5==='done'?'✓ selesai':st5==='active'?'● berjalan':st5==='rejected'?'⛔ ditolak':'belum'}</span>
-        </div>
-        <div class="tl">
-          ${inner.map(({st,i})=>{ const tv=st.tk==='invIn'?(s.invRecvDate||''):(st.tk&&s.ts?s.ts[st.tk]:'');
-            return `<div class="ts ${st.cls}"><div class="nd">${st.cls==='done'?'✓':st.cls==='rejected'?'✕':''}</div>
-            <div class="tt">${i+1}. ${st.t}${st.gate?'<span class="gate-chip">◆ approval</span>':''}</div>
-            ${st.sub?`<div class="td">${st.sub}</div>`:''}${((st.cls==='done'||st.cls==='rejected')&&tv)?`<div class="td" style="color:var(--blue);font-weight:600">🕐 ${tv}</div>`:''}</div>`; }).join("")}
-        </div>
-      </div>`;
-    }).join("")}
+    ${jtHTML(SO_GROUPS.map((G,gi)=>({
+      name:G.n, state:gst[gi], meta:"status bar: "+G.bar,
+      steps:steps.map((st,i)=>({st,i})).filter(x=>x.st.g===gi).map(({st,i})=>{
+        const tv=st.tk==='invIn'?(s.invRecvDate||''):(st.tk&&s.ts?s.ts[st.tk]:'');
+        return {num:i+1, t:esc(st.t), gate:st.gate, cls:st.cls, sub:st.sub?esc(st.sub):null,
+                ts:((st.cls==='done'||st.cls==='rejected')&&tv)?tv:null};
+      })
+    })))}
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
 function closeDrawer(){document.getElementById("ovl").classList.remove("show");}
+/* ── Renderer journey BERSAMA (SO & Tiket) ──
+   Metafora: perjalanan besar punya CHECKPOINT (node besar, biru neon); sebelum sampai
+   checkpoint ada perjalanan-perjalanan kecil (node kecil, light grey) yang dirender DI ATAS
+   checkpoint-nya. groups=[{name,state:done|active|pending|rejected,meta,steps:[{num,t,gate,cls,sub,ts}]}] */
+function jtHTML(groups){
+ return '<div class="jt">'+groups.map(function(G,gi){
+   var steps=(G.steps||[]).map(function(st){
+     return '<div class="jt-s '+st.cls+'"><span class="jt-sd">'+(st.cls==='done'?'✓':st.cls==='rejected'?'✕':'')+'</span>'+
+       '<div class="jt-sb"><div class="jt-s1">'+(st.num?st.num+'. ':'')+st.t+(st.gate?'<span class="gate-chip">◆ approval</span>':'')+'</div>'+
+       (st.sub?'<div class="jt-s2">'+st.sub+'</div>':'')+
+       (st.ts?'<div class="jt-s2" style="color:var(--blue);font-weight:600">🕐 '+st.ts+'</div>':'')+'</div></div>';
+   }).join('');
+   return steps+
+     '<div class="jt-cp '+G.state+'"><span class="jt-cd">'+(G.state==='done'?'✓':G.state==='rejected'?'✕':(gi+1))+'</span>'+
+     '<div class="jt-cb"><div class="jt-cn">'+G.name+'</div>'+(G.meta?'<div class="jt-cm">'+G.meta+'</div>':'')+'</div>'+
+     '<span class="jt-cs">'+(G.state==='done'?'✓ tercapai':G.state==='active'?'● menuju':G.state==='rejected'?'⛔ ditolak':'checkpoint '+(gi+1))+'</span></div>';
+ }).join('')+'</div>';
+}
 /* Bar 5 tahap di kepala Journey — bentuk besar dari pip yang sama di baris SO */
 function soGroupBarHTML(s,gst){
  gst=gst||soGroupState(s);
@@ -4472,17 +4485,37 @@ function svcRating(){
  const avg=closed.length?closed.reduce((s,t)=>s+t.rating,0)/closed.length:0;
  return {avg,n:closed.length,list:closed};
 }
+/* Journey tiket: 4 checkpoint besar (Submitted→Assigned→In Progress→Resolved) + perjalanan
+   kecil di antaranya (menunggu respon, eskalasi, lanjut SO) — semua derive dari data tiket & SLA */
+function ticketJourneyGroups(t){
+ var sla=ticketSLA(t), ts=t.ts||{}, stg=t.stg||0;
+ var cp=function(i){return stg>=i?'done':(stg===i-1?'active':'pending');};
+ /* perjalanan kecil menuju checkpoint Assigned: masa menunggu respon operator */
+ var pre2=[ stg>=1
+   ?{t:"Menunggu respon operator",cls:"done",sub:"respon "+fmtDur(sla.respMin)+" · target "+sla.tg.resp+" mnt"+(sla.respBreach?" · ⚠ lewat target":" ✓ dalam target")}
+   :{t:"Menunggu respon operator",cls:"active",sub:(sla.respMin!=null?"sudah "+fmtDur(sla.respMin)+" · ":"")+"target "+sla.tg.resp+" mnt"+(sla.respBreach?" · ⚠ SLA BREACH":"")} ];
+ /* perjalanan kecil menuju checkpoint Resolved: eskalasi, lanjut SO, masa pengerjaan */
+ var pre4=[];
+ if(t.esc) pre4.push({t:"⚠ Eskalasi ke Supervisor"+(t.escBy?" — "+esc(t.escBy):""),cls:"done",sub:"operator tidak dapat menyelesaikan sendiri — dinaikkan ke level Supervisor"});
+ if(t.toProc) pre4.push({t:"↳ Dibuatkan SO — lanjut ke Procurement",cls:"done",sub:"butuh pengadaan untuk menyelesaikan tiket"});
+ if(stg===2) pre4.push({t:"Pengerjaan berjalan",cls:"active",sub:(sla.resMin!=null?"sudah "+fmtDur(sla.resMin)+" · ":"")+"target resolusi "+fmtDur(sla.tg.res)+(sla.resBreach?" · ⚠ SLA BREACH":"")});
+ return [
+  {name:"Tiket Dibuat (Submitted)",  state:"done", meta:(ts[0]||t.created)?("🕐 "+(ts[0]||t.created)):null, steps:[]},
+  {name:"Ditugaskan (Assigned)",     state:cp(1),  meta:stg>=1?((t.pic?"oleh "+esc(t.pic):"")+(ts[1]?(t.pic?" · ":"")+"🕐 "+ts[1]:"")||null):null, steps:pre2},
+  {name:"Dikerjakan (In Progress)",  state:cp(2),  meta:(stg>=2&&ts[2])?("🕐 "+ts[2]):null, steps:[]},
+  {name:"Selesai (Resolved)",        state:cp(3),  meta:stg>=3?("resolusi "+fmtDur(sla.resMin)+(sla.resBreach?" · ⚠ lewat target":" · dalam target")+(ts[3]?" · 🕐 "+ts[3]:"")+(t.rating?" · "+"★".repeat(Math.round(t.rating)):"")):null, steps:pre4}
+ ];
+}
 function openTicket(no){
  const t=TICKETS.find(x=>x.no===no); if(!t)return;
- const tsArr=[0,1,2,3].map(i=>(t.ts&&t.ts[i]!=null)?t.ts[i]:(i===0?t.created:''));
  const canSvc=['admin','section','proc','staff','analyst'].includes(gRole);
  const next=t.stg<3?TSTAGES[t.stg+1]:null;
- const tNotes=t.toProc?{2:'↳ perlu masuk Procurement dulu'}:null;
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div class="sono" style="font-size:15px">${t.no}${t.esc?' <span class="badge bd-crit">Escalated</span>':''}</div><div style="font-size:14.5px;color:var(--ink);font-weight:700;margin-top:5px">${t.judul}</div><div class="muted small" style="margin-top:3px">${t.cat} · ${t.lokasi} · ${t.team} · PIC ${t.pic||'—'}</div></div>
   <div class="db">
-    <div class="panel-t">Lifecycle — timestamp per step</div>
-    ${tsStepper(TSTAGES, t.stg+1, tsArr, tNotes)}
+    <div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>
+    <div class="muted small" style="margin-bottom:10px">4 checkpoint besar · perjalanan kecil di antaranya (respon, eskalasi, SO) ikut tergambar</div>
+    ${jtHTML(ticketJourneyGroups(t))}
     <div style="margin-top:14px">${next?(canSvc?`<button class="btn-act" onclick="svcAdvance('${t.no}')">→ Set: ${next}</button> <span class="muted small">status: <b>${t.status}</b></span>`:`<span class="muted small">Status: <b>${t.status}</b></span>`):(t.rating?`<span class="muted small">✅ Resolved · rating ${'★'.repeat(Math.round(t.rating))}</span>`:`<button class="btn-act" onclick="closeDrawer();openRate('${t.no}')">★ Beri rating</button>`)}</div>
   </div>`;
  document.getElementById("ovl").classList.add("show");
@@ -6752,7 +6785,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-16";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-17";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
