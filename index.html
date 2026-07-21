@@ -570,6 +570,47 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .mt-btn{flex:1;padding:8px;font-size:12px;min-width:130px}
 .svc-breach{font-size:9.5px;font-weight:800;color:var(--red);margin-top:2px}
 @media(max-width:820px){.mt-grid{grid-template-columns:1fr}}
+/* ── Foto bukti wajib: tombol kamera, preview, viewer ── */
+.fo-cam{display:flex;flex-direction:column;align-items:center;gap:2px;padding:20px 16px;cursor:pointer;
+  border:2px dashed rgba(10,124,255,.42);border-radius:14px;text-align:center;
+  background:linear-gradient(135deg,rgba(0,198,251,.09),rgba(10,124,255,.06));transition:.15s}
+.fo-cam:hover{border-color:var(--blue);background:linear-gradient(135deg,rgba(0,198,251,.16),rgba(10,124,255,.11))}
+.fo-cam input{display:none}
+.fo-cam-ic{font-size:30px;line-height:1}
+.fo-cam b{font-size:14px;color:#0a4bb8;margin-top:5px}
+.fo-cam small{font-size:11px;color:var(--muted)}
+.fo-prev{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:11px}
+.fo-prev-i{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:1/1;background:#f3f6fa}
+.fo-prev-i img{width:100%;height:100%;object-fit:cover;display:block}
+.fo-prev-i button{position:absolute;top:4px;right:4px;width:21px;height:21px;border:none;border-radius:50%;
+  background:rgba(220,38,38,.92);color:#fff;font-size:11px;font-weight:800;cursor:pointer;line-height:1}
+.svc-proof{display:flex;align-items:center;gap:5px;margin-top:7px;flex-wrap:wrap}
+.svc-proof img{width:38px;height:38px;object-fit:cover;border-radius:7px;border:1px solid var(--line);cursor:zoom-in;transition:.15s}
+.svc-proof img:hover{transform:scale(1.08);border-color:var(--blue)}
+.svc-proof-more{font-size:10px;font-weight:800;color:var(--muted);background:#eef2f7;border-radius:6px;padding:3px 6px}
+.svc-proof-lb{font-size:9.5px;font-weight:700;color:#0a7cff;background:rgba(10,124,255,.09);border-radius:20px;padding:2px 8px}
+.proof-ovl{position:fixed;inset:0;z-index:120;background:rgba(8,18,36,.86);display:none;place-items:center;padding:20px;cursor:zoom-out}
+.proof-ovl.show{display:grid}
+.proof-box{max-width:min(94vw,760px);max-height:90vh;display:flex;flex-direction:column;gap:10px}
+.proof-box img{max-width:100%;max-height:74vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.proof-cap{color:#e8f2ff;font-size:12.5px;line-height:1.6;text-align:center}
+.proof-cap .muted{color:#9db5d4}
+/* ── Log record operator (Field Ops, kelompok Super) ── */
+.fo-oplog{margin-bottom:16px}
+.fo-oplog-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.fo-oplog-h .btn-act{margin-left:auto}
+.fo-oplog-w{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fo-oplog-t{width:100%;border-collapse:collapse;font-size:12px;min-width:820px}
+.fo-oplog-t th{text-align:left;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#7d8ca3;padding:7px 9px;border-bottom:2px solid #cfdaeb;white-space:nowrap}
+.fo-oplog-t td{padding:8px 9px;border-bottom:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.fo-oplog-t tr:last-child td{border-bottom:none}
+/* banner status notifikasi — muncul hanya bila notif belum aktif */
+.notif-bn{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;padding:12px 16px;border-radius:13px;
+  border:1px solid #f0d9ad;background:linear-gradient(135deg,rgba(255,251,240,.95),rgba(253,243,227,.8))}
+.notif-bn-ic{font-size:20px;line-height:1}
+.notif-bn-t{flex:1;min-width:200px;font-size:12.5px;line-height:1.55;color:#7a4f00}
+.notif-bn-t b{color:#5c3a00}
+.notif-bn .btn-act{flex:0 0 auto}
 /* ===== Dokumen Supply Order (cetak / simpan PDF) ===== */
 .sodoc-ovl{position:fixed;inset:0;z-index:400;background:rgba(15,35,65,.55);display:flex;flex-direction:column}
 .sodoc-ovl.hide{display:none}
@@ -2349,6 +2390,24 @@ function esgScorecard(){
 }
 /* Staff di luar GA (role general): view terbatas — dalaman GA tidak dipublikasikan. */
 function isEndUser(){ return gRole==="general"; }
+/* ── KELOMPOK SUPER — lihat SEMUA tiket + section Rating & Vendor Performance ──
+   Super = Superadmin, Section Head, Dept Head, Chief, PIC Procurement, PIC Budget.
+   Di luar ini = kelompok user/viewer: hanya melihat tiket yang DIA buat sendiri. */
+const SUPER_ROLES=["admin","section","dept","chief","proc","budget"];
+function isSuper(){ return SUPER_ROLES.indexOf(gRole)>=0; }
+/* tiket milik siapa — dipakai filter list Services untuk kelompok user/viewer */
+function ticketMine(t){
+ if(!gUser)return false;
+ var me=(gUser.name||"").toLowerCase(), mail=(gUser.email||"").toLowerCase();
+ return [t.pemohon,t.requester,t.req,t.createdBy,t.by].some(function(v){ return v&&String(v).toLowerCase()===me; })
+     || [t.email,t.createdByEmail].some(function(v){ return v&&String(v).toLowerCase()===mail; });
+}
+/* daftar tiket yang boleh dilihat akun ini */
+function visibleTickets(){
+ if(isSuper()||gRole==="fieldsup") return TICKETS;
+ if(gRole==="fieldops") return TICKETS;            // operator lapangan: lihat antrian kategorinya
+ return TICKETS.filter(ticketMine);                // user/viewer: hanya tiket sendiri
+}
 function isPicTransport(){ return !!(gUser&&gUser.pic==="transport"); }
 const ERSUS_URL="https://sudanavisudhaml-beep.github.io/ersus-astra/";
 function openErsusPlatform(){ window.open(ERSUS_URL,"_blank","noopener"); }
@@ -4123,7 +4182,7 @@ const SO_SIGN={
  "Leonardus Ariyanto Satriawan":{label:"LEONARDUS ARIYANTO S.",role:"GAD Head",img:"data:image/png;base64,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"},
  "Elok Norma Rosediana":{label:"ELOK NORMA R",role:"Yang Berwenang",img:"data:image/png;base64,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"},
  "Yessy":{label:"YESSY",role:"Yang Berwenang",img:""},
- "Sudana Visudha":{label:"SUDANA VISUDHA",role:"Yang Berwenang",img:""}
+ "Sudana Visudha":{label:"SUDANA VISUDHA",role:"Yang Berwenang",img:"data:image/png;base64,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"}
 };
 const SO_COST_CENTER="108";
 function nowStampDoc(){ var d=new Date(),mo=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"]; return ('0'+d.getDate()).slice(-2)+' '+mo[d.getMonth()]+' '+d.getFullYear()+', '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
@@ -4139,9 +4198,52 @@ function notifPermAsk(){
   if(Notification.permission==="default"){
     Notification.requestPermission().then(function(p){
       if(p==="granted"){ agavaNotify("AGAVA","🔔 Notifikasi aktif — tiket & SO baru akan muncul di sini.",{noSound:true}); fcmInit(); }
+      try{ renderFieldOps(); renderMyTickets(); }catch(e){}
     });
   } else if(Notification.permission==="granted"){ fcmInit(); }
  }catch(e){}
+}
+/* ── Status notifikasi: kenapa notif tidak muncul, dan cara memperbaikinya ──
+   Penyebab paling sering di HP/iPad: (a) izin belum diberikan, (b) iOS wajib
+   "Add to Home Screen" dulu — notifikasi TIDAK jalan di tab Safari biasa. */
+function notifState(){
+ var std=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+ var ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ if(!("Notification" in window)) return {ok:false,code:'nosupport',ios:ios,std:std};
+ if(ios&&!std)                   return {ok:false,code:'ios-home',ios:ios,std:std};
+ if(Notification.permission==="granted") return {ok:true,code:'granted',ios:ios,std:std};
+ if(Notification.permission==="denied")  return {ok:false,code:'denied',ios:ios,std:std};
+ return {ok:false,code:'ask',ios:ios,std:std};
+}
+function notifBanner(){
+ var s=notifState();
+ if(s.ok) return '';
+ var msg,act='';
+ if(s.code==='ask'){ msg='Notifikasi tiket belum diaktifkan di perangkat ini.'; act='<button class="btn-act" onclick="notifEnable()">🔔 Aktifkan Notifikasi</button>'; }
+ else if(s.code==='ios-home'){ msg='Di iPhone/iPad, notifikasi hanya jalan bila AGAVA dibuka dari <b>Home Screen</b>. Buka menu <b>Bagikan</b> ⬆️ di Safari → <b>Add to Home Screen</b>, lalu buka AGAVA dari ikonnya.'; }
+ else if(s.code==='denied'){ msg='Izin notifikasi <b>ditolak</b> di perangkat ini. Buka pengaturan situs/aplikasi di browser → izinkan <b>Notifications</b> untuk AGAVA, lalu muat ulang.'; }
+ else { msg='Browser ini tidak mendukung notifikasi. Gunakan Chrome (Android) atau Safari 16.4+ (iOS, dari Home Screen).'; }
+ return '<div class="notif-bn"><span class="notif-bn-ic">🔕</span><div class="notif-bn-t">'+msg+'</div>'+act+'</div>';
+}
+function notifEnable(){
+ if(!("Notification" in window)){ alert("Browser ini tidak mendukung notifikasi."); return; }
+ Notification.requestPermission().then(function(p){
+   if(p==="granted"){
+     agavaNotify("AGAVA — Notifikasi Aktif","✅ Berhasil. Tiket & SO baru akan muncul di sini, lengkap dengan suara.");
+     fcmInit();
+     alert("✅ Notifikasi aktif.\nCek tray notifikasi HP Anda — ada notifikasi percobaan dari AGAVA.");
+   } else if(p==="denied"){
+     alert("⛔ Izin notifikasi ditolak.\n\nBuka pengaturan situs di browser Anda → izinkan Notifications untuk AGAVA, lalu muat ulang halaman.");
+   }
+   try{ renderFieldOps(); renderMyTickets(); renderService(); }catch(e){}
+ });
+}
+/* uji notifikasi manual — memastikan sound + tray benar-benar muncul di perangkat ini */
+function notifTest(){
+ var s=notifState();
+ if(!s.ok){ notifEnable(); return; }
+ agavaNotify("🎫 Tes Notifikasi AGAVA","Kalau Anda melihat pesan ini di tray HP, notifikasi sudah berfungsi.");
+ alert("📨 Notifikasi percobaan dikirim.\nCek tray notifikasi perangkat Anda.\n\nCatatan: saat aplikasi sedang dibuka, sebagian HP menampilkan notifikasi hanya sebagai suara + badge.");
 }
 function agavaNotify(title,body,opt){
  opt=opt||{};
@@ -4623,12 +4725,34 @@ function normalizeTickets(){ TICKETS.forEach(t=>{
   else if(t.stg>=4){ t.stg=3; t.status="Resolved"; }
   t._norm4=true;
 }); }
+/* Foto bukti pekerjaan — tampil langsung di baris tiket (Services), untuk semua kelompok */
+function svcProofStrip(t){
+ if(!t.proof||!t.proof.length)return'';
+ return '<div class="svc-proof" title="foto bukti pekerjaan dari operator">'+
+   t.proof.slice(0,4).map(function(im,i){
+     return '<img src="'+im.url+'" onclick="event.stopPropagation();proofView(\''+t.no+'\','+i+')"/>';
+   }).join('')+
+   (t.proof.length>4?'<span class="svc-proof-more">+'+(t.proof.length-4)+'</span>':'')+
+   '<span class="svc-proof-lb">📸 bukti'+(t.closedBy?' · '+esc(t.closedBy):'')+'</span></div>';
+}
+function proofView(no,i){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t||!t.proof||!t.proof[i])return;
+ var ov=document.getElementById('proofOvl');
+ if(!ov){ ov=document.createElement('div'); ov.id='proofOvl'; ov.className='proof-ovl';
+   ov.onclick=function(){ ov.classList.remove('show'); }; document.body.appendChild(ov); }
+ ov.innerHTML='<div class="proof-box"><img src="'+t.proof[i].url+'"/>'+
+   '<div class="proof-cap"><b>'+esc(t.no)+'</b> · '+esc(t.judul||'')+'<br>'+
+   '<span class="muted">foto '+(i+1)+' dari '+t.proof.length+(t.proof[i].at?' · 🕐 '+esc(t.proof[i].at):'')+
+   (t.closedBy?' · oleh '+esc(t.closedBy):'')+'</span>'+
+   (t.closeNote?'<br><span class="muted">📝 '+esc(t.closeNote)+'</span>':'')+'</div></div>';
+ ov.classList.add('show');
+}
 function ticketRow(t){
  const bar=[0,1,2,3].map(i=>`<i class="${t.stg>=i?'on':''}"></i>`).join("");
  const sla=ticketSLA(t);
  return `<div class="svc-row" onclick="openTicket('${t.no}')" style="cursor:pointer">
    <span class="svc-pip" style="background:${svcPip(t.status)}"></span>
-   <div><div class="svc-no">${t.no}${t.esc?` <span class="badge bd-crit">Escalated${t.escBy?' · '+t.escBy:''}</span>`:''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${foNormCat(t.cat)} · ${t.lokasi} · ${sla.pr}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div></div>
+   <div><div class="svc-no">${t.no}${t.esc?` <span class="badge bd-crit">Escalated${t.escBy?' · '+t.escBy:''}</span>`:''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${foNormCat(t.cat)} · ${t.lokasi} · ${sla.pr}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div>${svcProofStrip(t)}</div>
    <div class="svc-resp"><div class="svc-lbl">Response · Resolution</div><b style="${sla.respBreach?'color:var(--red)':''}">${fmtDur(sla.respMin)}</b> <span class="muted">·</span> <b style="${sla.resBreach?'color:var(--red)':''}">${fmtDur(sla.resMin)}</b>${sla.breach?'<div class="svc-breach">⚠ SLA breach</div>':''}</div>
    <div class="svc-pic">${t.pic?`<span class="avt">${ini(t.pic)}</span>${t.pic}`:'<span class="muted small">Unassigned</span>'}</div>
    <div>${svcBadge(t.status)}${(t.status==="Resolved"&&!t.rating)?`<button class="btn-out" style="margin-top:6px;padding:4px 9px;font-size:11px" onclick="event.stopPropagation();openRate('${t.no}')">★ Rate</button>`:(t.rating?`<div class="small" style="margin-top:4px;color:#f5a623;white-space:nowrap">${'★'.repeat(Math.round(t.rating))}${'☆'.repeat(5-Math.round(t.rating))}</div>`:'')}</div>
@@ -4653,6 +4777,7 @@ function ticketJourneyGroups(t){
  if(t.esc) pre4.push({t:"⚠ Eskalasi ke Supervisor"+(t.escBy?" — "+esc(t.escBy):""),cls:"done",sub:"operator tidak dapat menyelesaikan sendiri — dinaikkan ke level Supervisor"});
  if(t.toProc) pre4.push({t:"↳ Dibuatkan SO — lanjut ke Procurement",cls:"done",sub:"butuh pengadaan untuk menyelesaikan tiket"});
  if(stg===2) pre4.push({t:"Pengerjaan berjalan",cls:"active",sub:(sla.resMin!=null?"sudah "+fmtDur(sla.resMin)+" · ":"")+"target resolusi "+fmtDur(sla.tg.res)+(sla.resBreach?" · ⚠ SLA BREACH":"")});
+ if(t.proof&&t.proof.length) pre4.push({t:"📸 Foto bukti pekerjaan dilampirkan",cls:"done",sub:t.proof.length+" foto oleh "+esc(t.closedBy||t.pic||"operator")+(t.closeNote?" · "+esc(t.closeNote):"")});
  return [
   {name:"Tiket Dibuat (Submitted)",  state:"done", meta:(ts[0]||t.created)?("🕐 "+(ts[0]||t.created)):null, steps:[]},
   {name:"Ditugaskan (Assigned)",     state:cp(1),  meta:stg>=1?((t.pic?"oleh "+esc(t.pic):"")+(ts[1]?(t.pic?" · ":"")+"🕐 "+ts[1]:"")||null):null, steps:pre2},
@@ -4723,7 +4848,8 @@ function myTicketEscalate(no){
  renderMyTickets(); renderFieldOps(); renderService(); renderOverview(); updateBell(); notifySound();
  alert("⏫ Tiket "+no+" dieskalasi ke Supervisor "+(t.cat?foNormCat(t.cat):'')+".\nSupervisor akan menindaklanjuti (mis. membuat SO pengadaan).");
 }
-function myTicketResolve(no){ svcAdvance(no); }   // Selesaikan = advance ke Resolved (mencatat SLA resolution)
+/* Selesaikan dari My Tickets — sama seperti Field Ops: WAJIB foto bukti dari kamera */
+function myTicketResolve(no){ foAskPhoto(no); }
 /* Supervisor buat SO dari tiket tereskalasi → prefill Create SO */
 function soFromTicket(no){
  var t=TICKETS.find(x=>x.no===no); if(!t)return;
@@ -4747,21 +4873,147 @@ const FIELDOPS_CAT_MAP={
 function foNormCat(c){ c=c||''; if(KATEGORI8.indexOf(c)>=0)return c; return FIELDOPS_CAT_MAP[c]||"Tenant & General Services"; }
 function fieldOpsKey(t){ return fieldOpsGroup==='lokasi'?fieldOpsSite(t):foNormCat(t.cat); }
 function fieldOpsSetGroup(g){ fieldOpsGroup=g; renderFieldOps(); }
+/* ── WIP LIMIT: 1 operator maksimal 3 tiket terbuka bersamaan ──
+   Terbuka = sudah di-pickup (stg 1–2) dan belum Resolved. Selesai satu → boleh ambil lagi. */
+const FO_WIP_MAX=3;
+function foOpenBy(name){ return TICKETS.filter(function(t){ return t.pic===name && (t.stg||0)>=1 && (t.stg||0)<3; }); }
 function fieldOpsPickup(no){
   var t=TICKETS.find(x=>x.no===no); if(!t)return;
   if(gRole==='fieldops' && !(fieldOp&&fieldOp.name)){ fieldOpRegister(); return; }   // wajib registrasi dulu
   var me=fieldOpName()||'Operator';
+  var open=foOpenBy(me);
+  if(open.length>=FO_WIP_MAX){
+    alert("🚧 Batas ambil tiket tercapai.\n\n"+me+" sedang memegang "+open.length+" tiket terbuka (maksimal "+FO_WIP_MAX+"):\n"+
+      open.map(function(x){return "• "+x.no+" — "+(x.judul||"");}).join("\n")+
+      "\n\nSelesaikan salah satu dulu, baru bisa mengambil tiket baru.");
+    return;
+  }
   t.pic=me; t.stg=Math.max(t.stg||0,1); t.status=TSTAGES[t.stg]; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp();
   t.slaMs=t.slaMs||{}; if(!t.slaMs.created)t.slaMs.created=nowMs(); if(!t.slaMs.pickup)t.slaMs.pickup=nowMs();
+  if(fieldOp){ t.opRole=fieldOp.role||""; t.opShift=fieldOp.shift||""; }   // untuk log record CSV
   dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,pic:me});
   renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
-  alert("✅ Tiket "+no+" diambil oleh "+me+".\nMuncul di modul My Tickets Anda.");
+  alert("✅ Tiket "+no+" diambil oleh "+me+".\nMuncul di modul My Tickets Anda.\nSlot terpakai: "+(open.length+1)+"/"+FO_WIP_MAX+".");
 }
 function foAdvance(no){
   var t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)return;
-  t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; t.slaMs=t.slaMs||{}; if(t.stg>=1&&!t.slaMs.pickup)t.slaMs.pickup=nowMs(); if(t.stg===3){t.closed=TODAY_STR; t.slaMs.resolved=nowMs();}
-  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,ts:t.ts[t.stg],closed:t.closed||null});
+  if((t.stg||0)===2){ foAskPhoto(no); return; }        // langkah Selesaikan → WAJIB foto bukti
+  t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; t.slaMs=t.slaMs||{}; if(t.stg>=1&&!t.slaMs.pickup)t.slaMs.pickup=nowMs();
+  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,ts:t.ts[t.stg]});
   renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
+}
+/* ── FOTO BUKTI WAJIB sebelum tiket ditutup ──
+   capture="environment" → di HP langsung membuka KAMERA BELAKANG. Foto dikompres
+   (maks 1000px, JPEG q0.72) agar muat di dokumen Firestore & tampil di Services. */
+function foAskPhoto(no){
+ var t=TICKETS.find(x=>x.no===no); if(!t)return;
+ window._foPhoto={no:no, imgs:[]};
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div class="sono" style="font-size:15px">'+t.no+'</div>'+
+   '<div style="font-size:14.5px;color:var(--ink);font-weight:700;margin-top:5px">'+esc(t.judul||'')+'</div>'+
+   '<div class="muted small" style="margin-top:3px">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div></div>'+
+  '<div class="db">'+
+   '<div class="panel-t" style="margin-bottom:4px">📸 Foto Bukti Pekerjaan <span style="color:var(--red)">*wajib</span></div>'+
+   '<div class="muted small" style="margin-bottom:12px">Tiket hanya bisa ditutup dengan foto hasil pekerjaan. Foto akan tampil di tiket pemohon (modul Services).</div>'+
+   '<label class="fo-cam"><input type="file" accept="image/*" capture="environment" multiple onchange="foPhotoPick(this)"/>'+
+     '<span class="fo-cam-ic">📷</span><b>Ambil Foto dari Kamera</b><small>atau pilih dari galeri · bisa lebih dari satu</small></label>'+
+   '<div id="foPhotoPrev" class="fo-prev"></div>'+
+   '<div class="field" style="margin-top:12px"><label>Catatan penyelesaian (opsional)</label>'+
+     '<textarea id="fo-close-note" rows="2" placeholder="mis. ganti ballast lampu, unit sudah normal"></textarea></div>'+
+   '<button id="foCloseBtn" class="btn-act" style="width:100%;margin-top:6px;opacity:.5" disabled onclick="foConfirmClose()">✓ Selesaikan Tiket</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+}
+function foPhotoPick(input){
+ var files=[].slice.call(input.files||[]); if(!files.length)return;
+ files.forEach(function(f){
+  var rd=new FileReader();
+  rd.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var mx=1000, w=img.width, h=img.height;
+      if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;} else {w=Math.round(w*mx/h);h=mx;} }
+      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      window._foPhoto.imgs.push({url:cv.toDataURL('image/jpeg',0.72), at:nowStamp()});
+      foPhotoRender();
+    };
+    img.src=e.target.result;
+  };
+  rd.readAsDataURL(f);
+ });
+ input.value="";
+}
+function foPhotoRender(){
+ var p=window._foPhoto||{imgs:[]}, box=document.getElementById('foPhotoPrev'); if(!box)return;
+ box.innerHTML=p.imgs.map(function(im,i){
+   return '<div class="fo-prev-i"><img src="'+im.url+'"/><button onclick="foPhotoDel('+i+')" title="hapus">✕</button></div>';
+ }).join('');
+ var btn=document.getElementById('foCloseBtn');
+ if(btn){ var ok=p.imgs.length>0; btn.disabled=!ok; btn.style.opacity=ok?1:.5;
+   btn.textContent=ok?('✓ Selesaikan Tiket ('+p.imgs.length+' foto)'):'✓ Selesaikan Tiket'; }
+}
+function foPhotoDel(i){ window._foPhoto.imgs.splice(i,1); foPhotoRender(); }
+function foConfirmClose(){
+ var p=window._foPhoto; if(!p||!p.imgs.length){ alert("📸 Wajib lampirkan minimal 1 foto bukti pekerjaan."); return; }
+ var t=TICKETS.find(x=>x.no===p.no); if(!t)return;
+ var note=(document.getElementById('fo-close-note')||{}).value||"";
+ t.proof=p.imgs; t.closeNote=note.trim(); t.closedBy=fieldOpName()||t.pic||"";
+ t.stg=3; t.status=TSTAGES[3]; t.ts=t.ts||{}; t.ts[3]=nowStamp();
+ t.slaMs=t.slaMs||{}; if(!t.slaMs.pickup)t.slaMs.pickup=nowMs(); t.slaMs.resolved=nowMs(); t.closed=TODAY_STR;
+ dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:3,status:t.status,ts:t.ts[3],closed:t.closed,proof:t.proof.length});
+ closeDrawer(); window._foPhoto=null;
+ renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
+ alert("✅ Tiket "+t.no+" selesai dengan "+t.proof.length+" foto bukti.\nFoto tampil di tiket pemohon (modul Services).");
+}
+/* ── Log record operator → CSV (khusus kelompok Super) ──
+   Dasar penilaian akhir tahun: jumlah pickup, response & resolution time, breach. */
+function foOperatorStats(){
+ var m={};
+ TICKETS.forEach(function(t){
+   if(!t.pic||(t.stg||0)<1)return;
+   var s=m[t.pic]=m[t.pic]||{name:t.pic,role:t.opRole||"",shift:t.opShift||"",pick:0,done:0,open:0,esc:0,
+     respSum:0,respN:0,resSum:0,resN:0,respBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0};
+   var sla=ticketSLA(t);
+   s.pick++;
+   if((t.stg||0)>=3)s.done++; else s.open++;
+   if(t.esc)s.esc++;
+   if(t.opRole&&!s.role)s.role=t.opRole; if(t.opShift&&!s.shift)s.shift=t.opShift;
+   if(sla.respDone&&sla.respMin!=null){ s.respSum+=sla.respMin; s.respN++; if(sla.respBreach)s.respBreach++; }
+   if(sla.resDone&&sla.resMin!=null){ s.resSum+=sla.resMin; s.resN++; if(sla.resBreach)s.resBreach++; }
+   if(t.rating){ s.rateSum+=t.rating; s.rateN++; }
+   if(t.proof&&t.proof.length)s.proof++;
+ });
+ return Object.keys(m).map(function(k){
+   var s=m[k];
+   s.respAvg=s.respN?Math.round(s.respSum/s.respN):null;
+   s.resAvg=s.resN?Math.round(s.resSum/s.resN):null;
+   s.rateAvg=s.rateN?(s.rateSum/s.rateN):null;
+   s.slaPct=s.respN||s.resN?Math.round((1-((s.respBreach+s.resBreach)/Math.max(1,s.respN+s.resN)))*100):null;
+   return s;
+ }).sort(function(a,b){return b.pick-a.pick;});
+}
+function foExportCSV(){
+ var rows=foOperatorStats();
+ if(!rows.length){ alert("Belum ada operator yang mengambil tiket — log masih kosong."); return; }
+ var head=["Operator","Role","Shift","Total Pickup","Selesai","Masih Terbuka","Eskalasi",
+   "Avg Response (menit)","Avg Resolution (menit)","Response Breach","Resolution Breach","SLA Compliance (%)",
+   "Rata-rata Rating","Tiket dgn Foto Bukti"];
+ var q=function(v){ v=(v==null?"":String(v)); return '"'+v.replace(/"/g,'""')+'"'; };
+ var lines=[head.map(q).join(",")];
+ rows.forEach(function(s){
+   lines.push([s.name,s.role,s.shift,s.pick,s.done,s.open,s.esc,
+     (s.respAvg==null?"":s.respAvg),(s.resAvg==null?"":s.resAvg),s.respBreach,s.resBreach,
+     (s.slaPct==null?"":s.slaPct),(s.rateAvg==null?"":s.rateAvg.toFixed(2)),s.proof].map(q).join(","));
+ });
+ var csv="﻿"+lines.join("\r\n");   // BOM → Excel Indonesia baca UTF-8 dengan benar
+ var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+ var a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="AGAVA-LogOperator-FieldOps-"+TODAY_STR+".csv";
+ document.body.appendChild(a); a.click();
+ setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
 }
 function foTicketCard(t){
   var st=t.status||TSTAGES[t.stg||0];
@@ -4793,15 +5045,41 @@ function renderFieldOps(){
     groups={}; active.forEach(t=>{ var k=fieldOpsSite(t); (groups[k]=groups[k]||[]).push(t); });
     keys=Object.keys(groups).sort();   // per site: hanya site yg ada tiketnya
   }
-  var me=gUser?gUser.name:'';
+  var me=fieldOpName()||(gUser?gUser.name:'');
+  var myOpen=foOpenBy(me).length;
   var mine=active.filter(function(t){return t.pic===me;}).length;
   var unassigned=active.filter(function(t){return !t.pic||t.stg===0;}).length;
   var scope = myCat ? ('Kategori Anda: <b>'+esc(myCat)+'</b>') : ('Channel per '+(fieldOpsGroup==='lokasi'?'Site':'Kategori')+' · '+KATEGORI8.length+' kategori');
-  var head='<div class="card pad fo-head">'+
+  var wip = (gRole==='fieldops') ? ' · <b style="color:'+(myOpen>=FO_WIP_MAX?'var(--red)':'var(--blue)')+'">slot '+myOpen+'/'+FO_WIP_MAX+'</b>' : '';
+  var head=notifBanner()+'<div class="card pad fo-head">'+
     '<div><div class="fo-title">📡 '+(myCat?'Field Ops · '+esc(myCat):'Field Ops')+'</div>'+
-      '<div class="muted small">'+scope+' · '+active.length+' tiket aktif · <b style="color:var(--amber)">'+unassigned+'</b> belum diambil · '+mine+' milik Anda · realtime Firebase</div></div>'+
+      '<div class="muted small">'+scope+' · '+active.length+' tiket aktif · <b style="color:var(--amber)">'+unassigned+'</b> belum diambil · '+mine+' milik Anda'+wip+' · realtime Firebase</div></div>'+
     (myCat?'':'<div class="fo-seg"><button class="'+(fieldOpsGroup==='cat'?'on':'')+'" onclick="fieldOpsSetGroup(\'cat\')">Per Kategori</button><button class="'+(fieldOpsGroup==='lokasi'?'on':'')+'" onclick="fieldOpsSetGroup(\'lokasi\')">Per Site</button></div>')+
   '</div>';
+  /* Log record operator + unduh CSV — hanya kelompok Super (dasar penilaian akhir tahun) */
+  var oplog='';
+  if(isSuper()&&!myCat){
+    var st=foOperatorStats();
+    oplog='<div class="card pad fo-oplog"><div class="fo-oplog-h">'+
+      '<div><div class="panel-t" style="margin:0">👷 Log Record Operator</div>'+
+        '<div class="muted small">'+st.length+' operator terdaftar · response &amp; resolution time, jumlah pickup, SLA compliance — dasar penilaian akhir tahun</div></div>'+
+      '<button class="btn-act" onclick="foExportCSV()">⬇ Unduh CSV</button></div>'+
+      (st.length?('<div class="fo-oplog-w"><table class="fo-oplog-t"><thead><tr>'+
+        '<th>Operator</th><th>Role · Shift</th><th>Pickup</th><th>Selesai</th><th>Terbuka</th><th>Eskalasi</th>'+
+        '<th>Avg Response</th><th>Avg Resolution</th><th>Breach</th><th>SLA</th><th>Rating</th></tr></thead><tbody>'+
+        st.map(function(s){
+          var sc=s.slaPct==null?'#9aa7b8':(s.slaPct>=90?'var(--green)':s.slaPct>=75?'#F59E0B':'var(--red)');
+          return '<tr><td><b>'+esc(s.name)+'</b></td><td class="muted small">'+esc(s.role||'—')+(s.shift?' · '+esc(s.shift):'')+'</td>'+
+            '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+(s.open>=FO_WIP_MAX?' 🚧':'')+'</td><td>'+s.esc+'</td>'+
+            '<td>'+(s.respAvg==null?'—':fmtDur(s.respAvg))+'</td><td>'+(s.resAvg==null?'—':fmtDur(s.resAvg))+'</td>'+
+            '<td>'+((s.respBreach+s.resBreach)||'0')+'</td>'+
+            '<td style="color:'+sc+';font-weight:800">'+(s.slaPct==null?'—':s.slaPct+'%')+'</td>'+
+            '<td>'+(s.rateAvg==null?'—':'★ '+s.rateAvg.toFixed(1))+'</td></tr>';
+        }).join('')+'</tbody></table></div>')
+       :'<div class="muted small" style="padding:22px;text-align:center">Belum ada operator yang mengambil tiket.</div>')+
+    '</div>';
+  }
+  head+=oplog;
   var chans = keys.length ? keys.map(function(k){
     var list=(groups[k]||[]).slice().sort(function(a,b){return ((a.stg||0)-(b.stg||0))||String(a.no).localeCompare(String(b.no));});
     var pri=list.filter(function(t){return !t.pic||t.stg===0;}).length;
@@ -4835,9 +5113,11 @@ function renderMyTickets(){
  var active=mine.filter(function(t){return (t.stg||0)<3;});
  var done=mine.filter(function(t){return (t.stg||0)>=3;});
  var breached=mine.filter(function(t){return ticketSLA(t).breach;}).length;
- var head='<div class="card pad fo-head"><div><div class="fo-title">🎫 My Tickets — '+esc(me)+'</div>'+
-   '<div class="muted small">'+(fieldOp?esc(fieldOp.role||'Operator')+' · '+esc(fieldOp.shift||''):'operator')+' · '+active.length+' aktif · '+done.length+' selesai · <b style="color:var(--red)">'+breached+'</b> SLA breach · tercatat di Services</div></div>'+
-   '<button class="btn-out" onclick="fieldOpReset()">Ganti Operator</button></div>';
+ var open=foOpenBy(me).length;
+ var head=notifBanner()+'<div class="card pad fo-head"><div><div class="fo-title">🎫 My Tickets — '+esc(me)+'</div>'+
+   '<div class="muted small">'+(fieldOp?esc(fieldOp.role||'Operator')+' · '+esc(fieldOp.shift||''):'operator')+' · <b style="color:'+(open>=FO_WIP_MAX?'var(--red)':'var(--blue)')+'">slot '+open+'/'+FO_WIP_MAX+'</b> · '+active.length+' aktif · '+done.length+' selesai · <b style="color:var(--red)">'+breached+'</b> SLA breach · tercatat di Services</div></div>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="notifTest()">🔔 Tes Notif</button>'+
+   '<button class="btn-out" onclick="fieldOpReset()">Ganti Operator</button></div></div>';
  var cards=mine.length?mine.slice().sort(function(a,b){return (a.stg||0)-(b.stg||0);}).map(myTicketCard).join(''):'<div class="card pad muted small" style="text-align:center;padding:44px;grid-column:1/-1">Belum ada tiket. Ambil tiket di modul <b>Field Ops</b> → langsung muncul di sini.</div>';
  el.innerHTML=head+'<div class="mt-grid">'+cards+'</div>';
 }
@@ -4858,31 +5138,17 @@ function gaServiceButtonsRaw(){
  </div>`;
 }
 function renderService(){
- if(isEndUser()){
-   const me=gUser?gUser.name:"";
-   const mine=TICKETS.filter(t=>t.requester===me);
-   const ong=mine.filter(t=>t.status!=="Resolved").length, res=mine.filter(t=>t.status==="Resolved").length;
-   document.getElementById("page-service").innerHTML=`
-    ${gaServiceButtons()}
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
-      <div class="card kpi"><div class="l">Tiket saya</div><div class="v">${mine.length}</div></div>
-      <div class="card kpi"><div class="l">Berjalan</div><div class="v" style="color:var(--blue)">${ong}</div></div>
-      <div class="card kpi"><div class="l">Selesai</div><div class="v" style="color:var(--green)">${res}</div></div>
-    </div>
-    <div class="card">
-      <div style="padding:16px 18px 6px"><div class="panel-t" style="margin:0">Tiket Saya <span style="font-weight:400;color:var(--muted)">— hanya yang Anda buat</span></div></div>
-      <div class="svc-head"><span></span><span>Ticket</span><span style="text-align:center">Response</span><span>PIC</span><span>Status</span></div>
-      <div class="svc-list">${mine.length?mine.map(ticketRow).join(""):'<div class="muted small" style="padding:34px;text-align:center">Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.</div>'}</div>
-    </div>`;
-   return;
- }
- const total=TICKETS.length, ongoing=TICKETS.filter(t=>t.status!=="Resolved").length, resolved=TICKETS.filter(t=>t.status==="Resolved").length, esc=TICKETS.filter(t=>t.esc&&t.status!=="Resolved").length;
- const list=TICKETS.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?(t.esc&&t.status!=="Resolved"): svcFilter==="resolved"?t.status==="Resolved":true);
+ /* Kelompok user/viewer (di luar SUPER) → hanya tiket buatan sendiri, tanpa Rating & Vendor Performance */
+ const sup=isSuper();
+ const base=sup?TICKETS:TICKETS.filter(ticketMine);
+ const total=base.length, ongoing=base.filter(t=>t.status!=="Resolved").length, resolved=base.filter(t=>t.status==="Resolved").length, esc=base.filter(t=>t.esc&&t.status!=="Resolved").length;
+ const list=base.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?(t.esc&&t.status!=="Resolved"): svcFilter==="resolved"?t.status==="Resolved":true);
  const pills=[["all","All",total],["open","Ongoing",ongoing],["esc","Escalated",esc],["resolved","Resolved",resolved]];
- const r=svcRating(); const full=Math.round(r.avg); const stars='★'.repeat(full)+'☆'.repeat(5-full);
  const el=document.getElementById("page-service");
- el.innerHTML=`
-  ${gaServiceButtons()}
+ let head="";
+ if(sup){
+   const r=svcRating(); const full=Math.round(r.avg); const stars='★'.repeat(full)+'☆'.repeat(5-full);
+   head=`
   <div style="margin-bottom:18px">
     <div class="card pad">
       <div class="panel-t">⭐ Service Rating · last ${r.n} closed tickets</div>
@@ -4898,17 +5164,22 @@ function renderService(){
     <div class="vp-note">Tier: Silver &lt; 2.2 · Gold 2.2–2.5 · Platinum ≥ 2.6</div>
     <div class="boxes" style="grid-template-columns:repeat(4,1fr)">${VENDOR_PERF.map(vendorCard).join("")}</div>
   </div>
-  ${roomEventCard()}
+  ${roomEventCard()}`;
+ }
+ el.innerHTML=`
+  ${gaServiceButtons()}
+  ${head}
   <div class="card">
+    ${sup?'':'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Tiket Saya <span style="font-weight:400;color:var(--muted)">— hanya tiket yang Anda buat · status &amp; perjalanan terupdate realtime</span></div></div>'}
     <div class="svc-status">
-      <div class="svc-st-i"><div class="l">Total tickets</div><div class="v">${total}</div></div>
+      <div class="svc-st-i"><div class="l">${sup?'Total tickets':'Tiket saya'}</div><div class="v">${total}</div></div>
       <div class="svc-st-i"><div class="l">Ongoing</div><div class="v" style="color:var(--blue)">${ongoing}</div></div>
       <div class="svc-st-i"><div class="l">Escalated</div><div class="v" style="color:var(--red)">${esc}</div></div>
       <div class="svc-st-i"><div class="l">Resolved</div><div class="v" style="color:var(--green)">${resolved}</div></div>
     </div>
     <div style="padding:16px 16px 14px;display:flex;gap:8px;flex-wrap:wrap">${pills.map(p=>`<div class="ptab ${svcFilter===p[0]?'on':''}" onclick="svcFilter='${p[0]}';renderService()">${p[1]} <b style="opacity:.7">${p[2]}</b></div>`).join("")}</div>
     <div class="svc-head"><span></span><span>Ticket</span><span style="text-align:center">Response</span><span>PIC</span><span>Status</span></div>
-    <div class="svc-list">${list.length?list.map(ticketRow).join(""):'<div class="muted small" style="padding:30px;text-align:center">No tickets in this filter.</div>'}</div>
+    <div class="svc-list">${list.length?list.map(ticketRow).join(""):('<div class="muted small" style="padding:30px;text-align:center">'+(sup?'No tickets in this filter.':'Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.')+'</div>')}</div>
   </div>`;
 }
 let ticketSeq=143;
@@ -4976,7 +5247,7 @@ async function submitTicket(){
  const res=await triggerFlow("createTicket",{title, cat, priority:prio, lokasi:loc, description:desc, requester:req, requesterEmail:reqEmail, created:TODAY_STR})||{};
  if(res.ok===false){ alert("⚠️ Flow 'Create Ticket' gagal dipanggil ("+(res.error||('HTTP '+(res.httpStatus||'?')))+").\nTiket tetap dibuat lokal di AGAVA.\nCek URL/CORS flow di Vendor Management → Power Automate Bridge."); }
  const no=res.ticketNo||("GA-202606-"+String(++ticketSeq).padStart(4,"0"));
- TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,prio:prio,ts:{0:nowStamp()},slaMs:{created:nowMs()}});
+ TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,email:reqEmail,prio:prio,desc:desc,ts:{0:nowStamp()},slaMs:{created:nowMs()}});
  dbSaveTicket(TICKETS[0]);
  notifySound();   // tiket baru masuk ke inbox layanan / tim lapangan
  svcFilter="all"; renderService(); renderOverview(); renderBuilding(); go("service");
@@ -6944,7 +7215,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-20";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-21";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
