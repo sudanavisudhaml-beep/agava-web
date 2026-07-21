@@ -1482,6 +1482,119 @@ body.rg-open{overflow:hidden}
 .rg-lock{font-size:10.5px;color:#9aa7b8;margin-top:10px}
 @media(max-width:430px){.rg-box{padding:20px 18px 16px}.rg-h{font-size:18px}.rg-stars{font-size:32px;letter-spacing:5px}}
 @media(prefers-reduced-motion:reduce){.rg-box,.rg-burst,.rg-ovl.show{animation:none}}
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE SHELL — top bar neon · beranda · bottom bar. Desktop tidak tersentuh.
+   ══════════════════════════════════════════════════════════════════════════ */
+.mtop,.mbot{display:none}
+@media(max-width:820px){
+  /* sidebar & hamburger DIHILANGKAN di HP — navigasi lewat ikon modul + bottom bar */
+  .side,#mobBackdrop,.mob-menu{display:none!important}
+  body.side-open .side{transform:translateX(-100%)}
+  .main{margin-left:0}
+  /* ── TOP BAR ── */
+  .mtop{display:block;position:sticky;top:0;z-index:60;overflow:hidden;
+    padding:calc(6px + env(safe-area-inset-top)) 12px 11px;
+    background:linear-gradient(135deg,#032b6b 0%,#0a4fd0 45%,#0a7cff 78%,#00c6fb 100%);
+    box-shadow:0 6px 22px rgba(6,40,110,.38)}
+  .mtop-glow{position:absolute;inset:-60% -20% auto;height:190%;pointer-events:none;
+    background:radial-gradient(45% 55% at 18% 30%,rgba(0,229,255,.5),transparent 62%),
+               radial-gradient(40% 50% at 82% 62%,rgba(120,90,255,.42),transparent 64%);
+    filter:blur(8px);animation:mtopAur 24s ease-in-out infinite alternate}
+  @keyframes mtopAur{0%{transform:translate3d(-5%,-3%,0)}100%{transform:translate3d(6%,4%,0) scale(1.1)}}
+  .mtop-grid{position:absolute;inset:0;pointer-events:none;opacity:.22;
+    background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
+    background-size:26px 26px;
+    -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.55),transparent 82%);
+            mask-image:linear-gradient(180deg,rgba(0,0,0,.55),transparent 82%)}
+  .mtop-in{position:relative;z-index:1}
+  .mtop-clock{display:flex;align-items:baseline;gap:7px;color:#bfe8ff;font-size:10.5px;font-weight:700;
+    letter-spacing:.05em;margin-bottom:9px;text-shadow:0 0 10px rgba(0,220,255,.5)}
+  .mtop-clock b{font-size:12px;color:#fff;font-variant-numeric:tabular-nums}
+  .mtop-row{display:flex;align-items:center;gap:9px}
+  .mtop-ask{flex:1;min-width:0;display:flex;align-items:center;gap:9px;border:1px solid rgba(150,235,255,.55);
+    border-radius:14px;padding:11px 14px;cursor:pointer;font-family:var(--ff);
+    background:linear-gradient(135deg,rgba(255,255,255,.22),rgba(255,255,255,.08));
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 0 18px rgba(0,214,255,.28)}
+  .mtop-ask svg{width:17px;height:17px;flex:0 0 17px;color:#8ff3ff;filter:drop-shadow(0 0 5px rgba(0,229,255,.9))}
+  .mtop-ask span{font-size:11.5px;font-weight:800;letter-spacing:.07em;color:#fff;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 8px rgba(0,200,255,.5)}
+  .mtop-ic{position:relative;flex:0 0 44px;width:44px;height:44px;border-radius:14px;font-size:18px;cursor:pointer;
+    border:1px solid rgba(150,235,255,.5);color:#fff;
+    background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.06));
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 14px rgba(0,214,255,.24)}
+  .mtop-ic:active{transform:scale(.94)}
+  .mtop-bdg{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;border-radius:10px;background:#ff2d55;
+    color:#fff;font-size:10px;font-weight:800;font-style:normal;display:grid;place-items:center;padding:0 5px;
+    box-shadow:0 0 10px rgba(255,45,85,.7)}
+  .mtop-bdg.hide{display:none}
+  /* topbar lama disembunyikan saat di Beranda; di modul lain tetap tampil sbg judul */
+  body.on-mhome .top{display:none}
+  .top{top:0}
+
+  /* ── BERANDA ── */
+  .wrap{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  .mh-hi{font-size:15px;color:var(--ink);margin:2px 0 12px}
+  .mh-hi b{font-weight:800}
+  .mh-hi span{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
+  .mh-mods{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+  .mh-mod{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 4px 9px;border:1px solid var(--line);
+    border-radius:14px;background:linear-gradient(160deg,#fff,#f4faff);cursor:pointer;font-family:var(--ff);
+    box-shadow:0 2px 8px rgba(10,124,255,.07)}
+  .mh-mod:active{transform:scale(.96)}
+  .mh-mic{position:relative;font-size:21px;line-height:1}
+  .mh-mbdg{position:absolute;top:-6px;right:-10px;min-width:16px;height:16px;border-radius:8px;background:var(--red);
+    color:#fff;font-size:9px;font-weight:800;font-style:normal;display:grid;place-items:center;padding:0 4px}
+  .mh-mod em{font-style:normal;font-size:9px;font-weight:700;color:var(--text);text-align:center;line-height:1.2}
+  .mh-sec{margin-bottom:16px}
+  .mh-sh{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
+  .mh-sh b{font-size:14px;color:var(--ink)}
+  .mh-sh span{font-size:10.5px;color:var(--muted)}
+  .mh-more{margin-left:auto;border:none;background:transparent;color:var(--blue);font-family:var(--ff);
+    font-size:11.5px;font-weight:700;cursor:pointer;padding:0}
+  .mh-scroll{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 2px 6px;
+    scroll-snap-type:x proximity}
+  .mh-scroll::-webkit-scrollbar{height:0}
+  .mh-ord{flex:0 0 236px;scroll-snap-align:start;border:1px solid var(--line);border-radius:14px;padding:11px 13px;
+    background:#fff;cursor:pointer;box-shadow:0 3px 12px rgba(20,40,80,.07)}
+  .mh-ord:active{transform:scale(.98)}
+  .mh-okind{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;padding:3px 8px;border-radius:20px}
+  .k-complaint{background:#eef4ff;color:#2563eb} .k-room{background:#e9f8ef;color:#15803d}
+  .k-transport{background:#fdf3e3;color:#c2740a} .k-overtime{background:#f3eefe;color:#7a4fd0}
+  .k-so{background:#e7f6ff;color:#0a6ad6}
+  .mh-ono{font-size:11px;font-weight:800;color:var(--blue);margin-top:7px;font-variant-numeric:tabular-nums}
+  .mh-oj{font-size:12.5px;font-weight:700;color:var(--ink);margin-top:2px;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .mh-od{font-size:10.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mh-of{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;
+    padding-top:7px;border-top:1px solid var(--line);font-size:10px;color:#9aa7b8}
+  .mh-of b{font-size:10.5px}
+  .mh-empty{font-size:11.5px;color:var(--muted);text-align:center;padding:20px 14px;border:1px dashed var(--line);
+    border-radius:12px;background:#fbfdff}
+  .mh-kal{display:flex;flex-direction:column;gap:7px}
+  .mh-kev{display:flex;gap:11px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 11px;
+    background:#fff;cursor:pointer}
+  .mh-kd{flex:0 0 40px;text-align:center;border-right:1px solid var(--line);padding-right:9px}
+  .mh-kd b{display:block;font-size:17px;font-weight:800;color:var(--blue);line-height:1}
+  .mh-kd span{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase}
+  .mh-ktj{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.3}
+  .mh-ktm{font-size:10.5px;color:var(--muted);margin-top:1px}
+
+  /* ── BOTTOM BAR ── */
+  .mbot{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;position:fixed;left:0;right:0;bottom:0;z-index:70;
+    padding:7px 6px calc(7px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.9);backdrop-filter:blur(16px) saturate(1.6);-webkit-backdrop-filter:blur(16px) saturate(1.6);
+    border-top:1px solid rgba(255,255,255,.85);box-shadow:0 -6px 24px rgba(20,40,80,.12)}
+  .mbot button{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;
+    font-family:var(--ff);cursor:pointer;padding:4px 2px;border-radius:11px}
+  .mbot button:active{background:rgba(10,124,255,.09)}
+  .mbot span{font-size:19px;line-height:1}
+  .mbot i{font-style:normal;font-size:9px;font-weight:700;color:var(--muted)}
+  body.on-mhome .mbot #mbHome i{color:var(--blue)}
+}
+@media(prefers-reduced-motion:reduce){.mtop-glow{animation:none}}
 /* panel Cloud & Backup */
 .cl-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink)}
 .cl-row b{font-weight:800;color:#0a4bb8;text-align:right}
@@ -2221,6 +2334,23 @@ html,body{max-width:100%}
   </aside>
   <div id="mobBackdrop" onclick="closeMobSidebar()"></div>
 
+  <!-- ══ TOP BAR MOBILE — electric blue neon, futuristik ══ -->
+  <div class="mtop" id="mTop">
+    <div class="mtop-glow"></div>
+    <div class="mtop-grid"></div>
+    <div class="mtop-in">
+      <div class="mtop-clock"><span id="mDate">—</span><b id="mTime">--:--</b></div>
+      <div class="mtop-row">
+        <button class="mtop-ask" onclick="openCopilot()">
+          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/></svg>
+          <span>ASK AGAVA COPILOT</span>
+        </button>
+        <button class="mtop-ic" id="mRoleBtn" onclick="mRoleGo()" title="—"><span id="mRoleIc">📋</span><i class="mtop-bdg hide" id="mRoleBdg">0</i></button>
+        <button class="mtop-ic" onclick="go('reminder')" title="Reminder">🔔<i class="mtop-bdg hide" id="mBellBdg">0</i></button>
+      </div>
+    </div>
+  </div>
+
   <!-- MAIN -->
   <div class="main">
     <div class="top">
@@ -2239,6 +2369,7 @@ html,body{max-width:100%}
       </div>
     </div>
     <div class="wrap">
+      <div id="page-mhome" class="hide"></div>
       <div id="page-overview"></div>
       <div id="page-kpiyear" class="hide"></div>
       <div id="page-impact" class="hide"></div>
@@ -2265,6 +2396,15 @@ html,body{max-width:100%}
       <div id="page-stub" class="hide"></div>
     </div>
   </div>
+</div>
+
+<!-- ══ BOTTOM BAR MOBILE — akses cepat 4 layanan ══ -->
+<div class="mbot" id="mBot">
+  <button onclick="mGoHome()" id="mbHome"><span>🏠</span><i>Beranda</i></button>
+  <button onclick="go('createticket')"><span>🎫</span><i>Complaint</i></button>
+  <button onclick="go('roombook')"><span>🏢</span><i>Room</i></button>
+  <button onclick="go('transport')"><span>🚗</span><i>Transport</i></button>
+  <button onclick="openOvertimeForm()"><span>⏱️</span><i>Overtime</i></button>
 </div>
 
 <!-- DRAWER -->
@@ -2429,7 +2569,7 @@ function applyLogin(u){
  const sr=document.getElementById("suRole"); if(sr)sr.textContent=roleTitle(u);
  const sa=document.getElementById("suAvatar"); if(sa)sa.textContent=ini(u.name);
  buildNav(); renderAll(); renderCreateTicket();
- go(ROLES[gRole].menus[0]);
+ go(isMobile()?"mhome":ROLES[gRole].menus[0]);   // di HP mendarat di Beranda, bukan modul pertama
  document.getElementById("login").classList.add("hide");
  notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
  auditLog("login", roleTitle(u));   // jejak login tersimpan di Firebase
@@ -2496,9 +2636,11 @@ function closeMobSidebar(){ document.body.classList.remove("side-open"); }
 function go(id){
   closeMobSidebar();
   active=(id==="ersus")?"energy":id; navSetActive();
-  ["page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
+  ["page-mhome","page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
-  if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
+  document.body.classList.toggle("on-mhome", id==="mhome");
+  if(id==="mhome"){renderMobileHome();document.getElementById("page-mhome").classList.remove("hide");t.textContent="AGAVA";s.textContent="Beranda";mTopSync();}
+  else if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="procurement"){procFilter="all";renderProc();document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
   else if(id==="building"){renderBuilding();document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
   else if(id==="project"){renderProject();document.getElementById("page-project").classList.remove("hide");t.textContent="Project Development";s.textContent="Project Timeline × Calendar of Event 2026 — radar overlap konstruksi vs reservasi";}
@@ -3913,7 +4055,8 @@ function startTopClock(){
  const upd=()=>{ const d=new Date(); const de=document.getElementById('gdDate'), te=document.getElementById('gdTime'); if(!de||!te)return;
    de.textContent=days[d.getDay()]+", "+d.getDate()+" "+mon[d.getMonth()]+" "+d.getFullYear();
    te.innerHTML=String(d.getHours()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getMinutes()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getSeconds()).padStart(2,'0'); };
- upd(); if(!window._gdClock) window._gdClock=setInterval(upd,1000);
+ const tick=()=>{ upd(); try{ mTopSync(); }catch(e){} };
+ tick(); if(!window._gdClock) window._gdClock=setInterval(tick,1000);
 }
 /* ukur tinggi top bar → CSS var --topH (untuk offset sticky gd-nav di mobile) */
 function setTopH(){ const t=document.querySelector('.top'); if(t)document.documentElement.style.setProperty('--topH',t.offsetHeight+'px'); }
@@ -5639,6 +5782,101 @@ function renderMyTickets(){
  var cards=mine.length?mine.slice().sort(function(a,b){return (a.stg||0)-(b.stg||0);}).map(myTicketCard).join(''):'<div class="card pad muted small" style="text-align:center;padding:44px;grid-column:1/-1">Belum ada tiket. Ambil tiket di modul <b>Field Ops</b> → langsung muncul di sini.</div>';
  el.innerHTML=head+'<div class="mt-grid">'+cards+'</div>';
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   BERANDA MOBILE — pengganti sidebar di HP.
+   Top bar neon · ikon modul · Order Saya · SO Saya · GA Calendar · bottom bar.
+   ══════════════════════════════════════════════════════════════════════════ */
+function isMobile(){ return window.matchMedia("(max-width:820px)").matches; }
+/* ikon peran di top bar: Approval / Assigned SO / My Tickets sesuai role */
+function mRoleTarget(){
+ var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
+ if(menus.indexOf("myticket")>=0) return {id:"myticket", ic:"🎫", t:"My Tickets", n:(function(){ var me=fieldOpName(); return TICKETS.filter(function(x){return x.pic===me&&(x.stg||0)<3;}).length; })()};
+ if(menus.indexOf("assigned")>=0 && gRole==="staff") return {id:"assigned", ic:"💼", t:"Assigned SO", n:(function(){ var me=(gUser&&gUser.name)||""; return SO.filter(function(s){return (s.staffPIC||s.pic)===me&&s.apprDept==="Approved"&&(s.wstep||0)<4;}).length; })()};
+ if(menus.indexOf("approvals")>=0) return {id:"approvals", ic:"📋", t:"Approvals", n:pendingApprovals().length+(isSuper()?escalatedTickets().length+OVERTIME_REQ.filter(function(o){return (o.status||"Diajukan")==="Diajukan";}).length:0)};
+ return {id:"service", ic:"🎧", t:"Services", n:0};
+}
+function mRoleGo(){ go(mRoleTarget().id); }
+function mGoHome(){ go("mhome"); }
+function mTopSync(){
+ if(!isMobile())return;
+ var d=new Date();
+ var hari=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][d.getDay()];
+ var bln=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][d.getMonth()];
+ var el=document.getElementById("mDate"); if(el)el.textContent=hari+", "+d.getDate()+" "+bln;
+ var tm=document.getElementById("mTime");
+ if(tm)tm.textContent=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+ var r=mRoleTarget();
+ var ic=document.getElementById("mRoleIc"), bt=document.getElementById("mRoleBtn"), bd=document.getElementById("mRoleBdg");
+ if(ic)ic.textContent=r.ic; if(bt)bt.title=r.t;
+ if(bd){ bd.textContent=r.n; bd.classList.toggle("hide",!r.n); }
+ var bb=document.getElementById("mBellBdg"), src=document.getElementById("bellBadge");
+ if(bb&&src){ bb.textContent=src.textContent; bb.classList.toggle("hide",src.classList.contains("hide")); }
+}
+/* modul yang tampil sebagai ikon — mengikuti hak akses role */
+const MHOME_IC={overview:"📊",building:"🏢",project:"📈",gacal:"🗓️",service:"🎧",fieldops:"📡",myticket:"🎫",
+ procurement:"🛒",payment:"💳",vendor:"🤝",energy:"⚡",hse:"🦺",approvals:"📋",assigned:"💼",reminder:"🔔"};
+function renderMobileHome(){
+ var el=document.getElementById("page-mhome"); if(!el||!isMobile())return;
+ var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
+ var mods=MENU.filter(function(m){return menus.indexOf(m.id)>=0;});
+ var ikon=mods.map(function(m){
+   var b=navBadge(m.id);
+   return '<button class="mh-mod" onclick="go(\''+m.id+'\')">'+
+     '<span class="mh-mic">'+(MHOME_IC[m.id]||"▫️")+(b?'<i class="mh-mbdg">'+b.replace(/<[^>]*>/g,"")+'</i>':'')+'</span>'+
+     '<em>'+esc(m.label)+'</em></button>';
+ }).join("");
+ /* ── ORDER SAYA ── */
+ var ord=myOrders();
+ var kartuOrder=ord.length?ord.slice(0,8).map(function(o){
+   return '<div class="mh-ord" onclick="go(\''+o.nav+'\')">'+
+     '<span class="mh-okind k-'+o.kind+'">'+esc(ORDER_LABEL[o.kind])+'</span>'+
+     '<div class="mh-ono">'+esc(o.no)+'</div>'+
+     '<div class="mh-oj">'+esc(o.judul||"")+'</div>'+
+     '<div class="mh-od">'+esc(o.detail||"")+'</div>'+
+     '<div class="mh-of"><span>'+esc(o.tgl||"")+'</span><b style="color:'+o.warna+'">'+esc(o.status)+'</b></div>'+
+   '</div>';
+ }).join(""):'<div class="mh-empty">Belum ada order. Gunakan tombol di bawah untuk mengajukan layanan.</div>';
+ /* ── SO SAYA (hanya yang punya akses Procurement) ── */
+ var soBlok="";
+ if(menus.indexOf("procurement")>=0){
+   var me=(gUser&&gUser.name)||"";
+   var mySO=SO.filter(function(s){ return (s.requester||s.req)===me; });
+   soBlok='<div class="mh-sec"><div class="mh-sh"><b>🛒 SO Saya</b><span>'+mySO.length+' supply order</span>'+
+     '<button class="mh-more" onclick="go(\'procurement\')">Lihat semua ›</button></div>'+
+     (mySO.length?'<div class="mh-scroll">'+mySO.slice(0,8).map(function(s){
+        var st=soStatusLabel(s);
+        return '<div class="mh-ord" onclick="go(\'procurement\')">'+
+          '<span class="mh-okind k-so">Supply Order</span>'+
+          '<div class="mh-ono">'+esc(s.no)+'</div>'+
+          '<div class="mh-oj">'+esc(s.item||"")+'</div>'+
+          '<div class="mh-od">'+esc(s.kategori||"")+' · Rp '+s.nilai+' M</div>'+
+          '<div class="mh-of"><span>'+esc(s.lokasi||"")+'</span><b>'+esc(st.t)+'</b></div></div>';
+      }).join("")+'</div>':'<div class="mh-empty">Belum ada SO yang Anda buat.</div>')+'</div>';
+ }
+ /* ── GA CALENDAR — default hanya Room & Event untuk pengguna umum ── */
+ var ev=[];
+ try{
+   ev=gacalEvents().filter(function(e){ return isSuper()?true:(e.type==="event"); })
+     .filter(function(e){ return e.date>=TODAY_STR; })
+     .sort(function(a,b){ return a.date.localeCompare(b.date); }).slice(0,6);
+ }catch(e){}
+ var kal='<div class="mh-sec"><div class="mh-sh"><b>🗓️ GA Calendar</b><span>'+(isSuper()?"semua agenda":"Room &amp; Event")+'</span>'+
+   '<button class="mh-more" onclick="go(\'gacal\')">Buka ›</button></div>'+
+   (ev.length?'<div class="mh-kal">'+ev.map(function(e){
+      var d=new Date(e.date+"T00:00:00");
+      return '<div class="mh-kev" onclick="go(\'gacal\')">'+
+        '<div class="mh-kd"><b>'+d.getDate()+'</b><span>'+["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][d.getMonth()]+'</span></div>'+
+        '<div class="mh-kt"><div class="mh-ktj">'+esc(e.title||e.t||"")+'</div>'+
+        '<div class="mh-ktm">'+esc(e.sub||e.d||"")+'</div></div></div>';
+    }).join("")+'</div>':'<div class="mh-empty">Tidak ada agenda terdekat.</div>')+'</div>';
+ el.innerHTML=
+  '<div class="mh-hi">Halo, <b>'+esc((gUser&&gUser.name)||"")+'</b><span>'+esc(roleTitle(gUser||{role:gRole}))+'</span></div>'+
+  '<div class="mh-mods">'+ikon+'</div>'+
+  '<div class="mh-sec"><div class="mh-sh"><b>📦 Order Saya</b><span>'+ord.length+' order</span>'+
+    '<button class="mh-more" onclick="go(\'service\')">Lihat semua ›</button></div>'+
+    (ord.length?'<div class="mh-scroll">'+kartuOrder+'</div>':kartuOrder)+'</div>'+
+  soBlok+kal;
+}
 function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
 function gaServiceButtons(){
  if(viewerOnly()) return '';
@@ -5648,10 +5886,10 @@ function gaServiceButtonsRaw(){
  return `<div class="ga-svc-panel">
   <div class="ga-svc-head"><span class="ga-svc-badge">🎧 LAYANAN GA</span><span class="ga-svc-sub">Pilih layanan yang Anda butuhkan — langsung diproses tim GA</span></div>
   <div class="ga-svc-bar">
-   <button class="ga-svc-btn" onclick="go('createticket')"><span class="ga-svc-ic" style="background:#eef4ff;color:#2563eb">🎫</span><span class="ga-svc-tx"><b>Create Ticket</b><small>Lapor keluhan / permintaan</small></span><span class="ga-svc-go">›</span></button>
-   <button class="ga-svc-btn" onclick="go('roombook')"><span class="ga-svc-ic" style="background:#e9f8ef;color:#15a34a">🏢</span><span class="ga-svc-tx"><b>Room Booking</b><small>Pesan ruang meeting</small></span><span class="ga-svc-go">›</span></button>
-   <button class="ga-svc-btn" onclick="go('transport')"><span class="ga-svc-ic" style="background:#fdf3e3;color:#c2740a">🚗</span><span class="ga-svc-tx"><b>Transportation</b><small>Pool, Blue Bird, GoCorp</small></span><span class="ga-svc-go">›</span></button>
-   <button class="ga-svc-btn" onclick="gaServiceSoon('Mailing Room')"><span class="ga-svc-ic" style="background:#f3eefe;color:#7a4fd0">📬</span><span class="ga-svc-tx"><b>Mailing Room</b><small>Kurir & dokumen</small></span><span class="ga-svc-go">›</span></button>
+   <button class="ga-svc-btn" onclick="go('createticket')"><span class="ga-svc-ic" style="background:#eef4ff;color:#2563eb">🎫</span><span class="ga-svc-tx"><b>Complaint Handling</b><small>Lapor keluhan / kerusakan</small></span><span class="ga-svc-go">›</span></button>
+   <button class="ga-svc-btn" onclick="go('roombook')"><span class="ga-svc-ic" style="background:#e9f8ef;color:#15a34a">🏢</span><span class="ga-svc-tx"><b>Room Reservation</b><small>Pesan ruang meeting</small></span><span class="ga-svc-go">›</span></button>
+   <button class="ga-svc-btn" onclick="go('transport')"><span class="ga-svc-ic" style="background:#fdf3e3;color:#c2740a">🚗</span><span class="ga-svc-tx"><b>Transport Booking</b><small>Pool, Blue Bird, GoCorp</small></span><span class="ga-svc-go">›</span></button>
+   <button class="ga-svc-btn" onclick="openOvertimeForm()"><span class="ga-svc-ic" style="background:#f3eefe;color:#7a4fd0">⏱️</span><span class="ga-svc-tx"><b>Overtime</b><small>Pengajuan lembur & fasilitas</small></span><span class="ga-svc-go">›</span></button>
   </div>
  </div>`;
 }
@@ -5701,6 +5939,64 @@ function renderService(){
   </div>`;
 }
 let ticketSeq=143;
+/* ══════════════════════════════════════════════════════════════════════════
+   NOMOR ORDER LAYANAN — setiap permintaan di modul Services punya nomor tiket,
+   bukan hanya complaint handling.
+     GA- : Complaint Handling      RR- : Room Reservation
+     TR- : Transport Booking       OT- : Overtime
+   ══════════════════════════════════════════════════════════════════════════ */
+const ORDER_PREFIX={complaint:"GA",room:"RR",transport:"TR",overtime:"OT"};
+const ORDER_LABEL={complaint:"Complaint Handling",room:"Room Reservation",transport:"Transport Booking",overtime:"Overtime"};
+function orderNo(kind){
+ var pre=(ORDER_PREFIX[kind]||"GA")+"-"+String(TODAY_STR).slice(0,7).replace("-","")+"-";
+ var pakai=[].concat(
+   TICKETS.map(function(x){return x.no;}),
+   (typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS.map(function(x){return x.no;}):[]),
+   (typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ.map(function(x){return x.no;}):[]),
+   (typeof OVERTIME_REQ!=="undefined"?OVERTIME_REQ.map(function(x){return x.no;}):[])
+ ).filter(Boolean);
+ var max=0;
+ pakai.forEach(function(no){ var m=String(no).match(/^[A-Z]{2}-\d{6}-(\d+)$/); if(m)max=Math.max(max,+m[1]); });
+ var n=max+1, no;
+ do{ no=pre+String(n).padStart(4,"0"); n++; } while(pakai.indexOf(no)>=0);
+ return no;
+}
+/* Semua order milik user yang login — sumber section "Order Saya" di mobile */
+function myOrders(){
+ var me=(gUser&&gUser.name)||"", mail=((gUser&&gUser.email)||"").toLowerCase();
+ var punyaSaya=function(by,email){
+   if(email&&mail&&String(email).toLowerCase()===mail)return true;
+   return by&&me&&String(by)===me;
+ };
+ var out=[];
+ TICKETS.forEach(function(t){
+   if(!punyaSaya(t.requester,t.email))return;
+   out.push({kind:"complaint",no:t.no,judul:t.judul,detail:foNormCat(t.cat)+" · "+(t.lokasi||""),
+     tgl:t.created,status:ticketAging(t).t,warna:ticketAging(t).c,ref:t,nav:"service"});
+ });
+ (typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){
+   if(!punyaSaya(b.by,b.email))return;
+   out.push({kind:"room",no:b.no||"—",judul:b.title||"Booking ruang",
+     detail:(typeof rbRoomName==="function"?rbRoomName(b.room):b.room)+" · "+b.start+"–"+b.end,
+     tgl:b.date,status:"Booked",warna:"var(--green)",ref:b,nav:"roombook"});
+ });
+ (typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(r){
+   if(!punyaSaya(r.by,r.email))return;
+   var st=r.status||"Diajukan";
+   out.push({kind:"transport",no:r.no||"—",judul:transportLabel(r.type),detail:r.detail||"",
+     tgl:r.date,status:st,warna:st==="Disetujui"?"var(--green)":st==="Ditolak"?"var(--red)":"#c2740a",
+     ref:r,nav:"transport"});
+ });
+ (typeof OVERTIME_REQ!=="undefined"?OVERTIME_REQ:[]).forEach(function(o){
+   if(!punyaSaya(o.by,o.email))return;
+   var st=o.status||"Diajukan";
+   out.push({kind:"overtime",no:o.no,judul:"Lembur — "+(o.alasan||""),
+     detail:(o.lokasi||"")+" · "+o.mulai+"–"+o.selesai+" · "+(o.pax||1)+" orang",
+     tgl:o.tgl,status:st,warna:st==="Disetujui"?"var(--green)":st==="Ditolak"?"var(--red)":"#c2740a",
+     ref:o,nav:"overtime"});
+ });
+ return out.sort(function(a,b){ return String(b.tgl||"").localeCompare(String(a.tgl||"")); });
+}
 /* Nomor tiket harus UNIK. Dulu urutannya dipatok di kode, jadi tiket baru bisa
    bentrok dengan nomor yang sudah ada di Firestore — dua tiket bernomor sama
    membuat pencarian tiket menunjuk ke objek yang salah. Sekarang nomor diturunkan
@@ -6054,11 +6350,12 @@ function rbSaveBooking(){
  if(!rbRangeFree(s.room,s.date,start,end)){ alert("Rentang bentrok dengan booking lain."); return; }
  const title=(document.getElementById("rb-title").value||"").trim()||"Booking";
  const email=(document.getElementById("rb-by").value||"").trim()||(gUser?gUser.email:"");
- RB_BOOKINGS.push({room:s.room,date:s.date,start,end,title,by:(gUser?gUser.name:""),email});
+ const rbNo=orderNo("room");   // setiap reservasi ruang punya nomor tiket
+ RB_BOOKINGS.push({no:rbNo,room:s.room,date:s.date,start,end,title,by:(gUser?gUser.name:""),email});
  // jembatan → ROOM_BOOKINGS (Service Room&Event card, GA Calendar, deteksi konflik) — src:'rb' agar sinkron saat release
  ROOM_BOOKINGS.unshift({room:rbRoomName(s.room),event:title,date:s.date,start:start,end:end,status:"Booked",src:"rb",rbRoom:s.room,rbStart:start});
- closeDrawer(); renderRoomBook(); renderService(); updateBell(); renderReminder();
- alert("✅ Booking tersimpan — "+title+"\n"+s.date+" · "+start+"–"+end+"\n(ERSUS akan menyalakan fasilitas ruangan saat jadwal mulai.)");
+ closeDrawer(); renderRoomBook(); renderService(); updateBell(); renderReminder(); try{ renderMobileHome(); }catch(e){}
+ alert("✅ Reservasi ruang tersimpan.\nNo. tiket: "+rbNo+"\n"+title+"\n"+s.date+" · "+start+"–"+end+"\n(ERSUS akan menyalakan fasilitas ruangan saat jadwal mulai.)");
 }
 
 /* ===================== TRANSPORTATION (Service) ===================== */
@@ -6117,11 +6414,66 @@ function saveTransport(type){
  let detail=dest, time="";
  if(type==='pool'){ time=document.getElementById("tr-time").value||""; const pax=document.getElementById("tr-pax").value||"1"; detail=dest+" · "+pax+" pax"; }
  else { const qty=document.getElementById("tr-qty").value||"1"; detail=dest+" · "+qty+" voucher"; }
- TRANSPORT_REQ.unshift({id:"tr"+(++TRANSPORT_SEQ),type,detail,date,time,by:(gUser?gUser.name:""),status:"Diajukan"});
- closeDrawer(); renderTransport(); if(typeof updateBell==="function")updateBell();
- alert("✅ Permintaan "+transportLabel(type)+" diajukan.\nNotifikasi terkirim ke PIC Transport untuk persetujuan.\n"+detail+" · "+date+(time?' '+time:''));
+ const trNo=orderNo("transport");   // setiap permintaan transport punya nomor tiket
+ TRANSPORT_REQ.unshift({no:trNo,id:"tr"+(++TRANSPORT_SEQ),type,detail,date,time,by:(gUser?gUser.name:""),email:(gUser?gUser.email:""),status:"Diajukan"});
+ closeDrawer(); renderTransport(); if(typeof updateBell==="function")updateBell(); try{ renderMobileHome(); }catch(e){}
+ alert("✅ Permintaan "+transportLabel(type)+" diajukan.\nNo. tiket: "+trNo+"\nNotifikasi terkirim ke PIC Transport untuk persetujuan.\n"+detail+" · "+date+(time?' '+time:''));
 }
 
+/* ═══════════════ OVERTIME — pengajuan lembur (menggantikan Mailing Room) ═══════════════
+   Setiap pengajuan dapat nomor tiket OT-. Masuk ke inbox Approval Section Head,
+   dan ikut tampil di "Order Saya" pemohon. */
+let OVERTIME_REQ=[];
+const OT_ALASAN=["Pekerjaan mendesak","Support event / acara","Perbaikan darurat","Closing bulanan","Kunjungan tamu / audit","Lainnya"];
+function overtimePending(){ return OVERTIME_REQ.filter(function(o){return (o.status||"Diajukan")==="Diajukan";}).length; }
+function openOvertimeForm(){
+ var t=TODAY_STR;
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div style="font-weight:700;color:var(--ink);font-size:16px">⏱️ Pengajuan Overtime</div>'+
+   '<div class="muted small" style="margin-top:4px">Diajukan oleh <b>'+esc((gUser&&gUser.name)||"")+'</b> — masuk approval Section Head</div></div>'+
+  '<div class="db">'+
+   '<div class="field"><label>Tanggal lembur <span style="color:var(--red)">*</span></label><input id="ot-tgl" type="date" value="'+t+'"/></div>'+
+   '<div class="two" style="gap:0 12px">'+
+     '<div class="field"><label>Jam mulai <span style="color:var(--red)">*</span></label><input id="ot-mulai" type="time" value="17:00"/></div>'+
+     '<div class="field"><label>Jam selesai <span style="color:var(--red)">*</span></label><input id="ot-selesai" type="time" value="20:00"/></div></div>'+
+   '<div class="field"><label>Lokasi <span style="color:var(--red)">*</span></label>'+
+     '<select id="ot-lokasi">'+SITE_OPTS.map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select></div>'+
+   '<div class="field"><label>Jumlah orang</label><input id="ot-pax" type="number" min="1" value="1"/></div>'+
+   '<div class="field"><label>Alasan lembur <span style="color:var(--red)">*</span></label>'+
+     '<select id="ot-alasan">'+OT_ALASAN.map(function(a){return '<option>'+esc(a)+'</option>';}).join("")+'</select></div>'+
+   '<div class="field"><label>Uraian pekerjaan</label><textarea id="ot-desc" rows="3" placeholder="mis. menyiapkan ruang untuk town hall besok pagi"></textarea></div>'+
+   '<div class="muted small" style="margin-top:4px">Fasilitas gedung (AC, lampu, lift, akses) akan disiapkan sesuai jam yang disetujui.</div>'+
+   '<button class="btn-act" style="width:100%;margin-top:14px" onclick="submitOvertime()">💾 Ajukan Overtime</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+}
+function submitOvertime(){
+ var g=function(id){ var e=document.getElementById(id); return e?String(e.value).trim():""; };
+ var tgl=g("ot-tgl"), mulai=g("ot-mulai"), selesai=g("ot-selesai");
+ if(!tgl||!mulai||!selesai){ alert("Tanggal dan jam lembur wajib diisi."); return; }
+ if(selesai<=mulai){ alert("Jam selesai harus setelah jam mulai."); return; }
+ var no=orderNo("overtime");
+ var rec={no:no, tgl:tgl, mulai:mulai, selesai:selesai, lokasi:g("ot-lokasi"),
+   pax:+g("ot-pax")||1, alasan:g("ot-alasan"), desc:g("ot-desc"),
+   by:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"", status:"Diajukan", created:TODAY_STR};
+ OVERTIME_REQ.unshift(rec);
+ NOTIFS.unshift({ic:"⏱️",t:"Pengajuan Overtime",d:no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai+" · "+rec.lokasi,
+   at:nowStamp(), sev:"warn", nav:"approvals", done:false});
+ try{ agavaNotify("⏱️ Pengajuan Overtime", no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai); }catch(e){}
+ try{ auditLog("overtime-create", no+" · "+rec.lokasi+" · "+rec.alasan); }catch(e){}
+ triggerFlow("overtime",{mode:"create",record:rec});
+ closeDrawer(); renderApprovals(); renderReminder(); updateBell(); try{ renderMobileHome(); }catch(e){}
+ alert("✅ Pengajuan Overtime terkirim.\nNo. tiket: "+no+"\n"+tgl+" · "+mulai+"–"+selesai+" · "+rec.lokasi+"\nMenunggu persetujuan Section Head.");
+}
+function overtimeAct(no,st){
+ var o=OVERTIME_REQ.find(function(x){return x.no===no;}); if(!o)return;
+ o.status=st; o.by2=(gUser&&gUser.name)||""; o.at2=nowStamp();
+ try{ agavaNotify(st==="Disetujui"?"✅ Overtime disetujui":"⛔ Overtime ditolak", o.no+" · "+o.by+" · "+o.tgl); }catch(e){}
+ try{ auditLog("overtime-"+st.toLowerCase(), o.no); }catch(e){}
+ renderApprovals(); renderReminder(); updateBell(); try{ renderMobileHome(); }catch(e){}
+ alert((st==="Disetujui"?"✅ ":"⛔ ")+o.no+" — "+st);
+}
 /* ===================== ROOM BOOKING — ERSUS idle auto-release =====================
    Jika ERSUS mendeteksi ruang idle 30 mnt → notif "jadi digունakan?". Ya → +15 mnt
    (maks 2x perpanjangan). Jika tetap idle setelah 2x → release (total 1 jam). */
@@ -6700,6 +7052,7 @@ function escDismiss(no){
 }
 function renderApprovals(){
  const escList=isSuper()?escalatedTickets():[];
+ const otList=isSuper()?OVERTIME_REQ.filter(o=>(o.status||"Diajukan")==="Diajukan"):[];
  const soList=soApprovalsForTier(gTier);
  const others=APPROVALS.filter(a=>a.tier===gTier);
  const oPend=others.filter(a=>a.status==="Pending");
@@ -6709,10 +7062,20 @@ function renderApprovals(){
  document.getElementById("page-approvals").innerHTML=`
   <div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="font-size:13px;color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
-    <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+oPend.length+escList.length} pending</span></div>
+    <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+oPend.length+escList.length+otList.length} pending</span></div>
   </div>
   ${escList.length?`<div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>⏫ Eskalasi Tiket dari Lapangan</h2><div class="d">${escList.length} tiket — operator tidak dapat menyelesaikan sendiri. Tindak lanjut: buat SO ke Procurement.</div></div></div>
     <div class="sec-body">${escList.map(escTicketRow).join("")}</div>
+  </div>`:''}
+  ${otList.length?`<div class="card sec"><div class="sec-h">${secIc('#f3eefe','#7a4fd0','approvals')}<div><h2>⏱️ Pengajuan Overtime</h2><div class="d">${otList.length} menunggu persetujuan — fasilitas gedung disiapkan sesuai jam yang disetujui.</div></div></div>
+    <div class="sec-body">${otList.map(o=>`<div class="esc-row">
+      <div class="esc-main"><div class="esc-no"><b>${esc(o.no)}</b><span class="badge bd-warn" style="font-size:9px">Diajukan</span></div>
+        <div class="esc-t">${esc(o.by)} · ${esc(o.alasan||'')}</div>
+        <div class="esc-m">${esc(o.tgl)} · ${esc(o.mulai)}–${esc(o.selesai)} · ${esc(o.lokasi||'')} · ${o.pax||1} orang</div>
+        ${o.desc?`<div class="esc-note">💬 ${esc(o.desc)}</div>`:''}</div>
+      <div class="esc-act"><button class="btn-act" onclick="overtimeAct('${esc(o.no)}','Disetujui')">✓ Setujui</button>
+        <button class="btn-out" onclick="overtimeAct('${esc(o.no)}','Ditolak')">✕ Tolak</button></div>
+    </div>`).join("")}</div>
   </div>`:''}
   ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','procurement')}<div><h2>SO Approvals</h2><div class="d">${gateDesc}</div></div></div>
     <div class="sec-body">${soList.length?soList.map(soApprovalCard).join(""):'<div class="muted small" style="padding:24px;text-align:center">No SO waiting at your gate right now.</div>'}</div>
@@ -8042,7 +8405,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-33";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-34";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
