@@ -2734,17 +2734,17 @@ function gacalOpenDay(y,m,d){
  document.getElementById("ovl").classList.add("show");
 }
 
-/* ===== CODEC DECK v2 — Highlight KPI GA Dept + Breakdown per Sub-Function =====
-   Mengikuti mockup "CODEC DECK CONCEPT": hero gelap (highlight pencapaian) +
-   breakdown 6 sub-function (bar vs target) + kartu Progress Bulanan.
+/* ===== CODEC DECK v2 — section Performance Indikator =====
+   2 box highlight neon (rata-rata Standard | total KPI + routine/non-routine) +
+   6 indikator standar bar-vs-target yang tiap komponennya klikable ke modul sumbernya.
    SEMUA angka DERIVED live dari data modul — derive don't duplicate. */
 /* ===== CODEC KPI model — sumber: draft KPI 2026 · sheet 'Total Pencapaian YTD' =====
-   Komponen yang punya modul live (GFM←Energy, GSM←Vendor, GA-Admin payment←Payment Tracker,
-   EHS←HSE, Rating←Service) DI-DERIVE live & sinkron; komponen tanpa modul (Asset STO,
-   Procurement Hub, named projects) memakai angka sheet YTD. */
+   Komponen yang punya modul live (GFM←Energy, GSM←Vendor, GA-Admin←Payment/Procurement/Reminder,
+   ExtRel←HSE/Vendor, EHS←HSE, Rating←Service) DI-DERIVE live & sinkron; yang belum punya modul
+   (Asset STO → sudah pindah jadi Key manual, Procurement Hub, named projects) memakai angka sheet YTD. */
 const CODEC_ASSET_STO={ach:78,target:85};   // KPI Asset STO — Asset Maintenance Develop AIHO Land Bank & STO (non-routine)
 const CODEC_PROC_HUB={ach:72,target:80};     // External Relation — Procurement Hub across Astra Group (non-routine)
-/* SINGLE SOURCE project CODEC — dipakai KPI Project Dev, Progress Bulanan, & section Progress Proyek */
+/* SINGLE SOURCE project CODEC — dipakai KPI Project Dev & section Progress Proyek */
 const CODEC_PROJ=[
  {n:"Multipurpose Space — Lab EHS",plan:50,actual:35,phase:"Construction",grp:"rejuv"},
  {n:"Rejuvenate AMDI C",plan:55,actual:48,phase:"Construction",grp:"rejuv"},
