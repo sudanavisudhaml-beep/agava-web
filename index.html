@@ -1541,6 +1541,12 @@ body.rg-open{overflow:hidden}
   .mh-hi{flex:1;min-width:0;font-size:15px;color:var(--ink)}
   .mh-hi b{font-weight:800}
   .mh-hi span{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
+  /* ikon di samping nama: keluar aplikasi (+ Cloud & Backup utk kelompok Super) */
+  .mh-ico{vertical-align:middle;margin-left:7px;width:28px;height:28px;border-radius:9px;border:1px solid var(--line);
+    background:#fff;cursor:pointer;font-size:13px;line-height:1;display:inline-grid;place-items:center;padding:0}
+  .mh-ico:active{transform:scale(.92)}
+  .mh-ico svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .mh-exit{color:var(--red);border-color:#f3c9c9;background:#fef4f4}
   .mh-date{flex:0 0 auto;text-align:right;line-height:1.3}
   .mh-date b{display:block;font-size:12px;font-weight:800;color:#0a4bb8}
   .mh-date span{font-size:10.5px;color:var(--muted);font-weight:600}
@@ -2397,7 +2403,9 @@ html,body{max-width:100%}
         <div class="acts-btns">
           <button class="live-chip" id="liveChip" onclick="liveToggle()" title="Click to connect a local Excel workbook"><span class="live-dot" id="liveDot"></span><span id="liveTxt">Connect Excel</span></button>
           <button class="copilot-btn" onclick="openCopilot()" title="Ask AGAVA Copilot"><svg class="cp-mark" viewBox="0 0 24 24"><defs><linearGradient id="cpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset=".5" stop-color="#39a0ff"/><stop offset="1" stop-color="#7a4fd0"/></linearGradient></defs><path fill="url(#cpg)" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/><path fill="url(#cpg)" opacity=".8" d="M19 14l.85 2.25L22 17.1l-2.15.85L19 20l-.85-2.05L16 17.1l2.15-.85z"/></svg><span class="cp-label">Ask AGAVA Copilot</span></button>
+          <button class="icon-btn hide" id="cloudBtn" onclick="agavaCloudPanel()" title="Cloud &amp; Backup data AGAVA"><svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/><path d="M12 12v5"/><path d="M9.5 14.5L12 12l2.5 2.5"/></svg></button>
           <button class="icon-btn" onclick="go('reminder')" title="Notifications" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span id="bellBadge" class="bell-badge hide">0</span></button>
+          <button class="icon-btn" onclick="agavaLogout()" title="Keluar dari AGAVA"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
         </div>
       </div>
     </div>
@@ -2607,12 +2615,22 @@ function applyLogin(u){
  go(isMobile()?(gRole==="fieldops"?"fieldops":"mhome"):ROLES[gRole].menus[0]);
  mBotSync();
  document.getElementById("login").classList.add("hide");
+ var cb=document.getElementById("cloudBtn"); if(cb)cb.classList.toggle("hide",!isSuper());   // Cloud & Backup: khusus Super
  notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
  auditLog("login", roleTitle(u));   // jejak login tersimpan di Firebase
  setTimeout(rateGateCheck,800);     // ada tiket selesai yang menunggu dinilai?
  if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
 }
 function logout(){ gUser=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
+/* Keluar aplikasi → kembali ke halaman login (dengan konfirmasi) */
+function agavaLogout(){
+ if(!confirm("Keluar dari AGAVA dan kembali ke halaman login?"))return;
+ try{ auditLog("logout",""); }catch(e){}
+ var p=document.getElementById("loginPass"); if(p)p.value="";
+ closeDrawer();
+ document.body.classList.remove("on-mhome","side-open");
+ logout();
+}
 
 /* SO_SUMMARY / TIKET_SUMMARY / fetchSOSummary dihapus — SEMUA tampilan derive langsung dari
    array SO & TICKETS (single source). Integrasi SharePoint nanti: map list item → SO[] lalu renderAll(). */
@@ -5980,7 +5998,7 @@ function renderMobileHome(){
  if(menus.indexOf("procurement")>=0){
    var me=(gUser&&gUser.name)||"";
    var mySO=SO.filter(function(s){ return (s.requester||s.req)===me; });
-   soBlok='<div class="mh-sec"><div class="mh-sh"><b>🛒 SO Saya</b><span>'+mySO.length+' supply order</span>'+
+   soBlok='<div class="mh-sec"><div class="mh-sh"><b>🛒 My Supply Order</b><span>'+mySO.length+' supply order</span>'+
      (mySO.length?'<button class="mh-csv" onclick="exportLog(\'so\')">⬇ CSV</button>':'')+'</div>'+
      (mySO.length?'<div class="mh-list">'+mySO.map(function(s){
         var st=soStatusLabel(s);
@@ -6015,11 +6033,15 @@ function renderMobileHome(){
  var bulan=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][d.getMonth()];
  el.innerHTML=
   '<div class="mh-hirow">'+
-    '<div class="mh-hi">Halo, <b>'+esc((gUser&&gUser.name)||"")+'</b><span>'+esc(roleTitle(gUser||{role:gRole}))+'</span></div>'+
+    '<div class="mh-hi">Halo, <b>'+esc((gUser&&gUser.name)||"")+'</b>'+
+      (isSuper()?'<button class="mh-ico" onclick="agavaCloudPanel()" title="Cloud &amp; Backup">☁️</button>':'')+
+      '<button class="mh-ico mh-exit" onclick="agavaLogout()" title="Keluar dari aplikasi">'+
+        '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>'+
+      '<span>'+esc(roleTitle(gUser||{role:gRole}))+'</span></div>'+
     '<div class="mh-date"><b>'+hari+'</b><span>'+d.getDate()+' '+bulan+' '+d.getFullYear()+'</span></div>'+
   '</div>'+
   ikon+
-  '<div class="mh-sec"><div class="mh-sh"><b>📦 Order Saya</b><span>'+ord.length+' order</span>'+
+  '<div class="mh-sec"><div class="mh-sh"><b>📦 My Service Order</b><span>'+ord.length+' order</span>'+
     (ord.length?'<button class="mh-csv" onclick="exportLog(\'all\')">⬇ CSV</button>':'')+'</div>'+listOrder+'</div>'+
   soBlok+kal;
  /* titik halaman ikut posisi geser */
@@ -8773,13 +8795,14 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-37";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-38";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
-   AGDB.pill.style.cssText="position:fixed;right:14px;bottom:12px;z-index:80;background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 13px;font-size:11.5px;font-weight:600;color:var(--muted);box-shadow:0 2px 10px rgba(15,40,80,.08);font-family:var(--ff);cursor:pointer";
-   AGDB.pill.title="Klik — Cloud & Backup data AGAVA";
-   AGDB.pill.onclick=function(){ if(isSuper())agavaCloudPanel(); else alert("☁️ "+(AGDB.on?"Data Anda tersimpan di Firebase (live).":"Sedang offline — data tersimpan di perangkat ini dan akan ikut naik saat online.")); };
+   /* Info bar status database DISEMBUNYIKAN (permintaan user) — elemennya tetap
+      dibuat agar status tetap terekam; akses Cloud & Backup pindah ke tombol ☁️
+      di topbar desktop / ikon di sapaan mobile (khusus kelompok Super). */
+   AGDB.pill.style.cssText="display:none";
    document.body.appendChild(AGDB.pill); }
  AGDB.pill.innerHTML=(ok?'<span style="color:#15a34a">●</span> ':'<span style="color:#9aa7b8">●</span> ')+txt+' <span style="opacity:.55">· '+AGAVA_BUILD+'</span>';
 }
