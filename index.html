@@ -1492,8 +1492,9 @@ body.rg-open{overflow:hidden}
   body.side-open .side{transform:translateX(-100%)}
   .main{margin-left:0}
   /* ── TOP BAR ── */
-  .mtop{display:block;position:sticky;top:0;z-index:60;overflow:hidden;
-    padding:calc(6px + env(safe-area-inset-top)) 12px 11px;
+  /* neon menyentuh tepi paling atas layar — tidak ada bar putih di atasnya */
+  .mtop{display:block;position:sticky;top:0;z-index:60;overflow:hidden;margin-top:0;
+    padding:calc(11px + env(safe-area-inset-top)) 12px 12px;
     background:linear-gradient(135deg,#032b6b 0%,#0a4fd0 45%,#0a7cff 78%,#00c6fb 100%);
     box-shadow:0 6px 22px rgba(6,40,110,.38)}
   .mtop-glow{position:absolute;inset:-60% -20% auto;height:190%;pointer-events:none;
@@ -1508,9 +1509,6 @@ body.rg-open{overflow:hidden}
     -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.55),transparent 82%);
             mask-image:linear-gradient(180deg,rgba(0,0,0,.55),transparent 82%)}
   .mtop-in{position:relative;z-index:1}
-  .mtop-clock{display:flex;align-items:baseline;gap:7px;color:#bfe8ff;font-size:10.5px;font-weight:700;
-    letter-spacing:.05em;margin-bottom:9px;text-shadow:0 0 10px rgba(0,220,255,.5)}
-  .mtop-clock b{font-size:12px;color:#fff;font-variant-numeric:tabular-nums}
   .mtop-row{display:flex;align-items:center;gap:9px}
   .mtop-ask{flex:1;min-width:0;display:flex;align-items:center;gap:9px;border:1px solid rgba(150,235,255,.55);
     border-radius:14px;padding:11px 14px;cursor:pointer;font-family:var(--ff);
@@ -1530,48 +1528,68 @@ body.rg-open{overflow:hidden}
     color:#fff;font-size:10px;font-weight:800;font-style:normal;display:grid;place-items:center;padding:0 5px;
     box-shadow:0 0 10px rgba(255,45,85,.7)}
   .mtop-bdg.hide{display:none}
-  /* topbar lama disembunyikan saat di Beranda; di modul lain tetap tampil sbg judul */
-  body.on-mhome .top{display:none}
-  .top{top:0}
+  /* Top bar bawaan desktop TIDAK dipakai di mobile — semua halaman, bukan hanya Beranda */
+  .top{display:none!important}
+  /* Kartu tombol layanan di modul Services disembunyikan — sudah ada di bottom bar */
+  .ga-svc-panel{display:none!important}
+  /* Drawer/form harus DI ATAS top bar neon (dulu z-index 50 < 60 → form Overtime tertutup) */
+  .ovl{z-index:120}
+  .sodoc-ovl{z-index:400}
 
   /* ── BERANDA ── */
-  .mh-hi{font-size:15px;color:var(--ink);margin:2px 0 12px}
+  .mh-hirow{display:flex;align-items:flex-start;gap:12px;margin:2px 0 14px}
+  .mh-hi{flex:1;min-width:0;font-size:15px;color:var(--ink)}
   .mh-hi b{font-weight:800}
   .mh-hi span{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
-  .mh-mods{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-  .mh-mod{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 4px 9px;border:1px solid var(--line);
-    border-radius:14px;background:linear-gradient(160deg,#fff,#f4faff);cursor:pointer;font-family:var(--ff);
-    box-shadow:0 2px 8px rgba(10,124,255,.07)}
-  .mh-mod:active{transform:scale(.96)}
-  .mh-mic{position:relative;font-size:21px;line-height:1}
-  .mh-mbdg{position:absolute;top:-6px;right:-10px;min-width:16px;height:16px;border-radius:8px;background:var(--red);
+  .mh-date{flex:0 0 auto;text-align:right;line-height:1.3}
+  .mh-date b{display:block;font-size:12px;font-weight:800;color:#0a4bb8}
+  .mh-date span{font-size:10.5px;color:var(--muted);font-weight:600}
+  /* Ikon modul — 4 kolom × 2 baris per halaman, digeser mendatar antar halaman */
+  .mh-modwrap{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+    margin:0 -11px 6px;padding:0 11px;scrollbar-width:none}
+  .mh-modwrap::-webkit-scrollbar{display:none}
+  .mh-modpage{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:repeat(4,1fr);
+    grid-auto-rows:1fr;gap:9px;padding-right:11px;box-sizing:border-box}
+  .mh-mod{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;
+    height:82px;padding:12px 4px 8px;border:1px solid var(--line);border-radius:15px;
+    background:linear-gradient(160deg,#fff,#f2f9ff);cursor:pointer;font-family:var(--ff);
+    box-shadow:0 2px 9px rgba(10,124,255,.08)}
+  .mh-mod:active{transform:scale(.95)}
+  .mh-mic{position:relative;width:26px;height:26px;flex:0 0 26px;display:grid;place-items:center}
+  .mh-mic svg{width:24px;height:24px;stroke:#0a5fd0;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .mh-mbdg{position:absolute;top:-7px;right:-11px;min-width:16px;height:16px;border-radius:8px;background:var(--red);
     color:#fff;font-size:9px;font-weight:800;font-style:normal;display:grid;place-items:center;padding:0 4px}
-  .mh-mod em{font-style:normal;font-size:9px;font-weight:700;color:var(--text);text-align:center;line-height:1.2}
+  .mh-mod em{font-style:normal;font-size:9px;font-weight:700;color:var(--text);text-align:center;line-height:1.2;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .mh-dots{display:flex;justify-content:center;gap:6px;margin-bottom:16px}
+  .mh-dots i{width:6px;height:6px;border-radius:50%;background:#cfdbe9;transition:.2s}
+  .mh-dots i.on{width:18px;border-radius:4px;background:var(--blue)}
   .mh-sec{margin-bottom:16px}
   .mh-sh{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
   .mh-sh b{font-size:14px;color:var(--ink)}
   .mh-sh span{font-size:10.5px;color:var(--muted)}
-  .mh-more{margin-left:auto;border:none;background:transparent;color:var(--blue);font-family:var(--ff);
-    font-size:11.5px;font-weight:700;cursor:pointer;padding:0}
-  .mh-scroll{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px 2px 6px;
-    scroll-snap-type:x proximity}
-  .mh-scroll::-webkit-scrollbar{height:0}
-  .mh-ord{flex:0 0 236px;scroll-snap-align:start;border:1px solid var(--line);border-radius:14px;padding:11px 13px;
-    background:#fff;cursor:pointer;box-shadow:0 3px 12px rgba(20,40,80,.07)}
-  .mh-ord:active{transform:scale(.98)}
-  .mh-okind{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.04em;padding:3px 8px;border-radius:20px}
+  /* Daftar order & SO — bergaya baris seperti desktop, klik untuk lihat perjalanan */
+  .mh-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+  .mh-row{display:flex;gap:10px;align-items:flex-start;padding:12px 13px;border-bottom:1px solid var(--line);cursor:pointer}
+  .mh-row:last-child{border-bottom:none}
+  .mh-row:active{background:#f4f9ff}
+  .mh-rpip{flex:0 0 8px;width:8px;height:8px;border-radius:50%;margin-top:5px;background:#9aa7b8}
+  .mh-rpip.k-complaint{background:#2563eb} .mh-rpip.k-room{background:#15803d}
+  .mh-rpip.k-transport{background:#c2740a} .mh-rpip.k-overtime{background:#7a4fd0}
+  .mh-rmain{flex:1;min-width:0}
+  .mh-rtop{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .mh-rtop b{font-size:11.5px;font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums}
+  .mh-okind{display:inline-block;font-size:8.5px;font-weight:800;letter-spacing:.03em;padding:2px 7px;border-radius:20px}
   .k-complaint{background:#eef4ff;color:#2563eb} .k-room{background:#e9f8ef;color:#15803d}
   .k-transport{background:#fdf3e3;color:#c2740a} .k-overtime{background:#f3eefe;color:#7a4fd0}
   .k-so{background:#e7f6ff;color:#0a6ad6}
-  .mh-ono{font-size:11px;font-weight:800;color:var(--blue);margin-top:7px;font-variant-numeric:tabular-nums}
-  .mh-oj{font-size:12.5px;font-weight:700;color:var(--ink);margin-top:2px;line-height:1.35;
-    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .mh-od{font-size:10.5px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .mh-of{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;
-    padding-top:7px;border-top:1px solid var(--line);font-size:10px;color:#9aa7b8}
-  .mh-of b{font-size:10.5px}
-  .mh-empty{font-size:11.5px;color:var(--muted);text-align:center;padding:20px 14px;border:1px dashed var(--line);
-    border-radius:12px;background:#fbfdff}
+  .mh-rj{font-size:13px;font-weight:700;color:var(--ink);margin-top:3px;line-height:1.35;overflow-wrap:anywhere}
+  .mh-rd{font-size:10.5px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+  .mh-rright{flex:0 0 auto;text-align:right;max-width:112px}
+  .mh-rright b{display:block;font-size:10.5px;font-weight:800;line-height:1.3;overflow-wrap:anywhere}
+  .mh-rright span{font-size:9.5px;color:#9aa7b8}
+  .mh-empty{font-size:11.5px;color:var(--muted);text-align:center;padding:22px 14px;border:1px dashed var(--line);
+    border-radius:14px;background:#fbfdff}
   .mh-kal{display:flex;flex-direction:column;gap:7px}
   .mh-kev{display:flex;gap:11px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 11px;
     background:#fff;cursor:pointer}
@@ -2324,7 +2342,6 @@ html,body{max-width:100%}
   <div class="mtop-glow"></div>
   <div class="mtop-grid"></div>
   <div class="mtop-in">
-    <div class="mtop-clock"><span id="mDate">—</span><b id="mTime">--:--</b></div>
     <div class="mtop-row">
       <button class="mtop-ask" onclick="openCopilot()">
         <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/></svg>
@@ -5815,53 +5832,85 @@ function mTopSync(){
 /* modul yang tampil sebagai ikon — mengikuti hak akses role */
 const MHOME_IC={overview:"📊",building:"🏢",project:"📈",gacal:"🗓️",service:"🎧",fieldops:"📡",myticket:"🎫",
  procurement:"🛒",payment:"💳",vendor:"🤝",energy:"⚡",hse:"🦺",approvals:"📋",assigned:"💼",reminder:"🔔"};
+/* buka rincian order — complaint pakai Lifecycle Journey penuh seperti desktop */
+function orderOpen(kind,no){
+ if(kind==="complaint"){ openTicket(no); return; }
+ var o=myOrders().find(function(x){return x.no===no;});
+ if(!o){ return; }
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div class="sono" style="font-size:15px">'+esc(o.no)+'</div>'+
+   '<div style="font-size:14.5px;color:var(--ink);font-weight:700;margin-top:5px">'+esc(o.judul||"")+'</div>'+
+   '<div class="muted small" style="margin-top:3px">'+esc(ORDER_LABEL[o.kind])+'</div></div>'+
+  '<div class="db"><div class="kv">'+
+    '<span class="k">No. tiket</span><span class="v">'+esc(o.no)+'</span>'+
+    '<span class="k">Jenis layanan</span><span class="v">'+esc(ORDER_LABEL[o.kind])+'</span>'+
+    '<span class="k">Detail</span><span class="v">'+esc(o.detail||"—")+'</span>'+
+    '<span class="k">Tanggal</span><span class="v">'+esc(o.tgl||"—")+'</span>'+
+    '<span class="k">Status</span><span class="v" style="color:'+o.warna+'">'+esc(o.status)+'</span>'+
+  '</div>'+
+  '<button class="btn-out" style="width:100%;margin-top:12px" onclick="closeDrawer();go(\''+o.nav+'\')">Buka modul '+esc(modLabel(o.nav))+' →</button></div>';
+ document.getElementById("ovl").classList.add("show");
+}
 function renderMobileHome(){
  var el=document.getElementById("page-mhome"); if(!el||!isMobile())return;
  var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
  var mods=MENU.filter(function(m){return menus.indexOf(m.id)>=0;});
- var ikon=mods.map(function(m){
-   var b=navBadge(m.id);
-   return '<button class="mh-mod" onclick="go(\''+m.id+'\')">'+
-     '<span class="mh-mic">'+(MHOME_IC[m.id]||"▫️")+(b?'<i class="mh-mbdg">'+b.replace(/<[^>]*>/g,"")+'</i>':'')+'</span>'+
-     '<em>'+esc(m.label)+'</em></button>';
- }).join("");
- /* ── ORDER SAYA ── */
+ /* Ikon modul: pakai ikon SVG yang SAMA dengan desktop, ukuran seragam,
+    disusun 4 kolom × 2 baris per halaman, digeser mendatar antar halaman. */
+ var perPage=8, pages=[];
+ for(var i=0;i<mods.length;i+=perPage) pages.push(mods.slice(i,i+perPage));
+ var ikon='<div class="mh-modwrap" id="mhModWrap">'+pages.map(function(pg){
+   return '<div class="mh-modpage">'+pg.map(function(m){
+     var b=navBadge(m.id);
+     var n=b?b.replace(/<[^>]*>/g,"").trim():"";
+     return '<button class="mh-mod" onclick="go(\''+m.id+'\')">'+
+       '<span class="mh-mic"><svg viewBox="0 0 24 24">'+IC[m.ic]+'</svg>'+
+       (n?'<i class="mh-mbdg">'+esc(n)+'</i>':'')+'</span>'+
+       '<em>'+esc(m.label)+'</em></button>';
+   }).join("")+'</div>';
+ }).join("")+'</div>'+
+ (pages.length>1?'<div class="mh-dots">'+pages.map(function(_,i){
+   return '<i class="'+(i===0?'on':'')+'" data-p="'+i+'"></i>';}).join("")+'</div>':'');
+ /* ── ORDER SAYA — daftar seperti desktop, klik untuk lihat perjalanan ── */
  var ord=myOrders();
- var kartuOrder=ord.length?ord.slice(0,8).map(function(o){
-   return '<div class="mh-ord" onclick="go(\''+o.nav+'\')">'+
-     '<span class="mh-okind k-'+o.kind+'">'+esc(ORDER_LABEL[o.kind])+'</span>'+
-     '<div class="mh-ono">'+esc(o.no)+'</div>'+
-     '<div class="mh-oj">'+esc(o.judul||"")+'</div>'+
-     '<div class="mh-od">'+esc(o.detail||"")+'</div>'+
-     '<div class="mh-of"><span>'+esc(o.tgl||"")+'</span><b style="color:'+o.warna+'">'+esc(o.status)+'</b></div>'+
+ var listOrder=ord.length?'<div class="mh-list">'+ord.map(function(o){
+   return '<div class="mh-row" onclick="orderOpen(\''+o.kind+'\',\''+esc(o.no)+'\')">'+
+     '<span class="mh-rpip k-'+o.kind+'"></span>'+
+     '<div class="mh-rmain">'+
+       '<div class="mh-rtop"><b>'+esc(o.no)+'</b><span class="mh-okind k-'+o.kind+'">'+esc(ORDER_LABEL[o.kind])+'</span></div>'+
+       '<div class="mh-rj">'+esc(o.judul||"")+'</div>'+
+       '<div class="mh-rd">'+esc(o.detail||"")+'</div>'+
+     '</div>'+
+     '<div class="mh-rright"><b style="color:'+o.warna+'">'+esc(o.status)+'</b><span>'+esc(o.tgl||"")+'</span></div>'+
    '</div>';
- }).join(""):'<div class="mh-empty">Belum ada order. Gunakan tombol di bawah untuk mengajukan layanan.</div>';
- /* ── SO SAYA (hanya yang punya akses Procurement) ── */
+ }).join("")+'</div>':'<div class="mh-empty">Belum ada order. Gunakan tombol layanan di bawah untuk mengajukan.</div>';
+ /* ── SO SAYA — daftar, klik untuk lihat Lifecycle Journey SO ── */
  var soBlok="";
  if(menus.indexOf("procurement")>=0){
    var me=(gUser&&gUser.name)||"";
    var mySO=SO.filter(function(s){ return (s.requester||s.req)===me; });
-   soBlok='<div class="mh-sec"><div class="mh-sh"><b>🛒 SO Saya</b><span>'+mySO.length+' supply order</span>'+
-     '<button class="mh-more" onclick="go(\'procurement\')">Lihat semua ›</button></div>'+
-     (mySO.length?'<div class="mh-scroll">'+mySO.slice(0,8).map(function(s){
+   soBlok='<div class="mh-sec"><div class="mh-sh"><b>🛒 SO Saya</b><span>'+mySO.length+' supply order</span></div>'+
+     (mySO.length?'<div class="mh-list">'+mySO.map(function(s){
         var st=soStatusLabel(s);
-        return '<div class="mh-ord" onclick="go(\'procurement\')">'+
-          '<span class="mh-okind k-so">Supply Order</span>'+
-          '<div class="mh-ono">'+esc(s.no)+'</div>'+
-          '<div class="mh-oj">'+esc(s.item||"")+'</div>'+
-          '<div class="mh-od">'+esc(s.kategori||"")+' · Rp '+s.nilai+' M</div>'+
-          '<div class="mh-of"><span>'+esc(s.lokasi||"")+'</span><b>'+esc(st.t)+'</b></div></div>';
+        return '<div class="mh-row" onclick="openDrawer(\''+esc(s.no)+'\')">'+
+          '<span class="mh-rpip" style="background:'+soPip(s)+'"></span>'+
+          '<div class="mh-rmain"><div class="mh-rtop"><b>'+esc(s.no)+'</b>'+
+            '<span class="mh-okind k-so">'+esc(s.kategori||"SO")+'</span></div>'+
+            '<div class="mh-rj">'+esc(s.item||"")+'</div>'+
+            '<div class="mh-rd">'+esc(s.lokasi||"")+' · Rp '+s.nilai+' M</div>'+
+            soMiniPips(s)+'</div>'+
+          '<div class="mh-rright"><b>'+esc(st.t)+'</b><span>'+esc(s.jenis||"")+'</span></div></div>';
       }).join("")+'</div>':'<div class="mh-empty">Belum ada SO yang Anda buat.</div>')+'</div>';
  }
- /* ── GA CALENDAR — default hanya Room & Event untuk pengguna umum ── */
+ /* ── GA CALENDAR — pengguna umum hanya Room & Event ── */
  var ev=[];
  try{
    ev=gacalEvents().filter(function(e){ return isSuper()?true:(e.type==="event"); })
      .filter(function(e){ return e.date>=TODAY_STR; })
      .sort(function(a,b){ return a.date.localeCompare(b.date); }).slice(0,6);
  }catch(e){}
- var kal='<div class="mh-sec"><div class="mh-sh"><b>🗓️ GA Calendar</b><span>'+(isSuper()?"semua agenda":"Room &amp; Event")+'</span>'+
-   '<button class="mh-more" onclick="go(\'gacal\')">Buka ›</button></div>'+
+ var kal='<div class="mh-sec"><div class="mh-sh"><b>🗓️ GA Calendar</b><span>'+(isSuper()?"semua agenda":"Room &amp; Event")+'</span></div>'+
    (ev.length?'<div class="mh-kal">'+ev.map(function(e){
       var d=new Date(e.date+"T00:00:00");
       return '<div class="mh-kev" onclick="go(\'gacal\')">'+
@@ -5869,13 +5918,24 @@ function renderMobileHome(){
         '<div class="mh-kt"><div class="mh-ktj">'+esc(e.title||e.t||"")+'</div>'+
         '<div class="mh-ktm">'+esc(e.sub||e.d||"")+'</div></div></div>';
     }).join("")+'</div>':'<div class="mh-empty">Tidak ada agenda terdekat.</div>')+'</div>';
+ /* hari & tanggal pindah ke sini — sejajar sapaan, rata kanan */
+ var d=new Date();
+ var hari=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][d.getDay()];
+ var bulan=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][d.getMonth()];
  el.innerHTML=
-  '<div class="mh-hi">Halo, <b>'+esc((gUser&&gUser.name)||"")+'</b><span>'+esc(roleTitle(gUser||{role:gRole}))+'</span></div>'+
-  '<div class="mh-mods">'+ikon+'</div>'+
-  '<div class="mh-sec"><div class="mh-sh"><b>📦 Order Saya</b><span>'+ord.length+' order</span>'+
-    '<button class="mh-more" onclick="go(\'service\')">Lihat semua ›</button></div>'+
-    (ord.length?'<div class="mh-scroll">'+kartuOrder+'</div>':kartuOrder)+'</div>'+
+  '<div class="mh-hirow">'+
+    '<div class="mh-hi">Halo, <b>'+esc((gUser&&gUser.name)||"")+'</b><span>'+esc(roleTitle(gUser||{role:gRole}))+'</span></div>'+
+    '<div class="mh-date"><b>'+hari+'</b><span>'+d.getDate()+' '+bulan+' '+d.getFullYear()+'</span></div>'+
+  '</div>'+
+  ikon+
+  '<div class="mh-sec"><div class="mh-sh"><b>📦 Order Saya</b><span>'+ord.length+' order</span></div>'+listOrder+'</div>'+
   soBlok+kal;
+ /* titik halaman ikut posisi geser */
+ var wrap=document.getElementById("mhModWrap");
+ if(wrap){ wrap.onscroll=function(){
+   var p=Math.round(wrap.scrollLeft/wrap.clientWidth);
+   [].forEach.call(el.querySelectorAll(".mh-dots i"),function(dot,i){ dot.classList.toggle("on",i===p); });
+ }; }
 }
 function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
 function gaServiceButtons(){
@@ -5961,8 +6021,17 @@ function orderNo(kind){
  do{ no=pre+String(n).padStart(4,"0"); n++; } while(pakai.indexOf(no)>=0);
  return no;
 }
+/* Reservasi & transport lama dibuat sebelum penomoran ada — beri nomor sekali
+   supaya tidak ada order yang tampil "—" di Order Saya. */
+function backfillOrderNo(){
+ try{
+   (typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){ if(!b.no)b.no=orderNo("room"); });
+   (typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(r){ if(!r.no)r.no=orderNo("transport"); });
+ }catch(e){}
+}
 /* Semua order milik user yang login — sumber section "Order Saya" di mobile */
 function myOrders(){
+ backfillOrderNo();
  var me=(gUser&&gUser.name)||"", mail=((gUser&&gUser.email)||"").toLowerCase();
  var punyaSaya=function(by,email){
    if(email&&mail&&String(email).toLowerCase()===mail)return true;
@@ -8405,7 +8474,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-35";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-36";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
