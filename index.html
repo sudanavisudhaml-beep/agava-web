@@ -834,6 +834,11 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .field input,.field select,.field textarea{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;font-family:var(--ff);color:var(--ink);outline:none}
 .field textarea{min-height:80px;resize:vertical}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:#bcd3f5}
+/* List Tiket = STATIS: selalu fit lebar layar, hanya scroll atas-bawah.
+   !important untuk mengalahkan aturan mobile .card{overflow-x:auto!important}. */
+.card.svc-card{overflow-x:hidden!important}   /* 2 kelas → menang atas .card{overflow-x:auto!important} di media query mobile */
+.card.svc-card .svc-head,.card.svc-card .svc-row{min-width:0}
+.svc-title,.svc-no,.svc-meta{overflow-wrap:anywhere}
 /* Baris ringkas mobile: PIC + SLA dilipat ke dalam blok tiket (bukan dihilangkan) */
 .svc-m2{display:none}
 @media(max-width:760px){
@@ -2002,9 +2007,13 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
   .sp-row .sp-rtext{flex:1 1 100%}
   .sp-row b{margin-left:0}
 }
-/* ── ANDROID/HP: pastikan seluruh aplikasi benar-benar fit, tak ada yang terpotong ── */
-html,body{max-width:100%;overflow-x:hidden}
-body{overscroll-behavior-y:contain}
+/* ── ANDROID/HP: pastikan seluruh aplikasi benar-benar fit, tak ada yang terpotong ──
+   JANGAN pasang overflow-x:hidden di html/body. Itu memaksa body jadi kotak scroll
+   (overflow-y:auto) padahal tingginya = tinggi isinya, sehingga roda mouse mendarat
+   di kotak yang tidak bisa di-scroll → halaman desktop terasa "stuck".
+   Luapan horizontal sudah ditangani di tiap kontainer (tabel di kartu, dokumen SO
+   diskalakan, baris tiket fit). */
+html,body{max-width:100%}
 /* aman dari notch / gesture bar (Android & iOS) */
 .side{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 @media (max-width:820px){
@@ -5346,7 +5355,7 @@ function renderService(){
  el.innerHTML=`
   ${gaServiceButtons()}
   ${head}
-  <div class="card">
+  <div class="card svc-card">
     ${sup?'':'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Tiket Saya <span style="font-weight:400;color:var(--muted)">— hanya tiket yang Anda buat · status &amp; perjalanan terupdate realtime</span></div></div>'}
     <div class="svc-status">
       <div class="svc-st-i"><div class="l">${sup?'Total tickets':'Tiket saya'}</div><div class="v">${total}</div></div>
@@ -7393,7 +7402,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-24";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-25";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
