@@ -87,12 +87,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
         <select id="lokasi"><option>AMDI</option><option>Menara Astra</option><option>ABC BSD</option><option>ABC Bandung</option><option>Tower</option><option>AIHO</option></select></div>
     </div>
     <div class="field"><label>Jenis pekerjaan <i>*</i></label>
-      <select id="jenis">
-        <option>Pekerjaan Umum</option><option>Pekerjaan Panas (Hot Work)</option><option>Bekerja di Ketinggian</option>
-        <option>Ruang Terbatas (Confined Space)</option><option>Pekerjaan Listrik</option><option>Penggalian</option>
+      <select id="jenis" onchange="syncRisiko()">
+        <option>Pekerjaan Umum (risiko rendah)</option><option>Pekerjaan Panas (Hot Work)</option>
+        <option>Bekerja di Ketinggian (Work at Height)</option><option>Ruang Terbatas (Confined Space)</option>
+        <option>Pekerjaan Listrik Bertegangan</option><option>Penggalian (Excavation)</option>
+        <option>Pekerjaan Angkat Berat (Lifting)</option><option>Bahan Kimia / B3</option>
       </select></div>
-    <div class="field"><label>Tingkat risiko <i>*</i></label>
-      <select id="risiko"><option>Rendah</option><option selected>Sedang</option><option>Tinggi</option></select></div>
+    <div class="field"><label>Tingkat risiko <i>*</i> <span style="font-weight:400;color:#8798ad">(otomatis dari jenis pekerjaan)</span></label>
+      <select id="risiko"><option>Rendah</option><option selected>Sedang</option><option>Tinggi</option></select>
+      <div id="warn" style="font-size:12px;margin-top:6px;line-height:1.5"></div></div>
+    <div class="field"><label>Dokumen pendukung <span style="font-weight:400;color:#8798ad">(centang yang Anda bawa/lampirkan)</span></label>
+      <div id="doks"></div></div>
     <div class="row">
       <div class="field"><label>Mulai <i>*</i></label><input id="mulai" type="date"/></div>
       <div class="field"><label>Selesai <i>*</i></label><input id="selesai" type="date"/></div>
@@ -123,14 +128,33 @@ function pad(n){ return String(n).padStart(4,"0"); }
 function seq(){ var d=new Date(); return "WP-"+d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+"-"+pad(Math.floor(Math.random()*9000)+1000); }
 function v(id){ var e=document.getElementById(id); return e?String(e.value).trim():""; }
 
+/* Risiko ditentukan jenis pekerjaan — vendor tidak bisa mengecilkan risiko sendiri */
+var JENIS_RISIKO={"Pekerjaan Umum (risiko rendah)":"Rendah","Pekerjaan Panas (Hot Work)":"Tinggi","Bekerja di Ketinggian (Work at Height)":"Tinggi","Ruang Terbatas (Confined Space)":"Tinggi","Pekerjaan Listrik Bertegangan":"Tinggi","Penggalian (Excavation)":"Sedang","Pekerjaan Angkat Berat (Lifting)":"Sedang","Bahan Kimia / B3":"Tinggi"};
+var DOKS=["JSA / HIRADC","Sertifikat kompetensi pekerja","Daftar APD","Asuransi / BPJS Ketenagakerjaan","Sertifikat alat (SIA/SILO)","MSDS bahan kimia","Rencana tanggap darurat"];
+(function(){ var d=document.getElementById("doks"); if(!d)return;
+  d.innerHTML=DOKS.map(function(x,i){ return '<label style="display:flex;align-items:center;gap:9px;font-size:14px;padding:9px 11px;border:1px solid #dde5ef;border-radius:9px;background:#fff;margin-bottom:6px">'+
+    '<input type="checkbox" id="dok'+i+'" value="'+x+'" style="width:18px;height:18px"/> '+x+'</label>'; }).join(""); })();
+function syncRisiko(){
+  var j=document.getElementById("jenis"), r=document.getElementById("risiko"), w=document.getElementById("warn");
+  if(!j||!r)return;
+  r.value=JENIS_RISIKO[j.value]||"Sedang";
+  if(w) w.innerHTML = r.value==="Tinggi"
+    ? '<b style="color:#dc2626">⚠ Pekerjaan berisiko tinggi</b> — JSA/HIRADC, sertifikat kompetensi, dan daftar APD <b>wajib</b> dilampirkan.'
+    : (r.value==="Sedang" ? '<span style="color:#c2740a">Risiko sedang — lampirkan JSA dan daftar APD.</span>'
+                          : '<span style="color:#15a34a">Risiko rendah — cukup lampirkan daftar APD.</span>');
+}
+syncRisiko();
 function submitWP(){
-  var req=[["judul","Uraian pekerjaan"],["vendor","Nama vendor"],["pic","Nama PIC"],["hp","No. HP PIC"],["mulai","Tanggal mulai"],["selesai","Tanggal selesai"]];
+  var req=[["judul","Nama / uraian pekerjaan"],["vendor","Nama vendor"],["pic","Nama PIC"],["hp","No. HP PIC"],["mulai","Tanggal mulai"],["selesai","Tanggal selesai"]];
   for(var i=0;i<req.length;i++){ if(!v(req[i][0])){ alert("Mohon lengkapi: "+req[i][1]); document.getElementById(req[i][0]).focus(); return; } }
   if(v("selesai") < v("mulai")){ alert("Tanggal selesai tidak boleh lebih awal dari tanggal mulai."); return; }
+  var docs=DOKS.filter(function(x,i){ var c=document.getElementById("dok"+i); return c&&c.checked; });
+  var risiko=JENIS_RISIKO[v("jenis")]||"Sedang";
+  if(risiko==="Tinggi" && !docs.length){ alert("⚠ Pekerjaan berisiko tinggi wajib melampirkan dokumen pendukung (minimal JSA/HIRADC)."); return; }
   var today=new Date().toISOString().slice(0,10);
   var rec={ no:seq(), judul:v("judul"), vendor:v("vendor"), pic:v("pic"), hp:v("hp"),
-            pekerja:parseInt(v("pekerja"))||1, lokasi:v("lokasi"), jenis:v("jenis"), risiko:v("risiko"),
-            mulai:v("mulai"), selesai:v("selesai"), alat:v("alat"),
+            pekerja:parseInt(v("pekerja"))||1, lokasi:v("lokasi"), jenis:v("jenis"), risiko:risiko,
+            mulai:v("mulai"), selesai:v("selesai"), alat:v("alat"), docs:docs,
             status:"Menunggu Review", src:"qr", created:today };
   var btn=document.getElementById("btn"); btn.disabled=true; btn.textContent="Mengirim…";
   function done(){

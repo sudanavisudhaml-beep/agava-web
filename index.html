@@ -1345,6 +1345,55 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .gd{max-width:none}
 /* Performance Indikator — Standard vs Key (2 kolom) */
 .pi-card .gd-ch{flex-wrap:wrap}
+/* ── HSE: kepala section besar (1 Izin Operasional · 2 Izin Kerja) ── */
+.hse-sec{display:flex;align-items:center;gap:13px;margin:0 0 14px;padding:14px 18px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(255,255,255,.85),rgba(226,243,255,.6));border:1px solid rgba(255,255,255,.9);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 8px 22px rgba(10,124,255,.13)}
+.hse-sec-n{flex:0 0 34px;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:16px;font-weight:900;
+  color:#fff;background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);box-shadow:0 4px 12px rgba(10,124,255,.4)}
+.hse-sec>div:nth-child(2){flex:1;min-width:0}
+.hse-sec-t{font-size:15px;font-weight:800;color:var(--ink)}
+.hse-sec-s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.hse-sec-b{flex:0 0 auto;text-align:right}
+.hse-sec-b .l{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#7d8ca3}
+.hse-sec-b .v{font-size:20px;font-weight:900;color:#0a4bb8;line-height:1.1}
+.hse-sec-b .s{font-size:10px;color:#9aa7b8}
+/* daftar izin: jatuh tempo · next action · estimasi biaya */
+.izn-card{margin-bottom:16px;overflow:hidden}
+.izn-h{display:flex;align-items:center;gap:12px;padding:14px 18px 12px;border-bottom:1px solid var(--line)}
+.izn-ic{font-size:20px;flex:0 0 auto}
+.izn-tot{flex:0 0 auto;text-align:right}
+.izn-tot .l{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3}
+.izn-tot .v{font-size:16px;font-weight:900;color:#0a4bb8;line-height:1.2}
+.izn-tot .s{font-size:9.5px;color:#9aa7b8}
+.izn-head,.izn-row{display:grid;grid-template-columns:2fr 118px 1.5fr 108px;gap:12px;align-items:center;padding:10px 18px}
+.izn-head{font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3;border-bottom:1px solid var(--line);background:#fbfcfe}
+.izn-row{border-bottom:1px solid var(--line);font-size:12.5px}
+.izn-row:last-child{border-bottom:none}
+.izn-row.urgent{background:linear-gradient(90deg,rgba(255,77,109,.06),transparent 60%)}
+.izn-nm{font-weight:700;color:var(--ink);line-height:1.3}
+.izn-sub{font-size:10.5px;color:#9aa7b8;margin-top:2px;overflow-wrap:anywhere}
+.izn-due b{font-size:12.5px;color:var(--ink)} .izn-due>div{margin-top:3px}
+.izn-act{font-size:11.5px;font-weight:600;line-height:1.35}
+.izn-x{font-size:10px;color:#9aa7b8;font-weight:500;margin-top:2px}
+.izn-cost{text-align:right;font-weight:800;color:var(--ink);font-size:12.5px}
+.izn-note{padding:11px 18px;font-size:11px;color:var(--muted);background:#f8fafd;border-top:1px solid var(--line);line-height:1.6}
+@media(max-width:900px){
+  .izn-head{display:none}
+  .izn-row{grid-template-columns:1fr auto;gap:6px;padding:12px 14px}
+  .izn-n{grid-column:1/3}
+  .izn-cost{text-align:left}
+  .izn-act{grid-column:1/3}
+  .hse-sec{flex-wrap:wrap}.hse-sec-b{text-align:left;width:100%}
+}
+/* izin kerja */
+.wp-tr{cursor:pointer;transition:.15s}
+.wp-tr:hover{background:#f2f8ff}
+.wp-dok{display:inline-block;font-size:10.5px;background:#eef4ff;color:#0a4bb8;border-radius:8px;padding:2px 8px;margin:2px 3px 2px 0}
+.wp-doks{display:grid;gap:5px;margin-top:4px}
+.wp-dk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);cursor:pointer;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.wp-dk:hover{border-color:var(--blue);background:#f6faff}
+.wp-dk input{width:15px;height:15px;flex:0 0 15px}
 /* panel Cloud & Backup */
 .cl-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink)}
 .cl-row b{font-weight:800;color:#0a4bb8;text-align:right}
@@ -4863,12 +4912,6 @@ function renderBuilding(){
 
   <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>BM Tickets Unresolved &gt; 1 Month</h2><div class="d">${bmStale.length} open tickets — from Service ticket data</div></div></div>
     <div class="sec-body">${bmStale.length?bmStale.map(t=>`<div class="trow"><div><div class="tj"><b>${t.no}</b> · ${t.judul}</div><div class="tm">${t.lokasi} · ${t.status} · opened ${t.created}</div></div><span class="badge bd-crit">${ticketAge(t.created)} days</span></div>`).join(""):'<div class="muted small" style="padding:8px 0">No BM tickets open &gt; 1 month. 👍</div>'}</div>
-  </div>
-
-  <div class="db-zone">
-    <div class="db-zone-h"><span class="db-zone-badge">🗄️ MASTER DATA · INPUT LANGSUNG DI AGAVA</span>
-      <span class="muted small">Pekerjaan perbaikan & status work permit-nya diinput di sini — langsung tampil di CODEC.</span></div>
-    ${dbPanel("works","status permit ikut menghitung Work Permit di CODEC")}
   </div>`;
 }
 
@@ -5923,7 +5966,8 @@ const DB_SETS={
  pbb:{ label:"PBB — Pajak Bumi & Bangunan", ic:"🏠", get:()=>PBB, render:()=>{renderReminder();renderOverview();},
    fields:[{k:"obj",l:"Objek Pajak",t:"text",req:1,ph:"AMDI Sunter"},
            {k:"note",l:"Keterangan",t:"text",ph:"Land & building"},
-           {k:"due",l:"Jatuh tempo",t:"date",req:1}],
+           {k:"due",l:"Jatuh tempo",t:"date",req:1},
+           {k:"biaya",l:"Estimasi biaya (Rp)",t:"number",ph:"mis. 25000000"}],
    cols:[["obj","Objek Pajak"],["note","Keterangan"],["due","Jatuh tempo"]] },
  izin:{ label:"Perizinan — Dokumen Legal", ic:"📄", get:()=>IZIN, render:()=>{renderReminder();renderOverview();},
    fields:[{k:"name",l:"Nama Izin",t:"text",req:1,ph:"Genset Operation Permit"},
@@ -7107,52 +7151,98 @@ function permitStatus(due){ if(!due)return"Permanent"; const d=(new Date(due+"T0
 function permitBadge(st){ return st==="Overdue"?'<span class="badge bd-crit">Overdue</span>':st==="Due soon"?'<span class="badge bd-warn">Due ≤90d</span>':st==="Permanent"?'<span class="badge bd-ok">Permanent</span>':'<span class="badge bd-info">Scheduled</span>'; }
 function rupShort(n){ n=+n||0; return n>=1e9?('Rp '+(n/1e9).toFixed(2)+' B'):n>=1e6?('Rp '+(n/1e6).toFixed(1)+' jt'):n>0?('Rp '+Math.round(n/1e3)+' rb'):'—'; }
 let hseArea="All";
+/* ── Klasifikasi izin: Utilitas vs Lingkungan (PBB ditarik dari master data PBB) ── */
+function permitGroup(p){ return /IPLC|B3|Limbah|Lingkungan|AMDAL|UKL|UPL/i.test(p.name||"")?"lingkungan":"utilitas"; }
+function dueDays(due){ if(!due)return null; return Math.round((new Date(due+"T00:00:00")-new Date(TODAY_STR+"T00:00:00"))/86400000); }
+/* Next action diturunkan dari sisa hari — bukan diketik manual, jadi selalu jujur */
+function permitNextAction(due){
+ var d=dueDays(due);
+ if(d===null) return {t:"Izin permanen — tidak perlu perpanjangan", c:"#15a34a", urgent:false};
+ if(d<0)      return {t:"SEGERA urus perpanjangan — lewat "+Math.abs(d)+" hari", c:"var(--red)", urgent:true};
+ if(d<=30)    return {t:"Ajukan perpanjangan sekarang ("+d+" hari lagi)", c:"var(--red)", urgent:true};
+ if(d<=90)    return {t:"Siapkan dokumen perpanjangan ("+d+" hari lagi)", c:"#c2740a", urgent:true};
+ if(d<=180)   return {t:"Jadwalkan pengurusan H-90", c:"#0a6ad6", urgent:false};
+ return {t:"Pantau — masih "+d+" hari", c:"var(--muted)", urgent:false};
+}
+/* Satu baris izin: due date · next action · estimasi biaya */
+function hseIzinRow(nama,sub,due,biaya,extra){
+ var st=permitStatus(due), na=permitNextAction(due), d=dueDays(due);
+ return '<div class="izn-row'+(na.urgent?' urgent':'')+'">'+
+   '<div class="izn-n"><div class="izn-nm">'+esc(nama)+'</div><div class="izn-sub">'+esc(sub||'')+'</div></div>'+
+   '<div class="izn-due">'+(due?('<b>'+fmtDay(due)+' '+due.slice(0,4)+'</b><div>'+permitBadge(st)+'</div>'):'<span class="muted small">—</span>')+'</div>'+
+   '<div class="izn-act" style="color:'+na.c+'">'+(na.urgent?'⚠ ':'')+esc(na.t)+(extra?'<div class="izn-x">'+extra+'</div>':'')+'</div>'+
+   '<div class="izn-cost">'+(biaya>0?rupShort(biaya):'<span class="muted">belum ada</span>')+'</div>'+
+ '</div>';
+}
+function hseIzinBlok(judul,ic,rows,items,catatan){
+ var tot=items.reduce(function(a,x){return a+(+x.biaya||0);},0);
+ var urg=items.filter(function(x){return permitNextAction(x.due).urgent;}).length;
+ var tot90=items.filter(function(x){var d=dueDays(x.due); return d!==null&&d<=90;}).reduce(function(a,x){return a+(+x.biaya||0);},0);
+ return '<div class="card izn-card">'+
+   '<div class="izn-h"><span class="izn-ic">'+ic+'</span><div style="flex:1;min-width:0">'+
+     '<div class="panel-t" style="margin:0">'+esc(judul)+'</div>'+
+     '<div class="muted small">'+items.length+' izin'+(urg?' · <b style="color:var(--red)">'+urg+' perlu tindakan</b>':' · semua terkendali')+'</div></div>'+
+     '<div class="izn-tot"><div class="l">Estimasi biaya ≤90 hari</div><div class="v">'+(tot90>0?rupShort(tot90):'—')+'</div>'+
+       '<div class="s">total setahun '+(tot>0?rupShort(tot):'—')+'</div></div></div>'+
+   '<div class="izn-head"><span>Izin / Objek</span><span>Jatuh tempo</span><span>Next action</span><span>Estimasi biaya</span></div>'+
+   (rows||'<div class="muted small" style="padding:20px;text-align:center">Belum ada data.</div>')+
+   (catatan?'<div class="izn-note">'+catatan+'</div>':'')+
+ '</div>';
+}
 function renderHSE(){
  const el=document.getElementById("page-hse"); if(!el)return;
- const areas=["All"].concat(PERMITS.map(p=>p.area).filter((a,i,arr)=>arr.indexOf(a)===i));
- const withDue=PERMITS.filter(p=>p.due);
- const overdue=withDue.filter(p=>permitStatus(p.due)==="Overdue").length;
- const dueSoon=withDue.filter(p=>permitStatus(p.due)==="Due soon").length;
- const compliant=PERMITS.length-overdue;
- const list=PERMITS.filter(p=>hseArea==="All"||p.area===hseArea);
- const upcoming=withDue.filter(p=>permitStatus(p.due)!=="Permanent").sort((a,b)=>a.due.localeCompare(b.due)).slice(0,8);
- const COL="1.9fr .55fr 1.3fr .75fr 1fr .75fr";
+ /* ── SECTION 1 — Izin Operasional Bangunan & Utilitas ── */
+ const util=PERMITS.filter(p=>permitGroup(p)==="utilitas");
+ const ling=PERMITS.filter(p=>permitGroup(p)==="lingkungan");
+ const pbbList=(typeof PBB!=="undefined"?PBB:[]);
+ const utilF=util.filter(p=>hseArea==="All"||p.area===hseArea);
+ const areas=["All"].concat(util.map(p=>p.area).filter((a,i,arr)=>arr.indexOf(a)===i));
+ const allDue=[].concat(
+   util.map(p=>({due:p.due,biaya:p.harga})), ling.map(p=>({due:p.due,biaya:p.harga})),
+   pbbList.map(p=>({due:p.due,biaya:p.biaya})));
+ const urgent=allDue.filter(x=>permitNextAction(x.due).urgent).length;
+ const overdue=allDue.filter(x=>{const d=dueDays(x.due); return d!==null&&d<0;}).length;
+ const biaya90=allDue.filter(x=>{const d=dueDays(x.due); return d!==null&&d<=90;}).reduce((a,x)=>a+(+x.biaya||0),0);
+ const biayaTot=allDue.reduce((a,x)=>a+(+x.biaya||0),0);
+ const wpPend=WORK_PERMITS.filter(w=>w.status==="Menunggu Review").length;
+ const rowsUtil=utilF.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'))
+   .map(p=>hseIzinRow(p.name,p.area+' · '+(p.noIzin||'tanpa no. izin')+' · berlaku '+(p.periode||'—'),p.due,p.harga,
+     p.uji?('uji kembali: '+esc(p.uji)):'')).join("");
+ const rowsLing=ling.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'))
+   .map(p=>hseIzinRow(p.name,p.area+' · '+(p.noIzin||'—')+' · '+(p.periode||'—'),p.due,p.harga,'')).join("");
+ const rowsPbb=pbbList.slice().sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'))
+   .map(p=>hseIzinRow(p.obj,p.note||'Pajak Bumi & Bangunan',p.due,p.biaya,'')).join("");
  el.innerHTML=`
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">
-    <div class="card kpi"><div class="l">Total permits</div><div class="v">${PERMITS.length}</div></div>
-    <div class="card kpi"><div class="l">Compliant</div><div class="v" style="color:var(--green)">${compliant}</div></div>
-    <div class="card kpi"><div class="l">Re-test overdue</div><div class="v" style="color:var(--red)">${overdue}</div></div>
-    <div class="card kpi"><div class="l">Due ≤90 days</div><div class="v" style="color:var(--amber)">${dueSoon}</div></div>
+    <div class="card kpi"><div class="l">Total izin dipantau</div><div class="v">${allDue.length}</div></div>
+    <div class="card kpi"><div class="l">Perlu tindakan</div><div class="v" style="color:${urgent?'var(--red)':'var(--green)'}">${urgent}</div></div>
+    <div class="card kpi"><div class="l">Lewat tempo</div><div class="v" style="color:${overdue?'var(--red)':'var(--green)'}">${overdue}</div></div>
+    <div class="card kpi"><div class="l">Izin kerja menunggu</div><div class="v" style="color:${wpPend?'var(--amber)':'var(--green)'}">${wpPend}</div></div>
   </div>
-  <div class="two" style="margin-bottom:18px">
-    <div class="card pad">
-      <div class="panel-t">⏰ Upcoming Re-tests (Uji Kembali)</div>
-      <div class="vp-note">Overdue & nearest deadlines first — feeds compliance reminders.</div>
-      ${upcoming.map(p=>`<div class="due-row"><div><div class="dj">${p.name}</div><div class="dm">${p.area} · uji kembali ${p.uji}</div></div>${permitBadge(permitStatus(p.due))}</div>`).join("")}
-    </div>
-    <div class="card pad">
-      <div class="panel-t">♻️ Sustainability & Environment</div>
-      <div class="vp-note">Environmental permits + link to ESG performance.</div>
-      ${PERMITS.filter(p=>/IPLC|B3|Limbah|Lingkungan/i.test(p.name)).map(p=>`<div class="trow"><div><div class="tj">${p.name}</div><div class="tm">${p.area} · ${p.periode}</div></div><span class="badge bd-ok">${p.status||'Active'}</span></div>`).join("")}
-      <div style="margin-top:12px"><button class="btn-out" onclick="go('energy')">Open Energy &amp; ESG performance →</button></div>
-    </div>
+
+  <div class="hse-sec"><span class="hse-sec-n">1</span>
+    <div><div class="hse-sec-t">Izin Operasional Bangunan &amp; Utilitas</div>
+      <div class="hse-sec-s">Menjaga jatuh tempo · next action otomatis dari sisa hari · estimasi biaya pengurusan</div></div>
+    <div class="hse-sec-b"><div class="l">Estimasi biaya ≤90 hari</div><div class="v">${biaya90>0?rupShort(biaya90):'—'}</div>
+      <div class="s">total dipantau ${biayaTot>0?rupShort(biayaTot):'—'}</div></div>
   </div>
-  <div class="card">
-    <div style="padding:16px 18px 8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <div class="panel-t" style="margin:0">Permit &amp; Legal Compliance Register</div>
-      <div style="flex:1"></div>
-      ${areas.map(a=>`<div class="ptab ${hseArea===a?'on':''}" onclick="hseArea='${a}';renderHSE()">${a}</div>`).join("")}
-    </div>
-    <div class="svc-head" style="grid-template-columns:${COL}"><span>Permit</span><span>Area</span><span>No. Izin</span><span>Issued</span><span>Re-test due</span><span>Cost</span></div>
-    <div class="svc-list">${list.map(p=>{ const st=permitStatus(p.due);
-      return `<div class="svc-row" style="grid-template-columns:${COL}">
-        <div><div class="svc-no" style="font-size:12.5px">${p.name}</div><div class="svc-meta">${p.periode||''}</div></div>
-        <div class="muted small">${p.area}</div>
-        <div class="muted small" style="word-break:break-word">${p.noIzin||'—'}</div>
-        <div class="muted small">${p.terbit||'—'}</div>
-        <div>${p.uji||'—'}<div style="margin-top:3px">${permitBadge(st)}</div></div>
-        <div class="muted small">${rupShort(p.harga)}</div>
-      </div>`; }).join("")}</div>
+
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+    <span class="muted small" style="font-weight:700">Filter area:</span>
+    ${areas.map(a=>`<div class="ptab ${hseArea===a?'on':''}" onclick="hseArea='${a}';renderHSE()">${a}</div>`).join("")}
+  </div>
+  ${hseIzinBlok("a. Izin Operasional Utilitas","⚙️",rowsUtil,util.map(p=>({due:p.due,biaya:p.harga})),
+     'Lift, genset, penyalur petir, bejana tekan, instalasi listrik, proteksi kebakaran, gondola, SLF & reklame. Biaya diambil dari register izin.')}
+  ${hseIzinBlok("b. Izin Lingkungan","♻️",rowsLing,ling.map(p=>({due:p.due,biaya:p.harga})),
+     'IPLC & Limbah B3. <a class="gd-kopen" onclick="go(\'energy\')">Lihat kinerja ESG di modul Energy →</a>')}
+  ${hseIzinBlok("c. PBB — Pajak Bumi &amp; Bangunan","🏠",rowsPbb,pbbList,
+     'Objek & jatuh tempo PBB diinput di modul Reminder. <a class="gd-kopen" onclick="go(\'reminder\')">Buka master data PBB →</a>')}
+
+  <div class="hse-sec" style="margin-top:22px"><span class="hse-sec-n">2</span>
+    <div><div class="hse-sec-t">Izin Kerja (Work Permit)</div>
+      <div class="hse-sec-s">Pengajuan izin kerja berisiko &amp; risiko rendah ke PIC HSE · vendor bisa ajukan sendiri lewat QR</div></div>
+    <div class="hse-sec-b"><div class="l">Menunggu review</div><div class="v" style="color:${wpPend?'var(--amber)':'var(--green)'}">${wpPend}</div>
+      <div class="s">dari ${WORK_PERMITS.length} pengajuan</div></div>
   </div>
   ${wpPanelHTML()}`;
 }
@@ -7166,8 +7256,93 @@ let WORK_PERMITS=[
  {no:"WP-202607-0001",judul:"Penggantian kompresor AC — Lt.6",vendor:"PT Mekar Jaya",pic:"Andi",pekerja:4,lokasi:"AMDI",mulai:"2026-07-18",selesai:"2026-07-19",risiko:"Sedang",jenis:"Pekerjaan Panas (Hot Work)",status:"Menunggu Review",src:"internal",created:"2026-07-16"},
  {no:"WP-202607-0002",judul:"Pembersihan fasad gondola sisi utara",vendor:"PT ISS Indonesia",pic:"Uhen",pekerja:6,lokasi:"Menara Astra",mulai:"2026-07-20",selesai:"2026-07-24",risiko:"Tinggi",jenis:"Bekerja di Ketinggian",status:"Disetujui",src:"qr",created:"2026-07-15"}
 ];
-const WP_JENIS=["Pekerjaan Umum","Pekerjaan Panas (Hot Work)","Bekerja di Ketinggian","Ruang Terbatas (Confined Space)","Pekerjaan Listrik","Penggalian"];
+/* Jenis pekerjaan → risiko bawaan. "Berisiko tinggi" = wajib dokumen pendukung lengkap. */
+const WP_JENIS=["Pekerjaan Umum (risiko rendah)","Pekerjaan Panas (Hot Work)","Bekerja di Ketinggian (Work at Height)","Ruang Terbatas (Confined Space)","Pekerjaan Listrik Bertegangan","Penggalian (Excavation)","Pekerjaan Angkat Berat (Lifting)","Bahan Kimia / B3"];
 const WP_RISIKO=["Rendah","Sedang","Tinggi"];
+const WP_JENIS_RISIKO={"Pekerjaan Umum (risiko rendah)":"Rendah","Pekerjaan Panas (Hot Work)":"Tinggi","Bekerja di Ketinggian (Work at Height)":"Tinggi","Ruang Terbatas (Confined Space)":"Tinggi","Pekerjaan Listrik Bertegangan":"Tinggi","Penggalian (Excavation)":"Sedang","Pekerjaan Angkat Berat (Lifting)":"Sedang","Bahan Kimia / B3":"Tinggi"};
+/* Dokumen pendukung yang lazim diminta PIC HSE */
+const WP_DOKS=["JSA / HIRADC","Sertifikat kompetensi pekerja","Daftar APD","Asuransi / BPJS Ketenagakerjaan","Sertifikat alat (SIA/SILO)","MSDS bahan kimia","Rencana tanggap darurat"];
+function wpRisikoOf(jenis){ return WP_JENIS_RISIKO[jenis]||"Sedang"; }
+function wpDurasi(w){
+ if(!w||!w.mulai||!w.selesai)return "—";
+ var d=Math.round((new Date(w.selesai+"T00:00:00")-new Date(w.mulai+"T00:00:00"))/86400000)+1;
+ return d>0?(d+" hari"):"—";
+}
+/* Tahap izin kerja: 0 diajukan · 1 direview · 2 disetujui/berlaku · 3 selesai · -1 ditolak */
+function wpStage(w){
+ if(!w)return 0;
+ if(w.status==="Ditolak")return -1;
+ if(w.status==="Selesai")return 3;
+ if(w.status==="Disetujui")return (w.selesai&&w.selesai<TODAY_STR)?3:2;
+ return 0;
+}
+/* Journey izin kerja — 4 checkpoint besar + perjalanan kecil di antaranya */
+function wpJourneyGroups(w){
+ var stg=wpStage(w), tolak=(stg===-1);
+ var cp=function(i){ return tolak?(i<=1?"done":"pending") : (stg>=i?"done":(stg===i-1?"active":"pending")); };
+ var doks=(w.docs||[]);
+ var pre2=[];   /* menuju Review HSE */
+ pre2.push({t:"Kelengkapan dokumen pendukung",cls:doks.length?"done":(stg>=1?"done":"active"),
+   sub:doks.length?doks.map(esc).join(" · "):"belum ada dokumen dilampirkan"});
+ if(w.src==="qr") pre2.push({t:"Diajukan mandiri oleh vendor via QR",cls:"done",sub:"tanpa Excel, tanpa ketik ulang — langsung masuk database AGAVA"});
+ var pre3=[];   /* menuju Disetujui */
+ pre3.push({t:"Penilaian risiko — "+esc(w.jenis||"-"),cls:stg>=2?"done":(stg>=1||tolak?"active":"pending"),
+   sub:"tingkat risiko "+esc(w.risiko||"-")+(wpRisikoOf(w.jenis)==="Tinggi"?" · wajib pengawasan HSE di lokasi":"")});
+ if(tolak) pre3.push({t:"⛔ Ditolak PIC HSE",cls:"rejected",sub:w.catatan?esc(w.catatan):"tidak memenuhi syarat K3"});
+ var pre4=[];   /* menuju Selesai */
+ pre4.push({t:"Pelaksanaan pekerjaan",cls:stg>=3?"done":(stg>=2?"active":"pending"),
+   sub:fmtDay(w.mulai)+" → "+fmtDay(w.selesai)+" · "+wpDurasi(w)+" · "+(w.pekerja||0)+" pekerja"});
+ pre4.push({t:"Serah terima area & housekeeping",cls:stg>=3?"done":"pending",sub:"area dikembalikan bersih dan aman"});
+ return [
+  {name:"Izin Kerja Diajukan", state:"done", meta:(w.created?"🕐 "+fmtDay(w.created):"")+(w.vendor?" · "+esc(w.vendor):""), steps:[]},
+  {name:"Review PIC HSE",      state:tolak?"rejected":cp(1), meta:w.reviewedBy?("oleh "+esc(w.reviewedBy)+(w.reviewedAt?" · "+fmtDay(w.reviewedAt):"")):null, steps:pre2},
+  {name:"Izin Terbit / Berlaku",state:tolak?"pending":cp(2), meta:stg>=2?("berlaku "+fmtDay(w.mulai)+" → "+fmtDay(w.selesai)):null, steps:pre3},
+  {name:"Pekerjaan Selesai",   state:tolak?"pending":cp(3), meta:stg>=3?"area diserahterimakan":null, steps:pre4}
+ ];
+}
+function wpGroupBarHTML(w){
+ var gs=wpJourneyGroups(w).map(function(g){return g.state;});
+ var nm=["Diajukan","Review HSE","Izin Terbit","Selesai"];
+ return '<div class="jgbar">'+nm.map(function(n,i){
+   return '<div class="jgb '+gs[i]+'" style="--gc:'+JT_NEON+'"><i></i><span>'+n+'</span></div>';
+ }).join("")+'</div>';
+}
+/* Detail izin kerja — journey + seluruh info yang diminta */
+function wpOpenDetail(no){
+ var w=WORK_PERMITS.find(function(x){return x.no===no;}); if(!w)return;
+ var can=dbCanEdit();
+ var kv=function(k,v){ return '<span class="k">'+k+'</span><span class="v">'+v+'</span>'; };
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div class="sono" style="font-size:16px">'+esc(w.no)+' '+wpBadge(w.status)+'</div>'+
+   '<div style="font-size:15px;color:var(--ink);font-weight:700;margin-top:6px;line-height:1.4">'+esc(w.judul)+'</div>'+
+   '<div class="muted small" style="margin-top:3px">'+esc(w.vendor)+' · '+esc(w.lokasi)+(w.src==='qr'?' · 📱 diajukan via QR':'')+'</div></div>'+
+  '<div class="db">'+
+   '<div class="kv">'+
+     kv("Vendor / Pelaksana",esc(w.vendor))+
+     kv("PIC lapangan",esc(w.pic||'—'))+
+     kv("Jumlah pekerja",(w.pekerja||0)+" orang")+
+     kv("Lokasi",esc(w.lokasi))+
+     kv("Jadwal",fmtDay(w.mulai)+" → "+fmtDay(w.selesai))+
+     kv("Durasi",wpDurasi(w))+
+     kv("Jenis pekerjaan",esc(w.jenis||'—'))+
+     kv("Tingkat risiko",'<span class="badge '+(w.risiko==='Tinggi'?'bd-crit':w.risiko==='Sedang'?'bd-warn':'bd-ok')+'">'+esc(w.risiko||'—')+'</span>')+
+     kv("Dokumen pendukung",(w.docs&&w.docs.length)?w.docs.map(function(d){return '<span class="wp-dok">📎 '+esc(d)+'</span>';}).join(' '):'<span class="muted">belum ada</span>')+
+   '</div>'+
+   '<div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>'+
+   '<div class="muted small" style="margin-bottom:10px">4 checkpoint besar · perjalanan kecil di antaranya ikut tergambar</div>'+
+   wpGroupBarHTML(w)+
+   jtHTML(wpJourneyGroups(w))+
+   (can&&w.status==="Menunggu Review"
+     ? '<div style="display:flex;gap:8px;margin-top:16px"><button class="btn-act" style="flex:1" onclick="wpActNo(\''+w.no+'\',\'Disetujui\')">✓ Setujui Izin Kerja</button>'+
+       '<button class="btn-out" style="flex:1" onclick="wpActNo(\''+w.no+'\',\'Ditolak\')">✕ Tolak</button></div>'
+     : (can&&w.status==="Disetujui"
+        ? '<button class="btn-out" style="width:100%;margin-top:16px" onclick="wpActNo(\''+w.no+'\',\'Selesai\')">🏁 Tandai Pekerjaan Selesai</button>'
+        : ''))+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+}
+function wpActNo(no,st){ var i=WORK_PERMITS.findIndex(function(x){return x.no===no;}); if(i>=0){ wpAct(i,st); wpOpenDetail(no); } }
 function wpSeq(){ return "WP-"+new Date().toISOString().slice(0,7).replace("-","")+"-"+String(1+WORK_PERMITS.length).padStart(4,"0"); }
 function wpBadge(s){ return s==="Disetujui"?'<span class="badge bd-ok">Disetujui</span>':s==="Ditolak"?'<span class="badge bd-crit">Ditolak</span>':'<span class="badge bd-warn">Menunggu Review</span>'; }
 function wpPersist(){ try{ localStorage.setItem("agava_wp_v1",JSON.stringify(WORK_PERMITS)); }catch(e){} }
@@ -7189,58 +7364,85 @@ function wpPanelHTML(){
         </div>
       </div>
       <div class="db-wrap"><table class="db-tbl">
-        <thead><tr><th>No / Pekerjaan</th><th>Vendor · PIC</th><th>Lokasi</th><th>Jadwal</th><th>Jenis · Risiko</th><th>Status</th><th style="width:120px"></th></tr></thead>
-        <tbody>${WORK_PERMITS.map((w,i)=>`<tr>
+        <thead><tr><th>No / Nama pekerjaan</th><th>Vendor</th><th>Durasi</th><th>Lokasi</th><th>PIC</th><th>Pekerja</th><th>Jenis · Risiko</th><th>Dokumen</th><th>Status</th><th style="width:96px"></th></tr></thead>
+        <tbody>${WORK_PERMITS.map((w,i)=>`<tr class="wp-tr" onclick="wpOpenDetail('${esc(w.no)}')" title="klik untuk lihat perjalanan izin kerja">
           <td><b>${esc(w.no)}</b><div class="muted small">${esc(w.judul)}</div></td>
-          <td>${esc(w.vendor)}<div class="muted small">${esc(w.pic||'—')} · ${w.pekerja||0} orang</div></td>
+          <td>${esc(w.vendor)}</td>
+          <td class="muted small">${wpDurasi(w)}<div>${fmtDay(w.mulai)} → ${fmtDay(w.selesai)}</div></td>
           <td>${esc(w.lokasi)}</td>
-          <td class="muted small">${fmtDay(w.mulai)} → ${fmtDay(w.selesai)}</td>
+          <td>${esc(w.pic||'—')}</td>
+          <td class="c">${w.pekerja||0}</td>
           <td class="muted small">${esc(w.jenis)}<div><span class="badge ${w.risiko==='Tinggi'?'bd-crit':w.risiko==='Sedang'?'bd-warn':'bd-ok'}">${esc(w.risiko)}</span></div></td>
+          <td class="c">${(w.docs&&w.docs.length)?`<span class="badge bd-ok" title="${esc((w.docs||[]).join(' · '))}">📎 ${w.docs.length}</span>`:'<span class="muted small">—</span>'}</td>
           <td>${wpBadge(w.status)}${w.src==='qr'?'<div class="muted small">📱 via QR</div>':''}</td>
-          <td class="db-act">${can&&w.status==="Menunggu Review"?`<button class="btn-mini ok" onclick="wpAct(${i},'Disetujui')">Setujui</button> <button class="btn-mini no" onclick="wpAct(${i},'Ditolak')">Tolak</button>`:'<span class="muted small">—</span>'}</td>
-        </tr>`).join("")||`<tr><td colspan="7" class="muted small" style="text-align:center;padding:22px">Belum ada pengajuan.</td></tr>`}</tbody>
+          <td class="db-act">${can&&w.status==="Menunggu Review"?`<button class="btn-mini ok" onclick="event.stopPropagation();wpAct(${i},'Disetujui')">Setujui</button> <button class="btn-mini no" onclick="event.stopPropagation();wpAct(${i},'Ditolak')">Tolak</button>`:'<span class="muted small">—</span>'}</td>
+        </tr>`).join("")||`<tr><td colspan="10" class="muted small" style="text-align:center;padding:22px">Belum ada pengajuan.</td></tr>`}</tbody>
       </table></div>
     </div>
   </div>`;
 }
 function wpOpenForm(){
-  const f=[["judul","Uraian pekerjaan","text",1],["vendor","Vendor / Pelaksana","text",1],["pic","Nama PIC lapangan","text",1],
+  const f=[["judul","Nama / uraian pekerjaan","text",1],["vendor","Vendor / Pelaksana","text",1],["pic","Nama PIC lapangan","text",1],
            ["pekerja","Jumlah pekerja","number",1],["lokasi","Lokasi","select",1],["jenis","Jenis pekerjaan","select",1],
-           ["risiko","Tingkat risiko","select",1],["mulai","Mulai","date",1],["selesai","Selesai","date",1]];
+           ["mulai","Mulai","date",1],["selesai","Selesai","date",1]];
   const inp=f.map(([k,l,t,req])=>{
     let el;
-    if(t==="select"){ const o=(k==="lokasi")?SITE_OPTS:(k==="jenis")?WP_JENIS:WP_RISIKO; el=`<select id="wp-${k}">${o.map(x=>`<option>${esc(x)}</option>`).join("")}</select>`; }
+    if(t==="select"){ const o=(k==="lokasi")?SITE_OPTS:WP_JENIS;
+      el=`<select id="wp-${k}"${k==="jenis"?' onchange="wpSyncRisiko()"':''}>${o.map(x=>`<option>${esc(x)}</option>`).join("")}</select>`; }
     else el=`<input id="wp-${k}" type="${t}"/>`;
     return `<div class="field"><label>${l}${req?' <span style="color:var(--red)">*</span>':''}</label>${el}</div>`;
   }).join("");
   document.getElementById("drawer").innerHTML=`
    <div class="dh"><button class="x" onclick="closeDrawer()">✕</button>
-     <div style="font-weight:700;color:var(--ink);font-size:16px">🦺 Ajukan Work Permit</div>
-     <div class="muted small" style="margin-top:4px">Tersimpan langsung ke database AGAVA</div></div>
+     <div style="font-weight:700;color:var(--ink);font-size:16px">🦺 Ajukan Izin Kerja</div>
+     <div class="muted small" style="margin-top:4px">Izin kerja berisiko &amp; risiko rendah → PIC HSE. Tersimpan langsung ke database AGAVA.</div></div>
    <div class="db">${inp}
-     <button class="btn-act" style="width:100%;margin-top:14px" onclick="wpSave()">💾 Ajukan ke AGAVA</button></div>`;
+     <div class="field"><label>Tingkat risiko <span class="muted small">(otomatis dari jenis pekerjaan)</span></label>
+       <select id="wp-risiko">${WP_RISIKO.map(x=>`<option>${esc(x)}</option>`).join("")}</select></div>
+     <div class="field"><label>Dokumen pendukung <span class="muted small">(centang yang dilampirkan)</span></label>
+       <div class="wp-doks">${WP_DOKS.map((d,i)=>`<label class="wp-dk"><input type="checkbox" id="wp-dok-${i}" value="${esc(d)}"/> ${esc(d)}</label>`).join("")}</div></div>
+     <div id="wp-warn" class="muted small" style="margin-top:6px"></div>
+     <button class="btn-act" style="width:100%;margin-top:14px" onclick="wpSave()">💾 Ajukan ke PIC HSE</button></div>`;
   document.getElementById("ovl").classList.add("show");
+  wpSyncRisiko();
+}
+/* jenis pekerjaan menentukan risiko — user tidak perlu menebak, dan tidak bisa mengecilkan risiko */
+function wpSyncRisiko(){
+  var j=document.getElementById("wp-jenis"), r=document.getElementById("wp-risiko"), w=document.getElementById("wp-warn");
+  if(!j||!r)return;
+  r.value=wpRisikoOf(j.value);
+  if(w) w.innerHTML = r.value==="Tinggi"
+    ? '⚠ <b style="color:var(--red)">Pekerjaan berisiko tinggi</b> — JSA/HIRADC, sertifikat kompetensi, dan daftar APD wajib dilampirkan.'
+    : (r.value==="Sedang" ? 'Risiko sedang — lampirkan JSA dan daftar APD.' : 'Risiko rendah — cukup lampirkan daftar APD.');
 }
 function wpSave(){
   const g=k=>{const e=document.getElementById("wp-"+k); return e?String(e.value).trim():"";};
   for(const k of ["judul","vendor","pic","pekerja","mulai","selesai"]) if(!g(k)){ alert("Lengkapi dulu semua kolom wajib."); return; }
   if(g("selesai")<g("mulai")){ alert("Tanggal selesai tidak boleh lebih awal dari mulai."); return; }
+  const docs=WP_DOKS.filter((d,i)=>{ const c=document.getElementById("wp-dok-"+i); return c&&c.checked; });
+  const risiko=wpRisikoOf(g("jenis"));
+  if(risiko==="Tinggi" && !docs.length){ alert("⚠ Pekerjaan berisiko tinggi wajib melampirkan dokumen pendukung (minimal JSA/HIRADC)."); return; }
   const rec={no:wpSeq(),judul:g("judul"),vendor:g("vendor"),pic:g("pic"),pekerja:+g("pekerja")||0,lokasi:g("lokasi"),
-             jenis:g("jenis"),risiko:g("risiko"),mulai:g("mulai"),selesai:g("selesai"),
-             status:"Menunggu Review",src:"internal",created:TODAY_STR};
+             jenis:g("jenis"),risiko:risiko,mulai:g("mulai"),selesai:g("selesai"),docs:docs,
+             status:"Menunggu Review",src:"internal",created:TODAY_STR,by:(gUser&&gUser.name)||""};
   WORK_PERMITS.unshift(rec); wpPersist();
   wpDbSave(rec);
   triggerFlow("workPermit",{mode:"create",record:rec});
+  agavaNotify("🦺 Izin kerja baru — "+rec.risiko, rec.no+" · "+rec.judul+" · "+rec.vendor);
+  try{ auditLog("workpermit-create",rec.no+" · "+rec.jenis+" · risiko "+rec.risiko); }catch(e){}
   closeDrawer(); renderHSE(); renderOverview();
-  alert("✅ Work Permit "+rec.no+" diajukan — menunggu review.");
+  alert("✅ Izin Kerja "+rec.no+" diajukan — menunggu review PIC HSE.");
 }
 function wpAct(i,st){
   const w=WORK_PERMITS[i]; if(!w)return;
+  if(st==="Ditolak"){ const c=prompt("Alasan penolakan (tampil di journey vendor):",""); if(c===null)return; w.catatan=String(c).trim(); }
   w.status=st; w.reviewedBy=gUser?gUser.name:""; w.reviewedAt=TODAY_STR;
   wpPersist(); wpDbSave(w);
   triggerFlow("workPermit",{mode:"review",record:w});
+  agavaNotify(st==="Disetujui"?"✅ Izin kerja disetujui":st==="Ditolak"?"⛔ Izin kerja ditolak":"🏁 Pekerjaan selesai", w.no+" · "+w.judul);
+  try{ auditLog("workpermit-"+st.toLowerCase(),w.no+" · "+(w.catatan||"")); }catch(e){}
   renderHSE(); renderOverview();
-  alert((st==="Disetujui"?"✅ ":"⛔ ")+w.no+" — "+st);
+  alert((st==="Disetujui"?"✅ ":st==="Ditolak"?"⛔ ":"🏁 ")+w.no+" — "+st);
 }
 /* Firestore: pengajuan dari luar (QR) & internal disimpan di koleksi yang sama */
 function wpDbSave(w){ if(!AGDB.on||!AGDB.db||!w||!w.no)return; try{ AGDB.db.collection("agava_workpermits").doc(String(w.no)).set(JSON.parse(JSON.stringify(w)),{merge:true}); }catch(e){ console.warn("WP save:",e); } }
@@ -7402,7 +7604,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-26";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-27";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -7487,15 +7689,19 @@ function dbInit(){
   },err=>{ console.warn("Flow rules/err:",err&&err.code); });
   /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
   AGDB.db.collection("agava_workpermits").limit(300).onSnapshot(snap=>{
-    let ch2=false;
+    let ch2=false, wpNew=[];
     snap.docChanges().forEach(ch=>{
       const d=ch.doc.data(); d.no=d.no||ch.doc.id;
       const i=WORK_PERMITS.findIndex(w=>w.no===d.no);
       if(ch.type==="removed"){ if(i>=0){WORK_PERMITS.splice(i,1);ch2=true;} }
       else if(i>=0){ Object.assign(WORK_PERMITS[i],d); ch2=true; }
-      else { WORK_PERMITS.unshift(d); ch2=true; }
+      else { WORK_PERMITS.unshift(d); ch2=true; if(AGDB.wpInit) wpNew.push(d); }
     });
-    if(ch2){ wpPersist(); try{ renderHSE(); }catch(e){} }
+    if(ch2){ wpPersist(); try{ renderHSE(); renderOverview(); updateBell(); }catch(e){} }
+    /* pengajuan baru (mis. vendor scan QR) → bunyi + notif tray ke PIC HSE */
+    if(wpNew.length) agavaNotify("🦺 Izin kerja baru — risiko "+(wpNew[0].risiko||"-"),
+      wpNew[0].no+" · "+(wpNew[0].judul||"")+" · "+(wpNew[0].vendor||"")+(wpNew[0].src==="qr"?" (via QR)":""));
+    AGDB.wpInit=true;
   },err=>{ console.warn("WP rules/err:",err&&err.code); });
  }catch(e){ dbPill("Database: offline — mode lokal",false); console.warn("AGDB init:",e); }
 }
