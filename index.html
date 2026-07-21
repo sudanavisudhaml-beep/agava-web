@@ -834,7 +834,17 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .field input,.field select,.field textarea{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px;font-family:var(--ff);color:var(--ink);outline:none}
 .field textarea{min-height:80px;resize:vertical}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:#bcd3f5}
-@media(max-width:760px){.svc-row,.svc-head{grid-template-columns:9px 1fr 100px}.svc-resp,.svc-pic{display:none}}
+/* Baris ringkas mobile: PIC + SLA dilipat ke dalam blok tiket (bukan dihilangkan) */
+.svc-m2{display:none}
+@media(max-width:760px){
+  .svc-row,.svc-head{grid-template-columns:9px 1fr 100px;gap:10px;padding-left:12px;padding-right:12px}
+  .svc-resp,.svc-pic{display:none}
+  .svc-head span:nth-child(3),.svc-head span:nth-child(4){display:none}   /* label kolom yg selnya disembunyikan */
+  .svc-m2{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;font-size:11px;color:var(--muted)}
+  .svc-m2 b{color:var(--ink);font-weight:700}
+  .svc-m2 .m2-br{color:var(--red);font-weight:800}
+  .svc-m2 .m2-sep{color:#c8d2df}
+}
 .trow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
 .trow:first-of-type{border-top:none}
 .trow .tj{font-size:13px;color:var(--ink)}
@@ -1968,7 +1978,9 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
   .pik-row{min-width:0}
   .db{overflow-x:hidden}
   .db .jt,.db .kv{max-width:100%}
-  .svc-head,.svc-row{min-width:540px}
+  /* JANGAN paksa min-width di baris tiket: di ≤760px layout sudah 3 kolom dan
+     kolom Response/PIC dilipat ke dalam baris tiket (.svc-m2) — dulu min-width
+     540px membuat list harus digeser ke samping padahal isinya sudah disembunyikan. */
   .nlog-head,.nlog-row{min-width:540px}
   .cp-headrow{display:none}
   .cp-row{grid-template-columns:1fr 1fr;gap:6px}
@@ -4916,7 +4928,8 @@ function ticketRow(t){
  const sla=ticketSLA(t);
  return `<div class="svc-row" onclick="openTicket('${t.no}')" style="cursor:pointer">
    <span class="svc-pip" style="background:${svcPip(t.status)}"></span>
-   <div><div class="svc-no">${t.no}${t.esc?` <span class="badge bd-crit">Escalated${t.escBy?' · '+t.escBy:''}</span>`:''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${foNormCat(t.cat)} · ${t.lokasi} · ${sla.pr}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div>${svcProofStrip(t)}</div>
+   <div><div class="svc-no">${t.no}${t.esc?` <span class="badge bd-crit">Escalated${t.escBy?' · '+t.escBy:''}</span>`:''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${foNormCat(t.cat)} · ${t.lokasi} · ${sla.pr}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div>
+     <div class="svc-m2">${t.pic?`<span><span class="avt">${ini(t.pic)}</span> <b>${t.pic}</b></span>`:'<span>Belum ada PIC</span>'}<span class="m2-sep">·</span><span>⏱ <b class="${sla.respBreach?'m2-br':''}">${fmtDur(sla.respMin)}</b> / <b class="${sla.resBreach?'m2-br':''}">${fmtDur(sla.resMin)}</b></span>${sla.breach?'<span class="m2-br">⚠ SLA breach</span>':''}</div>${svcProofStrip(t)}</div>
    <div class="svc-resp"><div class="svc-lbl">Response · Resolution</div><b style="${sla.respBreach?'color:var(--red)':''}">${fmtDur(sla.respMin)}</b> <span class="muted">·</span> <b style="${sla.resBreach?'color:var(--red)':''}">${fmtDur(sla.resMin)}</b>${sla.breach?'<div class="svc-breach">⚠ SLA breach</div>':''}</div>
    <div class="svc-pic">${t.pic?`<span class="avt">${ini(t.pic)}</span>${t.pic}`:'<span class="muted small">Unassigned</span>'}</div>
    <div>${svcBadge(t.status)}${(t.status==="Resolved"&&!t.rating)?`<button class="btn-out" style="margin-top:6px;padding:4px 9px;font-size:11px" onclick="event.stopPropagation();openRate('${t.no}')">★ Rate</button>`:(t.rating?`<div class="small" style="margin-top:4px;color:#f5a623;white-space:nowrap">${'★'.repeat(Math.round(t.rating))}${'☆'.repeat(5-Math.round(t.rating))}</div>`:'')}</div>
@@ -7380,7 +7393,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-23";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-24";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
