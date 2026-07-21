@@ -37,14 +37,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .logo-plate{background:transparent;padding:0;box-shadow:none}
 .logo-img{width:100%;height:auto;display:block;filter:brightness(0) invert(1)}
 .sec-label{font-size:10.5px;letter-spacing:1.8px;color:#64779a;padding:8px 26px 8px;font-weight:700}
-/* min-height:0 + overflow → daftar menu panjang bisa di-scroll, akun di bawah selalu terjangkau */
-.nav{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px 14px;display:flex;flex-direction:column;gap:2px}
-.nav::-webkit-scrollbar{width:5px}
-.nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
-.nav::-webkit-scrollbar-track{background:transparent}
-.nav a{display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:10px;color:#b6c6dc;
-  text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;transition:.15s;border-left:3px solid transparent}
-.nav a svg{width:18px;height:18px;flex:0 0 18px;stroke:currentColor;fill:none;stroke-width:1.9}
+/* ── NAV FIT: seluruh menu harus muat tanpa scroll ──
+   Ukuran dikendalikan variabel; navFit() mengecilkannya bertahap bila masih meluap
+   (jumlah menu berbeda per role). overflow:hidden = jaring pengaman terakhir. */
+.nav{flex:1;min-height:0;overflow:hidden;padding:2px 12px;display:flex;flex-direction:column;gap:var(--nav-gap,2px)}
+.nav a{display:flex;align-items:center;gap:var(--nav-icgap,13px);padding:var(--nav-pad,11px) 13px;border-radius:10px;color:#b6c6dc;
+  text-decoration:none;font-size:var(--nav-fs,14px);font-weight:500;cursor:pointer;transition:.15s;border-left:3px solid transparent}
+.nav a svg{width:var(--nav-ic,18px);height:var(--nav-ic,18px);flex:0 0 var(--nav-ic,18px);stroke:currentColor;fill:none;stroke-width:1.9}
 .nav a:hover{background:rgba(255,255,255,.06);color:#fff}
 .nav a.active{background:rgba(255,255,255,.10);color:#fff;border-left-color:var(--blue)}
 .nav a.active svg{stroke:#6aa3ff}
@@ -559,8 +558,36 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .fo-badge{font-size:11px;font-weight:800;background:var(--blue-s);color:var(--blue);border-radius:20px;padding:2px 9px}
 .fo-new{font-size:10px;font-weight:800;background:var(--amber-s);color:var(--amber);border-radius:20px;padding:2px 8px}
 .fo-chan-body{padding:10px;display:flex;flex-direction:column;gap:9px;max-height:540px;overflow:auto}
-.fo-tik{border:1px solid var(--line);border-radius:12px;padding:10px 11px;background:#fff;transition:.14s}
+.fo-tik{border:1px solid var(--line);border-radius:12px;padding:10px 11px;background:#fff;transition:.14s;position:relative}
 .fo-tik-new{border-color:rgba(194,116,10,.4);background:linear-gradient(135deg,rgba(255,244,224,.5),#fff 60%)}
+/* ── Tiket baru masuk: pendar halus (bukan norak) ──
+   .fo-fresh  = masuk ≤2 menit, denyut lembut terus sampai diambil
+   .fo-arrive = baru saja mendarat realtime, satu sapuan kilau lalu tenang
+   .fo-late   = lewat 10 menit belum diambil, denyut merah pelan            */
+.fo-fresh{border-color:rgba(10,124,255,.5);animation:foPulse 2.8s ease-in-out infinite}
+@keyframes foPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(10,124,255,.16),0 2px 8px rgba(10,124,255,.10)}
+  50%{box-shadow:0 0 0 5px rgba(10,124,255,.05),0 6px 18px rgba(10,124,255,.20)}}
+.fo-arrive{animation:foPulse 2.8s ease-in-out infinite,foLand .55s cubic-bezier(.2,.9,.3,1.4)}
+.fo-arrive::after{content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none;
+  background:linear-gradient(105deg,transparent 30%,rgba(0,198,251,.30) 48%,rgba(255,255,255,.55) 54%,transparent 72%);
+  background-size:260% 100%;animation:foSheen 1.5s ease-out 2}
+@keyframes foLand{0%{transform:translateY(-9px) scale(.985);opacity:.25}100%{transform:none;opacity:1}}
+@keyframes foSheen{0%{background-position:180% 0}100%{background-position:-80% 0}}
+.fo-late{border-color:rgba(220,38,38,.45);animation:foLatePulse 2.6s ease-in-out infinite}
+@keyframes foLatePulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.16)}
+  50%{box-shadow:0 0 0 5px rgba(220,38,38,.05),0 6px 16px rgba(220,38,38,.18)}}
+.fo-newtag{font-size:8.5px;font-weight:900;letter-spacing:.06em;color:#fff;background:linear-gradient(135deg,#00c6fb,#0a7cff);
+  border-radius:20px;padding:2px 7px;box-shadow:0 0 10px rgba(10,124,255,.5)}
+/* countdown "diambil dalam X menit" di kartu Field Ops */
+.fo-cd{font-size:10.5px;font-weight:700;color:#0a6ad6;background:#eef5ff;border-radius:8px;padding:5px 9px;margin-bottom:7px;text-align:center}
+.fo-cd.warn{color:#c2740a;background:#fdf3e3}
+.fo-cd.late{color:var(--red);background:#fdecec}
+/* tiket sudah diambil → tombol hilang, diganti penanda */
+.fo-taken{font-size:11px;font-weight:700;color:#15803d;background:#eefaf2;border:1px solid #cdeeda;border-radius:9px;padding:7px 9px;text-align:center;line-height:1.35}
+.fo-taken span{display:block;font-size:9.5px;font-weight:600;color:#7d9c8a;margin-top:1px}
+@media(prefers-reduced-motion:reduce){.fo-fresh,.fo-arrive,.fo-late{animation:none}.fo-arrive::after{display:none}}
 .fo-tik:hover{box-shadow:0 4px 14px rgba(20,40,80,.09)}
 .fo-tik-h{display:flex;align-items:center;gap:6px;font-size:10.5px}
 .fo-no{font-family:monospace;color:var(--muted);font-weight:700}
@@ -579,6 +606,18 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .prio-critical{background:#fdecec;color:#dc2626}.prio-high{background:#fdf3e3;color:#c2740a}.prio-medium{background:#eef4ff;color:#2563eb}.prio-low{background:#f2f5f9;color:#6b7a90}
 .mt-t{font-size:14px;font-weight:700;color:var(--ink);margin:6px 0 3px;line-height:1.3}
 .mt-sla{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.mt-sla3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:520px){.mt-sla3{grid-template-columns:1fr}}
+/* countdown 30 menit "ambil → mulai kerjakan" di My Tickets */
+.mt-cd{font-size:11.5px;font-weight:700;color:#0a4bb8;background:linear-gradient(135deg,#eef5ff,#f7fbff);border:1px solid #cfe0f8;
+  border-radius:10px;padding:8px 11px;margin:8px 0;line-height:1.4}
+.mt-cd span{font-weight:500;color:var(--muted);font-size:10.5px}
+.mt-cd.warn{color:#c2740a;background:#fdf6e9;border-color:#f0dcb4}
+.mt-cd.late{color:var(--red);background:#fdeeee;border-color:#f3c9c9}
+.mt-late{border-color:rgba(220,38,38,.4)}
+/* Services = mode pantau */
+.tk-monitor{font-size:11.5px;color:#0a4bb8;background:linear-gradient(135deg,#eef5ff,#f8fbff);border:1px solid #cfe0f8;border-radius:10px;padding:10px 12px;line-height:1.55}
+.svc-aging{font-size:10px;font-weight:700;margin-top:3px;line-height:1.25}
 .mt-sla-i{background:#f6f9fd;border:1px solid var(--line);border-radius:9px;padding:8px 10px}
 .mt-sla-i.breach{background:#fdecec;border-color:#f4c6c6}
 .mt-sla-i span{font-size:9.5px;color:var(--muted);display:block}
@@ -1968,8 +2007,9 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
   .side .logo-wrap{display:block;padding:16px 18px 8px}
   .side .logo-mini,.rail-toggle{display:none!important}
   .side .nav{padding:2px 12px}
-  .side .nav a{justify-content:flex-start;padding:9px 13px;gap:11px}
-  .side .nav-txt{display:inline;font-size:13.5px}
+  /* pakai variabel yang sama supaya navFit() tetap yang menentukan — jangan dipatok */
+  .side .nav a{justify-content:flex-start;padding:var(--nav-pad,9px) 13px;gap:var(--nav-icgap,11px);font-size:var(--nav-fs,13.5px)}
+  .side .nav-txt{display:inline;font-size:inherit}
   .side .nav-badge{position:static;transform:none}
   .side .sec-label{font-size:10.5px;padding:9px 14px 3px}
   .side .side-user{justify-content:flex-start;padding:12px 16px}
@@ -2352,7 +2392,31 @@ function buildNav(){
   document.getElementById("nav").innerHTML=MENU.filter(m=>allowed.includes(m.id)).map(m=>
     `<a data-id="${m.id}" class="${m.id===active?'active':''}" onclick="go('${m.id}')" title="${m.label}">
       <svg viewBox="0 0 24 24">${IC[m.ic]}</svg><span class="nav-txt">${m.label}</span>${navBadge(m.id)}</a>`).join("");
+  navFit();
 }
+/* ── navFit: rapatkan menu bertahap sampai SEMUA muat tanpa scroll ──
+   Jumlah menu berbeda tiap role, jadi ukurannya dihitung, bukan ditebak. */
+const NAV_STEPS=[
+ {pad:11,fs:14,gap:2,ic:18},{pad:9.5,fs:13.5,gap:2,ic:17},{pad:8,fs:13,gap:1.5,ic:16},
+ {pad:7,fs:12.5,gap:1,ic:16},{pad:6,fs:12,gap:1,ic:15},{pad:5,fs:11.5,gap:0,ic:14},{pad:4,fs:11,gap:0,ic:14}
+];
+function navFit(){
+ var nav=document.getElementById("nav"); if(!nav)return;
+ var side=document.getElementById("side");
+ if(side&&side.classList.contains("collapsed"))return;
+ /* variabel dipasang di .side supaya ikut terbaca aturan mobile (.side .nav a) */
+ var host=side||nav;
+ for(var i=0;i<NAV_STEPS.length;i++){
+   var s=NAV_STEPS[i];
+   host.style.setProperty("--nav-pad",s.pad+"px");
+   host.style.setProperty("--nav-fs",s.fs+"px");
+   host.style.setProperty("--nav-gap",s.gap+"px");
+   host.style.setProperty("--nav-ic",s.ic+"px");
+   host.style.setProperty("--nav-icgap",Math.max(7,s.ic-4)+"px");
+   if(nav.scrollHeight<=nav.clientHeight+1)break;   // sudah muat → berhenti mengecilkan
+ }
+}
+window.addEventListener("resize",function(){ try{ navFit(); }catch(e){} });
 function toggleSidebar(){ document.getElementById("side").classList.toggle("collapsed"); }
 function toggleMobSidebar(){ document.body.classList.toggle("side-open"); }
 function closeMobSidebar(){ document.body.classList.remove("side-open"); }
@@ -4402,7 +4466,33 @@ const SO_COST_CENTER="108";
 function nowStampDoc(){ var d=new Date(),mo=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"]; return ('0'+d.getDate()).slice(-2)+' '+mo[d.getMonth()]+' '+d.getFullYear()+', '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
 function soStaffInit(name){ return STAFF_INIT[name]||(name?name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,3):''); }
 /* Sound notifikasi — dipanggil saat flow masuk ke Approval / Assigned SO */
-function notifySound(){ try{ var a=document.getElementById('notifSound'); if(a){ a.currentTime=0; var p=a.play(); if(p&&p.catch)p.catch(function(){}); } }catch(e){} }
+/* ── SUARA NOTIFIKASI ──
+   iOS/iPadOS memblokir audio sampai ada interaksi user. Kita "buka kunci" sekali
+   pada sentuhan pertama (play volume 0 lalu pause) supaya notifikasi berikutnya
+   yang datang dari Firebase — bukan dari klik — tetap berbunyi di iPad. */
+let AUDIO_OK=false;
+function audioUnlock(){
+ if(AUDIO_OK)return;
+ try{ var a=document.getElementById('notifSound'); if(!a)return;
+   var v=a.volume; a.volume=0;
+   var p=a.play();
+   if(p&&p.then) p.then(function(){ a.pause(); a.currentTime=0; a.volume=v; AUDIO_OK=true; })
+                  .catch(function(){ a.volume=v; });
+   else { a.pause(); a.currentTime=0; a.volume=v; AUDIO_OK=true; }
+ }catch(e){}
+}
+["pointerdown","touchstart","keydown","click"].forEach(function(ev){
+ window.addEventListener(ev,audioUnlock,{once:false,passive:true});
+});
+function notifySound(){
+ try{ var a=document.getElementById('notifSound'); if(!a)return;
+   a.currentTime=0;
+   var p=a.play();
+   if(p&&p.catch)p.catch(function(){ /* belum ada gesture user — notifikasi tray tetap muncul */ });
+   /* getar di HP/tablet Android sebagai penguat kalau suara diredam */
+   if(navigator.vibrate)try{ navigator.vibrate([120,60,120]); }catch(e){}
+ }catch(e){}
+}
 /* ── Push Notification PWA (HP): sound + notif di tray + badge ikon aplikasi ──
    Notification API + service worker showNotification (muncul di tray Android/desktop,
    iOS perlu 16.4+ dan app di-Add to Home Screen). Badge angka via App Badging API. */
@@ -4984,7 +5074,7 @@ function ticketRow(t){
      <div class="svc-m2">${t.pic?`<span><span class="avt">${ini(t.pic)}</span> <b>${t.pic}</b></span>`:'<span>Belum ada PIC</span>'}<span class="m2-sep">·</span><span>⏱ <b class="${sla.respBreach?'m2-br':''}">${fmtDur(sla.respMin)}</b> / <b class="${sla.resBreach?'m2-br':''}">${fmtDur(sla.resMin)}</b></span>${sla.breach?'<span class="m2-br">⚠ SLA breach</span>':''}</div>${svcProofStrip(t)}</div>
    <div class="svc-resp"><div class="svc-lbl">Response · Resolution</div><b style="${sla.respBreach?'color:var(--red)':''}">${fmtDur(sla.respMin)}</b> <span class="muted">·</span> <b style="${sla.resBreach?'color:var(--red)':''}">${fmtDur(sla.resMin)}</b>${sla.breach?'<div class="svc-breach">⚠ SLA breach</div>':''}</div>
    <div class="svc-pic">${t.pic?`<span class="avt">${ini(t.pic)}</span>${t.pic}`:'<span class="muted small">Unassigned</span>'}</div>
-   <div>${svcBadge(t.status)}${(t.status==="Resolved"&&!t.rating)?`<button class="btn-out" style="margin-top:6px;padding:4px 9px;font-size:11px" onclick="event.stopPropagation();openRate('${t.no}')">★ Rate</button>`:(t.rating?`<div class="small" style="margin-top:4px;color:#f5a623;white-space:nowrap">${'★'.repeat(Math.round(t.rating))}${'☆'.repeat(5-Math.round(t.rating))}</div>`:'')}</div>
+   <div>${svcBadge(t.status)}<div class="svc-aging" style="color:${ticketAging(t).c}">${esc(ticketAging(t).t)}</div>${(t.status==="Resolved"&&!t.rating)?`<button class="btn-out" style="margin-top:6px;padding:4px 9px;font-size:11px" onclick="event.stopPropagation();openRate('${t.no}')">★ Rate</button>`:(t.rating?`<div class="small" style="margin-top:4px;color:#f5a623;white-space:nowrap">${'★'.repeat(Math.round(t.rating))}${'☆'.repeat(5-Math.round(t.rating))}</div>`:'')}</div>
  </div>`;
 }
 function svcRating(){
@@ -4999,8 +5089,13 @@ function ticketJourneyGroups(t){
  var cp=function(i){return stg>=i?'done':(stg===i-1?'active':'pending');};
  /* perjalanan kecil menuju checkpoint Assigned: masa menunggu respon operator */
  var pre2=[ stg>=1
-   ?{t:"Menunggu respon operator",cls:"done",sub:"respon "+fmtDur(sla.respMin)+" · target "+sla.tg.resp+" mnt"+(sla.respBreach?" · ⚠ lewat target":" ✓ dalam target")}
-   :{t:"Menunggu respon operator",cls:"active",sub:(sla.respMin!=null?"sudah "+fmtDur(sla.respMin)+" · ":"")+"target "+sla.tg.resp+" mnt"+(sla.respBreach?" · ⚠ SLA BREACH":"")} ];
+   ?{t:"Menunggu respon operator",cls:"done",sub:"respon "+fmtDur(sla.respMin)+" · maks "+SLA_PICK_MAX+" mnt"+(sla.respBreach?" · ⚠ lewat batas":" ✓ dalam target")}
+   :{t:"Menunggu respon operator",cls:"active",sub:(sla.respMin!=null?"sudah "+fmtDur(sla.respMin)+" · ":"")+"maks "+SLA_PICK_MAX+" mnt"+(sla.respBreach?" · ⚠ lewat batas — Section Head diberi tahu":"")} ];
+ /* perjalanan kecil menuju checkpoint In Progress: jeda diambil → mulai dikerjakan (maks 30 mnt) */
+ var pre3=[];
+ if(stg>=1) pre3.push(stg>=2
+   ?{t:"Persiapan operator sebelum mulai",cls:"done",sub:"ambil → mulai "+fmtDur(sla.startMin)+" · maks "+SLA_START_MAX+" mnt"+(sla.startBreach?" · ⚠ lewat batas":" ✓ dalam target")}
+   :{t:"Persiapan operator sebelum mulai",cls:"active",sub:(sla.startMin!=null?"sudah "+fmtDur(sla.startMin)+" · ":"")+"maks "+SLA_START_MAX+" mnt"+(sla.startBreach?" · ⚠ lewat batas":"")});
  /* perjalanan kecil menuju checkpoint Resolved: eskalasi, lanjut SO, masa pengerjaan */
  var pre4=[];
  if(t.esc) pre4.push({t:"⚠ Eskalasi ke Supervisor"+(t.escBy?" — "+esc(t.escBy):""),cls:"done",sub:"operator tidak dapat menyelesaikan sendiri — dinaikkan ke level Supervisor"});
@@ -5010,37 +5105,125 @@ function ticketJourneyGroups(t){
  return [
   {name:"Tiket Dibuat (Submitted)",  state:"done", meta:(ts[0]||t.created)?("🕐 "+(ts[0]||t.created)):null, steps:[]},
   {name:"Ditugaskan (Assigned)",     state:cp(1),  meta:stg>=1?((t.pic?"oleh "+esc(t.pic):"")+(ts[1]?(t.pic?" · ":"")+"🕐 "+ts[1]:"")||null):null, steps:pre2},
-  {name:"Dikerjakan (In Progress)",  state:cp(2),  meta:(stg>=2&&ts[2])?("🕐 "+ts[2]):null, steps:[]},
+  {name:"Dikerjakan (In Progress)",  state:cp(2),  meta:(stg>=2&&ts[2])?("🕐 "+ts[2]):null, steps:pre3},
   {name:"Selesai (Resolved)",        state:cp(3),  meta:stg>=3?("resolusi "+fmtDur(sla.resMin)+(sla.resBreach?" · ⚠ lewat target":" · dalam target")+(ts[3]?" · 🕐 "+ts[3]:"")+(t.rating?" · "+"★".repeat(Math.round(t.rating)):"")):null, steps:pre4}
  ];
 }
 function openTicket(no){
  const t=TICKETS.find(x=>x.no===no); if(!t)return;
- const canSvc=['admin','section','proc','staff','analyst'].includes(gRole);
- const next=t.stg<3?TSTAGES[t.stg+1]:null;
+ const ag=ticketAging(t), sla=ticketSLA(t);
+ /* Services = PANTAU SAJA. Tidak ada tombol ubah status di sini — seluruh aksi tiket
+    (ambil · mulai kerjakan · selesaikan) hanya boleh dilakukan operator di My Tickets. */
+ const foot = (t.stg>=3)
+   ? (t.rating?`<span class="muted small">✅ Resolved · rating ${'★'.repeat(Math.round(t.rating))}</span>`
+              :`<button class="btn-act" onclick="closeDrawer();openRate('${t.no}')">★ Beri rating</button>`)
+   : `<div class="tk-monitor">👀 <b>Mode pantau</b> — status tiket bergerak sendiri saat operator lapangan mengambil &amp; mengerjakannya di modul <b>My Tickets</b>.</div>`;
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div class="sono" style="font-size:15px">${t.no}${t.esc?' <span class="badge bd-crit">Escalated</span>':''}</div><div style="font-size:14.5px;color:var(--ink);font-weight:700;margin-top:5px">${t.judul}</div><div class="muted small" style="margin-top:3px">${t.cat} · ${t.lokasi} · ${t.team} · PIC ${t.pic||'—'}</div></div>
   <div class="db">
+    <div class="kv">
+      <span class="k">Aging</span><span class="v" style="color:${ag.c}">${esc(ag.t)}</span>
+      <span class="k">Response time</span><span class="v">${fmtDur(sla.respMin)} <span class="muted small" style="font-weight:400">· maks ${SLA_PICK_MAX} mnt${sla.respBreach?' · ⚠ breach':''}</span></span>
+      <span class="k">Ambil → mulai</span><span class="v">${fmtDur(sla.startMin)} <span class="muted small" style="font-weight:400">· maks ${SLA_START_MAX} mnt${sla.startBreach?' · ⚠ breach':''}</span></span>
+      <span class="k">Resolution time</span><span class="v">${fmtDur(sla.resMin)} <span class="muted small" style="font-weight:400">· target ${fmtDur(sla.tg.res)}${sla.resBreach?' · ⚠ breach':''}</span></span>
+    </div>
     <div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>
     <div class="muted small" style="margin-bottom:10px">4 checkpoint besar · perjalanan kecil di antaranya (respon, eskalasi, SO) ikut tergambar</div>
     ${jtHTML(ticketJourneyGroups(t))}
-    <div style="margin-top:14px">${next?(canSvc?`<button class="btn-act" onclick="svcAdvance('${t.no}')">→ Set: ${next}</button> <span class="muted small">status: <b>${t.status}</b></span>`:`<span class="muted small">Status: <b>${t.status}</b></span>`):(t.rating?`<span class="muted small">✅ Resolved · rating ${'★'.repeat(Math.round(t.rating))}</span>`:`<button class="btn-act" onclick="closeDrawer();openRate('${t.no}')">★ Beri rating</button>`)}</div>
+    <div style="margin-top:14px">${foot}</div>
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
-function svcAdvance(no){ const t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)return; t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; t.slaMs=t.slaMs||{}; if(t.stg>=1&&!t.slaMs.pickup)t.slaMs.pickup=nowMs(); if(t.stg===3){t.closed=TODAY_STR; t.slaMs.resolved=nowMs();} dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,ts:t.ts[t.stg],closed:t.closed||null}); openTicket(no); renderService(); renderMyTickets(); renderFieldOps(); renderOverview(); renderBuilding(); updateBell(); }
 /* ===== FIELD OPS — SLA, identitas operator, My Tickets, eskalasi ke Supervisor ===== */
 function nowMs(){ return Date.now(); }
-/* target SLA per prioritas (menit): response = created→pickup · resolution = created→resolved */
-const SLA_TARGETS={ Critical:{resp:15,res:240}, High:{resp:30,res:480}, Medium:{resp:60,res:1440}, Low:{resp:120,res:2880} };
+/* ── SLA ALUR TIKET (dikunci) ──────────────────────────────────────────────
+   1. RESPONSE TIME  : tiket dibuat → diambil operator      · maks 10 menit
+      lewat 10 menit & belum diambil → notifikasi ke Reminder + semua Section Head
+   2. PICKUP → MULAI : diambil → klik "Mulai Kerjakan"      · maks 30 menit
+   3. RESOLUTION TIME: mulai kerjakan → selesai             · target per prioritas
+   Semua aksi hanya bisa dilakukan operator di modul My Tickets.            */
+const SLA_PICK_MAX=10;    // menit — tiket masuk sampai diambil
+const SLA_START_MAX=30;   // menit — diambil sampai mulai dikerjakan
+const SLA_TARGETS={ Critical:{res:240}, High:{res:480}, Medium:{res:1440}, Low:{res:2880} };
 function fmtDur(min){ if(min==null)return'—'; if(min<1)return'<1 mnt'; if(min<60)return min+' mnt'; if(min<1440)return (Math.round(min/6)/10)+' jam'; return (Math.round(min/144)/10)+' hari'; }
 function ticketSLA(t){
  var pr=t.prio||t.priority||'Medium'; var tg=SLA_TARGETS[pr]||SLA_TARGETS.Medium;
- var ms=t.slaMs||{}, now=nowMs();
- var respMin=(ms.pickup&&ms.created)?Math.round((ms.pickup-ms.created)/60000):(ms.created&&(t.stg||0)<1?Math.round((now-ms.created)/60000):null);
- var resMin=(ms.resolved&&ms.created)?Math.round((ms.resolved-ms.created)/60000):(ms.created&&(t.stg||0)<3?Math.round((now-ms.created)/60000):null);
- var respBreach=respMin!=null&&respMin>tg.resp, resBreach=resMin!=null&&resMin>tg.res;
- return {pr:pr,tg:tg,respMin:respMin,resMin:resMin,respBreach:respBreach,resBreach:resBreach,breach:respBreach||resBreach,respDone:!!ms.pickup,resDone:!!ms.resolved};
+ var ms=t.slaMs||{}, now=nowMs(), stg=t.stg||0;
+ var mm=function(a,b){ return (a&&b)?Math.round((b-a)/60000):null; };
+ /* response: created → pickup (kalau belum diambil, hitung berjalan) */
+ var respMin=ms.pickup?mm(ms.created,ms.pickup):(ms.created&&stg<1?mm(ms.created,now):null);
+ /* pickup → mulai kerjakan */
+ var startMin=ms.start?mm(ms.pickup,ms.start):(ms.pickup&&stg<2?mm(ms.pickup,now):null);
+ /* resolution: mulai kerjakan → selesai */
+ var resMin=ms.resolved?mm(ms.start||ms.pickup,ms.resolved):(ms.start&&stg<3?mm(ms.start,now):null);
+ var respBreach=respMin!=null&&respMin>SLA_PICK_MAX;
+ var startBreach=startMin!=null&&startMin>SLA_START_MAX;
+ var resBreach=resMin!=null&&resMin>tg.res;
+ return {pr:pr,tg:tg,
+   respMin:respMin,startMin:startMin,resMin:resMin,
+   respTarget:SLA_PICK_MAX,startTarget:SLA_START_MAX,
+   respBreach:respBreach,startBreach:startBreach,resBreach:resBreach,
+   breach:respBreach||startBreach||resBreach,
+   respDone:!!ms.pickup,startDone:!!ms.start,resDone:!!ms.resolved,
+   /* sisa waktu untuk countdown */
+   pickLeft:(ms.created&&stg<1)?(SLA_PICK_MAX-mm(ms.created,now)):null,
+   startLeft:(ms.pickup&&stg<2)?(SLA_START_MAX-mm(ms.pickup,now)):null};
+}
+/* Aging tiket — satu kalimat status yang dibaca pemohon di modul Services */
+function ticketAging(t){
+ var stg=t.stg||0;
+ if(stg>=3) return {t:"Resolved", c:"var(--green)"};
+ if(stg===2) return {t:"On Progress", c:"var(--blue)"};
+ if(stg===1) return {t:"Assigned to "+(t.pic||"operator"), c:"#0a6ad6"};
+ var sla=ticketSLA(t);
+ return {t:"Submitted"+(sla.respBreach?" · belum diambil >"+SLA_PICK_MAX+" mnt":""), c:sla.respBreach?"var(--red)":"#c2740a"};
+}
+/* ── WATCHDOG: tiket belum diambil > 10 menit → naik ke Reminder + semua Section Head ──
+   Berjalan tiap 30 detik. Ditandai di tiket (slaAlert) supaya tidak berbunyi berulang,
+   dan ikut tersimpan ke Firestore agar semua perangkat sepakat sudah dieskalasi. */
+let FO_WATCH=null;
+function foWatchdog(){
+ try{
+   var naik=[];
+   TICKETS.forEach(function(t){
+     if((t.stg||0)>=1 || t.slaAlert) return;
+     var s=ticketSLA(t);
+     if(s.respMin!=null && s.respMin>SLA_PICK_MAX){
+       t.slaAlert=nowMs();
+       naik.push(t);
+       NOTIFS.unshift({ic:"⏰",t:"Tiket belum diambil >"+SLA_PICK_MAX+" menit",
+         d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · "+(t.lokasi||""),
+         at:nowStamp(), sev:"crit", nav:"fieldops", done:false});
+       dbSaveTicket(t);
+       try{ auditLog("sla-pickup-breach", t.no+" · "+foNormCat(t.cat)+" · "+s.respMin+" mnt"); }catch(e){}
+     }
+   });
+   if(naik.length){
+     agavaNotify("⏰ "+naik.length+" tiket belum diambil >"+SLA_PICK_MAX+" menit",
+       naik[0].no+" · "+(naik[0].judul||"")+" — perlu perhatian Section Head");
+     try{ renderService(); renderFieldOps(); renderReminder(); updateBell(); }catch(e){}
+   } else {
+     /* countdown di kartu tetap hidup tanpa memaksa render berat */
+     try{ if(!document.getElementById("page-fieldops").classList.contains("hide")) renderFieldOps(); }catch(e){}
+     try{ if(!document.getElementById("page-myticket").classList.contains("hide")) renderMyTickets(); }catch(e){}
+   }
+ }catch(e){ console.warn("watchdog:",e); }
+}
+function foWatchStart(){ if(FO_WATCH)clearInterval(FO_WATCH); FO_WATCH=setInterval(foWatchdog,30000); foWatchdog(); }
+/* Sorot kartu tiket yang baru saja mendarat — pendar sekali, lalu tenang sendiri */
+function foFlash(nos){
+ try{
+   renderFieldOps();
+   setTimeout(function(){
+     (nos||[]).forEach(function(no){
+       var c=document.querySelector('.fo-tik[data-no="'+no+'"]');
+       if(!c)return;
+       c.classList.add('fo-arrive');
+       if(nos.indexOf(no)===0&&c.scrollIntoView)c.scrollIntoView({block:"nearest",behavior:"smooth"});
+       setTimeout(function(){ c.classList.remove('fo-arrive'); },5200);
+     });
+   },60);
+ }catch(e){}
 }
 /* Identitas operator lapangan — diisi SEKALI, diingat di perangkat (localStorage) */
 const FIELDOP_STORE="agava_fieldop_v1";
@@ -5124,10 +5307,15 @@ function fieldOpsPickup(no){
   renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
   alert("✅ Tiket "+no+" diambil oleh "+me+".\nMuncul di modul My Tickets Anda.\nSlot terpakai: "+(open.length+1)+"/"+FO_WIP_MAX+".");
 }
+/* Mulai kerjakan — HANYA dari My Tickets, oleh operator yang mengambil tiket */
 function foAdvance(no){
   var t=TICKETS.find(x=>x.no===no); if(!t||t.stg>=3)return;
   if((t.stg||0)===2){ foAskPhoto(no); return; }        // langkah Selesaikan → WAJIB foto bukti
-  t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg]; t.slaMs=t.slaMs||{}; if(t.stg>=1&&!t.slaMs.pickup)t.slaMs.pickup=nowMs();
+  var me=fieldOpName();
+  if(gRole==='fieldops' && t.pic && t.pic!==me){ alert("⛔ Tiket ini dipegang "+t.pic+". Hanya operator yang mengambil tiket yang bisa mengerjakannya."); return; }
+  t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg];
+  t.slaMs=t.slaMs||{}; if(!t.slaMs.pickup)t.slaMs.pickup=nowMs();
+  if(t.stg===2&&!t.slaMs.start)t.slaMs.start=nowMs();   // ← awal hitungan Resolution Time
   dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,ts:t.ts[t.stg]});
   renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
 }
@@ -5250,14 +5438,27 @@ function foTicketCard(t){
   var bar=[0,1,2,3].map(n=>'<i class="'+(t.stg>=n?'on':'')+'"></i>').join('');
   var neu=(!t.pic||t.stg===0);
   var canSO=ROLES[gRole]&&ROLES[gRole].menus&&ROLES[gRole].menus.indexOf('procurement')>=0;
+  var sla=ticketSLA(t);
+  /* Field Ops = papan rebutan tiket. Hanya tombol AMBIL; begitu diambil tombol HILANG,
+     lanjutannya dikerjakan operator di modul My Tickets. */
   var act = (t.esc&&canSO) ? '<button class="btn-act fo-btn" onclick="soFromTicket(\''+t.no+'\')">📋 Buat SO (eskalasi)</button>'
     : neu ? '<button class="btn-act fo-btn" onclick="fieldOpsPickup(\''+t.no+'\')">🙋 Ambil Tiket</button>'
-    : (t.stg<3 ? '<button class="btn-act fo-btn" onclick="foAdvance(\''+t.no+'\')">'+(t.stg===1?'▶ Mulai Kerjakan':'✓ Selesaikan')+'</button>' : '<span class="badge bd-ok">Selesai</span>');
-  return '<div class="fo-tik'+(neu?' fo-tik-new':'')+(t.esc?' fo-tik-esc':'')+'">'+
-    '<div class="fo-tik-h"><span class="so-dot" style="background:'+(t.esc?'#dc2626':pip)+'"></span><span class="fo-no">'+t.no+'</span>'+(t.esc?'<span class="badge bd-crit" style="font-size:9px">Esc: '+esc(t.escBy||'')+'</span>':'')+'<span class="fo-st">'+st+'</span></div>'+
+    : (t.stg<3 ? '<div class="fo-taken">✓ Diambil <b>'+esc(t.pic||'operator')+'</b><span>lanjutkan di My Tickets</span></div>'
+               : '<span class="badge bd-ok">Selesai</span>');
+  /* penanda tiket baru masuk & belum diambil — countdown 10 menit */
+  var cd='';
+  if(neu&&sla.pickLeft!=null){
+    var left=sla.pickLeft;
+    cd='<div class="fo-cd'+(left<=0?' late':left<=3?' warn':'')+'">'+(left>0
+        ? '⏳ diambil dalam <b>'+left+' mnt</b>'
+        : '⚠ lewat batas <b>'+Math.abs(left)+' mnt</b> — Section Head diberi tahu')+'</div>';
+  }
+  var fresh=neu&&sla.respMin!=null&&sla.respMin<=2;   // baru masuk ≤2 menit → pendar
+  return '<div class="fo-tik'+(neu?' fo-tik-new':'')+(fresh?' fo-fresh':'')+(t.esc?' fo-tik-esc':'')+(sla.respBreach&&neu?' fo-late':'')+'" data-no="'+esc(t.no)+'">'+
+    '<div class="fo-tik-h"><span class="so-dot" style="background:'+(t.esc?'#dc2626':pip)+'"></span><span class="fo-no">'+t.no+'</span>'+(fresh?'<span class="fo-newtag">BARU</span>':'')+(t.esc?'<span class="badge bd-crit" style="font-size:9px">Esc: '+esc(t.escBy||'')+'</span>':'')+'<span class="fo-st">'+st+'</span></div>'+
     '<div class="fo-tik-t">'+esc(t.judul||'')+'</div>'+
     '<div class="fo-tik-m">'+esc(t.lokasi||'')+(t.pic?' · 👷 '+esc(t.pic):'')+'</div>'+
-    '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+act+'</div>';
+    '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+cd+act+'</div>';
 }
 function renderFieldOps(){
   var el=document.getElementById("page-fieldops"); if(!el)return;
@@ -5321,18 +5522,31 @@ function myTicketCard(t){
  var sla=ticketSLA(t), st=t.status||TSTAGES[t.stg||0];
  var pip=t.stg>=3?'#15a34a':t.esc?'#dc2626':t.stg>=1?'#0a7cff':'#c2740a';
  var bar=[0,1,2,3].map(function(n){return '<i class="'+(t.stg>=n?'on':'')+'"></i>';}).join('');
- var act='';
- if((t.stg||0)<3){
-   act='<div class="mt-acts"><button class="btn-act mt-btn" onclick="myTicketResolve(\''+t.no+'\')">✓ Selesaikan</button>'+(t.esc?'<span class="badge bd-crit">Sudah dieskalasi ke Supervisor</span>':'<button class="btn-out mt-btn" onclick="myTicketEscalate(\''+t.no+'\')">⏫ Eskalasi ke Supervisor</button>')+'</div>';
- } else { act='<span class="badge '+(sla.resBreach?'bd-crit':'bd-ok')+'">Selesai · Resolution SLA '+(sla.resBreach?'BREACH':'OK')+'</span>'; }
- return '<div class="mt-card'+(t.esc?' mt-esc':'')+'">'+
-   '<div class="mt-h"><span class="so-dot" style="background:'+pip+'"></span><span class="fo-no">'+t.no+'</span>'+(t.esc?'<span class="badge bd-crit" style="font-size:9px">Escalated</span>':'')+'<span class="mt-prio prio-'+(sla.pr||'Medium').toLowerCase()+'">'+sla.pr+'</span><span class="fo-st">'+st+'</span></div>'+
+ var stg=t.stg||0, act='', cd='';
+ if(stg===1){
+   /* sudah diambil, belum mulai → countdown 30 menit */
+   var L=sla.startLeft;
+   cd='<div class="mt-cd'+(L<=0?' late':L<=10?' warn':'')+'">'+(L>0
+      ? '⏱ Mulai kerjakan dalam <b>'+L+' menit</b> <span>(batas '+SLA_START_MAX+' mnt sejak diambil)</span>'
+      : '⚠ Lewat batas mulai <b>'+Math.abs(L)+' menit</b> <span>tercatat sebagai SLA breach</span>')+'</div>';
+   act='<div class="mt-acts"><button class="btn-act mt-btn" onclick="foAdvance(\''+t.no+'\')">▶ Mulai Kerjakan</button>'+
+       (t.esc?'<span class="badge bd-crit">Sudah dieskalasi</span>':'<button class="btn-out mt-btn" onclick="myTicketEscalate(\''+t.no+'\')">⏫ Eskalasi</button>')+'</div>';
+ } else if(stg===2){
+   act='<div class="mt-acts"><button class="btn-act mt-btn" onclick="myTicketResolve(\''+t.no+'\')">✓ Selesaikan (wajib foto)</button>'+
+       (t.esc?'<span class="badge bd-crit">Sudah dieskalasi</span>':'<button class="btn-out mt-btn" onclick="myTicketEscalate(\''+t.no+'\')">⏫ Eskalasi</button>')+'</div>';
+ } else if(stg>=3){
+   act='<span class="badge '+(sla.resBreach?'bd-crit':'bd-ok')+'">Selesai · Resolution SLA '+(sla.resBreach?'BREACH':'OK')+'</span>';
+ }
+ var ag=ticketAging(t);
+ return '<div class="mt-card'+(t.esc?' mt-esc':'')+(stg===1&&sla.startLeft<=0?' mt-late':'')+'">'+
+   '<div class="mt-h"><span class="so-dot" style="background:'+pip+'"></span><span class="fo-no">'+t.no+'</span>'+(t.esc?'<span class="badge bd-crit" style="font-size:9px">Escalated</span>':'')+'<span class="mt-prio prio-'+(sla.pr||'Medium').toLowerCase()+'">'+sla.pr+'</span><span class="fo-st" style="color:'+ag.c+'">'+esc(ag.t)+'</span></div>'+
    '<div class="mt-t">'+esc(t.judul||'')+'</div>'+
    '<div class="fo-tik-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div>'+
-   '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+
-   '<div class="mt-sla">'+
-     '<div class="mt-sla-i'+(sla.respBreach?' breach':'')+'"><span>Response time</span><b>'+fmtDur(sla.respMin)+'</b><small>target '+fmtDur(sla.tg.resp)+(sla.respDone?'':' · berjalan')+'</small></div>'+
-     '<div class="mt-sla-i'+(sla.resBreach?' breach':'')+'"><span>Resolution time</span><b>'+fmtDur(sla.resMin)+'</b><small>target '+fmtDur(sla.tg.res)+(sla.resDone?'':' · berjalan')+'</small></div>'+
+   '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+cd+
+   '<div class="mt-sla mt-sla3">'+
+     '<div class="mt-sla-i'+(sla.respBreach?' breach':'')+'"><span>Response</span><b>'+fmtDur(sla.respMin)+'</b><small>maks '+SLA_PICK_MAX+' mnt</small></div>'+
+     '<div class="mt-sla-i'+(sla.startBreach?' breach':'')+'"><span>Ambil → mulai</span><b>'+fmtDur(sla.startMin)+'</b><small>maks '+SLA_START_MAX+' mnt</small></div>'+
+     '<div class="mt-sla-i'+(sla.resBreach?' breach':'')+'"><span>Resolution</span><b>'+fmtDur(sla.resMin)+'</b><small>target '+fmtDur(sla.tg.res)+(sla.resDone?'':' · berjalan')+'</small></div>'+
    '</div>'+act+'</div>';
 }
 function renderMyTickets(){
@@ -7604,7 +7818,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-27";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-28";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -7631,8 +7845,19 @@ function dbInit(){
       else { TICKETS.unshift(d); syncTicketStage(d,null); changed=true; if(AGDB.ticketsInit) arrivals.push(d); }
     });
     if(changed){ renderService(); renderFieldOps(); renderMyTickets(); renderOverview(); renderBuilding(); updateBell(); }
-    /* tiket baru dari perangkat lain → sound + push notif di tray HP (tim lapangan) */
-    if(arrivals.length) agavaNotify("🎫 Tiket baru — "+foNormCat(arrivals[0].cat||""), arrivals[0].judul+(arrivals.length>1?" · +"+(arrivals.length-1)+" tiket lainnya":"")+" · "+(arrivals[0].lokasi||""));
+    /* Tiket baru dari perangkat lain → sound + push notif di tray HP.
+       Operator Field Ops per kategori HANYA dibunyikan untuk kategorinya sendiri,
+       supaya tidak ada notifikasi yang bukan urusannya. */
+    if(arrivals.length){
+      var myCat=(gUser&&gUser.cat)?gUser.cat:null;
+      var utk=myCat?arrivals.filter(function(a){return foNormCat(a.cat)===myCat;}):arrivals;
+      if(utk.length){
+        var a0=utk[0];
+        agavaNotify("🎫 Tiket baru — "+foNormCat(a0.cat||""),
+          (a0.judul||"")+(utk.length>1?" · +"+(utk.length-1)+" tiket lainnya":"")+" · "+(a0.lokasi||"")+" · ambil dalam "+SLA_PICK_MAX+" menit");
+        try{ foFlash(utk.map(function(x){return x.no;})); }catch(e){}
+      }
+    }
     AGDB.ticketsInit=true;
   },err=>{ AGDB.on=false; dbPill("Database: rules tertutup — mode lokal",false); console.warn("AGDB rules/err:",err&&err.code); });
   /* SO — sinkron antar perangkat (list, approval, PDCA review semua satu sumber) */
@@ -7876,7 +8101,7 @@ function agavaAuditCSV(){
  });
 }
 
-loadFlowConfig();dbLoadAll();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();
+loadFlowConfig();dbLoadAll();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();
 </script>
 </body>
 </html>
