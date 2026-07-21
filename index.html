@@ -1305,8 +1305,13 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .gd{max-width:none}
 /* Performance Indikator — Standard vs Key (2 kolom) */
 .pi-card .gd-ch{flex-wrap:wrap}
-.pi-final{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:600}
-.pi-final b{color:#0a4bb8;font-size:15px}
+/* panel Cloud & Backup */
+.cl-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink)}
+.cl-row b{font-weight:800;color:#0a4bb8;text-align:right}
+.cl-row em{grid-column:1/3;font-style:normal;font-size:10px;color:#9aa7b8}
+.cl-aud{padding:8px 0;border-bottom:1px solid var(--line)}
+.cl-aud-h{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--ink)}
+.cl-aud-h span{font-size:10.5px;color:#9aa7b8;white-space:nowrap}
 /* layout atas-bawah: Standard di atas, Key (PDCA bulanan) di bawah */
 .pi-stack{display:block}
 .pi-panel{padding:14px 18px}
@@ -1314,7 +1319,7 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-row.pi-std{grid-template-columns:46px 1fr 48px}
 .pi-row.pi-key{grid-template-columns:44px 1fr 48px 28px}
 .pi-code2{font-size:11px;font-weight:800;text-align:center;padding:6px 0;border-radius:8px;background:linear-gradient(135deg,rgba(0,198,251,.14),rgba(10,124,255,.10));color:#0a4bb8}
-.pi-chev{font-size:9px;color:var(--muted);transition:transform .2s}
+.pi-chev{font-size:9px;color:var(--muted);transition:transform .2s,color .15s;cursor:pointer}
 .pi-row.open .pi-chev{transform:rotate(180deg)}
 .pi-drop{max-height:0;overflow:hidden;transition:max-height .25s ease}
 .pi-row.open .pi-drop{max-height:340px;margin-top:8px}
@@ -1358,8 +1363,9 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
   background:linear-gradient(90deg,transparent,#00c6fb 38%,#0a7cff 58%,transparent);
   background-size:220% 100%;opacity:.85;animation:hlSweep 11s linear infinite}
 @keyframes hlSweep{0%{background-position:200% 0}100%{background-position:-100% 0}}
-.pi-hl-std{cursor:pointer;transition:.25s}
-.pi-hl-std:hover{transform:translateY(-3px);border-color:rgba(0,198,251,.65);
+/* kedua box highlight (Standard & KPI) identik: ukuran, bentuk, warna, efek, animasi */
+.pi-hl-std,.pi-hl-key{cursor:pointer;transition:.25s;min-height:118px}
+.pi-hl-std:hover,.pi-hl-key:hover{transform:translateY(-3px);border-color:rgba(0,198,251,.65);
   box-shadow:
     inset 0 1.5px 0 rgba(255,255,255,.95),
     inset 0 -22px 34px rgba(10,124,255,.14),
@@ -1411,6 +1417,16 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pik-monwrap{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px}
 .pik-mon{border:1px solid rgba(10,124,255,.32);border-radius:8px;padding:5px 8px;font-family:var(--ff);font-size:11.5px;font-weight:700;color:#0a4bb8;background:rgba(255,255,255,.85);cursor:pointer}
 .pik-saved{font-size:10.5px;font-weight:800;color:var(--green);opacity:0;transition:.4s;white-space:nowrap}
+/* kunci PIN tabel KPI: tombol Ubah / Simpan + jejak perubahan terakhir */
+.pi-lock,.pi-save{margin-left:8px;border:1px solid;font-family:var(--ff);font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:.15s}
+.pi-lock{border-color:#dfe6ef;background:#f4f7fb;color:#5b6b80}
+.pi-lock:hover{border-color:var(--blue);background:#eaf3ff;color:#0a4bb8}
+.pi-save{border-color:transparent;background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);color:#fff;box-shadow:0 4px 12px rgba(10,124,255,.3)}
+.pi-save:hover{filter:brightness(1.08)}
+.pik-stamp{font-size:10.5px;color:var(--muted);margin:2px 0 0;font-style:italic}
+.pik-stamp b{color:var(--ink);font-style:normal}
+.pik-num{width:60px;padding:5px 7px;border:1px solid rgba(10,124,255,.3);border-radius:7px;font-family:var(--ff);font-size:12.5px;font-weight:700;color:var(--ink);background:rgba(255,255,255,.85);text-align:center}
+.pik-num:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,124,255,.14)}
 .pi-h-key .pi-addnew{margin-left:10px}
 @media(max-width:960px){
   .pik-head{display:none}
@@ -1435,7 +1451,11 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pi-row:last-child{border-bottom:none}
 .pi-ic{font-size:16px;text-align:center}
 .pi-code{font-size:10px;font-weight:800;text-align:center;padding:4px 0;border-radius:7px}
-.pi-name{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.3}
+/* seluruh area nama indikator + panah dropdown = jari telunjuk (bisa diklik) */
+.pi-name{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.3;cursor:pointer;user-select:none}
+.pi-name:hover{color:#0a4bb8}
+.pi-name:hover .pi-chev{color:var(--blue)}
+.pi-row.pi-std .pi-code2{cursor:pointer}
 .pi-type{font-size:8.5px;font-weight:800;letter-spacing:.03em;padding:1px 6px;border-radius:20px;text-transform:uppercase;vertical-align:middle}
 .pi-type.routine{background:#e9f8ef;color:#15a34a}
 .pi-type.mixed{background:#eef4ff;color:#2563eb}
@@ -2171,6 +2191,7 @@ function applyLogin(u){
  go(ROLES[gRole].menus[0]);
  document.getElementById("login").classList.add("hide");
  notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
+ auditLog("login", roleTitle(u));   // jejak login tersimpan di Firebase
  if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
 }
 function logout(){ gUser=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
@@ -2917,6 +2938,10 @@ function codecKpiPop(which){
  else if(which==='achieved') h='<b>'+K.achieved+' dari '+K.tot+' KPI utama mencapai target</b> — '+K.S.map(s=>(s.ach>=s.target?'✅ ':'⏳ ')+s.name+' ('+s.ach+'/'+s.target+'%)').join(' · ');
  else if(which==='nonroutine') h='<b>◆ KPI Non-Routine = '+K.nonPct+'%</b> — inisiatif strategis: '+K.nonr.map(c=>c.n+' '+c.v+'%').join(' · ');
  else if(which==='routine') h='<b>● KPI Routine = '+K.routPct+'%</b> — operasional BAU: '+K.rout.map(c=>c.n+' '+c.v+'%').join(' · ');
+ else if(which==='kpi'){ const T=kpiClaTotal();
+   h='<b>Total Pencapaian KPI '+KPI_YEAR_META.year+' = '+T.final+'%</b> — skor tertimbang '+T.wsum+'% bobot: '+
+     T.R.map(r=>r.code+' '+r.name+' <b>'+r.ach+'%</b>/'+r.target+'% (bobot '+r.weight+'%)').join(' · ')+
+     '. Routine '+T.rout.pct+'% ('+T.rout.n+' KPI) · Non-Routine '+T.nonr.pct+'% ('+T.nonr.n+' KPI).'; }
  el.innerHTML=h; el.classList.add('show'); el.dataset.on=which;
 }
 function codecSubFnData(){
@@ -3109,6 +3134,7 @@ function codecPerfIndicatorHTML(){
     Bulan berjalan default angka live CODEC; bisa dioverride & disimpan (localStorage, ikut kpiPersist). */
  var m=kpiMonthNow(), curM=(m===kpiCurMonth());
  var monOpts=kpiMonths().map(function(o){return '<option value="'+o.v+'"'+(o.v===m?' selected':'')+'>'+o.l+'</option>';}).join('');
+ var ed=kpiEditOn();                                     // tabel hanya bisa diubah setelah buka kunci PIN
  var head='<div class="pik-row pik-head"><span>KPI</span><span>Bobot</span><span>Target FY</span><span>Pencapaian YTD</span><span>Catatan '+kpiMonLabel(m)+'</span><span></span></div>';
  var keyRows=keys.length?keys.map(function(r,i){
    var e=(r.mon&&r.mon[m])||{};
@@ -3120,21 +3146,27 @@ function codecPerfIndicatorHTML(){
      '<div class="pik-kpi"><span class="pi-code" style="background:'+pc+'1a;color:'+pc+'" title="'+esc(r.from||'KPI baru / custom')+'">'+pcode+'</span>'+
        '<div style="min-width:0;flex:1"><div class="pik-name">'+esc(r.name)+'</div><div class="pik-src">'+esc(r.src)+'</div>'+
        '<div class="pik-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,ytd||0)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,r.target)+'%"></div></div></div></div></div>'+
-     '<div class="pik-c">'+r.weight+'%</div>'+
-     '<div class="pik-c">'+r.target+'%</div>'+
-     '<div class="pik-ytd">'+(viewerOnly()
-        ?'<b style="color:'+c+';font-size:15px">'+(ytd==null?'—':ytd+'%')+'</b>'
-        :'<input type="number" min="0" max="120" step="1" value="'+(ytd==null?'':ytd)+'" placeholder="—" onchange="kpiMonSave('+i+',\'ytd\',this.value);renderOverview()"/><span>%</span>')+
+     '<div class="pik-c">'+(ed?'<input class="pik-num" type="number" min="0" max="100" step="1" value="'+r.weight+'" onchange="kpiFieldSave('+i+',\'weight\',this.value)"/>':r.weight+'%')+'</div>'+
+     '<div class="pik-c">'+(ed?'<input class="pik-num" type="number" min="0" max="120" step="1" value="'+r.target+'" onchange="kpiFieldSave('+i+',\'target\',this.value)"/>':r.target+'%')+'</div>'+
+     '<div class="pik-ytd">'+(ed
+        ?'<input type="number" min="0" max="120" step="1" value="'+(ytd==null?'':ytd)+'" placeholder="—" onchange="kpiMonSave('+i+',\'ytd\',this.value)"/><span>%</span>'
+        :'<b style="color:'+c+';font-size:15px">'+(ytd==null?'—':ytd+'%')+'</b>')+
       '<em>'+((e.ytd!==undefined)?'✍ manual '+kpiMonLabel(m):(curM?'📡 live CODEC':'belum diisi'))+'</em></div>'+
-     '<div class="pik-note">'+(viewerOnly()
-        ?'<span class="pik-notetx">'+(e.note?esc(e.note):'—')+'</span>'
-        :'<textarea rows="2" placeholder="progress / kendala / tindak lanjut bulan ini…" onchange="kpiMonSave('+i+',\'note\',this.value)">'+(e.note?esc(e.note):'')+'</textarea>')+'</div>'+
-     '<div class="pik-c">'+(viewerOnly()?'':'<button class="pi-x" onclick="codecRemoveKey('+i+')" title="hapus dari Key">✕</button>')+'</div>'+
+     '<div class="pik-note">'+(ed
+        ?'<textarea rows="2" placeholder="progress / kendala / tindak lanjut bulan ini…" onchange="kpiMonSave('+i+',\'note\',this.value)">'+(e.note?esc(e.note):'')+'</textarea>'
+        :'<span class="pik-notetx">'+(e.note?esc(e.note):'—')+'</span>')+'</div>'+
+     '<div class="pik-c">'+(ed?'<button class="pi-x" onclick="codecRemoveKey('+i+')" title="hapus dari Key">✕</button>':'')+'</div>'+
    '</div>';
- }).join(''):'<div class="muted small" style="padding:24px;text-align:center">Belum ada Key. Klik <b>+ Tambah KPI Baru</b> (bisa dari indikator standar atau KPI baru).</div>';
+ }).join(''):'<div class="muted small" style="padding:24px;text-align:center">Belum ada Key.'+(ed?' Klik <b>+ Tambah KPI Baru</b>.':' Klik <b>🔒 Ubah</b> untuk menambahkan.')+'</div>';
+ /* jejak perubahan terakhir — tampil di bawah judul KPI */
+ var stamp=KPI_YEAR_META.editedAt
+   ? '<div class="pik-stamp">✎ diubah '+esc(KPI_YEAR_META.editedAt)+(KPI_YEAR_META.editedBy?' · oleh <b>'+esc(KPI_YEAR_META.editedBy)+'</b>':'')+'</div>'
+   : '';
+ var lockBtn = viewerOnly() ? ''
+   : (ed ? '<button class="pi-save" onclick="kpiEditSave()">💾 Simpan</button>'
+         : '<button class="pi-lock" onclick="kpiEditUnlock()">🔒 Ubah</button>');
  return '<div class="card mt16 pi-card">'+
-   '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div></div>'+
-     '<span class="pi-final">Skor KPI '+KPI_YEAR_META.year+': <b>'+total.final+'%</b> · '+total.ok+'/'+total.tot+' capai target</span></div>'+
+   '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div></div></div>'+
    '<div class="pi-stack">'+
      '<div class="pi-panel">'+
        codecHlStd(S)+
@@ -3144,11 +3176,45 @@ function codecPerfIndicatorHTML(){
        '<div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+
          '<span class="pik-monwrap" title="Review PDCA bulanan — pilih bulan">📆 <select class="pik-mon" onchange="kpiSetMonth(this.value)">'+monOpts+'</select></span>'+
          '<span id="pik-saved" class="pik-saved">✓ tersimpan</span>'+
-         (viewerOnly()?'':'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>')+'</div>'+
-       '<div class="muted small" style="margin:4px 0 8px">Review PDCA bulanan: pilih bulan, isi <b>Pencapaian YTD</b> &amp; <b>catatan</b> per KPI lalu tersimpan otomatis. Bulan berjalan memakai angka live CODEC dan bisa dioverride.</div>'+
+         (ed?'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>':'')+lockBtn+'</div>'+
+       stamp+
+       '<div class="muted small" style="margin:4px 0 8px">'+(ed
+         ? '<b style="color:#0a4bb8">🔓 Mode ubah aktif</b> — isi Bobot, Target, Pencapaian YTD &amp; catatan, lalu klik <b>Simpan</b>.'
+         : 'Review PDCA bulanan. Tabel terkunci — klik <b>🔒 Ubah</b> dan masukkan PIN untuk mengedit.')+'</div>'+
        head+keyRows+'</div>'+
    '</div>'+
    '<div class="gd-kpop" id="gdKpiPop"></div></div>';
+}
+/* ── Kunci PIN tabel KPI — default terkunci, tidak semua orang boleh mengubah ── */
+const KPI_PIN="123456";
+let kpiEdit=false;
+function kpiEditOn(){ return kpiEdit && !viewerOnly(); }
+function kpiEditUnlock(){
+ var p=prompt("🔒 Masukkan PIN untuk mengubah tabel KPI "+KPI_YEAR_META.year+":","");
+ if(p===null)return;
+ if(String(p).trim()!==KPI_PIN){ alert("⛔ PIN salah. Tabel KPI tetap terkunci."); return; }
+ kpiEdit=true; renderOverview();
+}
+function kpiEditSave(){
+ kpiEdit=false;
+ KPI_YEAR_META.editedAt=utcStamp();
+ KPI_YEAR_META.editedBy=(gUser&&gUser.name)||"";
+ kpiPersist(); renderOverview();
+ alert("💾 Perubahan KPI "+KPI_YEAR_META.year+" tersimpan.\nTabel kembali terkunci.\n\nDiubah: "+KPI_YEAR_META.editedAt+"\nOleh: "+KPI_YEAR_META.editedBy);
+}
+/* cap waktu UTC — dipakai jejak perubahan KPI */
+function utcStamp(){
+ var d=new Date(), p=function(n){return String(n).padStart(2,"0");};
+ return d.getUTCFullYear()+"-"+p(d.getUTCMonth()+1)+"-"+p(d.getUTCDate())+" "+p(d.getUTCHours())+":"+p(d.getUTCMinutes())+" UTC";
+}
+/* ubah bobot / target KPI (hanya saat mode ubah aktif) */
+function kpiFieldSave(i,field,val){
+ if(!kpiEditOn())return;
+ var k=KPI_CLA[i]; if(!k)return;
+ var n=parseFloat(val); if(isNaN(n))return;
+ k[field]=Math.max(0,Math.min(field==="weight"?100:120,Math.round(n)));
+ kpiPersist();
+ var s=document.getElementById('pik-saved'); if(s){ s.style.opacity=1; setTimeout(function(){ s.style.opacity=0; },1500); }
 }
 /* ── PDCA bulanan: state bulan terpilih + simpan YTD/catatan per KPI per bulan ── */
 const KPI_MON_ID=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -3187,7 +3253,7 @@ function codecHlKey(T){
      '<div class="pi-hl-mn" style="color:'+(k.n?col:'#9aa7b8')+'">'+(k.n?k.pct+'%':'—')+'</div>'+
      '<div class="pi-hl-ml">'+sym+' '+lbl+'<span>'+k.n+' KPI</span></div></div>';
  };
- return '<div class="pi-hl pi-hl-key">'+
+ return '<div class="pi-hl pi-hl-key" onclick="codecKpiPop(\'kpi\')" title="klik untuk lihat rincian tiap KPI">'+
    '<div class="pi-hl-l"><div class="pi-hl-cap">Total Pencapaian KPI '+KPI_YEAR_META.year+'</div>'+
    '<div class="pi-hl-v" style="color:'+c+'">'+T.final+'<small>%</small></div>'+
    '<div class="pi-hl-meta">tertimbang '+T.wsum+'% bobot · <b>'+T.ok+'/'+T.tot+'</b> capai target'+(T.risk?' · <b style="color:var(--red)">'+T.risk+'</b> at risk':'')+'</div></div>'+
@@ -5785,6 +5851,7 @@ function dbPersist(){
   try{ const out={}; Object.keys(DB_SETS).forEach(k=>{ out[k]=DB_SETS[k].get(); });
        localStorage.setItem(DB_STORE, JSON.stringify(out)); }
   catch(e){ console.warn("AGAVA DB save:",e); }
+  try{ dbSaveMaster(); }catch(e){}      // master data ikut naik ke Firestore
 }
 function dbLoadAll(){
   try{ const raw=localStorage.getItem(DB_STORE); if(!raw)return;
@@ -6612,7 +6679,7 @@ function dataResetToFiles(){
   location.reload();
 }
 function loadFlowConfig(){ try{ const s=localStorage.getItem('agava_flow_endpoints'); if(s){ const o=JSON.parse(s); Object.keys(FLOW.endpoints).forEach(k=>{ if(typeof o[k]==="string")FLOW.endpoints[k]=o[k]; }); } }catch(e){} }
-function saveFlowConfig(){ try{ localStorage.setItem('agava_flow_endpoints', JSON.stringify(FLOW.endpoints)); }catch(e){} }
+function saveFlowConfig(){ try{ localStorage.setItem('agava_flow_endpoints', JSON.stringify(FLOW.endpoints)); }catch(e){} try{ dbSaveFlow(); }catch(e){} }
 function setFlowEndpoint(name,url){ FLOW.endpoints[name]=(url||"").trim(); saveFlowConfig(); if(active==="vendor")renderVendor(); }
 /* When an endpoint URL is set → POST to that Power Automate flow and use its
    JSON response. Empty URL → local simulation (so the app still works offline). */
@@ -7215,11 +7282,13 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.21-21";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.21-22";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
-   AGDB.pill.style.cssText="position:fixed;right:14px;bottom:12px;z-index:80;background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 13px;font-size:11.5px;font-weight:600;color:var(--muted);box-shadow:0 2px 10px rgba(15,40,80,.08);font-family:var(--ff)";
+   AGDB.pill.style.cssText="position:fixed;right:14px;bottom:12px;z-index:80;background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 13px;font-size:11.5px;font-weight:600;color:var(--muted);box-shadow:0 2px 10px rgba(15,40,80,.08);font-family:var(--ff);cursor:pointer";
+   AGDB.pill.title="Klik — Cloud & Backup data AGAVA";
+   AGDB.pill.onclick=function(){ if(isSuper())agavaCloudPanel(); else alert("☁️ "+(AGDB.on?"Data Anda tersimpan di Firebase (live).":"Sedang offline — data tersimpan di perangkat ini dan akan ikut naik saat online.")); };
    document.body.appendChild(AGDB.pill); }
  AGDB.pill.innerHTML=(ok?'<span style="color:#15a34a">●</span> ':'<span style="color:#9aa7b8">●</span> ')+txt+' <span style="opacity:.55">· '+AGAVA_BUILD+'</span>';
 }
@@ -7276,6 +7345,26 @@ function dbInit(){
     try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){}
     try{ renderOverview(); }catch(e){}
   },err=>{ console.warn("KPI rules/err:",err&&err.code); });
+  /* Master data (STNK/PBB/Izin/Kontrak/Maintenance) — satu dokumen bersama */
+  AGDB.db.collection("agava_config").doc("master").onSnapshot(doc=>{
+    if(!doc.exists){ dbSaveMaster(); return; }
+    const d=doc.data(); if(!d||!d.sets)return;
+    const j=JSON.stringify(d.sets);
+    if(j===AGDB.masterEcho)return;
+    AGDB.masterEcho=j;
+    Object.keys(DB_SETS).forEach(k=>{ if(Array.isArray(d.sets[k])){ const a=DB_SETS[k].get(); a.length=0; d.sets[k].forEach(x=>a.push(x)); } });
+    try{ localStorage.setItem(DB_STORE, JSON.stringify(d.sets)); }catch(e){}
+    try{ renderReminder(); renderVendor(); renderBuilding(); renderHSE(); renderOverview(); }catch(e){}
+  },err=>{ console.warn("Master rules/err:",err&&err.code); });
+  /* Konfigurasi endpoint Power Automate — ikut pindah antar perangkat */
+  AGDB.db.collection("agava_config").doc("flow").onSnapshot(doc=>{
+    if(!doc.exists){ dbSaveFlow(); return; }
+    const d=doc.data(); if(!d||!d.endpoints)return;
+    const j=JSON.stringify(d.endpoints);
+    if(j===AGDB.flowEcho)return;
+    AGDB.flowEcho=j;
+    try{ FLOW.endpoints=d.endpoints; localStorage.setItem("agava_flow_endpoints",JSON.stringify(d.endpoints)); }catch(e){}
+  },err=>{ console.warn("Flow rules/err:",err&&err.code); });
   /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
   AGDB.db.collection("agava_workpermits").limit(300).onSnapshot(snap=>{
     let ch2=false;
@@ -7309,10 +7398,156 @@ function dbSaveSOAll(){
 function dbSaveKPI(){
  if(!AGDB.on||!AGDB.db)return;
  var payload={cla:JSON.parse(JSON.stringify(KPI_CLA)), meta:JSON.parse(JSON.stringify(KPI_YEAR_META)), up:Date.now(), by:(gUser&&gUser.name)||""};
- var j=JSON.stringify(payload.cla);
+ var j=JSON.stringify([payload.cla,payload.meta]);   // meta ikut → jejak "diubah oleh" tersimpan juga
  if(AGDB.kpiEcho===j)return;
  AGDB.kpiEcho=j;
  AGDB.db.collection("agava_config").doc("kpi").set(payload).catch(function(e){ console.warn("KPI cloud:",e&&e.code); });
+}
+/* ── MASTER DATA (STNK, PBB, Izin, Kontrak Vendor, Maintenance, dll) → Firestore ── */
+function dbSaveMaster(){
+ if(!AGDB.on||!AGDB.db)return;
+ var out={}; Object.keys(DB_SETS).forEach(function(k){ out[k]=DB_SETS[k].get(); });
+ var payload={sets:JSON.parse(JSON.stringify(out)), up:Date.now(), by:(gUser&&gUser.name)||""};
+ var j=JSON.stringify(payload.sets);
+ if(AGDB.masterEcho===j)return;
+ AGDB.masterEcho=j;
+ AGDB.db.collection("agava_config").doc("master").set(payload).catch(function(e){ console.warn("Master cloud:",e&&e.code); });
+}
+/* ── KONFIGURASI FLOW Power Automate → Firestore (jangan hilang saat ganti perangkat) ── */
+function dbSaveFlow(){
+ if(!AGDB.on||!AGDB.db)return;
+ var payload={endpoints:JSON.parse(JSON.stringify(FLOW.endpoints||{})), up:Date.now(), by:(gUser&&gUser.name)||""};
+ var j=JSON.stringify(payload.endpoints);
+ if(AGDB.flowEcho===j)return;
+ AGDB.flowEcho=j;
+ AGDB.db.collection("agava_config").doc("flow").set(payload).catch(function(e){ console.warn("Flow cloud:",e&&e.code); });
+}
+/* ── JEJAK AKTIVITAS: login, perubahan penting → koleksi agava_audit ── */
+function auditLog(action,detail){
+ try{
+  var rec={action:action, detail:detail||"", user:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"",
+    role:gRole||"", at:new Date().toISOString(), atLocal:nowStamp(), build:AGAVA_BUILD,
+    ua:(navigator.userAgent||"").slice(0,160)};
+  if(AGDB.on&&AGDB.db) AGDB.db.collection("agava_audit").add(rec).catch(function(){});
+ }catch(e){}
+}
+/* ── BACKUP PENUH: kumpulkan SEMUA data AGAVA jadi satu objek ── */
+function agavaSnapshot(){
+ var master={}; try{ Object.keys(DB_SETS).forEach(function(k){ master[k]=DB_SETS[k].get(); }); }catch(e){}
+ return {
+   _app:"AGAVA", _build:AGAVA_BUILD, _at:new Date().toISOString(), _by:(gUser&&gUser.name)||"",
+   tickets:TICKETS, so:SO, workPermits:(typeof WORK_PERMITS!=="undefined"?WORK_PERMITS:[]),
+   kpi:{cla:KPI_CLA, meta:KPI_YEAR_META}, master:master,
+   flow:(typeof FLOW!=="undefined"?FLOW.endpoints:{}),
+   accounts:USERS.map(function(u){ return {email:u.email,name:u.name,role:u.role,cat:u.cat||""}; }),
+   fieldOp:(typeof fieldOp!=="undefined"?fieldOp:null)
+ };
+}
+/* Unduh backup JSON — bisa dipakai restore walau localStorage & cloud hilang */
+function agavaBackupDownload(){
+ var snap=agavaSnapshot();
+ var blob=new Blob([JSON.stringify(snap,null,1)],{type:"application/json"});
+ var a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download="AGAVA-Backup-"+new Date().toISOString().slice(0,10)+".json";
+ document.body.appendChild(a); a.click();
+ setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+ auditLog("backup-download","tiket "+TICKETS.length+" · SO "+SO.length+" · KPI "+KPI_CLA.length);
+}
+/* Dorong SEMUA data lokal ke cloud (perbaiki bila ada yang belum tersinkron) */
+function agavaPushAll(){
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Database cloud sedang tidak terhubung. Coba lagi saat online."); return; }
+ var n=0;
+ TICKETS.forEach(function(t){ if(t&&t.no){ dbSaveTicket(t); n++; } });
+ AGDB.soEcho={}; dbSaveSOAll(); n+=SO.length;
+ AGDB.kpiEcho=null; dbSaveKPI();
+ AGDB.masterEcho=null; dbSaveMaster();
+ AGDB.flowEcho=null; dbSaveFlow();
+ try{ if(typeof WORK_PERMITS!=="undefined") WORK_PERMITS.forEach(function(w){ wpDbSave(w); n++; }); }catch(e){}
+ auditLog("cloud-push-all",n+" dokumen");
+ alert("☁️ Semua data lokal didorong ke Firebase.\n\n• "+TICKETS.length+" tiket\n• "+SO.length+" SO\n• "+KPI_CLA.length+" KPI + review PDCA\n• master data & konfigurasi flow\n\nData kini aman walau localStorage perangkat ini terhapus.");
+}
+/* Restore dari file backup JSON */
+function agavaRestoreFile(input){
+ var f=(input.files||[])[0]; if(!f)return;
+ var rd=new FileReader();
+ rd.onload=function(e){
+   var d; try{ d=JSON.parse(e.target.result); }catch(err){ alert("⛔ File tidak terbaca sebagai backup AGAVA."); return; }
+   if(!d||d._app!=="AGAVA"){ alert("⛔ Ini bukan file backup AGAVA."); return; }
+   if(!confirm("Pulihkan data dari backup "+(d._at||"").slice(0,10)+"?\n\n"+
+     "• "+((d.tickets||[]).length)+" tiket\n• "+((d.so||[]).length)+" SO\n• "+(((d.kpi||{}).cla||[]).length)+" KPI\n\n"+
+     "Data di perangkat ini akan DIGANTI, lalu didorong ke cloud.")) return;
+   if(Array.isArray(d.tickets)){ TICKETS.length=0; d.tickets.forEach(function(x){TICKETS.push(x);}); }
+   if(Array.isArray(d.so)){ SO.length=0; d.so.forEach(function(x){SO.push(x);}); }
+   if(d.kpi&&Array.isArray(d.kpi.cla)){ KPI_CLA.length=0; d.kpi.cla.forEach(function(x){KPI_CLA.push(kpiMigrate(x));}); if(d.kpi.meta)Object.assign(KPI_YEAR_META,d.kpi.meta); }
+   if(d.master){ Object.keys(DB_SETS).forEach(function(k){ if(Array.isArray(d.master[k])){ var a=DB_SETS[k].get(); a.length=0; d.master[k].forEach(function(x){a.push(x);}); } }); }
+   if(d.flow&&typeof FLOW!=="undefined"){ FLOW.endpoints=d.flow; try{ localStorage.setItem("agava_flow_endpoints",JSON.stringify(d.flow)); }catch(er){} }
+   normalizeSO(); normalizeTickets(); soPersist(); kpiPersist(); dbPersist();
+   agavaPushAll(); renderAll(); closeDrawer();
+   auditLog("restore-file","dari backup "+(d._at||""));
+   alert("✅ Data dipulihkan dari backup dan didorong ke cloud.");
+ };
+ rd.readAsText(f);
+}
+/* Panel Cloud & Backup — hanya kelompok Super */
+function agavaCloudPanel(){
+ var snap=agavaSnapshot();
+ var st=AGDB.on?'<span class="badge bd-ok">🟢 Firebase terhubung</span>':'<span class="badge bd-warn">⚪ Offline — data hanya di perangkat ini</span>';
+ var row=function(l,v,note){ return '<div class="cl-row"><span>'+l+'</span><b>'+v+'</b><em>'+(note||'')+'</em></div>'; };
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div style="font-weight:700;color:var(--ink);font-size:16px">☁️ Cloud &amp; Backup Data AGAVA</div>'+
+   '<div class="muted small" style="margin-top:4px">'+st+'</div></div>'+
+  '<div class="db">'+
+   '<div class="panel-t" style="margin-bottom:6px">Data tersimpan di Firebase</div>'+
+   row("Tiket layanan",TICKETS.length,"agava_tickets")+
+   row("Supply Order",SO.length,"agava_so")+
+   row("Work Permit",(typeof WORK_PERMITS!=="undefined"?WORK_PERMITS.length:0),"agava_workpermits")+
+   row("KPI + review PDCA",KPI_CLA.length,"agava_config/kpi")+
+   row("Master data",Object.keys(snap.master||{}).length+" set","agava_config/master")+
+   row("Konfigurasi flow",Object.keys(snap.flow||{}).length+" endpoint","agava_config/flow")+
+   row("Akun & login",USERS.length+" akun","agava_audit — jejak login")+
+   '<div class="muted small" style="margin:12px 0 6px;line-height:1.6">Lampiran foto tiket ikut tersimpan di cloud. Lampiran dokumen SO (foto/PDF besar) tetap di perangkat pembuat karena batas ukuran dokumen Firestore — tercakup dalam file backup.</div>'+
+   '<div class="panel-t" style="margin:16px 0 6px">Tindakan</div>'+
+   '<button class="btn-act" style="width:100%;margin-bottom:8px" onclick="agavaPushAll()">☁️ Dorong Semua Data ke Cloud</button>'+
+   '<button class="btn-out" style="width:100%;margin-bottom:8px" onclick="agavaBackupDownload()">⬇️ Unduh Backup (JSON)</button>'+
+   '<label class="btn-out" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:8px">'+
+     '⬆️ Pulihkan dari File Backup<input type="file" accept="application/json,.json" style="display:none" onchange="agavaRestoreFile(this)"/></label>'+
+   '<button class="btn-out" style="width:100%" onclick="agavaAuditView()">📜 Lihat Jejak Login &amp; Aktivitas</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+}
+function agavaAuditView(){
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung — jejak aktivitas tidak bisa dibaca."); return; }
+ AGDB.db.collection("agava_audit").orderBy("at","desc").limit(100).get().then(function(snap){
+   var rows=snap.docs.map(function(d){ return d.data(); });
+   document.getElementById("drawer").innerHTML=
+    '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+     '<div style="font-weight:700;color:var(--ink);font-size:16px">📜 Jejak Login &amp; Aktivitas</div>'+
+     '<div class="muted small" style="margin-top:4px">'+rows.length+' catatan terakhir · tersimpan di Firebase</div></div>'+
+    '<div class="db">'+
+     '<button class="btn-out" style="width:100%;margin-bottom:12px" onclick="agavaAuditCSV()">⬇️ Unduh CSV</button>'+
+     (rows.length?rows.map(function(r){
+       return '<div class="cl-aud"><div class="cl-aud-h"><b>'+esc(r.action||'')+'</b><span>'+esc((r.at||'').replace('T',' ').slice(0,16))+' UTC</span></div>'+
+         '<div class="muted small">'+esc(r.user||'—')+' · '+esc(r.role||'')+(r.detail?' · '+esc(r.detail):'')+'</div></div>';
+     }).join(''):'<div class="muted small" style="padding:24px;text-align:center">Belum ada catatan.</div>')+
+    '</div>';
+   document.getElementById("ovl").classList.add("show");
+ }).catch(function(e){ alert("⚠️ Gagal membaca jejak aktivitas: "+(e&&e.code||e.message)); });
+}
+function agavaAuditCSV(){
+ if(!AGDB.on||!AGDB.db)return;
+ AGDB.db.collection("agava_audit").orderBy("at","desc").limit(1000).get().then(function(snap){
+   var q=function(v){ v=(v==null?"":String(v)); return '"'+v.replace(/"/g,'""')+'"'; };
+   var lines=[["Waktu (UTC)","Waktu lokal","Aksi","User","Email","Role","Detail","Build"].map(q).join(",")];
+   snap.docs.forEach(function(d){ var r=d.data();
+     lines.push([r.at,r.atLocal,r.action,r.user,r.email,r.role,r.detail,r.build].map(q).join(",")); });
+   var blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8;"});
+   var a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+   a.download="AGAVA-Audit-"+new Date().toISOString().slice(0,10)+".csv";
+   document.body.appendChild(a); a.click();
+   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+ });
 }
 
 loadFlowConfig();dbLoadAll();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();
