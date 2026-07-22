@@ -8,14 +8,14 @@
 <!-- Favicon: simbol "A" AGAVA (chevron) di kepingan kaca gradasi electric→turquoise -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23d9f5fd'/%3E%3Cstop offset='1' stop-color='%23a7e0f5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M15 45 L32 19 L49 45' fill='none' stroke='%230a7cff' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"/>
 <link rel="apple-touch-icon" href="icon-180.png"/>
-<meta name="theme-color" content="#0a4fd0"/>
+<meta name="theme-color" content="#F2F3F7"/>
 <!-- PWA — installable ke HP (Android/iOS), tanpa app store -->
 <link rel="manifest" href="manifest.json"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <!-- black-translucent = konten menembus area status bar/notch, jadi top bar biru
      penuh sampai tepi atas layar. Isinya digeser turun pakai safe-area-inset-top. -->
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="AGAVA"/>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
 <style>
@@ -1499,45 +1499,43 @@ body.rg-open{overflow:hidden}
      padding, margin, tinggi, gap, dan ukuran kartu tidak disentuh sama sekali,
      supaya tata letaknya tetap persis. Setel angkanya bila ingin naik/turun. */
   :root{--fz:1.12}
-  /* Jaring pengaman: bila iOS/Android menyisakan celah di tepi atas, warnanya
-     ikut biru — bukan putih. (Penyebab utamanya tetap mode status bar; PWA yang
-     sudah terpasang harus dihapus & di-Add to Home Screen ulang agar berubah.) */
-  html{background:#032b6b}
-  body{background-color:transparent}
+  /* ── PALET APLIKASI MOBILE ──
+     Mengikuti desain Claude Design "AGAVA Mobile": satu latar abu terang rata,
+     kartu putih dengan bayangan sangat tipis, navy pekat untuk aksi utama, dan
+     biru hanya sebagai aksen. Tidak ada gradient neon lagi.
+     Efek sampingnya: karena seluruh layar satu warna, tidak ada lagi batas warna
+     di tepi atas — keluhan "bar putih di atas" hilang dengan sendirinya. */
+  :root{
+    --m-bg:#F2F3F7;      --m-card:#fff;
+    --m-ink:#0F1728;     --m-sub:#344054;  --m-mut:#667085;  --m-fai:#98A2B3;
+    --m-line:rgba(15,23,40,.06);           --m-bd:#E4E7EC;
+    --m-navy:#0B2447;    --m-blue:#2563EB; --m-chipfg:#175CD3; --m-chipbg:#E7F0FD;
+    --m-sh:0 1px 2px rgba(15,23,40,.06);
+  }
+  html{background:var(--m-bg)}
+  /* "html body" (bukan !important) supaya menang atas aturan body{background:gradient}
+     yang letaknya jauh di bawah — di mobile latarnya harus rata, tanpa kilau biru. */
+  html body{background:var(--m-bg)}
   /* sidebar & hamburger DIHILANGKAN di HP — navigasi lewat ikon modul + bottom bar */
   .side,#mobBackdrop,.mob-menu{display:none!important}
   body.side-open .side{transform:translateX(-100%)}
   .main{margin-left:0}
-  /* ── TOP BAR ── */
-  /* Neon menembus area status bar/notch (meta status-bar-style = black-translucent),
-     isinya digeser turun sebesar safe-area-inset-top supaya kolom chat ada DI BAWAH notch. */
-  .mtop{display:block;position:sticky;top:0;z-index:60;overflow:hidden;margin-top:0;
-    padding:calc(10px + env(safe-area-inset-top)) 12px 12px;
-    background:linear-gradient(135deg,#032b6b 0%,#0a4fd0 45%,#0a7cff 78%,#00c6fb 100%);
-    box-shadow:0 6px 22px rgba(6,40,110,.38)}
-  .mtop-glow{position:absolute;inset:-60% -20% auto;height:190%;pointer-events:none;
-    background:radial-gradient(45% 55% at 18% 30%,rgba(0,229,255,.5),transparent 62%),
-               radial-gradient(40% 50% at 82% 62%,rgba(120,90,255,.42),transparent 64%);
-    filter:blur(8px);animation:mtopAur 24s ease-in-out infinite alternate}
-  @keyframes mtopAur{0%{transform:translate3d(-5%,-3%,0)}100%{transform:translate3d(6%,4%,0) scale(1.1)}}
-  .mtop-grid{position:absolute;inset:0;pointer-events:none;opacity:.22;
-    background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),
-                     linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);
-    background-size:26px 26px;
-    -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.55),transparent 82%);
-            mask-image:linear-gradient(180deg,rgba(0,0,0,.55),transparent 82%)}
+  /* ── TOP BAR ──
+     Rata dengan latar halaman, bukan bar berwarna. Isinya kartu putih kecil
+     (pil Copilot, tombol bulat) persis idiom desain: putih di atas abu terang. */
+  .mtop{display:block;position:sticky;top:0;z-index:60;overflow:visible;margin-top:0;
+    padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+    background:var(--m-bg)}
+  .mtop-glow,.mtop-grid{display:none}
   .mtop-in{position:relative;z-index:1}
   .mtop-row{display:flex;align-items:center;gap:9px}
   /* tombol kembali — muncul begitu masuk modul, menampilkan nama modulnya */
-  .mtop-back{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:7px;border-radius:14px;padding:11px 13px;
-    cursor:pointer;font-family:var(--ff);border:1px solid rgba(150,235,255,.55);
-    background:linear-gradient(135deg,rgba(255,255,255,.24),rgba(255,255,255,.09));
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 0 16px rgba(0,214,255,.24)}
+  .mtop-back{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;border-radius:14px;padding:11px 13px;
+    cursor:pointer;font-family:var(--ff);border:none;background:var(--m-card);box-shadow:var(--m-sh)}
   .mtop-back:active{transform:scale(.97)}
-  .mtop-back svg{width:16px;height:16px;flex:0 0 16px;stroke:#8ff3ff;fill:none;stroke-width:2.6;
-    stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(0,229,255,.9))}
-  .mtop-back span{font-size:calc(12px*var(--fz));font-weight:800;letter-spacing:.03em;color:#fff;white-space:nowrap;
+  .mtop-back svg{width:15px;height:15px;flex:0 0 15px;stroke:var(--m-ink);fill:none;stroke-width:2.2;
+    stroke-linecap:round;stroke-linejoin:round}
+  .mtop-back span{font-size:calc(13px*var(--fz));font-weight:700;letter-spacing:-.2px;color:var(--m-ink);white-space:nowrap;
     overflow:hidden;text-overflow:ellipsis}
   .mtop-back.hide{display:none}
   /* saat di dalam modul, kolom Copilot mengecil jadi ikon saja */
@@ -1546,137 +1544,162 @@ body.rg-open{overflow:hidden}
   /* penanda geser dari tepi kiri */
   .mswipe-hint{display:grid;position:fixed;left:2px;top:50%;transform:translateY(-50%);z-index:115;pointer-events:none;
     width:34px;height:52px;border-radius:0 26px 26px 0;display:grid;place-items:center;opacity:0;transition:opacity .12s;
-    background:linear-gradient(135deg,rgba(10,124,255,.92),rgba(0,198,251,.92));color:#fff;font-size:calc(22px*var(--fz));font-weight:800;
-    box-shadow:0 4px 18px rgba(10,124,255,.5)}
-  .mtop-ask{flex:1;min-width:0;display:flex;align-items:center;gap:9px;border:1px solid rgba(150,235,255,.55);
-    border-radius:14px;padding:11px 14px;cursor:pointer;font-family:var(--ff);
-    background:linear-gradient(135deg,rgba(255,255,255,.22),rgba(255,255,255,.08));
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 0 18px rgba(0,214,255,.28)}
-  .mtop-ask svg{width:17px;height:17px;flex:0 0 17px;color:#8ff3ff;filter:drop-shadow(0 0 5px rgba(0,229,255,.9))}
-  .mtop-ask span{font-size:calc(11.5px*var(--fz));font-weight:800;letter-spacing:.07em;color:#fff;white-space:nowrap;
-    overflow:hidden;text-overflow:ellipsis;text-shadow:0 0 8px rgba(0,200,255,.5)}
-  .mtop-ic{position:relative;flex:0 0 44px;width:44px;height:44px;border-radius:14px;font-size:calc(18px*var(--fz));cursor:pointer;
-    border:1px solid rgba(150,235,255,.5);color:#fff;
-    background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.06));
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 14px rgba(0,214,255,.24)}
+    background:var(--m-navy);color:#fff;font-size:calc(22px*var(--fz));font-weight:800;
+    box-shadow:0 6px 18px rgba(11,36,71,.35)}
+  .mtop-ask{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:none;
+    border-radius:14px;padding:12px 14px;cursor:pointer;font-family:var(--ff);
+    background:var(--m-card);box-shadow:var(--m-sh)}
+  .mtop-ask:active{transform:scale(.99)}
+  .mtop-ask svg{width:17px;height:17px;flex:0 0 17px;stroke:var(--m-blue);fill:none;stroke-width:1.7;
+    stroke-linecap:round;stroke-linejoin:round}
+  .mtop-ask span{font-size:calc(14px*var(--fz));font-weight:400;letter-spacing:0;color:var(--m-fai);white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  .mtop-ic{position:relative;flex:0 0 40px;width:40px;height:40px;border-radius:999px;cursor:pointer;
+    border:none;background:var(--m-card);box-shadow:var(--m-sh);display:grid;place-items:center;padding:0}
+  .mtop-ic svg{width:19px;height:19px;stroke:var(--m-ink);fill:none;stroke-width:1.7;
+    stroke-linecap:round;stroke-linejoin:round}
   .mtop-ic:active{transform:scale(.94)}
-  .mtop-bdg{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;border-radius:10px;background:#ff2d55;
-    color:#fff;font-size:calc(10px*var(--fz));font-weight:800;font-style:normal;display:grid;place-items:center;padding:0 5px;
-    box-shadow:0 0 10px rgba(255,45,85,.7)}
+  .mtop-bdg{position:absolute;top:5px;right:6px;min-width:16px;height:16px;border-radius:99px;background:#D92D20;
+    color:#fff;font-size:calc(10px*var(--fz));font-weight:700;font-style:normal;display:grid;place-items:center;padding:0 4px;
+    border:1.5px solid var(--m-bg)}
   .mtop-bdg.hide{display:none}
   /* Top bar bawaan desktop TIDAK dipakai di mobile — semua halaman, bukan hanya Beranda */
   .top{display:none!important}
-  /* Halaman login juga menembus notch: beri strip biru di area status bar supaya
-     jam & baterai (teks putih) tetap terbaca, dan isi form tidak tertutup notch. */
+  /* Halaman login: isi form tetap turun dari notch. Strip warna tidak diperlukan
+     lagi — status bar kini bergaya "default" (teks gelap di atas latar terang). */
   .login-screen{padding-top:calc(22px + env(safe-area-inset-top))}
-  .login-screen::after{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);
-    background:linear-gradient(135deg,#032b6b,#0a4fd0);z-index:2;pointer-events:none}
   /* Drawer & form juga mulai di bawah notch */
   .ovl .drawer{padding-top:env(safe-area-inset-top)}
   .rg-ovl{padding-top:calc(20px + env(safe-area-inset-top))}
   /* Kartu tombol layanan di modul Services disembunyikan — sudah ada di bottom bar */
   .ga-svc-panel{display:none!important}
+  /* Badge zona master data: white-space:nowrap membuatnya tidak bisa mengalah,
+     sehingga mendorong seluruh halaman melebar di layar 375px. Baru ketahuan
+     setelah huruf dinaikkan 12% (320px → 355px, dan HSE 345px → 384px).
+     Di mobile dibuat boleh turun baris + memakai chip tenang sesuai desain. */
+  .db-zone-badge{white-space:normal;max-width:100%;letter-spacing:.02em;
+    font-size:calc(10.5px*var(--fz));padding:5px 11px;
+    background:var(--m-chipbg);color:var(--m-chipfg);box-shadow:none}
   /* Drawer/form harus DI ATAS top bar neon (dulu z-index 50 < 60 → form Overtime tertutup) */
   .ovl{z-index:120}
   .sodoc-ovl{z-index:400}
 
-  /* ── BERANDA ── */
-  .mh-hirow{display:flex;align-items:flex-start;gap:12px;margin:2px 0 14px}
-  .mh-hi{flex:1;min-width:0;font-size:calc(15px*var(--fz));color:var(--ink)}
-  .mh-hi b{font-weight:800}
-  .mh-hi span{display:block;font-size:calc(11px*var(--fz));color:var(--muted);font-weight:600;margin-top:1px}
-  /* ikon di samping nama: keluar aplikasi (+ Cloud & Backup utk kelompok Super) */
-  .mh-ico{vertical-align:middle;margin-left:7px;width:28px;height:28px;border-radius:9px;border:1px solid var(--line);
-    background:#fff;cursor:pointer;font-size:calc(13px*var(--fz));line-height:1;display:inline-grid;place-items:center;padding:0}
+  /* ── BERANDA ──
+     Baris sapaan mengikuti desain: kotak inisial navy, tanggal kecil di atas
+     nama besar, lalu tombol-tombol bulat putih di kanan. */
+  .mh-hirow{display:flex;align-items:center;gap:12px;margin:6px 0 18px}
+  .mh-av{flex:0 0 44px;width:44px;height:44px;border-radius:14px;background:var(--m-navy);color:#fff;
+    display:grid;place-items:center;font-size:calc(15px*var(--fz));font-weight:700;letter-spacing:.5px}
+  .mh-hi{flex:1;min-width:0}
+  .mh-hi b{display:block;font-size:calc(18px*var(--fz));font-weight:700;color:var(--m-ink);letter-spacing:-.3px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mh-hi span{display:block;font-size:calc(12.5px*var(--fz));color:var(--m-mut);font-weight:400;margin-bottom:1px}
+  /* tombol bulat di kanan sapaan: keluar aplikasi (+ Cloud & Backup utk pemilik) */
+  .mh-ico{flex:0 0 40px;width:40px;height:40px;border-radius:999px;border:none;
+    background:var(--m-card);box-shadow:var(--m-sh);cursor:pointer;display:grid;place-items:center;padding:0;
+    color:var(--m-ink)}
   .mh-ico:active{transform:scale(.92)}
-  .mh-ico svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  .mh-exit{color:var(--red);border-color:#f3c9c9;background:#fef4f4}
-  .mh-date{flex:0 0 auto;text-align:right;line-height:1.3}
-  .mh-date b{display:block;font-size:calc(12px*var(--fz));font-weight:800;color:#0a4bb8}
-  .mh-date span{font-size:calc(10.5px*var(--fz));color:var(--muted);font-weight:600}
+  .mh-ico svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .mh-exit{color:#B42318}
+  .mh-date{display:none}
   /* Ikon modul — 4 kolom × 2 baris per halaman, digeser mendatar antar halaman */
   .mh-modwrap{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
     margin:0 -11px 6px;padding:0 11px;scrollbar-width:none}
   .mh-modwrap::-webkit-scrollbar{display:none}
   .mh-modpage{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:repeat(4,1fr);
-    grid-auto-rows:1fr;gap:9px;padding-right:11px;box-sizing:border-box}
+    grid-auto-rows:1fr;gap:8px;padding-right:11px;box-sizing:border-box}
+  /* Tinggi mengikuti isi (min 86px), bukan dipatok 82px: label desain 11px yang
+     turun dua baris — "Building & Utility", "HSE & Sustainability" — terpotong
+     3px kalau tingginya dikunci. grid-auto-rows:1fr tetap menyamakan tiap baris. */
   .mh-mod{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;
-    height:82px;padding:12px 4px 8px;border:1px solid var(--line);border-radius:15px;
-    background:linear-gradient(160deg,#fff,#f2f9ff);cursor:pointer;font-family:var(--ff);
-    box-shadow:0 2px 9px rgba(10,124,255,.08)}
+    min-height:86px;padding:13px 5px 11px;border:none;border-radius:16px;
+    background:var(--m-card);cursor:pointer;font-family:var(--ff);box-shadow:var(--m-sh)}
   .mh-mod:active{transform:scale(.95)}
-  .mh-mic{position:relative;width:26px;height:26px;flex:0 0 26px;display:grid;place-items:center}
-  .mh-mic svg{width:24px;height:24px;stroke:#0a5fd0;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-  .mh-mbdg{position:absolute;top:-7px;right:-11px;min-width:16px;height:16px;border-radius:8px;background:var(--red);
-    color:#fff;font-size:calc(9px*var(--fz));font-weight:800;font-style:normal;display:grid;place-items:center;padding:0 4px}
-  .mh-mod em{font-style:normal;font-size:calc(9px*var(--fz));font-weight:700;color:var(--text);text-align:center;line-height:1.2;
+  .mh-mic{position:relative;width:24px;height:24px;flex:0 0 24px;display:grid;place-items:center}
+  .mh-mic svg{width:21px;height:21px;stroke:var(--m-blue);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .mh-mbdg{position:absolute;top:-7px;right:-11px;min-width:17px;height:17px;border-radius:99px;background:#D92D20;
+    color:#fff;font-size:calc(10.5px*var(--fz));font-weight:700;font-style:normal;display:grid;place-items:center;padding:0 4px}
+  .mh-mod em{font-style:normal;font-size:calc(11px*var(--fz));font-weight:600;color:var(--m-sub);text-align:center;line-height:1.2;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .mh-dots{display:flex;justify-content:center;gap:6px;margin-bottom:16px}
-  .mh-dots i{width:6px;height:6px;border-radius:50%;background:#cfdbe9;transition:.2s}
-  .mh-dots i.on{width:18px;border-radius:4px;background:var(--blue)}
-  .mh-sec{margin-bottom:16px}
-  .mh-sh{display:flex;align-items:baseline;gap:8px;margin-bottom:9px}
-  .mh-sh b{font-size:calc(14px*var(--fz));color:var(--ink)}
-  .mh-sh span{font-size:calc(10.5px*var(--fz));color:var(--muted)}
-  .mh-csv{margin-left:auto;border:1px solid rgba(10,124,255,.3);background:rgba(10,124,255,.07);color:#0a4bb8;
-    font-family:var(--ff);font-size:calc(10.5px*var(--fz));font-weight:700;padding:4px 10px;border-radius:8px;cursor:pointer}
-  /* Daftar order & SO — bergaya baris seperti desktop, klik untuk lihat perjalanan */
-  .mh-list{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
-  .mh-row{display:flex;gap:10px;align-items:flex-start;padding:12px 13px;border-bottom:1px solid var(--line);cursor:pointer}
-  .mh-row:last-child{border-bottom:none}
-  .mh-row:active{background:#f4f9ff}
-  .mh-rpip{flex:0 0 8px;width:8px;height:8px;border-radius:50%;margin-top:5px;background:#9aa7b8}
-  .mh-rpip.k-complaint{background:#2563eb} .mh-rpip.k-room{background:#15803d}
-  .mh-rpip.k-transport{background:#c2740a} .mh-rpip.k-overtime{background:#7a4fd0}
-  .mh-rmain{flex:1;min-width:0}
-  .mh-rtop{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .mh-rtop b{font-size:calc(11.5px*var(--fz));font-weight:800;color:var(--blue);font-variant-numeric:tabular-nums}
-  .mh-okind{display:inline-block;font-size:calc(8.5px*var(--fz));font-weight:800;letter-spacing:.03em;padding:2px 7px;border-radius:20px}
-  .k-complaint{background:#eef4ff;color:#2563eb} .k-room{background:#e9f8ef;color:#15803d}
-  .k-transport{background:#fdf3e3;color:#c2740a} .k-overtime{background:#f3eefe;color:#7a4fd0}
-  .k-so{background:#e7f6ff;color:#0a6ad6}
-  .mh-rj{font-size:calc(13px*var(--fz));font-weight:700;color:var(--ink);margin-top:3px;line-height:1.35;overflow-wrap:anywhere}
-  .mh-rd{font-size:calc(10.5px*var(--fz));color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
-  .mh-rright{flex:0 0 auto;text-align:right;max-width:112px}
-  .mh-rright b{display:block;font-size:calc(10.5px*var(--fz));font-weight:800;line-height:1.3;overflow-wrap:anywhere}
-  .mh-rright span{font-size:calc(9.5px*var(--fz));color:#9aa7b8}
-  .mh-empty{font-size:calc(11.5px*var(--fz));color:var(--muted);text-align:center;padding:22px 14px;border:1px dashed var(--line);
-    border-radius:14px;background:#fbfdff}
+  .mh-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
+  .mh-dots i{width:6px;height:6px;border-radius:50%;background:#D3D8E0;transition:.2s}
+  .mh-dots i.on{width:18px;border-radius:4px;background:var(--m-navy)}
+  .mh-sec{margin-bottom:20px}
+  .mh-sh{display:flex;align-items:baseline;gap:8px;margin:0 2px 10px}
+  .mh-sh b{font-size:calc(15px*var(--fz));font-weight:700;color:var(--m-ink);letter-spacing:-.2px}
+  .mh-sh span{font-size:calc(12.5px*var(--fz));color:var(--m-mut)}
+  .mh-csv{margin-left:auto;border:none;background:transparent;color:var(--m-blue);
+    font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:600;padding:2px 0;cursor:pointer}
+  /* Daftar order & SO — tiap baris jadi kartu putih sendiri, seperti desain:
+     nomor & tanggal di baris atas, judul tebal, lalu chip + keterangan + panah. */
+  .mh-list{display:flex;flex-direction:column;gap:8px}
+  .mh-row{display:block;padding:13px 14px;border-radius:16px;background:var(--m-card);
+    box-shadow:var(--m-sh);cursor:pointer}
+  .mh-row:active{transform:scale(.995);background:#FAFBFD}
+  .mh-rpip{display:none}
+  .mh-rhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:2px}
+  .mh-rhead b{font-size:calc(11.5px*var(--fz));font-weight:600;color:var(--m-fai);font-variant-numeric:tabular-nums}
+  .mh-rhead i{font-style:normal;font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--m-ink);
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  .mh-rj{font-size:calc(14.5px*var(--fz));font-weight:600;color:var(--m-ink);letter-spacing:-.2px;
+    line-height:1.35;margin-bottom:8px;overflow-wrap:anywhere}
+  .mh-rfoot{display:flex;align-items:center;gap:8px}
+  .mh-okind{flex:0 0 auto;font-size:calc(11px*var(--fz));font-weight:600;padding:3.5px 9px;border-radius:99px;white-space:nowrap}
+  .k-complaint{background:var(--m-chipbg);color:var(--m-chipfg)} .k-room{background:#E3F3EC;color:#12805C}
+  .k-transport{background:#FBEED7;color:#B45309} .k-overtime{background:#F1EBFC;color:#6941C6}
+  .k-so{background:var(--m-chipbg);color:var(--m-chipfg)}
+  .mh-rd{flex:1;min-width:0;font-size:calc(12px*var(--fz));color:var(--m-mut);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mh-rchev{flex:0 0 7px;width:7px;height:12px;stroke:#C6CBD4;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  /* pips 5 tahap SO di dalam kartu — beri jarak ke baris chip di bawahnya */
+  .mh-row .mini{margin:0 0 9px}
+  .mh-row .mini i{box-shadow:none}
+  .mh-rright{display:none}
+  .mh-empty{font-size:calc(13.5px*var(--fz));color:var(--m-fai);text-align:center;padding:40px 20px;
+    border-radius:16px;background:var(--m-card);box-shadow:var(--m-sh)}
   /* Papan GA Calendar — acara ruangan besar 3 hari ke depan (bukan tautan) */
-  .mh-kal{display:flex;flex-direction:column;gap:10px}
-  .mh-kday{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
-  .mh-kdh{display:flex;align-items:baseline;gap:8px;padding:9px 12px;background:linear-gradient(135deg,#eef5ff,#f7fbff);
-    border-bottom:1px solid var(--line)}
-  .mh-kdh b{font-size:calc(12.5px*var(--fz));color:#0a4bb8}
-  .mh-kdh span{font-size:calc(10.5px*var(--fz));color:var(--muted)}
-  .mh-kdh i{margin-left:auto;font-style:normal;font-size:calc(9.5px*var(--fz));font-weight:700;color:#9aa7b8}
-  .mh-kev{display:flex;gap:11px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line)}
-  .mh-kev:last-child{border-bottom:none}
-  .mh-kev.live{background:linear-gradient(90deg,rgba(21,163,74,.07),transparent 60%)}
-  .mh-kjam{flex:0 0 46px;font-size:calc(11.5px*var(--fz));font-weight:800;color:var(--blue);line-height:1.25;
-    border-right:1px solid var(--line);padding-right:9px}
-  .mh-kjam small{display:block;font-size:calc(9.5px*var(--fz));font-weight:600;color:#9aa7b8}
+  .mh-kal{display:flex;flex-direction:column;gap:8px}
+  .mh-kday{border:none;border-radius:16px;background:var(--m-card);box-shadow:var(--m-sh);overflow:hidden}
+  .mh-kdh{display:flex;align-items:baseline;gap:8px;padding:12px 14px 6px}
+  .mh-kdh b{font-size:calc(13px*var(--fz));font-weight:700;color:var(--m-ink);letter-spacing:-.2px}
+  .mh-kdh span{font-size:calc(11.5px*var(--fz));color:var(--m-fai)}
+  .mh-kdh i{margin-left:auto;font-style:normal;font-size:calc(11px*var(--fz));font-weight:600;color:var(--m-fai)}
+  .mh-kev{display:flex;gap:11px;align-items:center;padding:9px 14px;border-top:1px solid var(--m-line)}
+  .mh-kjam{flex:0 0 44px;font-size:calc(12px*var(--fz));font-weight:700;color:var(--m-ink);line-height:1.3;
+    font-variant-numeric:tabular-nums}
+  .mh-kjam small{display:block;font-size:calc(11px*var(--fz));font-weight:400;color:var(--m-fai)}
   .mh-kt{flex:1;min-width:0}
-  .mh-ktj{font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--ink);line-height:1.3;overflow-wrap:anywhere}
-  .mh-ktm{font-size:calc(10.5px*var(--fz));color:var(--muted);margin-top:1px;overflow-wrap:anywhere}
-  .mh-klive{flex:0 0 auto;font-size:calc(8.5px*var(--fz));font-weight:900;letter-spacing:.05em;color:#fff;background:var(--green);
-    border-radius:20px;padding:3px 7px}
-  .mh-knone{padding:12px;text-align:center;font-size:calc(11px*var(--fz));color:#9aa7b8}
-  .mh-knote{font-size:calc(10.5px*var(--fz));color:var(--muted);margin-top:8px;text-align:center}
+  .mh-ktj{font-size:calc(13.5px*var(--fz));font-weight:500;color:var(--m-ink);line-height:1.3;overflow-wrap:anywhere}
+  .mh-ktm{font-size:calc(11.5px*var(--fz));color:var(--m-fai);margin-top:1px;overflow-wrap:anywhere}
+  .mh-klive{flex:0 0 auto;font-size:calc(10px*var(--fz));font-weight:700;letter-spacing:.4px;color:#12805C;background:#E3F3EC;
+    border-radius:99px;padding:3.5px 8px}
+  .mh-knone{padding:12px 14px 14px;font-size:calc(12.5px*var(--fz));color:var(--m-fai)}
+  .mh-knote{font-size:calc(11px*var(--fz));color:var(--m-fai);margin-top:10px;text-align:center}
 
-  /* ── BOTTOM BAR ── */
+  /* ── BOTTOM BAR ──
+     Kaca buram di atas latar, garis rambut di tepi atas, ikon garis. Tombol
+     tengah diangkat jadi lingkaran navy — aksi utama (buat tiket Complaint). */
   .mbot{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;position:fixed;left:0;right:0;bottom:0;z-index:70;
-    padding:7px 6px calc(7px + env(safe-area-inset-bottom));
-    background:rgba(255,255,255,.9);backdrop-filter:blur(16px) saturate(1.6);-webkit-backdrop-filter:blur(16px) saturate(1.6);
-    border-top:1px solid rgba(255,255,255,.85);box-shadow:0 -6px 24px rgba(20,40,80,.12)}
-  .mbot button{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;
-    font-family:var(--ff);cursor:pointer;padding:4px 2px;border-radius:11px}
-  .mbot button:active{background:rgba(10,124,255,.09)}
-  .mbot span{font-size:calc(19px*var(--fz));line-height:1}
-  .mbot i{font-style:normal;font-size:calc(9px*var(--fz));font-weight:700;color:var(--muted)}
-  body.on-mhome .mbot #mbHome i{color:var(--blue)}
+    align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(249,250,252,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-top:1px solid var(--m-line);box-shadow:none}
+  .mbot button{display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:transparent;
+    font-family:var(--ff);cursor:pointer;padding:4px 2px;border-radius:11px;position:relative}
+  .mbot button:active{opacity:.6}
+  .mbot span{display:grid;place-items:center;line-height:1}
+  .mbot span svg{width:22px;height:22px;stroke:var(--m-fai);fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round}
+  .mbot i{font-style:normal;font-size:calc(10px*var(--fz));font-weight:600;color:var(--m-fai)}
+  /* tab aktif */
+  body.on-mhome .mbot #mbHome i{color:var(--m-navy)}
+  body.on-mhome .mbot #mbHome span svg{stroke:var(--m-navy)}
+  /* tombol utama yang menonjol di tengah */
+  .mbot .mb-fab{padding:0;justify-content:center}
+  .mbot .mb-fab span{width:50px;height:50px;border-radius:999px;background:var(--m-navy);margin-top:-22px;
+    box-shadow:0 8px 18px rgba(11,36,71,.35)}
+  .mbot .mb-fab span svg{width:22px;height:22px;stroke:#fff;stroke-width:2}
+  .mbot .mb-fab i{display:none}
+  .mbot .mb-fab:active span{transform:scale(.94)}
 }
 @media(prefers-reduced-motion:reduce){.mtop-glow{animation:none}}
 /* ── Halaman Overtime — pilih jenis lalu isi form ── */
@@ -2420,8 +2443,6 @@ html,body{max-width:100%}
 <!-- ══ TOP BAR MOBILE — electric blue neon, futuristik.
      HARUS di luar .app (yang display:flex) — kalau di dalam, ia jadi kolom di samping. ══ -->
 <div class="mtop" id="mTop">
-  <div class="mtop-glow"></div>
-  <div class="mtop-grid"></div>
   <div class="mtop-in">
     <div class="mtop-row">
       <button class="mtop-back hide" id="mBackBtn" onclick="mBack()">
@@ -2429,11 +2450,14 @@ html,body{max-width:100%}
         <span id="mBackTxt">Kembali</span>
       </button>
       <button class="mtop-ask" id="mAskBtn" onclick="openCopilot()">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/></svg>
-        <span>ASK AGAVA COPILOT</span>
+        <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
+        <span>Tanya AGAVA Copilot…</span>
       </button>
-      <button class="mtop-ic" id="mRoleBtn" onclick="mRoleGo()" title="—"><span id="mRoleIc">📋</span><i class="mtop-bdg hide" id="mRoleBdg">0</i></button>
-      <button class="mtop-ic" onclick="go('reminder')" title="Reminder">🔔<i class="mtop-bdg hide" id="mBellBdg">0</i></button>
+      <button class="mtop-ic" id="mRoleBtn" onclick="mRoleGo()" title="—"><span id="mRoleIc"></span><i class="mtop-bdg hide" id="mRoleBdg">0</i></button>
+      <button class="mtop-ic" onclick="go('reminder')" title="Reminder">
+        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <i class="mtop-bdg hide" id="mBellBdg">0</i>
+      </button>
     </div>
   </div>
 </div>
@@ -2507,13 +2531,7 @@ html,body{max-width:100%}
 <div class="mswipe-hint" id="mSwipeHint">‹</div>
 
 <!-- ══ BOTTOM BAR MOBILE — akses cepat 4 layanan ══ -->
-<div class="mbot" id="mBot">
-  <button onclick="mGoHome()" id="mbHome"><span>🏠</span><i>Home</i></button>
-  <button onclick="go('createticket')"><span>🎫</span><i>Complaint</i></button>
-  <button onclick="go('roombook')"><span>🏢</span><i>Room</i></button>
-  <button onclick="go('transport')"><span>🚗</span><i>Transport</i></button>
-  <button onclick="go('overtime')"><span>⏱️</span><i>Overtime</i></button>
-</div>
+<div class="mbot" id="mBot"></div>
 
 <!-- DRAWER -->
 <div class="ovl" id="ovl" onclick="if(event.target.id==='ovl')closeDrawer()">
@@ -5975,10 +5993,10 @@ function mobileModLabel(m){
 /* ikon peran di top bar: Approval / Assigned SO / My Tickets sesuai role */
 function mRoleTarget(){
  var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
- if(menus.indexOf("myticket")>=0) return {id:"myticket", ic:"🎫", t:"My Tickets", n:(function(){ var me=fieldOpName(); return TICKETS.filter(function(x){return x.pic===me&&(x.stg||0)<3;}).length; })()};
- if(menus.indexOf("assigned")>=0 && gRole==="staff") return {id:"assigned", ic:"💼", t:"Assigned SO", n:(function(){ var me=(gUser&&gUser.name)||""; return SO.filter(function(s){return (s.staffPIC||s.pic)===me&&s.apprDept==="Approved"&&(s.wstep||0)<4;}).length; })()};
- if(menus.indexOf("approvals")>=0) return {id:"approvals", ic:"📋", t:"Approvals", n:pendingApprovals().length+(isSuper()?escalatedTickets().length+OVERTIME_REQ.filter(function(o){return (o.status||"Diajukan")==="Diajukan";}).length:0)};
- return {id:"service", ic:"🎧", t:"Services", n:0};
+ if(menus.indexOf("myticket")>=0) return {id:"myticket", ic:"🎫", sv:"ticket", t:"My Tickets", n:(function(){ var me=fieldOpName(); return TICKETS.filter(function(x){return x.pic===me&&(x.stg||0)<3;}).length; })()};
+ if(menus.indexOf("assigned")>=0 && gRole==="staff") return {id:"assigned", ic:"💼", sv:"bag", t:"Assigned SO", n:(function(){ var me=(gUser&&gUser.name)||""; return SO.filter(function(s){return (s.staffPIC||s.pic)===me&&s.apprDept==="Approved"&&(s.wstep||0)<4;}).length; })()};
+ if(menus.indexOf("approvals")>=0) return {id:"approvals", ic:"📋", sv:"shield", t:"Approvals", n:pendingApprovals().length+(isSuper()?escalatedTickets().length+OVERTIME_REQ.filter(function(o){return (o.status||"Diajukan")==="Diajukan";}).length:0)};
+ return {id:"service", ic:"🎧", sv:"head", t:"Services", n:0};
 }
 function mRoleGo(){ go(mRoleTarget().id); }
 function mHomeId(){ return gRole==="fieldops"?"fieldops":"mhome"; }
@@ -6053,22 +6071,42 @@ function mHistoryInit(){
  });
 }
 /* Bottom bar berbeda untuk operator lapangan: Home · Complaint (pantau) · My Tickets */
+/* Ikon garis untuk cangkang mobile — sengaja bukan emoji, supaya seragam dengan
+   ikon modul yang juga garis. Semua digambar di viewBox 24 dengan stroke saja. */
+const MIC={
+ home:'<path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ room:'<path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M10 21v-5h4v5"/>',
+ car:'<path d="M5 17h14M6.5 17V10l1.7-3.6a1 1 0 0 1 .9-.6h5.8a1 1 0 0 1 .9.6L17.5 10v7"/><path d="M6.5 10h11"/><circle cx="8.5" cy="17" r="1.5"/><circle cx="15.5" cy="17" r="1.5"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+ head:'<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><path d="M4 13h2.5v5H5a1 1 0 0 1-1-1zM20 13h-2.5v5H19a1 1 0 0 0 1-1z"/>',
+ ticket:'<path d="M4 9V7a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a2.5 2.5 0 0 0 0 6v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a2.5 2.5 0 0 0 0-6z"/><path d="M13 6v12"/>',
+ shield:'<path d="M9 12l2 2 4-5"/><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"/>',
+ bag:'<path d="M4 8h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>'
+};
+function micSvg(k){ return '<svg viewBox="0 0 24 24">'+(MIC[k]||MIC.ticket)+'</svg>'; }
+function mBotBtn(nav,ikon,label,id){
+ return '<button onclick="'+nav+'"'+(id?' id="'+id+'"':'')+'><span>'+micSvg(ikon)+'</span><i>'+label+'</i></button>';
+}
 function mBotSync(){
  var bar=document.getElementById("mBot"); if(!bar)return;
  if(gRole==="fieldops"){
+   /* Operator lapangan tidak membuat tiket — tidak ada tombol tengah di sini. */
    bar.style.gridTemplateColumns="repeat(3,1fr)";
    bar.innerHTML=
-     '<button onclick="mGoHome()" id="mbHome"><span>🏠</span><i>Home</i></button>'+
-     '<button onclick="go(\'service\')"><span>🎧</span><i>Complaint</i></button>'+
-     '<button onclick="go(\'myticket\')"><span>🎫</span><i>Tiket Saya</i></button>';
+     mBotBtn("mGoHome()","home","Home","mbHome")+
+     mBotBtn("go('service')","head","Complaint")+
+     mBotBtn("go('myticket')","ticket","Tiket Saya");
  } else {
+   /* Complaint Handling naik jadi tombol utama di tengah — aksi paling sering. */
    bar.style.gridTemplateColumns="repeat(5,1fr)";
    bar.innerHTML=
-     '<button onclick="mGoHome()" id="mbHome"><span>🏠</span><i>Home</i></button>'+
-     '<button onclick="go(\'createticket\')"><span>🎫</span><i>Complaint</i></button>'+
-     '<button onclick="go(\'roombook\')"><span>🏢</span><i>Room</i></button>'+
-     '<button onclick="go(\'transport\')"><span>🚗</span><i>Transport</i></button>'+
-     '<button onclick="go(\'overtime\')"><span>⏱️</span><i>Overtime</i></button>';
+     mBotBtn("mGoHome()","home","Home","mbHome")+
+     mBotBtn("go('roombook')","room","Room")+
+     '<button class="mb-fab" onclick="go(\'createticket\')" title="Buat tiket Complaint Handling">'+
+       '<span>'+micSvg("plus")+'</span><i>Complaint</i></button>'+
+     mBotBtn("go('transport')","car","Transport")+
+     mBotBtn("go('overtime')","clock","Overtime");
  }
 }
 function mTopSync(){
@@ -6081,7 +6119,7 @@ function mTopSync(){
  if(tm)tm.textContent=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
  var r=mRoleTarget();
  var ic=document.getElementById("mRoleIc"), bt=document.getElementById("mRoleBtn"), bd=document.getElementById("mRoleBdg");
- if(ic)ic.textContent=r.ic; if(bt)bt.title=r.t;
+ if(ic)ic.innerHTML=micSvg(r.sv||"ticket"); if(bt)bt.title=r.t;
  if(bd){ bd.textContent=r.n; bd.classList.toggle("hide",!r.n); }
  var bb=document.getElementById("mBellBdg"), src=document.getElementById("bellBadge");
  if(bb&&src){ bb.textContent=src.textContent; bb.classList.toggle("hide",src.classList.contains("hide")); }
@@ -6109,6 +6147,8 @@ function isBigRoom(nama,pax){
 }
 /* Tanggal lokal — jangan pakai toISOString(), di WIB (UTC+7) hasilnya mundur satu hari */
 function ymdLokal(d){ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2); }
+/* Panah kecil di ujung kanan kartu — penanda "bisa dibuka", seperti di desain */
+function mhChev(){ return '<svg class="mh-rchev" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6"/></svg>'; }
 /* Papan GA Calendar di Beranda — acara ruangan besar untuk 3 hari ke depan */
 function mhKalenderHTML(){
  var hari=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
@@ -6185,13 +6225,14 @@ function renderMobileHome(){
  var ord=myOrders();
  var listOrder=ord.length?'<div class="mh-list">'+ord.map(function(o){
    return '<div class="mh-row" onclick="orderOpen(\''+o.kind+'\',\''+esc(o.no)+'\')">'+
-     '<span class="mh-rpip k-'+o.kind+'"></span>'+
-     '<div class="mh-rmain">'+
-       '<div class="mh-rtop"><b>'+esc(o.no)+'</b><span class="mh-okind k-'+o.kind+'">'+esc(ORDER_LABEL[o.kind])+'</span></div>'+
-       '<div class="mh-rj">'+esc(o.judul||"")+'</div>'+
-       '<div class="mh-rd">'+esc(o.detail||"")+'</div>'+
+     '<div class="mh-rhead"><b>'+esc(o.no)+'</b><i>'+esc(o.tgl||"")+'</i></div>'+
+     '<div class="mh-rj">'+esc(o.judul||"")+'</div>'+
+     '<div class="mh-rfoot">'+
+       '<span class="mh-okind k-'+o.kind+'">'+esc(ORDER_LABEL[o.kind])+'</span>'+
+       '<span class="mh-rd" style="color:'+o.warna+'">'+esc(o.status)+
+         (o.detail?' · <span style="color:var(--m-mut)">'+esc(o.detail)+'</span>':'')+'</span>'+
+       mhChev()+
      '</div>'+
-     '<div class="mh-rright"><b style="color:'+o.warna+'">'+esc(o.status)+'</b><span>'+esc(o.tgl||"")+'</span></div>'+
    '</div>';
  }).join("")+'</div>':'<div class="mh-empty">Belum ada order. Gunakan tombol layanan di bawah untuk mengajukan.</div>';
  /* ── SO SAYA — daftar, klik untuk lihat Lifecycle Journey SO ── */
@@ -6204,13 +6245,14 @@ function renderMobileHome(){
      (mySO.length?'<div class="mh-list">'+mySO.map(function(s){
         var st=soStatusLabel(s);
         return '<div class="mh-row" onclick="openDrawer(\''+esc(s.no)+'\')">'+
-          '<span class="mh-rpip" style="background:'+soPip(s)+'"></span>'+
-          '<div class="mh-rmain"><div class="mh-rtop"><b>'+esc(s.no)+'</b>'+
-            '<span class="mh-okind k-so">'+esc(s.kategori||"SO")+'</span></div>'+
-            '<div class="mh-rj">'+esc(s.item||"")+'</div>'+
-            '<div class="mh-rd">'+esc(s.lokasi||"")+' · Rp '+s.nilai+' M</div>'+
-            soMiniPips(s)+'</div>'+
-          '<div class="mh-rright"><b>'+esc(st.t)+'</b><span>'+esc(s.jenis||"")+'</span></div></div>';
+          '<div class="mh-rhead"><b>'+esc(s.no)+'</b><i>Rp '+esc(String(s.nilai))+' M</i></div>'+
+          '<div class="mh-rj">'+esc(s.item||"")+'</div>'+
+          soMiniPips(s)+
+          '<div class="mh-rfoot">'+
+            '<span class="mh-okind k-so">'+esc(st.t)+'</span>'+
+            '<span class="mh-rd">'+esc(s.lokasi||"")+(s.jenis?' · '+esc(s.jenis):"")+'</span>'+
+            mhChev()+
+          '</div></div>';
       }).join("")+'</div>':'<div class="mh-empty">Belum ada SO yang Anda buat.</div>')+'</div>';
  }
  /* ── GA CALENDAR di Beranda — HANYA papan info: acara di RUANGAN BESAR,
@@ -6220,14 +6262,19 @@ function renderMobileHome(){
  var d=new Date();
  var hari=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][d.getDay()];
  var bulan=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][d.getMonth()];
+ var nama=(gUser&&gUser.name)||"";
+ var inisial=nama.split(/\s+/).filter(Boolean).map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();
+ var depan=nama.split(/\s+/)[0]||"";
  el.innerHTML=
   '<div class="mh-hirow">'+
-    '<div class="mh-hi">Halo, <b>'+esc((gUser&&gUser.name)||"")+'</b>'+
-      (isOwner()?'<button class="mh-ico" onclick="agavaCloudPanel()" title="Cloud &amp; Backup">☁️</button>':'')+
-      '<button class="mh-ico mh-exit" onclick="agavaLogout()" title="Keluar dari aplikasi">'+
-        '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>'+
-      '<span>'+esc(roleTitle(gUser||{role:gRole}))+'</span></div>'+
-    '<div class="mh-date"><b>'+hari+'</b><span>'+d.getDate()+' '+bulan+' '+d.getFullYear()+'</span></div>'+
+    '<div class="mh-av">'+esc(inisial)+'</div>'+
+    '<div class="mh-hi">'+
+      '<span>'+hari+', '+d.getDate()+' '+bulan+' '+d.getFullYear()+'</span>'+
+      '<b>Halo, '+esc(depan)+'</b></div>'+
+    (isOwner()?'<button class="mh-ico" onclick="agavaCloudPanel()" title="Cloud &amp; Backup">'+
+      '<svg viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.1 11.2 3.5 3.5 0 0 0 6.5 19z"/></svg></button>':'')+
+    '<button class="mh-ico mh-exit" onclick="agavaLogout()" title="Keluar dari aplikasi">'+
+      '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>'+
   '</div>'+
   ikon+
   '<div class="mh-sec"><div class="mh-sh"><b>📦 My Service Order</b><span>'+ord.length+' order</span>'+
@@ -6994,17 +7041,20 @@ function otRiwayatHTML(mine){
      '<div class="panel-t" style="margin:0">Riwayat Overtime Saya</div>'+
      '<span class="muted small">'+mine.length+' pengajuan</span>'+
      '<button class="btn-out" style="margin-left:auto;padding:6px 11px;font-size:calc(12px*var(--fz))" onclick="exportLog(\'overtime\')">⬇ CSV</button></div>'+
-   '<div class="mh-list" style="border:none;border-radius:0">'+mine.map(function(o){
+   '<div class="mh-list" style="padding:0 14px 14px">'+mine.map(function(o){
      var st=o.status||"Diajukan";
-     var c=st==="Disetujui"?"var(--green)":st==="Ditolak"?"var(--red)":"#c2740a";
-     return '<div class="mh-row" style="cursor:default"><span class="mh-rpip k-overtime"></span>'+
-       '<div class="mh-rmain"><div class="mh-rtop"><b>'+esc(o.no)+'</b>'+
-         '<span class="mh-okind k-overtime">'+esc(otJenis(o.jenis).nama)+'</span></div>'+
-         '<div class="mh-rj">'+esc(o.desc||o.alasan||"")+'</div>'+
-         '<div class="mh-rd">'+esc(o.tgl)+' · '+esc(o.mulai)+'–'+esc(o.selesai)+' · '+esc(o.lokasi||"")+
-           (o.ruang?' · '+esc(o.ruang):'')+(o.pax>0?' · '+o.pax+' personel':'')+'</div></div>'+
-       '<div class="mh-rright"><b style="color:'+c+'">'+esc(st)+'</b>'+
-         (o.by2?'<span>oleh '+esc(o.by2)+'</span>':'<span>menunggu '+esc(OT_APPROVER)+'</span>')+'</div></div>';
+     var c=st==="Disetujui"?"var(--green)":st==="Ditolak"?"var(--red)":"#B45309";
+     return '<div class="mh-row" style="cursor:default">'+
+       '<div class="mh-rhead"><b>'+esc(o.no)+'</b><i>'+esc(o.tgl)+'</i></div>'+
+       '<div class="mh-rj">'+esc(o.desc||o.alasan||"")+'</div>'+
+       '<div class="mh-rfoot">'+
+         '<span class="mh-okind k-overtime">'+esc(otJenis(o.jenis).nama)+'</span>'+
+         '<span class="mh-rd" style="color:'+c+'">'+esc(st)+
+           ' · <span style="color:var(--m-mut)">'+esc(o.mulai)+'–'+esc(o.selesai)+
+           (o.lokasi?' · '+esc(o.lokasi):'')+(o.ruang?' · '+esc(o.ruang):'')+
+           (o.pax>0?' · '+o.pax+' personel':'')+
+           ' · '+(o.by2?'oleh '+esc(o.by2):'menunggu '+esc(OT_APPROVER))+'</span></span>'+
+       '</div></div>';
    }).join("")+'</div></div>';
 }
 function submitOvertime(){
@@ -8984,7 +9034,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-42";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-43";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
