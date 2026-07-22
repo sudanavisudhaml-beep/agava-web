@@ -1413,11 +1413,43 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .izn-card{margin-bottom:16px;overflow:hidden}
 .izn-h{display:flex;align-items:center;gap:12px;padding:14px 18px 12px;border-bottom:1px solid var(--line)}
 .izn-ic{font-size:calc(20px*var(--fz));flex:0 0 auto}
-.izn-tot{flex:0 0 auto;text-align:right}
-.izn-tot .l{font-size:calc(9px*var(--fz));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3}
-.izn-tot .v{font-size:calc(16px*var(--fz));font-weight:900;color:#0a4bb8;line-height:1.2}
-.izn-tot .s{font-size:calc(9.5px*var(--fz));color:#9aa7b8}
-.izn-head,.izn-row{display:grid;grid-template-columns:2fr 128px 128px 104px 96px;gap:12px;align-items:center;padding:10px 18px}
+/* ── HSE dua halaman: kartu tab · pager geser · titik · tombol lanjut ──
+   Penandanya sengaja berlapis supaya halaman kedua tidak tersembunyi: kedua
+   kartu tab selalu terlihat (bukan cuma yang aktif), ada titik halaman di
+   bawah, dan tombol lanjut di ujung tiap halaman. */
+.hse-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.hse-tab{display:flex;align-items:center;gap:11px;text-align:left;padding:12px 14px;cursor:pointer;
+  border:1px solid var(--line);border-radius:14px;background:#fff;font-family:var(--ff);
+  transition:border-color .18s,box-shadow .18s,background .18s}
+.hse-tab:hover{border-color:#b9d4f5}
+.hse-tab.on{border-color:#0a7cff;background:linear-gradient(135deg,#f3f9ff,#fff);
+  box-shadow:0 3px 14px rgba(10,124,255,.15)}
+.hse-tab-n{flex:0 0 26px;width:26px;height:26px;border-radius:9px;display:grid;place-items:center;
+  background:#e9eef6;color:#8494ab;font-size:calc(12px*var(--fz));font-weight:900;transition:.18s}
+.hse-tab.on .hse-tab-n{background:linear-gradient(135deg,#0a7cff,#00c6fb);color:#fff;
+  box-shadow:0 2px 8px rgba(10,124,255,.4)}
+.hse-tab-t{min-width:0}
+.hse-tab-t b{display:block;font-size:calc(13px*var(--fz));color:var(--ink);line-height:1.25}
+.hse-tab-t i{font-style:normal;font-size:calc(10.5px*var(--fz));color:var(--muted)}
+.hse-tab-t i em{font-style:normal;font-weight:800;color:var(--red)}
+.hse-pager{display:flex;align-items:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -3px;padding:0 3px}
+.hse-pager::-webkit-scrollbar{display:none}
+.hse-page{flex:0 0 100%;scroll-snap-align:start;min-width:0;box-sizing:border-box;padding-right:3px}
+.hse-kpi3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.hse-dots{display:flex;justify-content:center;align-items:center;gap:8px;margin:18px 0 4px}
+.hse-dots i{width:8px;height:8px;border-radius:50%;background:#cfdbe9;cursor:pointer;transition:.2s}
+.hse-dots i.on{width:24px;border-radius:5px;background:linear-gradient(135deg,#0a7cff,#00c6fb)}
+.hse-lanjut{display:flex;align-items:center;gap:12px;width:100%;margin-top:16px;padding:14px 16px;cursor:pointer;
+  border:1px dashed #b9d4f5;border-radius:15px;background:linear-gradient(135deg,#f5faff,#fff);
+  font-family:var(--ff);text-align:left;transition:.18s}
+.hse-lanjut:hover{border-color:#0a7cff;background:linear-gradient(135deg,#eaf4ff,#fff)}
+.hse-lanjut-t{flex:1;min-width:0}
+.hse-lanjut-t b{display:block;font-size:calc(12.5px*var(--fz));color:#0a4bb8}
+.hse-lanjut-t i{font-style:normal;font-size:calc(10.5px*var(--fz));color:var(--muted)}
+.hse-lanjut-a{flex:0 0 auto;font-size:calc(18px*var(--fz));font-weight:800;color:#0a7cff}
+.hse-lanjut.balik .hse-lanjut-t b{color:var(--muted)}
+.izn-head,.izn-row{display:grid;grid-template-columns:2fr 132px 132px 100px;gap:12px;align-items:center;padding:10px 18px}
 .izn-head{font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3;border-bottom:1px solid var(--line);background:#fbfcfe}
 .izn-row{border-bottom:1px solid var(--line);font-size:calc(12.5px*var(--fz))}
 .izn-row:last-child{border-bottom:none}
@@ -1428,7 +1460,6 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .izn-act{font-size:calc(11.5px*var(--fz));font-weight:600;line-height:1.35}
 .izn-x{font-size:calc(10px*var(--fz));color:#9aa7b8;font-weight:500;margin-top:2px;line-height:1.3}
 .izn-mut{font-size:calc(11px*var(--fz));color:#9aa7b8}
-.izn-cost{text-align:right;font-weight:800;color:var(--ink);font-size:calc(12.5px*var(--fz))}
 .izn-aksi{text-align:right}
 .izn-close{padding:5px 12px;font-size:calc(11px*var(--fz));font-weight:700;white-space:nowrap}
 .izn-closed{font-size:calc(11px*var(--fz));font-weight:800;color:var(--green);line-height:1.3}
@@ -1443,11 +1474,13 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
     letter-spacing:.06em;text-transform:uppercase;color:#9aa7b8;margin-bottom:2px}
   .izn-due::before{content:"Uji berkala";display:block;font-size:calc(9px*var(--fz));font-weight:800;
     letter-spacing:.06em;text-transform:uppercase;color:#9aa7b8;margin-bottom:2px}
-  .izn-cost{text-align:left}
-  .izn-cost::before{content:"Estimasi biaya";display:block;font-size:calc(9px*var(--fz));font-weight:800;
-    letter-spacing:.06em;text-transform:uppercase;color:#9aa7b8;margin-bottom:2px}
-  .izn-aksi{text-align:left;align-self:end}
+  .izn-aksi{grid-column:1/3;text-align:left;margin-top:2px}
   .izn-act{grid-column:1/3}
+  /* dua halaman HSE di layar kecil */
+  .hse-kpi3{grid-template-columns:repeat(3,1fr);gap:8px}
+  .hse-tabs{gap:8px}
+  .hse-tab{padding:10px 11px;gap:9px}
+  .hse-tab-n{flex:0 0 22px;width:22px;height:22px;border-radius:8px}
   .hse-sec{flex-wrap:wrap}.hse-sec-b{text-align:left;width:100%}
 }
 /* izin kerja */
@@ -7301,8 +7334,7 @@ const DB_SETS={
            {k:"terbit",l:"Tanggal terbit",t:"text",ph:"17 Jun 2025"},
            {k:"periode",l:"Periode",t:"text",ph:"1 tahun"},
            {k:"berlaku",l:"Masa berlaku s/d",t:"date"},
-           {k:"due",l:"Uji berkala (jatuh tempo)",t:"date",req:1},
-           {k:"harga",l:"Estimasi biaya (Rp)",t:"number"}],
+           {k:"due",l:"Uji berkala (jatuh tempo)",t:"date",req:1}],
    cols:[["name","Nama Izin"],["area","Area"],["berlaku","Masa berlaku"],["due","Uji berkala"]] },
  works:{ label:"Repair Work in Progress", ic:"🔨", get:()=>WORKS, render:()=>{renderBuilding();renderOverview();},
    fields:[{k:"job",l:"Pekerjaan",t:"text",req:1,ph:"AHU Cleaning — Floor 5A"},
@@ -8682,7 +8714,6 @@ function hseIzinRow(o){
    '<div class="izn-n"><div class="izn-nm">'+esc(o.nama)+'</div><div class="izn-sub">'+esc(o.sub||'')+'</div></div>'+
    '<div class="izn-berlaku">'+berlakuHtml+'</div>'+
    '<div class="izn-due">'+ujiHtml+'</div>'+
-   '<div class="izn-cost">'+(o.biaya>0?rupShort(o.biaya):'<span class="izn-mut">belum ada</span>')+'</div>'+
    '<div class="izn-aksi">'+aksi+'</div>'+
  '</div>';
 }
@@ -8705,19 +8736,17 @@ function hseCloseIzin(nama){
  renderHSE();
 }
 function hseIzinBlok(judul,ic,rows,items,catatan,kolom){
- var tot=items.reduce(function(a,x){return a+(+x.biaya||0);},0);
  var urg=items.filter(function(x){return permitNextAction(x.due).urgent;}).length;
- var tot90=items.filter(function(x){var d=dueDays(x.due); return d!==null&&d<=90;}).reduce(function(a,x){return a+(+x.biaya||0);},0);
+ var lewat=items.filter(function(x){var d=dueDays(x.due); return d!==null&&d<0;}).length;
  return '<div class="card izn-card">'+
    '<div class="izn-h"><span class="izn-ic">'+ic+'</span><div style="flex:1;min-width:0">'+
      '<div class="panel-t" style="margin:0">'+esc(judul)+'</div>'+
-     '<div class="muted small">'+items.length+' izin'+(urg?' · <b style="color:var(--red)">'+urg+' perlu tindakan</b>':' · semua terkendali')+'</div></div>'+
-     '<div class="izn-tot"><div class="l">Estimasi biaya ≤90 hari</div><div class="v">'+(tot90>0?rupShort(tot90):'—')+'</div>'+
-       '<div class="s">total setahun '+(tot>0?rupShort(tot):'—')+'</div></div></div>'+
+     '<div class="muted small">'+items.length+' izin'+(urg?' · <b style="color:var(--red)">'+urg+' perlu tindakan</b>':' · semua terkendali')+
+       (lewat?' · <b style="color:var(--red)">'+lewat+' lewat tempo</b>':'')+'</div></div></div>'+
    '<div class="izn-head"><span>'+((kolom&&kolom[0])||"Izin / Objek")+'</span>'+
      '<span>'+((kolom&&kolom[1])||"Masa berlaku")+'</span>'+
      '<span>'+((kolom&&kolom[2])||"Uji berkala")+'</span>'+
-     '<span>Estimasi biaya</span><span>Aksi</span></div>'+
+     '<span>Aksi</span></div>'+
    (rows||'<div class="muted small" style="padding:20px;text-align:center">Belum ada data.</div>')+
    (catatan?'<div class="izn-note">'+catatan+'</div>':'')+
  '</div>';
@@ -8730,57 +8759,119 @@ function renderHSE(){
  const pbbList=(typeof PBB!=="undefined"?PBB:[]);
  const utilF=util.filter(p=>hseArea==="All"||p.area===hseArea);
  const areas=["All"].concat(util.map(p=>p.area).filter((a,i,arr)=>arr.indexOf(a)===i));
- const allDue=[].concat(
-   util.map(p=>({due:p.due,biaya:p.harga})), ling.map(p=>({due:p.due,biaya:p.harga})),
-   pbbList.map(p=>({due:p.due,biaya:p.biaya})));
+ const allDue=[].concat(util.map(p=>({due:p.due})), ling.map(p=>({due:p.due})), pbbList.map(p=>({due:p.due})));
  const urgent=allDue.filter(x=>permitNextAction(x.due).urgent).length;
  const overdue=allDue.filter(x=>{const d=dueDays(x.due); return d!==null&&d<0;}).length;
- const biaya90=allDue.filter(x=>{const d=dueDays(x.due); return d!==null&&d<=90;}).reduce((a,x)=>a+(+x.biaya||0),0);
- const biayaTot=allDue.reduce((a,x)=>a+(+x.biaya||0),0);
  const wpPend=WORK_PERMITS.filter(w=>w.status==="Menunggu Review").length;
  const izinRow=p=>hseIzinRow({nama:p.name, sub:p.area+' · '+(p.noIzin||'tanpa no. izin'),
-   berlaku:p.berlaku, periode:p.periode, terbit:p.terbit, due:p.due, biaya:p.harga,
+   berlaku:p.berlaku, periode:p.periode, terbit:p.terbit, due:p.due,
    closedAt:p.closedAt, closeFn:"hseCloseIzin('"+esc(p.name).replace(/'/g,"\\'")+"')"});
  const rowsUtil=utilF.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')).map(izinRow).join("");
  const rowsLing=ling.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')).map(izinRow).join("");
  /* PBB bukan izin berkala — tidak punya masa berlaku maupun uji, jadi kolomnya
     diberi label lain dan tanpa tombol Close. */
  const rowsPbb=pbbList.slice().sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'))
-   .map(p=>hseIzinRow({nama:p.obj, sub:p.note||'Pajak Bumi & Bangunan', due:p.due, biaya:p.biaya})).join("");
+   .map(p=>hseIzinRow({nama:p.obj, sub:p.note||'Pajak Bumi & Bangunan', due:p.due})).join("");
+ /* ── DUA HALAMAN ──
+    Daftar izin di section 1 panjang, jadi Izin Kerja dipindah ke halaman kedua.
+    Perpindahannya lewat geser mendatar ATAU klik kartu tab di atas; supaya orang
+    tahu halaman kedua itu ada, penandanya sengaja dibuat berlapis: kartu tab yang
+    keduanya selalu kelihatan, titik halaman di bawah, dan tombol lanjut di ujung
+    tiap halaman. */
  el.innerHTML=`
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">
-    <div class="card kpi"><div class="l">Total izin dipantau</div><div class="v">${allDue.length}</div></div>
-    <div class="card kpi"><div class="l">Perlu tindakan</div><div class="v" style="color:${urgent?'var(--red)':'var(--green)'}">${urgent}</div></div>
-    <div class="card kpi"><div class="l">Lewat tempo</div><div class="v" style="color:${overdue?'var(--red)':'var(--green)'}">${overdue}</div></div>
-    <div class="card kpi"><div class="l">Izin kerja menunggu</div><div class="v" style="color:${wpPend?'var(--amber)':'var(--green)'}">${wpPend}</div></div>
+  <div class="hse-tabs">
+    <button class="hse-tab" id="hseTab0" onclick="hseGoPage(0)">
+      <span class="hse-tab-n">1</span>
+      <span class="hse-tab-t"><b>Izin Operasional</b>
+        <i>${allDue.length} izin dipantau${urgent?` · <em>${urgent} perlu tindakan</em>`:' · terkendali'}</i></span>
+    </button>
+    <button class="hse-tab" id="hseTab1" onclick="hseGoPage(1)">
+      <span class="hse-tab-n">2</span>
+      <span class="hse-tab-t"><b>Izin Kerja</b>
+        <i>${WORK_PERMITS.length} pengajuan${wpPend?` · <em>${wpPend} menunggu review</em>`:' · tidak ada antrean'}</i></span>
+    </button>
   </div>
 
-  <div class="hse-sec"><span class="hse-sec-n">1</span>
-    <div><div class="hse-sec-t">Izin Operasional Bangunan &amp; Utilitas</div>
-      <div class="hse-sec-s">Masa berlaku &amp; uji berkala · jatuh tempo mengikuti tanggal uji berkala · Close bila sudah diperpanjang</div></div>
-    <div class="hse-sec-b"><div class="l">Estimasi biaya ≤90 hari</div><div class="v">${biaya90>0?rupShort(biaya90):'—'}</div>
-      <div class="s">total dipantau ${biayaTot>0?rupShort(biayaTot):'—'}</div></div>
+  <div class="hse-pager" id="hsePager" onscroll="hsePagerSync()">
+   <section class="hse-page">
+    <div class="hse-kpi3">
+      <div class="card kpi"><div class="l">Total izin dipantau</div><div class="v">${allDue.length}</div></div>
+      <div class="card kpi"><div class="l">Perlu tindakan</div><div class="v" style="color:${urgent?'var(--red)':'var(--green)'}">${urgent}</div></div>
+      <div class="card kpi"><div class="l">Lewat tempo</div><div class="v" style="color:${overdue?'var(--red)':'var(--green)'}">${overdue}</div></div>
+    </div>
+
+    <div class="hse-sec"><span class="hse-sec-n">1</span>
+      <div><div class="hse-sec-t">Izin Operasional Bangunan &amp; Utilitas</div>
+        <div class="hse-sec-s">Masa berlaku &amp; uji berkala · jatuh tempo mengikuti tanggal uji berkala · Close bila sudah diperpanjang</div></div>
+    </div>
+
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+      <span class="muted small" style="font-weight:700">Filter area:</span>
+      ${areas.map(a=>`<div class="ptab ${hseArea===a?'on':''}" onclick="hseArea='${a}';renderHSE()">${a}</div>`).join("")}
+    </div>
+    ${hseIzinBlok("a. Izin Operasional Utilitas","⚙️",rowsUtil,util,
+       'Lift, genset, penyalur petir, bejana tekan, instalasi listrik, proteksi kebakaran, gondola, SLF &amp; reklame.')}
+    ${hseIzinBlok("b. Izin Lingkungan","♻️",rowsLing,ling,
+       'IPLC &amp; Limbah B3. <a class="gd-kopen" onclick="go(\'energy\')">Lihat kinerja ESG di modul Energy →</a>')}
+    ${hseIzinBlok("c. PBB — Pajak Bumi &amp; Bangunan","🏠",rowsPbb,pbbList,
+       'Objek &amp; jatuh tempo PBB diinput di modul Reminder. <a class="gd-kopen" onclick="go(\'reminder\')">Buka master data PBB →</a>',
+       ["Objek pajak","—","Jatuh tempo"])}
+    <button class="hse-lanjut" onclick="hseGoPage(1)">
+      <span class="hse-lanjut-t"><b>Halaman 2 — Izin Kerja (Work Permit)</b>
+        <i>${WORK_PERMITS.length} pengajuan${wpPend?` · ${wpPend} menunggu review`:''}</i></span>
+      <span class="hse-lanjut-a">→</span></button>
+   </section>
+
+   <section class="hse-page">
+    <div class="hse-kpi3">
+      <div class="card kpi"><div class="l">Total pengajuan</div><div class="v">${WORK_PERMITS.length}</div></div>
+      <div class="card kpi"><div class="l">Menunggu review</div><div class="v" style="color:${wpPend?'var(--amber)':'var(--green)'}">${wpPend}</div></div>
+      <div class="card kpi"><div class="l">Berlaku hari ini</div><div class="v">${WORK_PERMITS.filter(w=>w.mulai<=TODAY_STR&&w.selesai>=TODAY_STR&&w.status!=="Ditolak").length}</div></div>
+    </div>
+
+    <div class="hse-sec"><span class="hse-sec-n">2</span>
+      <div><div class="hse-sec-t">Izin Kerja (Work Permit)</div>
+        <div class="hse-sec-s">Pengajuan izin kerja berisiko &amp; risiko rendah ke PIC HSE · vendor bisa ajukan sendiri lewat QR</div></div>
+    </div>
+    ${wpPanelHTML()}
+    <button class="hse-lanjut balik" onclick="hseGoPage(0)">
+      <span class="hse-lanjut-a">←</span>
+      <span class="hse-lanjut-t"><b>Halaman 1 — Izin Operasional</b>
+        <i>${allDue.length} izin dipantau</i></span></button>
+   </section>
   </div>
 
-  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
-    <span class="muted small" style="font-weight:700">Filter area:</span>
-    ${areas.map(a=>`<div class="ptab ${hseArea===a?'on':''}" onclick="hseArea='${a}';renderHSE()">${a}</div>`).join("")}
-  </div>
-  ${hseIzinBlok("a. Izin Operasional Utilitas","⚙️",rowsUtil,util.map(p=>({due:p.due,biaya:p.harga})),
-     'Lift, genset, penyalur petir, bejana tekan, instalasi listrik, proteksi kebakaran, gondola, SLF & reklame. Biaya diambil dari register izin.')}
-  ${hseIzinBlok("b. Izin Lingkungan","♻️",rowsLing,ling.map(p=>({due:p.due,biaya:p.harga})),
-     'IPLC & Limbah B3. <a class="gd-kopen" onclick="go(\'energy\')">Lihat kinerja ESG di modul Energy →</a>')}
-  ${hseIzinBlok("c. PBB — Pajak Bumi &amp; Bangunan","🏠",rowsPbb,pbbList,
-     'Objek & jatuh tempo PBB diinput di modul Reminder. <a class="gd-kopen" onclick="go(\'reminder\')">Buka master data PBB →</a>',
-     ["Objek pajak","—","Jatuh tempo"])}
-
-  <div class="hse-sec" style="margin-top:22px"><span class="hse-sec-n">2</span>
-    <div><div class="hse-sec-t">Izin Kerja (Work Permit)</div>
-      <div class="hse-sec-s">Pengajuan izin kerja berisiko &amp; risiko rendah ke PIC HSE · vendor bisa ajukan sendiri lewat QR</div></div>
-    <div class="hse-sec-b"><div class="l">Menunggu review</div><div class="v" style="color:${wpPend?'var(--amber)':'var(--green)'}">${wpPend}</div>
-      <div class="s">dari ${WORK_PERMITS.length} pengajuan</div></div>
-  </div>
-  ${wpPanelHTML()}`;
+  <div class="hse-dots">
+    <i onclick="hseGoPage(0)" title="Halaman 1 — Izin Operasional"></i>
+    <i onclick="hseGoPage(1)" title="Halaman 2 — Izin Kerja"></i>
+  </div>`;
+ hseGoPage(hsePage,true);   // kembali ke halaman yang sedang dibuka setelah render ulang
+}
+/* ── Pager dua halaman modul HSE ── */
+let hsePage=0;
+function hseGoPage(i,langsung){
+ hsePage=Math.max(0,Math.min(1,+i||0));
+ var w=document.getElementById("hsePager");
+ if(w){
+   var x=hsePage*w.clientWidth;
+   if(langsung) w.scrollLeft=x;                                  // setelah render ulang: tanpa animasi
+   else if(w.scrollTo) w.scrollTo({left:x,behavior:"smooth"});
+   else w.scrollLeft=x;
+ }
+ hseTabSync();
+}
+function hsePagerSync(){
+ var w=document.getElementById("hsePager"); if(!w||!w.clientWidth)return;
+ var i=Math.round(w.scrollLeft/w.clientWidth);
+ if(i!==hsePage){ hsePage=i; hseTabSync(); }
+}
+function hseTabSync(){
+ for(var i=0;i<2;i++){
+   var t=document.getElementById("hseTab"+i);
+   if(t)t.classList.toggle("on",i===hsePage);
+ }
+ var d=document.querySelectorAll("#page-hse .hse-dots i");
+ for(var j=0;j<d.length;j++) d[j].classList.toggle("on",j===hsePage);
 }
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
@@ -9141,7 +9232,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-44";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-45";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
