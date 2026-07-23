@@ -167,6 +167,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .evroom-meta span{display:inline-flex;align-items:center;gap:4px}
 .evroom-meta .hot{color:var(--amber);font-weight:700}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+/* kunci 50/50: anak kolom boleh menyempit (grafik line ikut menyempit saat bulan
+   bertambah, kolom TIDAK melebar). */
+.two>*{min-width:0}
 .panel-t{font-size:calc(13px*var(--fz));font-weight:700;color:var(--ink);margin-bottom:13px}
 .sbar{margin-bottom:12px}
 .sbar .sl{display:flex;justify-content:space-between;font-size:calc(12.5px*var(--fz));margin-bottom:5px}
@@ -5713,24 +5716,25 @@ let WATER_INT_2019=[1.07,1.11,0.99,1.08,0.85,0.86,null];
 let WATER_INT_2026=[0.98,0.92,0.90,1.19,0.99,0.57,null];
 let REM_PCT=[8,7,10,8,6,null,null];
 let REM_KWH=[20121,18035,24288,22635,17612,null,null];
-let WASTE_OK=[3444,3757,3039,3001,3460,3500,null];
-let WASTE_NO=[181,198,31,30,35,35,null];
+let WASTE_OK=[3800,3800,3960,3960,3960,3960,null];
+let WASTE_NO=[200,200,40,40,40,40,null];
 function eNum(a){ return (a||[]).filter(function(v){return v!=null&&!isNaN(v);}); }
 function eSum(a){ return eNum(a).reduce(function(x,y){return x+y;},0); }
 function eAvgG(a){ var n=eNum(a); return n.length?eSum(n)/n.length:0; }
 function eLastI(a){ for(var i=(a||[]).length-1;i>=0;i--){ if(a[i]!=null&&!isNaN(a[i]))return i; } return 0; }
-/* Pencapaian YTD (cara Sudana): jumlahkan bulan yang terisi (2026 & 2019),
-   lalu %YTD = (ΣYTD2026 − ΣYTD2019) / ΣYTD2019 × 100 (negatif = di bawah baseline).
-   Kembalikan juga deret kumulatif per bulan utk ditampilkan di form edit. */
+/* Pencapaian YTD (rumus Sudana, HARDCODE): jumlahkan bulan yang terisi (2026 & 2019),
+   lalu %YTD = (ΣYTD2026 − ΣYTD2019) / ΣYTD2026 × 100.
+   Contoh Jan Air: (0,98 − 1,07) / 0,98 = −0,09/0,98 = −9,2%.
+   Kembalikan juga deret kumulatif per bulan utk form edit. */
 function eYtd(a26,a19){
  var s26=0,s19=0, cum26=[],cum19=[],delta=[],pctm=[];
  for(var i=0;i<Math.max(a26.length,a19.length);i++){
    var v26=a26[i], v19=a19[i];
    if(v26!=null&&!isNaN(v26)&&v19!=null&&!isNaN(v19)){ s26+=v26; s19+=v19; }
    cum26.push(s26); cum19.push(s19);
-   var d=s26-s19; delta.push(d); pctm.push(s19? Math.round(d/s19*1000)/10 : null);
+   var d=s26-s19; delta.push(d); pctm.push(s26? Math.round(d/s26*1000)/10 : null);
  }
- return { s26:s26, s19:s19, pct: s19? Math.round((s26-s19)/s19*1000)/10 : 0, cum26:cum26, cum19:cum19, delta:delta, pctm:pctm };
+ return { s26:s26, s19:s19, pct: s26? Math.round((s26-s19)/s26*1000)/10 : 0, cum26:cum26, cum19:cum19, delta:delta, pctm:pctm };
 }
 function fmtN(n){return Math.round(n).toLocaleString('id-ID');}
 function ekv(k,v,c){return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:calc(12.5px*var(--fz))"><span class="muted">${k}</span><b style="color:${c||'var(--ink)'}">${v}</b></div>`;}
@@ -5796,12 +5800,14 @@ function eEditGrid(defs, ytdPair){
  if(ytdPair){
    var Y=eYtd(eArr(ytdPair.a), eArr(ytdPair.b));
    var big=Math.abs(Y.s26)>=100;
-   var fv=big?function(v){return fmtN(v);}:function(v){return (Math.round(v*100)/100).toString().replace('.',',');};
+   /* format bersih: nilai besar (kWh) = bilangan bulat; kecil (intensitas) = 2 desimal
+      koma; %YTD = bilangan BULAT + koma. */
+   var fv=big?function(v){return fmtN(v);}:function(v){return v.toFixed(2).replace('.',',');};
    function crow(lbl,arr,fmt,cls){ return '<div class="ee-row ee-calc"><span class="ee-lb">'+lbl+'</span>'+ENERGY_MONTHS.map(function(m,i){ return '<span class="'+(cls||'')+'">'+(arr[i]==null?'–':fmt(arr[i]))+'</span>'; }).join('')+'</div>'; }
    ytd = crow('ΣYTD 2019',Y.cum19,fv) + crow('ΣYTD 2026',Y.cum26,fv) + crow('Δ (2026−2019)',Y.delta,fv,'ee-delta')
-       + crow('% YTD',Y.pctm,function(v){return (v>0?'+':'')+v+'%';},'ee-pct');
+       + crow('% YTD',Y.pctm,function(v){var r=Math.round(v);return (r>0?'+':'')+r+'%';},'ee-pct');
  }
- return '<div class="ee">'+head+rows+ytd+'<div class="ee-note">Isi angka per bulan (Jun/Jul dst boleh kosong) — grafik line & <b>%YTD ter-generate otomatis</b>. %YTD = (ΣYTD2026 − ΣYTD2019) ÷ ΣYTD2019. Sementara, sampai integrasi ERSUS.</div></div>';
+ return '<div class="ee">'+head+rows+ytd+'<div class="ee-note">Isi angka per bulan (Jun/Jul dst boleh kosong) — grafik line & <b>%YTD ter-generate otomatis</b>. %YTD = (ΣYTD2026 − ΣYTD2019) ÷ ΣYTD2026. Sementara, sampai integrasi ERSUS.</div></div>';
 }
 function eBtn(k){ return isOwner()?'<button class="btn-out ee-btn" onclick="eEditToggle(\''+k+'\')">'+(energyEdit[k]?'✓ Selesai':'✎ Edit data')+'</button>':''; }
 function energySections(){
@@ -10355,7 +10361,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-66";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-67";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";

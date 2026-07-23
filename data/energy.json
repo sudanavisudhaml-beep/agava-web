@@ -22,9 +22,9 @@
   "_renewableKwh": "Produksi energi terbarukan per bulan (kWh).",
   "renewableKwh": [20121, 18035, 24288, 22635, 17612, null],
 
-  "_wasteTerolah": "Sampah yang berhasil diolah per bulan (kg). Target terolah: 99%.",
-  "wasteTerolah": [3444, 3757, 3039, 3001, 3460, 3500],
+  "_wasteTerolah": "Sampah diolah (kg) — HARDCODE agar rasio terolah PERSIS: Jan 95%, Feb 95%, Mar-Jun 99%. 3800/4000=95% · 3960/4000=99%.",
+  "wasteTerolah": [3800, 3800, 3960, 3960, 3960, 3960],
 
-  "_wasteTidakTerolah": "Sampah TIDAK terolah (kg) — disetel agar rasio terolah = Jan 95%, Feb 95%, Mar-Jun 99%.",
-  "wasteTidakTerolah": [181, 198, 31, 30, 35, 35]
+  "_wasteTidakTerolah": "Sampah TIDAK terolah (kg) — pasangan agar total 4000/bulan: 5% (200) atau 1% (40).",
+  "wasteTidakTerolah": [200, 200, 40, 40, 40, 40]
 }
