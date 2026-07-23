@@ -1985,6 +1985,43 @@ body.rg-open{overflow:hidden}
 .lb-hero{margin-bottom:16px}
 .lb-hero-t{font-size:calc(17px*var(--fz));font-weight:800;color:var(--ink);letter-spacing:-.01em}
 .lb-soon{display:inline-block;vertical-align:middle;margin-left:9px;font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#b45309;background:#fff3e0;background:#fef3e2;border:1px solid #f6d9a8;border-radius:99px;padding:3px 10px}
+/* ── Landbank dashboard (gaya AGAVA) ── */
+.lb-kpirow{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.lb-kpi{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:0 1px 2px rgba(16,32,54,.04)}
+.lb-kpi-l{font-size:calc(10.5px*var(--fz));font-weight:700;color:var(--muted);line-height:1.3;min-height:2.4em}
+.lb-kpi-v{font-size:calc(26px*var(--fz));font-weight:800;color:var(--ink);line-height:1.05;margin-top:6px;letter-spacing:-.01em}
+.lb-kpi-v.lb-off{color:#9aa7b8}
+.lb-kpi-s{font-size:calc(11px*var(--fz));color:var(--muted);margin-top:3px}
+.lb-kpi-s.lb-off{color:#b45309}
+.lb-kpi-op{cursor:pointer;border-color:#cfe0ff;background:linear-gradient(180deg,#f6faff,#fff)}
+.lb-kpi-op:hover{border-color:#2563eb}
+.lb-kpi-link{font-size:calc(10.5px*var(--fz));font-weight:700;color:var(--blue);margin-top:7px}
+.lb-money{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.lb-mq{border:1px solid #f0dcb6;border-radius:14px;padding:14px;background-image:repeating-linear-gradient(45deg,rgba(194,116,10,.05),rgba(194,116,10,.05) 6px,transparent 6px,transparent 12px)}
+.lb-mq-l{font-size:calc(10.5px*var(--fz));font-weight:700;color:var(--muted)}
+.lb-mq-v{font-size:calc(26px*var(--fz));font-weight:800;color:var(--amber);line-height:1.05;margin-top:6px}
+.lb-mq-s{font-size:calc(10px*var(--fz));color:var(--muted);margin-top:3px}
+.lb-money-line{margin-top:14px;font-size:calc(13.5px*var(--fz));font-weight:700;color:var(--red);line-height:1.5}
+.lb-map{position:relative;background:linear-gradient(180deg,#eff5fb,#e7eef7);border:1px solid var(--line);border-radius:14px;padding:8px}
+.lb-leg{position:absolute;left:14px;bottom:14px;display:flex;flex-wrap:wrap;gap:10px;background:rgba(255,255,255,.82);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:calc(10px*var(--fz));color:var(--muted);z-index:1}
+.lb-leg span{display:inline-flex;align-items:center;gap:5px}
+.lb-leg i{width:10px;height:10px;border-radius:99px;display:inline-block}
+.lb-leg-x{color:#9aa7b8}
+.lb-provsel{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--blue-s);border:1px solid #cfe0ff;border-radius:12px;padding:9px 14px;margin-bottom:12px;font-size:calc(12.5px*var(--fz));color:var(--ink)}
+.lb-search input{border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));color:var(--ink);background:#fff;min-width:230px}
+.lb-tblwrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:12px}
+.lb-tbl{width:100%;border-collapse:collapse;font-size:calc(12px*var(--fz))}
+.lb-tbl thead th{position:sticky;top:0;background:#f3f6fb;text-align:left;font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);padding:9px 12px;border-bottom:2px solid var(--line);cursor:pointer;white-space:nowrap}
+.lb-tbl thead th.num{text-align:right}
+.lb-tbl td{padding:8px 12px;border-bottom:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.lb-tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.lb-tbl td.mono{font-family:var(--mono,monospace);color:var(--blue)}
+.lb-tbl td.mut{color:var(--muted)}
+.lb-tbl td.red{color:var(--red);font-weight:700}
+.lb-tbl tr.lb-vac{background:#fdf3f4}
+.lb-tbl tbody tr:hover{background:#f6f9fd}
+@media(max-width:1100px){.lb-kpirow{grid-template-columns:repeat(3,1fr)}.lb-money{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:680px){.lb-kpirow{grid-template-columns:repeat(2,1fr)}.lb-money{grid-template-columns:1fr 1fr}}
 /* Energy — header kanan + editor data sementara (grafik auto-generate saat diisi) */
 .es-hr{margin-left:auto;text-align:right}
 .ee-btn{margin-left:14px;flex:0 0 auto;font-size:calc(11px*var(--fz))}
@@ -5838,43 +5875,95 @@ function ersusUtility(){
    master data (diinput SEKALI). OPEX perawatan DITARIK dari SPK (Surat Perintah
    Kerja, terbit setelah Supply Order) — bukan input manual tiap buka AGAVA.
    Sejalan north-star: operasional GA tanpa padat karya. Terhubung ke GA-04. */
-let ASSET_REG=[];
-try{ var _lbr=localStorage.getItem("agava_assetreg_v1"); if(_lbr) ASSET_REG=JSON.parse(_lbr)||[]; }catch(e){}
-function lbPersist(){ try{ localStorage.setItem("agava_assetreg_v1", JSON.stringify(ASSET_REG)); }catch(e){} }
-function lbAdd(){ ASSET_REG.push({nama:"",jenis:"Lahan",lokasi:"",nilai:""}); lbPersist(); renderLandbank(); }
-function lbDel(i){ ASSET_REG.splice(i,1); lbPersist(); renderLandbank(); }
-function lbSet(i,k,v){ if(ASSET_REG[i]){ ASSET_REG[i][k]=v; lbPersist(); } }
+/* ═══════════ LANDBANK & ASSET — dashboard (sumber: data/landbank_master.json) ═══════════
+   Peta Indonesia (data/id-provinces.json) + heatmap sebaran, KPI + OPEX (terhubung
+   Procurement/SPK), daftar aset. Gaya mengikuti modul AGAVA lain. */
+let LANDBANK=null, ID_PROV=null, lbSelProv=null, lbSearch="", lbSortK="assetId", lbSortDir=1;
+function lbDataLoad(force){
+ if(LANDBANK && ID_PROV && !force){ renderLandbank(); return; }
+ Promise.all([
+   fetch('data/landbank_master.json').then(function(r){return r.json();}),
+   fetch('data/id-provinces.json').then(function(r){return r.json();})
+ ]).then(function(res){ LANDBANK=res[0]; ID_PROV=res[1]; renderLandbank(); })
+  .catch(function(e){ var el=document.getElementById('page-landbank'); if(el) el.innerHTML='<div class="card pad" style="color:var(--red)">Gagal memuat data land bank: '+esc(String(e&&e.message||e))+'</div>'; });
+}
+function lbN(v){ return (v==null||isNaN(v))?'—':fmtN(v); }
+function lbHa(v){ return (v==null||isNaN(v))?'—':(Math.round(v*10)/10).toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})+' ha'; }
+function lbP(v){ return (v==null||isNaN(v))?'—':(Math.round(v*10)/10).toString().replace('.',',')+'%'; }
+function lbTxt(v){ return (v==null||v==='')?'—':esc(String(v)); }
+function lbM2(v){ return (v==null||isNaN(v))?'—':fmtN(v)+' m²'; }
+function lbNorm(s){ return String(s||'').toLowerCase().replace('dki ','').replace(' raya','').trim(); }
+function lbIdleColor(r){ if(r==null)return '#c8d2df'; if(r>=55)return '#dc2626'; if(r>=35)return '#e0902a'; if(r>=15)return '#caa53b'; return '#15a34a'; }
+function lbPx(lng){ return (lng-94.5)/(141.5-94.5)*1000; }
+function lbPy(lat){ return (6.5-lat)/(6.5-(-11.5))*440; }
+function lbSelProvByIdx(i){ var p=LANDBANK.provinces[i]; if(!p)return; lbSelProv=(lbSelProv===p.province?null:p.province); renderLandbank(); }
+function lbSetSearch(v){ lbSearch=v; renderLandbank(); }
+function lbSort(k){ if(lbSortK===k) lbSortDir=-lbSortDir; else { lbSortK=k; lbSortDir=1; } renderLandbank(); }
+function lbParcels(){ var p=((LANDBANK&&LANDBANK.parcels)||[]).slice();
+ if(lbSelProv) p=p.filter(function(x){return x.province===lbSelProv;});
+ if(lbSearch){ var q=lbSearch.toLowerCase(); p=p.filter(function(x){return (x.assetId+' '+x.alias+' '+x.city+' '+x.province+' '+x.tierLabel).toLowerCase().indexOf(q)>=0;}); }
+ var k=lbSortK,d=lbSortDir; p.sort(function(a,b){ var av=a[k],bv=b[k]; if(av==null&&bv==null)return 0; if(av==null)return 1; if(bv==null)return -1; if(typeof av==='number'&&typeof bv==='number')return (av-bv)*d; return String(av).localeCompare(String(bv))*d; });
+ return p; }
+/* OPEX perawatan lahan — terhubung modul Procurement (SPK terbit setelah SO).
+   Belum ada SPK lahan → angka kosong, tapi box tetap tampil (penting). */
+function lbOpex(){ var live=(typeof GA_COST_LIVE!=='undefined'&&GA_COST_LIVE); return { rp: live?0:null, n:0 }; }
+function lbMapHTML(){
+ var provs=(LANDBANK.provinces)||[]; var byNorm={}; provs.forEach(function(p){ byNorm[lbNorm(p.province)]=p; });
+ var maxArea=Math.max.apply(null,provs.map(function(p){return p.totalAreaHa;}).concat([1]));
+ var outlines=ID_PROV.map(function(o){ var isData=!!byNorm[lbNorm(o.name)]; return '<path d="'+o.d+'" fill="'+(isData?'#dde7f2':'#eef2f7')+'" stroke="#c3d0e0" stroke-width="0.7"/>'; }).join('');
+ var bubbles=provs.map(function(p,i){ var x=lbPx(p.lng),y=lbPy(p.lat),r=9+Math.sqrt(p.totalAreaHa/maxArea)*26,sel=lbSelProv===p.province;
+   return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+lbIdleColor(p.idleRatioPct)+'" fill-opacity="'+(sel?0.96:0.7)+'" stroke="'+(sel?'#0f2036':'#fff')+'" stroke-width="'+(sel?2:1.2)+'" style="cursor:pointer" onclick="lbSelProvByIdx('+i+')"><title>'+esc(p.province)+' — '+p.parcelCount+' aset · '+lbP(p.idleRatioPct)+' idle</title></circle>';
+ }).join('');
+ var leg='<div class="lb-leg">'+[['#15a34a','Idle <15%'],['#caa53b','15–35%'],['#e0902a','35–55%'],['#dc2626','Idle >55%']].map(function(a){return '<span><i style="background:'+a[0]+'"></i>'+a[1]+'</span>';}).join('')+'<span class="lb-leg-x">◯ ukuran = luas (ha)</span></div>';
+ return '<div class="lb-map">'+leg+'<svg viewBox="0 0 1000 440" style="width:100%;height:auto;display:block" role="img" aria-label="Peta sebaran aset per provinsi">'+outlines+bubbles+'</svg></div>';
+}
+function lbProvPanel(){
+ if(!lbSelProv)return '';
+ var ps=lbParcels();
+ return '<div class="lb-provsel"><span><b>'+esc(lbSelProv)+'</b> — '+ps.length+' aset · '+lbHa(ps.reduce(function(a,p){return a+p.landAreaM2;},0)/10000)+'</span>'+
+   '<button class="btn-out" onclick="lbSelProv=null;renderLandbank()">✕ semua provinsi</button></div>';
+}
+function lbKpiRow(){
+ var k=LANDBANK.kpi, op=lbOpex();
+ function card(lab,val,sub,col){ return '<div class="lb-kpi"><div class="lb-kpi-l">'+lab+'</div><div class="lb-kpi-v"'+(col?' style="color:'+col+'"':'')+'>'+val+'</div>'+(sub?'<div class="lb-kpi-s">'+sub+'</div>':'')+'</div>'; }
+ return '<div class="lb-kpirow">'+
+   card('Total Aset',lbN(k.totalParcels),lbN(k.totalProvinces)+' provinsi')+
+   card('Total Land Bank',lbHa(k.totalAreaHa),'hektar')+
+   card('Idle Area',lbHa(k.idleAreaHa),lbP(k.idleRatioPct)+' portofolio','var(--amber)')+
+   card('Jabodetabek–Karawang',lbHa(k.jabodetabekKarawangHa),'konsentrasi tertinggi')+
+   card('Data Completeness',lbP(k.avgCompletenessPct),'rata-rata')+
+   '<div class="lb-kpi lb-kpi-op" onclick="go(\'procurement\')" title="OPEX perawatan lahan ditarik dari SPK Procurement — klik buka Procurement"><div class="lb-kpi-l">💰 OPEX Perawatan · dari Procurement</div>'+
+     (op.rp==null?'<div class="lb-kpi-v lb-off">—</div><div class="lb-kpi-s lb-off">menunggu SPK dari Procurement</div>':'<div class="lb-kpi-v">'+costRp(op.rp)+'</div><div class="lb-kpi-s">'+op.n+' SPK bulan ini</div>')+
+     '<div class="lb-kpi-link">buka Procurement →</div></div>'+
+ '</div>';
+}
+function lbMoneyRow(){
+ var mq=LANDBANK.kpi.moneyQuestion||{};
+ var cards=[['idleAssetValueIdr','Idle Asset Value'],['annualCostOfIdleIdr','Annual Cost of Idle'],['revenuePotentialIdr','Revenue Potential'],['valueAtRiskIdr','Value at Risk']];
+ return '<div class="card sec"><div class="sec-h">'+secIc('#fdf3e3','#c2740a','payment')+'<div><h2>The Money Question</h2><div class="d">'+lbTxt(mq.note)+'</div></div></div>'+
+   '<div class="sec-body"><div class="lb-money">'+cards.map(function(c){ var v=mq[c[0]]; return '<div class="lb-mq"><div class="lb-mq-l">'+c[1]+'</div><div class="lb-mq-v">'+(v==null?'—':costRp(v))+'</div><div class="lb-mq-s">Pending — fase SCORE</div></div>'; }).join('')+'</div>'+
+   '<div class="lb-money-line">Astra menahan '+lbHa(LANDBANK.kpi.idleAreaHa)+' aset idle ('+lbP(LANDBANK.kpi.idleRatioPct)+' portofolio) — biaya penahanan belum pernah terkuantifikasi.</div></div></div>';
+}
+function lbTableHTML(){
+ var ps=lbParcels();
+ var cols=[['assetId','Asset ID',0],['alias','Alias',0],['entityCode','Entity',0],['province','Provinsi',0],['city','Kota',0],['landAreaM2','Luas m²',1],['utilizationStatus','Status',0],['completenessPct','Lengkap',1],['tierLabel','Tier',0]];
+ var head=cols.map(function(c){ return '<th class="'+(c[2]?'num':'')+'" onclick="lbSort(\''+c[0]+'\')">'+c[1]+(lbSortK===c[0]?(lbSortDir>0?' ▲':' ▼'):'')+'</th>'; }).join('');
+ var body=ps.map(function(p){ var vac=p.utilizationStatus==='Vacant';
+   return '<tr'+(vac?' class="lb-vac"':'')+'><td class="mono">'+esc(p.assetId)+'</td><td>'+esc(p.alias)+'</td><td>'+esc(p.entityCode)+'</td><td>'+esc(p.province)+'</td><td class="mut">'+esc(p.city)+'</td><td class="num">'+lbN(p.landAreaM2)+'</td><td'+(vac?' class="red"':'')+'>'+esc(p.utilizationStatus)+'</td><td class="num">'+lbP(p.completenessPct)+'</td><td class="mut">'+esc(p.tierLabel)+'</td></tr>';
+ }).join('');
+ return '<div class="card sec"><div class="sec-h">'+secIc('#eef4ff','#2563eb','landbank')+'<div><h2>Daftar Aset · '+ps.length+' persil</h2><div class="d">Klik header untuk urutkan · baris merah = Vacant</div></div>'+
+   '<div class="lb-search"><input placeholder="Cari asset id, alias, kota…" value="'+esc(lbSearch)+'" oninput="lbSetSearch(this.value)"></div></div>'+
+   '<div class="sec-body"><div class="lb-tblwrap"><table class="lb-tbl"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div></div></div>';
+}
 function renderLandbank(){
  var el=document.getElementById("page-landbank"); if(!el)return;
- var own=isOwner();
- var steps=['Supply Order','SPK terbit','Lingkup + biaya kerja','OPEX perawatan aset (otomatis)'];
- var flow='<div class="lb-flow">'+steps.map(function(s,i){
-     return '<div class="lb-flow-s'+(i===3?' on':'')+'">'+esc(s)+'</div>'+(i<3?'<span class="lb-flow-a">→</span>':'');
-   }).join('')+'</div>';
- var opex = GA_COST_LIVE
-   ? '<div class="lb-opex-v">'+costRp(0)+'</div><div class="lb-opex-m">dari SPK bulan berjalan</div>'
-   : '<div class="lb-opex-v lb-opex-off">—</div><div class="lb-opex-m lb-opex-off">menunggu upload data SPK · <b>build menyusul</b></div>';
- var rows = ASSET_REG.length ? ASSET_REG.map(function(a,i){
-   function cell(k,ph){ return own?'<td><input value="'+esc(a[k]||"")+'" placeholder="'+ph+'" oninput="lbSet('+i+',\''+k+'\',this.value)"></td>':'<td>'+esc(a[k]||"—")+'</td>'; }
-   return '<tr>'+cell("nama","Nama aset/lahan")+cell("jenis","Lahan/Gedung/Kendaraan")+cell("lokasi","Lokasi")+cell("nilai","Nilai / Luas")+
-     '<td class="lb-pend">menunggu SPK</td>'+(own?'<td><button class="pm-rep-x" onclick="lbDel('+i+')" title="Hapus">✕</button></td>':'<td></td>')+'</tr>';
- }).join('') : '<tr><td colspan="6" class="lb-empty">Belum ada aset terdaftar. '+(own?'Klik <b>+ Tambah Aset</b> — aset & lahan dicatat SEKALI sebagai master; OPEX perawatannya mengalir otomatis dari SPK.':'Menunggu registrasi aset oleh admin.')+'</td></tr>';
+ if(!LANDBANK||!ID_PROV){ el.innerHTML='<div class="card pad" style="text-align:center;color:var(--muted);padding:50px">Memuat data land bank…</div>'; lbDataLoad(); return; }
  el.innerHTML=
-   '<div class="card pad lb-hero">'+
-     '<div class="lb-hero-t">Satu register aset &amp; lahan Astra — OPEX perawatan dari SPK <span class="lb-soon">🚧 coming soon</span></div>'+
-     '<div class="lb-hero-s">Semua aset &amp; lahan yang dimiliki/dikelola Astra beserta <b>OPEX perawatannya</b>. Angka biaya <b>tidak diinput manual</b> — ditarik dari <b>SPK (Surat Perintah Kerja)</b> yang terbit setelah Supply Order. Satu tempat, tanpa kerja ganda.</div>'+
-     flow+
-   '</div>'+
-   '<div class="lb-2col">'+
-     '<div class="card pad lb-opex"><div class="lb-opex-c">💰 OPEX Perawatan Aset · '+(typeof codecMonthID==="function"?codecMonthID():"")+'</div>'+opex+
-       '<div class="lb-opex-src">Sumber: file SPK per aset · terhubung ke <b>Performance Indikator GA-04</b> (Asset Maintenance).</div></div>'+
-     '<div class="card pad lb-note"><div class="lb-note-t">Kenapa dari SPK, bukan input manual?</div>'+
-       '<div class="lb-note-b">SPK = dokumen resmi lingkup + biaya kerja yang terbit setelah SO disetujui. Menariknya langsung membuat OPEX perawatan tiap aset akurat, bisa dipertanggungjawabkan, dan admin tak perlu rekap manual — sejalan tujuan AGAVA: operasional GA tanpa padat karya.</div></div>'+
-   '</div>'+
-   '<div class="card pad">'+
-     '<div class="lb-reg-h"><b>Register Aset &amp; Lahan</b>'+(own?'<button class="btn-act" onclick="lbAdd()">+ Tambah Aset</button>':'')+'</div>'+
-     '<div class="lb-reg-wrap"><table class="lb-reg"><thead><tr><th>Aset / Lahan</th><th>Jenis</th><th>Lokasi</th><th>Nilai / Luas</th><th>OPEX Perawatan YTD</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-   '</div>';
+   lbKpiRow()+
+   lbMoneyRow()+
+   '<div class="card sec"><div class="sec-h">'+secIc('#e1f5ee','#0f6e56','landbank')+'<div><h2>Sebaran Aset per Provinsi</h2><div class="d">Peta Indonesia + heatmap idle · klik provinsi untuk saring daftar</div></div></div>'+
+     '<div class="sec-body">'+lbProvPanel()+lbMapHTML()+'</div></div>'+
+   lbTableHTML();
 }
 function renderBuilding(){
  const MONTHS=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
@@ -10266,7 +10355,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-65";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-66";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
