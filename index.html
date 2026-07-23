@@ -1441,6 +1441,9 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pm-rep-b i{font-style:normal;font-size:calc(11px*var(--fz));color:#9aa7b8}
 .pm-rep-b input{width:92px;border:none;outline:none;padding:8px 2px;font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:700;text-align:right;color:var(--ink);background:transparent}
 .pm-rep-x{flex:0 0 auto;width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--red);cursor:pointer;font-size:calc(12px*var(--fz))}
+.pm-loc{display:flex;gap:6px;align-items:center}
+.pm-loc-n{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:var(--ff);font-size:calc(13px*var(--fz));color:var(--ink);background:#fff}
+.pm-loc-c{flex:0 0 76px;width:76px;border:1px solid var(--line);border-radius:9px;padding:8px 7px;font-family:var(--ff);font-size:calc(11.5px*var(--fz));color:var(--ink);background:#fff;text-align:right}
 .pm-preview-card{padding:14px 16px;background:linear-gradient(160deg,#fff,#f2f9ff)}
 .pm-exs{display:flex;flex-direction:column;gap:9px}
 .pm-ex{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
@@ -1916,6 +1919,13 @@ body.rg-open{overflow:hidden}
 .ot-note{font-size:calc(11.5px*var(--fz));color:#0a4bb8;background:#eef5ff;border:1px solid #cfe0f8;border-radius:9px;
   padding:8px 11px;margin:2px 0 12px;line-height:1.5}
 @media(max-width:560px){.ot-pick{grid-template-columns:1fr}}
+/* estimasi jarak & jejak karbon di form transport */
+.tr-est{font-size:calc(12px*var(--fz));color:var(--muted);background:#f5f8fc;border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:2px 0 4px;line-height:1.5}
+.tr-est.on{color:#0a4bb8;background:#eef5ff;border-color:#cfe0f8}
+.tr-est.warn{color:#8a5a00;background:#fdf6e8;border-color:#f0dcae}
+.tr-est-v{font-weight:800;color:#0a7d5e}
+.tr-est.warn .tr-est-v{color:#8a5a00}
+.tr-est-s{font-size:calc(10.5px*var(--fz));color:var(--muted);margin-top:3px}
 /* panel Cloud & Backup */
 .cl-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:calc(12.5px*var(--fz));color:var(--ink)}
 .cl-row b{font-weight:800;color:#0a4bb8;text-align:right}
@@ -7389,24 +7399,46 @@ function openTransport(type){
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">${T}</div><div class="muted small" style="margin-top:4px">Layanan transportasi GA</div></div>
   <div class="db rb-form">
-    <div class="rbf-row"><span class="rbf-ic">📍</span><input id="tr-dest" placeholder="${isPool?'Tujuan / rute':'Tujuan / keperluan'}"/></div>
+    <datalist id="trLocs">${(GA_PARAM.lokasi||[]).map(x=>`<option value="${esc(x.nama)}">`).join("")}</datalist>
+    <div class="rbf-row"><span class="rbf-ic">🅰️</span><input id="tr-from" list="trLocs" placeholder="Dari (lokasi asal)" oninput="transportEstimate()"/></div>
+    <div class="rbf-row"><span class="rbf-ic">🅱️</span><input id="tr-to" list="trLocs" placeholder="Ke (tujuan)" oninput="transportEstimate()"/></div>
+    <div id="tr-est" class="tr-est">Isi <b>Dari</b> &amp; <b>Ke</b> untuk estimasi jarak &amp; jejak karbon.</div>
     <div class="rbf-row"><span class="rbf-ic">📅</span><input id="tr-date" type="date" value="${TODAY_STR}"/></div>
-    ${isPool?`<div class="rbf-row"><span class="rbf-ic">⏰</span><input id="tr-time" type="time" value="08:00"/></div><div class="rbf-row"><span class="rbf-ic">👥</span><input id="tr-pax" type="number" value="1" min="1"/></div>`:`<div class="rbf-row"><span class="rbf-ic">🎟️</span><input id="tr-qty" type="number" value="1" min="1" placeholder="Jumlah voucher"/></div>`}
+    ${isPool?`<div class="rbf-row"><span class="rbf-ic">⏰</span><input id="tr-time" type="time" value="08:00"/></div><div class="rbf-row"><span class="rbf-ic">👥</span><input id="tr-pax" type="number" value="1" min="1"/></div>`:`<div class="rbf-row"><span class="rbf-ic">🎟️</span><input id="tr-qty" type="number" value="1" min="1" placeholder="Jumlah voucher" oninput="transportEstimate()"/></div>`}
     <div class="rbf-row" style="align-items:flex-start"><span class="rbf-ic">📝</span><textarea id="tr-note" placeholder="Keperluan / catatan…" rows="2"></textarea></div>
     <button class="btn-act" style="width:100%;margin-top:12px" onclick="saveTransport('${type}')">Ajukan</button>
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
+/* Estimasi jarak & jejak karbon live di form transport */
+function transportEstimate(){
+ var el=document.getElementById("tr-est"); if(!el)return;
+ var from=((document.getElementById("tr-from")||{}).value||"").trim();
+ var to=((document.getElementById("tr-to")||{}).value||"").trim();
+ var qEl=document.getElementById("tr-qty"); var trips=qEl?(+qEl.value||1):1;
+ if(!from||!to){ el.className="tr-est"; el.innerHTML='Isi <b>Dari</b> &amp; <b>Ke</b> untuk estimasi jarak &amp; jejak karbon.'; return; }
+ var km=distanceKm(from,to);
+ var c=costTransport(km||0); var rp=c.rp*trips, co2=+(c.co2*trips).toFixed(1);
+ if(km){ el.className="tr-est on";
+   el.innerHTML='<b>'+km+' km</b>'+(trips>1?' × '+trips+' voucher':'')+' &nbsp;→&nbsp; <span class="tr-est-v">'+costRp(rp)+' · '+co2+' kg CO₂</span>';
+ } else { el.className="tr-est warn";
+   el.innerHTML='Lokasi belum dikenal — pakai jarak default '+GA_PARAM.transport.jarakDefault+' km. <span class="tr-est-v">'+costRp(rp)+' · '+co2+' kg CO₂</span><div class="tr-est-s">Tambahkan lokasi di modul Parameter agar presisi.</div>';
+ }
+}
 function saveTransport(type){
- const dest=(document.getElementById("tr-dest").value||"").trim()||"—";
+ const from=((document.getElementById("tr-from").value||"").trim());
+ const to=((document.getElementById("tr-to").value||"").trim());
  const date=document.getElementById("tr-date").value||TODAY_STR;
- let detail=dest, time="";
- if(type==='pool'){ time=document.getElementById("tr-time").value||""; const pax=document.getElementById("tr-pax").value||"1"; detail=dest+" · "+pax+" pax"; }
- else { const qty=document.getElementById("tr-qty").value||"1"; detail=dest+" · "+qty+" voucher"; }
+ const route=(from||to)?((from||"?")+" → "+(to||"?")):"—";
+ const km=distanceKm(from,to)||0;
+ let detail=route, time="";
+ if(type==='pool'){ time=document.getElementById("tr-time").value||""; const pax=document.getElementById("tr-pax").value||"1"; detail=route+" · "+pax+" pax"; }
+ else { const qty=document.getElementById("tr-qty").value||"1"; detail=route+" · "+qty+" voucher"; }
  const trNo=orderNo("transport");   // setiap permintaan transport punya nomor tiket
- TRANSPORT_REQ.unshift({no:trNo,id:"tr"+(++TRANSPORT_SEQ),type,detail,date,time,by:(gUser?gUser.name:""),email:(gUser?gUser.email:""),status:"Diajukan"});
+ TRANSPORT_REQ.unshift({no:trNo,id:"tr"+(++TRANSPORT_SEQ),type,detail,dari:from,ke:to,km:km,date,time,by:(gUser?gUser.name:""),email:(gUser?gUser.email:""),status:"Diajukan"});
+ var cc=gaActivityCost({kind:"transport",ref:{detail:detail,dari:from,ke:to,km:km}});
  closeDrawer(); renderTransport(); if(typeof updateBell==="function")updateBell(); try{ renderMobileHome(); }catch(e){}
- alert("✅ Permintaan "+transportLabel(type)+" diajukan.\nNo. tiket: "+trNo+"\nNotifikasi terkirim ke PIC Transport untuk persetujuan.\n"+detail+" · "+date+(time?' '+time:''));
+ alert("✅ Permintaan "+transportLabel(type)+" diajukan.\nNo. tiket: "+trNo+"\nRute: "+route+(km?" · ~"+km+" km":"")+"\nEstimasi biaya: "+costTag(cc)+"\nNotifikasi terkirim ke PIC Transport untuk persetujuan.");
 }
 
 /* ═══════════════ OVERTIME — pengajuan lembur (menggantikan Mailing Room) ═══════════════
@@ -9788,7 +9820,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-51";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-52";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10118,6 +10150,19 @@ const GA_PARAM_DEFAULT={
    {item:"Lampu mati (lampu + jasa)", biaya:75000},
    {item:"Cat dinding kusam (per m²)", biaya:85000},
    {item:"Karpet terkelupas (per m²)", biaya:180000}
+ ],
+ /* Lokasi + koordinat — dasar hitung jarak transport (haversine × faktor jalan).
+    Nanti diganti data presisi dari Blue Bird / GoCorp; kini mesinnya dulu. */
+ lokasi:[
+   {nama:"AMDI Sunter", lat:-6.1470, lng:106.8930},
+   {nama:"Menara Astra (Sudirman)", lat:-6.2003, lng:106.8203},
+   {nama:"ABC BSD", lat:-6.3019, lng:106.6524},
+   {nama:"ABC Bandung", lat:-6.9147, lng:107.6098},
+   {nama:"MA Warehouse (Cakung)", lat:-6.1680, lng:106.9520},
+   {nama:"Bandara Soekarno-Hatta", lat:-6.1275, lng:106.6537},
+   {nama:"SCBD Sudirman", lat:-6.2246, lng:106.8095},
+   {nama:"Bundaran HI", lat:-6.1946, lng:106.8230},
+   {nama:"Stasiun MRT Sunter", lat:-6.1500, lng:106.8600}
  ]
 };
 var GA_PARAM=JSON.parse(JSON.stringify(GA_PARAM_DEFAULT));
@@ -10127,6 +10172,22 @@ function paramMerge(d){
    if(d[g]) Object.keys(GA_PARAM[g]).forEach(function(k){ if(d[g][k]!=null&&!isNaN(+d[g][k])) GA_PARAM[g][k]=+d[g][k]; });
  });
  if(Array.isArray(d.repair)) GA_PARAM.repair=d.repair.map(function(x){return {item:String(x.item||""),biaya:+x.biaya||0};});
+ if(Array.isArray(d.lokasi)) GA_PARAM.lokasi=d.lokasi.map(function(x){return {nama:String(x.nama||""),lat:+x.lat||0,lng:+x.lng||0};});
+}
+/* Jarak dua lokasi (km) — haversine × faktor jalan 1,3. null bila salah satu
+   tak dikenal (pemanggil pakai jarak default). Ganti dgn data Blue Bird/GoCorp nanti. */
+function lokasiFind(nm){ if(!nm)return null; var s=String(nm).toLowerCase().trim(); if(!s)return null;
+ var arr=GA_PARAM.lokasi||[];
+ var ex=arr.find(function(x){return String(x.nama).toLowerCase()===s;}); if(ex)return ex;
+ return arr.find(function(x){ var n=String(x.nama).toLowerCase(); return n.indexOf(s)>=0||s.indexOf(n)>=0; })||null;
+}
+function distanceKm(dari,ke){
+ var A=lokasiFind(dari), B=lokasiFind(ke); if(!A||!B||(!A.lat&&!A.lng)||(!B.lat&&!B.lng))return null;
+ function rad(x){return x*Math.PI/180;}
+ var R=6371, dLat=rad(B.lat-A.lat), dLng=rad(B.lng-A.lng);
+ var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(rad(A.lat))*Math.cos(rad(B.lat))*Math.sin(dLng/2)*Math.sin(dLng/2);
+ var d=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+ return Math.max(1,Math.round(d*1.3));
 }
 function paramLoad(){ try{ var raw=localStorage.getItem(GA_PARAM_STORE); if(raw) paramMerge(JSON.parse(raw)); }catch(e){} }
 function paramPersist(){
@@ -10175,7 +10236,9 @@ function gaActivityCost(o){
  var r=o.ref||{}, k=o.kind;
  if(k==="room"){ var jam=hhmmJam(r.start,r.end), pax=+r.pax||rbRoomCap(r.room)||8; var c=costRuangMeeting(pax,jam); c.rinci=pax+" pax · "+jam+" jam"; return c; }
  if(k==="transport"){ var n=(/(\d+)\s*(voucher|trip|unit|kali)/i.exec(r.detail||"")||[])[1], trips=+n||1;
-   var base=costTransport(); return trips>1?{rp:base.rp*trips, co2:+(base.co2*trips).toFixed(1), rinci:trips+"× "+base.rinci}:base; }
+   var km=+r.km||distanceKm(r.dari,r.ke)||0;   // 0 → costTransport pakai jarakDefault
+   var base=costTransport(km);
+   return trips>1?{rp:base.rp*trips, co2:+(base.co2*trips).toFixed(1), rinci:base.rinci+" ×"+trips}:base; }
  if(k==="overtime"){ var jm=hhmmJam(r.mulai,r.selesai);
    if(/ac|pendingin|suhu|udara/i.test((r.jenis||"")+" "+(r.alasan||""))) return costOvertimeAC(jm);
    var px=+r.pax||1; return {rp:Math.round(px*jm*GA_PARAM.tenaga.manpowerLembur), co2:0, rinci:px+" org × "+jm+" jam lembur"}; }
@@ -10232,12 +10295,22 @@ function paramRepairRows(){
      '<button class="pm-rep-x" onclick="GA_PARAM.repair.splice('+i+',1); renderParams()" title="Hapus">✕</button></div>';
  }).join("");
 }
+function paramLokasiRows(){
+ return (GA_PARAM.lokasi||[]).map(function(r,i){
+   return '<div class="pm-loc"><input class="pm-loc-n" value="'+esc(r.nama)+'" placeholder="Nama lokasi" '+
+     'oninput="GA_PARAM.lokasi['+i+'].nama=this.value; paramPreview()">'+
+     '<input class="pm-loc-c" type="number" step="0.0001" value="'+r.lat+'" placeholder="lat" oninput="GA_PARAM.lokasi['+i+'].lat=+this.value; paramPreview()">'+
+     '<input class="pm-loc-c" type="number" step="0.0001" value="'+r.lng+'" placeholder="lng" oninput="GA_PARAM.lokasi['+i+'].lng=+this.value; paramPreview()">'+
+     '<button class="pm-rep-x" onclick="GA_PARAM.lokasi.splice('+i+',1); renderParams()" title="Hapus">✕</button></div>';
+ }).join("");
+}
 function paramPreview(){
  var el=document.getElementById("pmPreview"); if(!el)return;
- var bb=costTransport(), rm=costRuangMeeting(20,2), ac=costTiketPanas();
+ var bkm=distanceKm("AMDI Sunter","Bandara Soekarno-Hatta");
+ var bb=costTransport(bkm||0), rm=costRuangMeeting(20,2), ac=costTiketPanas();
  var rep=(GA_PARAM.repair[0]||{biaya:0});
  el.innerHTML=
-   paramEx("🚕","Voucher taksi (Blue Bird)",bb,"jarak default "+GA_PARAM.transport.jarakDefault+" km PP")+
+   paramEx("🚕","Taksi: AMDI → Bandara Soetta",bb,(bkm?bkm+" km · haversine×1,3":"jarak default "+GA_PARAM.transport.jarakDefault+" km"))+
    paramEx("🏢","Ruang meeting 20 pax · 2 jam",rm,rm.rinci)+
    paramEx("❄️","Tiket \"ruangan panas\" turunkan AC",ac,ac.rinci)+
    '<div class="pm-ex"><span class="pm-ex-ic">🔧</span><div class="pm-ex-t"><b>'+esc(rep.item||"Repair")+'</b>'+
@@ -10286,6 +10359,11 @@ function renderParams(){
       '<div class="muted small">Biaya perbaikan aset — ditampilkan ke karyawan agar sadar pentingnya menjaga fasilitas.</div></div></div>'+
       '<div class="pm-reps">'+paramRepairRows()+'</div>'+
       '<button class="btn-out" style="margin-top:8px" onclick="GA_PARAM.repair.push({item:\'\',biaya:0}); renderParams()">＋ Tambah item repair</button></div>'+
+    '<div class="card pm-card"><div class="pm-h"><span class="pm-ic">📍</span><div>'+
+      '<div class="panel-t" style="margin:0">Lokasi &amp; Jarak Transport</div>'+
+      '<div class="muted small">Koordinat (lat, lng) — dasar hitung jarak &amp; jejak karbon transport (haversine × 1,3). Nanti diganti data presisi Blue Bird/GoCorp.</div></div></div>'+
+      '<div class="pm-reps">'+paramLokasiRows()+'</div>'+
+      '<button class="btn-out" style="margin-top:8px" onclick="GA_PARAM.lokasi.push({nama:\'\',lat:0,lng:0}); renderParams()">＋ Tambah lokasi</button></div>'+
   '</div><div class="pm-colR"><div class="card pm-preview-card"><div class="pm-h" style="border:none">'+
     '<span class="pm-ic">🧮</span><div><div class="panel-t" style="margin:0">Contoh Perhitungan — live</div>'+
     '<div class="muted small">berubah seketika saat Anda ubah koefisien</div></div></div>'+
