@@ -2815,7 +2815,16 @@ function navFit(){
    if(nav.scrollHeight<=nav.clientHeight+1)break;   // sudah muat → berhenti mengecilkan
  }
 }
-window.addEventListener("resize",function(){ try{ navFit(); }catch(e){} });
+/* Hanya hitung ulang saat LEBAR berubah (rotasi / resize jendela sungguhan).
+   Di iPad/Safari, menggulir menyembunyikan address bar → tinggi viewport berubah
+   → resize terpicu; kalau navFit ikut jalan, menu jadi mengecil saat scroll turun
+   dan membesar saat scroll naik. Abaikan perubahan tinggi-saja itu. */
+var _navW=window.innerWidth;
+window.addEventListener("resize",function(){
+  if(window.innerWidth===_navW)return;   // tinggi berubah tapi lebar tetap → lewati
+  _navW=window.innerWidth;
+  try{ navFit(); }catch(e){}
+});
 function toggleSidebar(){ document.getElementById("side").classList.toggle("collapsed"); }
 function toggleMobSidebar(){ document.body.classList.toggle("side-open"); }
 function closeMobSidebar(){ document.body.classList.remove("side-open"); }
@@ -8782,7 +8791,7 @@ function renderHSE(){
   <div class="hse-tabs">
     <button class="hse-tab" id="hseTab0" onclick="hseGoPage(0)">
       <span class="hse-tab-n">1</span>
-      <span class="hse-tab-t"><b>Izin Operasional</b>
+      <span class="hse-tab-t"><b>Monitoring Perizinan</b>
         <i>${allDue.length} izin dipantau${urgent?` · <em>${urgent} perlu tindakan</em>`:' · terkendali'}</i></span>
     </button>
     <button class="hse-tab" id="hseTab1" onclick="hseGoPage(1)">
@@ -8801,7 +8810,7 @@ function renderHSE(){
     </div>
 
     <div class="hse-sec"><span class="hse-sec-n">1</span>
-      <div><div class="hse-sec-t">Izin Operasional Bangunan &amp; Utilitas</div>
+      <div><div class="hse-sec-t">Monitoring Perizinan — Bangunan &amp; Utilitas</div>
         <div class="hse-sec-s">Masa berlaku &amp; uji berkala · jatuh tempo mengikuti tanggal uji berkala · Close bila sudah diperpanjang</div></div>
     </div>
 
@@ -8836,13 +8845,13 @@ function renderHSE(){
     ${wpPanelHTML()}
     <button class="hse-lanjut balik" onclick="hseGoPage(0)">
       <span class="hse-lanjut-a">←</span>
-      <span class="hse-lanjut-t"><b>Halaman 1 — Izin Operasional</b>
+      <span class="hse-lanjut-t"><b>Halaman 1 — Monitoring Perizinan</b>
         <i>${allDue.length} izin dipantau</i></span></button>
    </section>
   </div>
 
   <div class="hse-dots">
-    <i onclick="hseGoPage(0)" title="Halaman 1 — Izin Operasional"></i>
+    <i onclick="hseGoPage(0)" title="Halaman 1 — Monitoring Perizinan"></i>
     <i onclick="hseGoPage(1)" title="Halaman 2 — Izin Kerja"></i>
   </div>`;
  hseGoPage(hsePage,true);   // kembali ke halaman yang sedang dibuka setelah render ulang
@@ -8979,8 +8988,6 @@ function wpPanelHTML(){
   const pend=WORK_PERMITS.filter(w=>w.status==="Menunggu Review").length;
   const can=dbCanEdit();
   return `<div class="db-zone">
-    <div class="db-zone-h"><span class="db-zone-badge">🦺 WORK PERMIT · DIAJUKAN LANGSUNG DI AGAVA</span>
-      <span class="muted small">Internal lewat tombol di bawah; vendor/eksternal lewat QR — keduanya masuk ke database AGAVA yang sama.</span></div>
     <div class="card pad db-panel">
       <div class="db-head">
         <div><div class="panel-t" style="margin:0">🦺 Pengajuan Work Permit</div>
@@ -9232,7 +9239,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-45";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-46";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
