@@ -4134,7 +4134,7 @@ let KPI_CLA=[
  {code:"GA-01",persp:"Sustainability",   name:"Contribute to ASTRA ESG Program 2030",      from:"General Facilities Management",        pick:"", target:90, weight:20, nav:"energy"},
  {code:"GA-02",persp:"Customer",         name:"Enhance Service & Shuttle Experience",       from:"General Services Management",          pick:"", target:85, weight:15, nav:"service"},
  {code:"GA-03",persp:"Financial",        name:"Payment BPH terbayar tepat waktu",           from:"General Administration",               pick:"Payment BPH on-time — Payment Tracker", target:95, weight:10, nav:"payment"},
- {code:"GA-04",persp:"Financial",        name:"Asset Maintenance — AIHO Land Bank & STO",   from:"General Administration",               pick:"", manual:true, ach:78, type:"nonroutine", target:85, weight:10, nav:"payment"},
+ {code:"GA-04",persp:"Financial",        name:"Asset Maintenance — AIHO Land Bank & STO",   from:"General Administration",               pick:"", manual:true, ach:78, type:"nonroutine", target:85, weight:10, nav:"payment", subs:[{n:"Develop AIHO Landbank",v:58},{n:"STO",v:99}]},
  {code:"GA-05",persp:"Internal Process", name:"Rejuvenation AMDI & Advanced Building System",from:"Project Development",                 pick:"", target:90, weight:20, nav:"project"},
  {code:"GA-06",persp:"External Relation",name:"Procurement Hub across Astra Group",         from:"Project Development",                  pick:"Procurement Hub across Astra Group", target:80, weight:10, nav:"procurement"},
  {code:"GA-07",persp:"Safety",           name:"Compliance with Safety Standard AIHO",       from:"Environment Health & Safety (P2K3L)",  pick:"", target:90, weight:15, nav:"hse"}
@@ -4258,7 +4258,7 @@ function codecPerfIndicatorHTML(){
  /* ── Key Performance = tabel review PDCA bulanan ──
     kolom: KPI · Bobot · Target FY · Pencapaian YTD (editable per bulan) · Catatan bulan.
     Bulan berjalan default angka live CODEC; bisa dioverride & disimpan (localStorage, ikut kpiPersist). */
- var m=kpiMonthNow(), curM=(m===kpiCurMonth());
+ var m=kpiMonthNow(), curM=(m===kpiPrevMonth());   // "live CODEC" utk bulan pelaporan terakhir (H-1), bukan bulan berjalan
  var monOpts=kpiMonths().map(function(o){return '<option value="'+o.v+'"'+(o.v===m?' selected':'')+'>'+o.l+'</option>';}).join('');
  var ed=kpiEditOn();                                     // tabel hanya bisa diubah setelah buka kunci PIN
  var head='<div class="pik-row pik-head"><span>KPI</span><span>Bobot</span><span>Target FY</span><span>Pencapaian YTD</span><span>Catatan '+kpiMonLabel(m)+'</span><span></span></div>';
@@ -4295,9 +4295,6 @@ function codecPerfIndicatorHTML(){
  return '<div class="card mt16 pi-card">'+
    '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div></div></div>'+
    '<div class="pi-stack">'+
-     '<div class="pi-panel">'+
-       codecHlStd(S)+
-       '<div class="pi-h pi-h-std">📋 Standard Performance Indicator</div>'+std+'</div>'+
      '<div class="pi-panel pi-panel-key2">'+
        codecHlKey(total)+
        '<div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+
@@ -4309,6 +4306,9 @@ function codecPerfIndicatorHTML(){
          ? '<b style="color:#0a4bb8">🔓 Mode ubah aktif</b> — isi Bobot, Target, Pencapaian YTD &amp; catatan, lalu klik <b>Simpan</b>.'
          : 'Review PDCA bulanan. Tabel terkunci — klik <b>🔒 Ubah</b> dan masukkan PIN untuk mengedit.')+'</div>'+
        head+keyRows+'</div>'+
+     '<div class="pi-panel">'+
+       codecHlStd(S)+
+       '<div class="pi-h pi-h-std">📋 Standard Performance Indicator</div>'+std+'</div>'+
    '</div>'+
    '<div class="gd-kpop" id="gdKpiPop"></div></div>';
 }
@@ -4380,8 +4380,18 @@ function kpiDetailHTML(r,i,ed){
 const KPI_MON_ID=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 let kpiMonthSel=null;
 function kpiCurMonth(){ return TODAY_STR.slice(0,7); }
+/* Default view = H-1 bulan (bulan berjalan − 1). Progress KPI di-update awal bulan
+   berikutnya, jadi update terakhir yang valid = bulan lalu (mis. Juli berjalan → Juni).
+   Diklem ke rentang tahun KPI (min Jan, maks Des). */
+function kpiPrevMonth(){
+ var d=new Date((TODAY_STR||realToday())+"T00:00:00"); d.setDate(1); d.setMonth(d.getMonth()-1);
+ var y=+KPI_YEAR_META.year, my=d.getFullYear(), mm=d.getMonth()+1;
+ if(my<y) return y+"-01";
+ if(my>y) return y+"-12";
+ return my+"-"+String(mm).padStart(2,"0");
+}
 /* jangan cache sebelum user memilih — TODAY_STR bisa berubah saat data config selesai dimuat */
-function kpiMonthNow(){ return kpiMonthSel||kpiCurMonth(); }
+function kpiMonthNow(){ return kpiMonthSel||kpiPrevMonth(); }
 function kpiSetMonth(v){ kpiMonthSel=v; renderOverview(); }
 function kpiMonLabel(m){ var p=m.split("-"); return KPI_MON_ID[+p[1]-1]||m; }
 function kpiMonths(){ var y=KPI_YEAR_META.year, a=[]; for(var i=0;i<12;i++){ a.push({v:y+"-"+String(i+1).padStart(2,"0"), l:KPI_MON_ID[i]+" "+y}); } return a; }
@@ -10465,7 +10475,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-71";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-72";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
