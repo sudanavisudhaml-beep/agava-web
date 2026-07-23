@@ -2077,6 +2077,36 @@ body.rg-open{overflow:hidden}
 .pi-cost b{font-size:calc(12px*var(--fz));font-weight:800;color:#0a7d5e}
 .pi-cost em{font-style:normal;color:var(--muted);font-size:calc(10px*var(--fz))}
 .pi-cost-n{font-style:normal;color:#9aa7b8;font-size:calc(10.5px*var(--fz))}
+/* ── akuntabilitas biaya: state "menunggu data" (Rupiah dikosongkan) ── */
+.pi-hl-cv-off,.opex-v-off{color:#9aa7b8!important}
+.pi-hl-cm-off b,.opex-meta-off b{color:#b45309}
+.opex-off{opacity:.92}
+/* affordance klik → tally (hanya saat data live) */
+.pi-hl-cost.clk,.opex-hl.clk{cursor:pointer}
+.pi-hl-cost.clk:hover{background:rgba(10,124,255,.05);border-radius:10px}
+.pi-cost-clk{cursor:pointer;text-decoration:underline dotted rgba(10,125,94,.55);text-underline-offset:2px}
+.pi-cost-clk:hover{color:#0a5f47}
+/* popup rincian biaya "klik → tally" (dirender di #gdKpiPop) */
+.ct-h{font-weight:800;font-size:calc(12px*var(--fz));color:var(--ink);margin-bottom:8px}
+.ct-list{max-height:240px;overflow:auto;margin:0 -2px 4px;padding:0 2px}
+.ct-row{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-top:1px solid var(--line)}
+.ct-ic{flex:0 0 18px;font-size:calc(13px*var(--fz));line-height:1.35}
+.ct-lb{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ct-lb b{font-size:calc(11.5px*var(--fz));font-weight:700;color:var(--ink)}
+.ct-lb em{font-style:normal;font-size:calc(10px*var(--fz));color:var(--muted)}
+.ct-lb i{font-style:normal;font-size:calc(9.5px*var(--fz));color:#9aa7b8}
+.ct-rp{flex:0 0 auto;text-align:right;font-weight:800;font-size:calc(11.5px*var(--fz));color:#0a7d5e;display:flex;flex-direction:column}
+.ct-rp u{text-decoration:none;font-weight:600;font-size:calc(9px*var(--fz));color:#9aa7b8;margin-top:1px}
+.ct-empty{padding:16px;text-align:center;color:#9aa7b8;font-size:calc(11px*var(--fz))}
+.ct-sum{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;font-size:calc(11px*var(--fz));color:var(--muted)}
+.ct-sum b{color:var(--ink);font-weight:800;font-size:calc(12px*var(--fz))}
+.ct-carb{border-top:1px dashed var(--line)}
+.ct-grand{border-top:2px solid #0a7d5e;margin-top:2px}
+.ct-grand span{color:#0a7d5e;font-weight:800}
+.ct-grand b{color:#0a7d5e;font-size:calc(14px*var(--fz))}
+.ct-src{margin-top:8px;font-size:calc(9.5px*var(--fz));color:#9aa7b8;line-height:1.55}
+.ct-src button{border:none;background:none;color:#2563eb;cursor:pointer;padding:0;font:inherit;text-decoration:underline}
+.ct-src button:disabled{color:#9aa7b8;cursor:default;text-decoration:none}
 @media(max-width:820px){.pi-hl-v{font-size:calc(33px*var(--fz))}.pi-hl-mn{font-size:calc(18px*var(--fz))}.pi-hl-minis{margin-left:0;flex:1 1 100%}
   .pi-hl-cost{margin-left:0;flex-basis:100%;text-align:left;border-left:none;border-top:1px solid rgba(10,124,255,.2);padding-left:0;padding-top:12px;margin-top:6px}
   .pi-hl-cv{font-size:calc(26px*var(--fz))}}
@@ -2662,6 +2692,18 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
    Luapan horizontal sudah ditangani di tiap kontainer (tabel di kartu, dokumen SO
    diskalakan, baris tiket fit). */
 html,body{max-width:100%}
+/* ═══════════ APP-SHELL TETAP (mobile ≤820px) ═══════════
+   Bug: dengan body-scroll, top bar (sticky) & bottom bar (fixed) IKUT memantul saat
+   overscroll rubber-band iOS. Fix: kunci viewport, body jadi flex-column, HANYA .app
+   (konten) yang scroll; .mtop & .mbot jadi flex-item statis yang tak pernah ikut scroll. */
+@media(max-width:820px){
+  html,body{height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none}
+  body{display:flex;flex-direction:column}
+  .mtop{position:static;flex:0 0 auto}
+  .app{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .mbot{position:static;flex:0 0 auto}
+  .wrap{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+}
 /* aman dari notch / gesture bar (Android & iOS) */
 .side{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 @media (max-width:820px){
@@ -2974,7 +3016,7 @@ function applyLogin(u){
  const sa=document.getElementById("suAvatar"); if(sa)sa.textContent=ini(u.name);
  buildNav(); renderAll(); renderCreateTicket();
  /* riwayat back dimulai bersih dari Home — jangan bawa halaman sebelum login */
- mStack.length=0; window._curPage=null;
+ mStack.length=0; mHistDepth=0; window._curPage=null;
  /* Di HP: operator lapangan langsung masuk modul Field Ops, lainnya ke Beranda */
  go(isMobile()?(gRole==="fieldops"?"fieldops":"mhome"):ROLES[gRole].menus[0]);
  mBotSync();
@@ -2985,7 +3027,7 @@ function applyLogin(u){
  setTimeout(rateGateCheck,800);     // ada tiket selesai yang menunggu dinilai?
  if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
 }
-function logout(){ gUser=null; mStack.length=0; window._curPage=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
+function logout(){ gUser=null; mStack.length=0; mHistDepth=0; window._curPage=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
 /* Keluar aplikasi → kembali ke halaman login (dengan konfirmasi) */
 function agavaLogout(){
  if(!confirm("Keluar dari AGAVA dan kembali ke halaman login?"))return;
@@ -3069,7 +3111,7 @@ function go(id){
   /* catat riwayat untuk tombol back mobile (tidak saat sedang kembali) */
   if(isMobile()&&!mNavBack&&window._curPage&&window._curPage!==id){
     if(window._curPage!==mHomeId()) mStack.push(window._curPage);
-    try{ history.pushState({agava:id},""); }catch(e){}
+    try{ history.pushState({agava:id},""); mHistDepth++; }catch(e){}
   }
   window._curPage=id;
   active=(id==="ersus")?"energy":id; navSetActive();
@@ -3110,6 +3152,8 @@ function go(id){
     sb.innerHTML=`<div class="card" style="padding:60px;text-align:center;color:var(--muted)"><div style="font-size:calc(40px*var(--fz));opacity:.3">🚧</div><div style="margin-top:12px;font-size:calc(15px*var(--fz))">The <b style="color:var(--ink)">${m.label}</b> module is not built in this mockup yet.</div><div style="font-size:calc(13px*var(--fz));margin-top:6px">Try <b style="color:var(--blue)">Procurement</b> or <b style="color:var(--blue)">Energy</b>.</div></div>`;}
   setTopH();
   window.scrollTo(0,0);
+  /* di HP scroller-nya .app (app-shell), bukan window → reset ke atas tiap ganti halaman */
+  try{ var _ap=document.querySelector(".app"); if(_ap) _ap.scrollTop=0; }catch(e){}
 }
 
 /* ============ OVERVIEW PAGE ============ */
@@ -3820,6 +3864,32 @@ function codecKpiPop(which){
      '. Routine '+T.rout.pct+'% ('+T.rout.n+' KPI) · Non-Routine '+T.nonr.pct+'% ('+T.nonr.n+' KPI).'; }
  el.innerHTML=h; el.classList.add('show'); el.dataset.on=which;
 }
+/* Drill-down biaya "klik → tally": tampilkan tiap record penyusun + subtotal +
+   monetisasi karbon, dijumlahkan PERSIS ke angka Highlight. Sumber & rumus jelas.
+   Hanya relevan saat GA_COST_LIVE (kalau tidak, angka dikosongkan → tak ada yg diklik). */
+function codecCostTally(scope){
+ var el=document.getElementById('gdKpiPop'); if(!el)return;
+ var key='cost:'+scope;
+ if(el.dataset.on===key){ el.classList.remove('show'); el.dataset.on=''; return; }
+ var rows=gaCostList(scope==='total'?'all':scope);
+ var per=(typeof codecMonthID==='function')?codecMonthID():'';
+ var sub=rows.reduce(function(a,r){return a+r.rp;},0);
+ var co2=+(rows.reduce(function(a,r){return a+r.co2;},0)).toFixed(1);
+ var karbonRp=Math.round(co2*(GA_PARAM.listrik.hargaKarbon||0));
+ var grand=sub+karbonRp;
+ var list=rows.length?rows.map(function(r){
+   return '<div class="ct-row"><span class="ct-ic">'+(GA_KIC[r.kind]||'•')+'</span>'+
+     '<span class="ct-lb"><b>'+esc(r.label)+'</b>'+(r.detail?'<em>'+esc(r.detail)+'</em>':'')+(r.rinci?'<i>'+esc(r.rinci)+'</i>':'')+'</span>'+
+     '<span class="ct-rp">'+costRp(r.rp)+'<u>'+r.co2+' kg</u></span></div>';
+ }).join(''):'<div class="ct-empty">Belum ada record pada periode ini.</div>';
+ var h='<div class="ct-h">Rincian Biaya Sumber Daya'+(scope!=='total'?' · '+esc(scope):'')+' · '+per+'</div>'+
+   '<div class="ct-list">'+list+'</div>'+
+   '<div class="ct-sum"><span>Subtotal sumber daya ('+rows.length+' aktivitas)</span><b>'+costRp(sub)+'</b></div>'+
+   '<div class="ct-sum ct-carb"><span>Monetisasi karbon: '+co2+' kg × '+costRp(GA_PARAM.listrik.hargaKarbon||0)+'/kg</span><b>'+costRp(karbonRp)+'</b></div>'+
+   '<div class="ct-sum ct-grand"><span>✓ Total (cocok dengan Highlight)</span><b>'+costRp(grand)+'</b></div>'+
+   '<div class="ct-src">Rumus & tarif: <button onclick="event.stopPropagation();'+(isOwner()?'go(\'params\')':'0')+'" '+(isOwner()?'':'disabled')+'>modul Parameter</button> · angka ini dihitung dari record aktual tiap modul, bukan input manual.</div>';
+ el.innerHTML=h; el.classList.add('show'); el.dataset.on=key;
+}
 function codecSubFnData(){
  const avgA=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
  // 1. GFM ← ENERGY: GRK · Water · REM · Waste (routine · ESG 2030)
@@ -4002,7 +4072,10 @@ function codecPerfIndicatorHTML(){
      '<div class="pi-code2">'+code+'</div>'+
      '<div class="pi-main"><div class="pi-name" onclick="codecPiToggle('+i+')" title="klik untuk lihat dari mana angka ini dihitung">'+esc(f.name)+' <span class="pi-chev">▾</span></div>'+
        '<div class="pi-bar"><div class="inv-bar"><div class="fill '+(f.st==='ok'?'':'flow')+'" style="width:'+Math.min(100,f.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,f.target)+'%"></div></div></div>'+
-       '<div class="pi-cost">💰 <span>Cost element</span> '+(cb.rp[code]>0?'<b>'+costRp(cb.rp[code])+'</b> <em>· '+esc(cb.det[code])+'</em>':'<i class="pi-cost-n">'+esc(cb.det[code])+'</i>')+'</div>'+
+       '<div class="pi-cost">💰 <span>Cost element</span> '+(
+          (GA_COST_LIVE&&cb.rp[code]>0)
+            ? '<b class="pi-cost-clk" onclick="event.stopPropagation();codecCostTally(\''+code+'\')" title="klik untuk rincian yang menjumlah ke angka ini">'+costRp(cb.rp[code])+'</b> <em>· '+esc(cb.det[code])+'</em>'
+            : '<i class="pi-cost-n">'+(GA_COST_LIVE?esc(cb.det[code]):'menunggu data operasional — build menyusul')+'</i>')+'</div>'+
        '<div class="pi-drop"><div class="pi-drop-h">Dari mana angka '+f.ach+'% ini — klik tiap baris untuk buka sumbernya:</div>'+comps+(f.note?'<div class="pi-drop-n">📡 '+esc(f.note)+'</div>':'')+opens+'</div></div>'+
      '<div class="pi-val" style="color:'+c+'">'+f.ach+'%</div>'+
    '</div>';
@@ -4123,9 +4196,12 @@ function codecHlStd(S){
  return '<div class="pi-hl pi-hl-std" onclick="codecKpiPop(\'total\')" title="klik untuk lihat dari data apa">'+
    '<div class="pi-hl-l"><div class="pi-hl-cap">Rata-rata Standard Performance</div>'+
    '<div class="pi-hl-v" style="color:'+c+'">'+avg+'<small>%</small></div></div>'+
-   '<div class="pi-hl-cost"><div class="pi-hl-ccap">💰 Biaya Sumber Daya · '+per+'</div>'+
-     '<div class="pi-hl-cv">'+costRp(cb.totalRp)+'</div>'+
-     '<div class="pi-hl-cm">'+cb.co2+' kg CO₂ · <b>gunakan fasilitas &amp; privilege dengan bijak</b></div></div>'+
+   '<div class="pi-hl-cost'+(GA_COST_LIVE?' clk':'')+'"'+(GA_COST_LIVE?' onclick="event.stopPropagation();codecCostTally(\'total\')" title="klik untuk rincian yang menjumlah ke angka ini"':'')+'>'+
+     '<div class="pi-hl-ccap">💰 Biaya Sumber Daya · '+per+'</div>'+
+     (GA_COST_LIVE
+       ? '<div class="pi-hl-cv">'+costRp(cb.totalRp)+'</div><div class="pi-hl-cm">'+cb.co2+' kg CO₂ · <b>gunakan fasilitas &amp; privilege dengan bijak</b></div>'
+       : '<div class="pi-hl-cv pi-hl-cv-off">—</div><div class="pi-hl-cm pi-hl-cm-off">menunggu data operasional real · <b>build menyusul</b></div>')+
+   '</div>'+
  '</div>';
 }
 /* Box highlight Key — % total pencapaian + box kecil routine / non-routine, tanpa garis */
@@ -6304,27 +6380,43 @@ function mRoleTarget(){
 }
 function mRoleGo(){ go(mInbox().id); }
 function mHomeId(){ return gRole==="fieldops"?"fieldops":"mhome"; }
-function mGoHome(){ mStack.length=0; go(mHomeId()); }
+function mGoHome(){ mStack.length=0; mHistDepth=0; go(mHomeId()); }
 /* ══════════════════════════════════════════════════════════════════════════
    NAVIGASI BACK DI MOBILE — tombol di top bar, geser dari tepi kiri, dan
    tombol back bawaan HP. Semuanya bermuara ke halaman sebelumnya, lalu Home.
    ══════════════════════════════════════════════════════════════════════════ */
-let mStack=[];            // riwayat halaman yang dikunjungi
+let mStack=[];            // riwayat halaman (ancestor; halaman aktif TIDAK disimpan)
 let mNavBack=false;       // penanda supaya go() tidak menumpuk saat kembali
-function mBack(){
- /* drawer/form terbuka → tutup dulu, jangan langsung pindah halaman */
+let mHistDepth=0;         // jumlah entri history yang kita push di mobile — jaga back konsisten
+/* Tutup overlay / sub-state sebelum pindah halaman. rearm=true → kembalikan satu entri
+   history (dipakai jalur swipe/popstate yang sudah terlanjur mengonsumsi 1 entri). */
+function mInterceptBack(rearm){
+ function rea(){ if(rearm){ try{ history.pushState({agava:window._curPage},""); }catch(e){} } }
  var ovl=document.getElementById("ovl");
- if(ovl&&ovl.classList.contains("show")){ closeDrawer(); return; }
+ if(ovl&&ovl.classList.contains("show")){ closeDrawer(); rea(); return true; }
  var doc=document.getElementById("soDoc");
- if(doc&&!doc.classList.contains("hide")){ soDocClose(); return; }
+ if(doc&&!doc.classList.contains("hide")){ soDocClose(); rea(); return true; }
  /* halaman Overtime langkah 2 → mundur ke pilihan jenis dulu */
  if(active==="service"&&!document.getElementById("page-overtime").classList.contains("hide")&&otPick){
-   otPick=null; renderOvertime(); return;
+   otPick=null; renderOvertime(); rea(); return true;
  }
+ return false;
+}
+/* Eksekutor tunggal "mundur satu layar" — dipanggil HANYA oleh popstate (swipe/HP)
+   dan oleh mBack saat tak ada entri history untuk dikonsumsi. */
+function mNavConsumeBack(){
  mNavBack=true;
  var prev=mStack.pop();
  go(prev||mHomeId());
  mNavBack=false;
+}
+/* Tombol back top bar. DISATUKAN dengan swipe & tombol HP: semuanya bermuara ke
+   history.back() → satu handler popstate → satu render. Tidak ada lagi pop ganda /
+   pushState ganda / pemakaian `active` (id modul) yang dulu melempar ke modul lain. */
+function mBack(){
+ if(mInterceptBack(false)) return;          // overlay/sub-state → cukup ditutup
+ if(mHistDepth>0){ try{ history.back(); return; }catch(e){} }
+ mNavConsumeBack();                          // fallback bila tak ada entri history
 }
 /* perbarui tampilan tombol back: sembunyi di Home, tampil + judul modul di halaman lain */
 function mBackSync(id){
@@ -6374,7 +6466,9 @@ function mHistoryInit(){
  try{ history.replaceState({agava:"home"},""); }catch(e){}
  window.addEventListener("popstate",function(){
    if(!isMobile())return;
-   if(active!==mHomeId()){ mBack(); try{ history.pushState({agava:active},""); }catch(e){} }
+   if(mInterceptBack(true))return;           // overlay terbuka → tutup, history sudah di-rearm
+   if(mHistDepth>0) mHistDepth--;
+   mNavConsumeBack();                         // mundur satu layar (halaman sebelumnya → Home)
  });
 }
 /* Bottom bar berbeda untuk operator lapangan: Home · Complaint (pantau) · My Tickets */
@@ -9940,7 +10034,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-57";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-58";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10368,6 +10462,14 @@ function hhmmJam(a,b){ function m(s){ var x=/^(\d{1,2}):(\d{2})/.exec(String(s||
  var A=m(a),B=m(b); if(A==null||B==null)return 1; var d=(B-A)/60; return d>0?Math.round(d*10)/10:1; }
 function rbRoomCap(id){ try{ for(var k in RB_ROOMS){ var r=RB_ROOMS[k].find(function(x){return x.id===id;}); if(r)return +r.cap||0; } }catch(e){} return 0; }
 /* Biaya sumber daya & jejak karbon dari SATU aktivitas (order dari myOrders, punya .ref). */
+/* ── GERBANG AKUNTABILITAS BIAYA ──────────────────────────────────────────
+   Rupiah OPEX baru boleh tampil ke tampilan MANAJEMEN (CODEC Highlight,
+   Performance Indikator cost element, box OPEX modul) bila bersumber data
+   operasional NYATA yang bisa dipertanggungjawabkan. Selama isi modul masih
+   seed/demo, angka DIKOSONGKAN (state "menunggu data real · build menyusul").
+   Balik ke true HANYA setelah tiket/booking/transport/lembur berisi log asli.
+   Saat true, tiap angka WAJIB bisa diklik → codecCostTally menjumlah persis. */
+const GA_COST_LIVE=false;
 function gaActivityCost(o){
  var r=o.ref||{}, k=o.kind;
  if(k==="room"){ var jam=hhmmJam(r.start,r.end), pax=+r.pax||rbRoomCap(r.room)||8; var c=costRuangMeeting(pax,jam); c.rinci=pax+" pax · "+jam+" jam"; return c; }
@@ -10410,6 +10512,21 @@ function gaCostByGroup(){
    "GA-03":"belum terhitung","GA-04":"belum terhitung","GA-05":"belum terhitung","GA-06":co2+" kg CO₂ × harga karbon"};
  return {rp:rp, det:det, co2:co2, karbonRp:karbonRp, totalRp:rp["GA-01"]+rp["GA-02"]+rp["GA-06"]};
 }
+/* Rincian per-record penyusun biaya — dasar drill-down "klik → tally".
+   Membaca record & mesin (gaActivityCost) yg SAMA dgn agregat, sehingga jumlah
+   baris PASTI sama dgn angka headline (rekonsiliasi terjamin). */
+const GA_COST_NAV={complaint:"service",room:"roombook",transport:"transport",overtime:"overtime"};
+function gaCostList(scope){
+ var rows=[];
+ function push(kind,label,detail,c){ rows.push({kind:kind,label:label||GA_KLBL[kind],detail:detail||"",nav:GA_COST_NAV[kind],rp:c.rp||0,co2:c.co2||0,rinci:c.rinci||""}); }
+ var wantC=(scope==="complaint"||scope==="all"||scope==="GA-01");
+ var want2=(scope==="all"||scope==="GA-02");
+ if(wantC||scope==="GA-01")(typeof TICKETS!=="undefined"?TICKETS:[]).forEach(function(t){ push("complaint",t.judul||t.title||"Tiket layanan",(t.cat||t.location||""),gaActivityCost({kind:"complaint",ref:t})); });
+ if(want2||scope==="room")(typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){ push("room",b.title||"Reservasi ruang",(b.room||"")+" · "+(b.start||"")+"–"+(b.end||""),gaActivityCost({kind:"room",ref:b})); });
+ if(want2||scope==="transport")(typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(x){ push("transport",x.detail||"Transport",(x.dari?x.dari+(x.ke?" → "+x.ke:""):transportLabel(x.type)),gaActivityCost({kind:"transport",ref:x})); });
+ if(want2||scope==="overtime")(typeof OVERTIME_REQ!=="undefined"?OVERTIME_REQ:[]).forEach(function(o){ push("overtime",o.jenis||"Overtime",(o.alasan||o.lokasi||""),gaActivityCost({kind:"overtime",ref:o})); });
+ return rows;
+}
 /* Box Highlight OPEX — reusable. scope: "all" (CODEC) atau satu jenis (per modul).
    Pesan tetap: layanan baik ada biayanya → gunakan fasilitas & privilege dgn bijak. */
 const GA_KLBL={complaint:"Layanan",room:"Ruang & Event",transport:"Transport",overtime:"Overtime"};
@@ -10420,7 +10537,15 @@ function gaOpexHTML(scope){
  if(scope==="all"){ var a=gaCostAll(); c={rp:a.rp,co2:a.co2,n:a.n};
    minis=Object.keys(a.by).map(function(k){ return {ic:GA_KIC[k],lbl:GA_KLBL[k],rp:a.by[k].rp,n:a.by[k].n}; }); }
  else { c=gaCostScope(scope); }
- return '<div class="opex-hl">'+
+ var scopeArg=(scope==="all")?"total":scope;
+ if(!GA_COST_LIVE){
+   return '<div class="opex-hl opex-off">'+
+     '<div class="opex-l"><div class="opex-cap">Biaya Sumber Daya '+(scope==="all"?"Operasi GA":esc(GA_KLBL[scope]||scope))+per+'</div>'+
+       '<div class="opex-v opex-v-off">—</div>'+
+       '<div class="opex-meta opex-meta-off">menunggu data operasional real · <b>build menyusul</b></div></div>'+
+   '</div>';
+ }
+ return '<div class="opex-hl clk" onclick="codecCostTally(\''+scopeArg+'\')" title="klik untuk rincian yang menjumlah ke angka ini">'+
    '<div class="opex-l"><div class="opex-cap">Biaya Sumber Daya '+(scope==="all"?"Operasi GA":esc(GA_KLBL[scope]||scope))+per+'</div>'+
      '<div class="opex-v">'+costRp(c.rp)+'</div>'+
      '<div class="opex-meta">'+c.co2+' kg CO₂ · '+c.n+' aktivitas · <b>gunakan fasilitas &amp; privilege dengan bijak</b></div></div>'+
