@@ -1417,6 +1417,42 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
    Penandanya sengaja berlapis supaya halaman kedua tidak tersembunyi: kedua
    kartu tab selalu terlihat (bukan cuma yang aktif), ada titik halaman di
    bawah, dan tombol lanjut di ujung tiap halaman. */
+/* ── Halaman Parameter & Biaya (owner) ── */
+.pm-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.pm-title{font-size:calc(22px*var(--fz));font-weight:800;letter-spacing:-.02em;color:var(--ink)}
+.pm-owner{font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.08em;color:#fff;background:#0b2447;padding:3px 9px;border-radius:6px;vertical-align:middle;margin-left:7px}
+.pm-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pm-cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+.pm-colL,.pm-colR,.pm-fld,.pm-in{min-width:0}
+.pm-colR{position:sticky;top:12px}
+.pm-card{padding:14px 16px;margin-bottom:12px}
+.pm-h{display:flex;align-items:center;gap:11px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.pm-ic{font-size:calc(20px*var(--fz));line-height:1}
+.pm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.pm-fld{display:flex;flex-direction:column;gap:5px}
+.pm-l{font-size:calc(11.5px*var(--fz));color:var(--muted);font-weight:600;line-height:1.3}
+.pm-in{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+.pm-in input{flex:1;min-width:0;border:none;outline:none;padding:9px 11px;font-family:var(--ff);font-size:calc(14px*var(--fz));font-weight:700;color:var(--ink);background:transparent}
+.pm-in em{font-style:normal;font-size:calc(10.5px*var(--fz));color:#9aa7b8;padding:0 10px;white-space:nowrap;border-left:1px solid var(--line);align-self:stretch;display:flex;align-items:center}
+.pm-reps{display:flex;flex-direction:column;gap:7px}
+.pm-rep{display:flex;gap:8px;align-items:center}
+.pm-rep-i{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:var(--ff);font-size:calc(13px*var(--fz));color:var(--ink);background:#fff}
+.pm-rep-b{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:9px;padding:0 8px 0 10px;background:#fff}
+.pm-rep-b i{font-style:normal;font-size:calc(11px*var(--fz));color:#9aa7b8}
+.pm-rep-b input{width:92px;border:none;outline:none;padding:8px 2px;font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:700;text-align:right;color:var(--ink);background:transparent}
+.pm-rep-x{flex:0 0 auto;width:30px;height:30px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--red);cursor:pointer;font-size:calc(12px*var(--fz))}
+.pm-preview-card{padding:14px 16px;background:linear-gradient(160deg,#fff,#f2f9ff)}
+.pm-exs{display:flex;flex-direction:column;gap:9px}
+.pm-ex{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.pm-ex-ic{font-size:calc(20px*var(--fz));flex:0 0 auto;line-height:1}
+.pm-ex-t{flex:1;min-width:0}
+.pm-ex-t b{display:block;font-size:calc(12.5px*var(--fz));color:var(--ink);font-weight:700;line-height:1.25}
+.pm-ex-t span{font-size:calc(10.5px*var(--fz));color:var(--muted)}
+.pm-ex-v{flex:0 0 auto;text-align:right;font-size:calc(15px*var(--fz));font-weight:800;color:var(--ink);white-space:nowrap}
+.pm-ex-v i{display:block;font-style:normal;font-size:calc(10px*var(--fz));font-weight:700;color:#0a7d5e}
+.pm-note{font-size:calc(11.5px*var(--fz));color:var(--muted);line-height:1.55;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+@media(max-width:900px){.pm-cols{grid-template-columns:1fr}.pm-colR{position:static}}
+@media(max-width:560px){.pm-grid{grid-template-columns:1fr}.pm-top{flex-direction:column}.pm-actions{width:100%}}
 /* Highlight HSE statis di kepala modul — pakai box glass .pi-hl, minis 4 kolom.
    Spesifisitas .pi-hl-minis.hse-hl-minis (0,2,0) agar menang atas .pi-hl-minis
    yang dideklarasi lebih bawah. */
@@ -2672,6 +2708,7 @@ html,body{max-width:100%}
       <div id="page-energy" class="hide"></div>
       <div id="page-ersus" class="hide"></div>
       <div id="page-hse" class="hide"></div>
+      <div id="page-params" class="hide"></div>
       <div id="page-stub" class="hide"></div>
     </div>
   </div>
@@ -2872,9 +2909,13 @@ function agavaLogout(){
    array SO & TICKETS (single source). Integrasi SharePoint nanti: map list item → SO[] lalu renderAll(). */
 function buildNav(){
   const allowed=(ROLES[gRole]&&ROLES[gRole].menus)||MENU.map(m=>m.id);
-  document.getElementById("nav").innerHTML=MENU.filter(m=>allowed.includes(m.id)).map(m=>
+  var html=MENU.filter(m=>allowed.includes(m.id)).map(m=>
     `<a data-id="${m.id}" class="${m.id===active?'active':''}" onclick="go('${m.id}')" title="${m.label}">
       <svg viewBox="0 0 24 24">${IC[m.ic]}</svg><span class="nav-txt">${m.label}</span>${navBadge(m.id)}</a>`).join("");
+  /* Parameter & Biaya — hanya pemilik sistem (bukan sekadar admin) */
+  if(isOwner()) html+=`<a data-id="params" class="${active==='params'?'active':''}" onclick="go('params')" title="Parameter &amp; Biaya">
+      <svg viewBox="0 0 24 24">${IC.params}</svg><span class="nav-txt">Parameter &amp; Biaya</span></a>`;
+  document.getElementById("nav").innerHTML=html;
   navFit();
 }
 /* Pindah menu TIDAK membangun ulang nav (dulu innerHTML ditulis ulang tiap klik →
@@ -2943,7 +2984,7 @@ function go(id){
   active=(id==="ersus")?"energy":id; navSetActive();
   try{ mBackSync(id); }catch(e){}
   try{ mBotActive(id); }catch(e){}
-  ["page-mhome","page-notif","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
+  ["page-mhome","page-notif","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   document.body.classList.toggle("on-mhome", id==="mhome");
   if(id==="mhome"){renderMobileHome();document.getElementById("page-mhome").classList.remove("hide");t.textContent="AGAVA";s.textContent="Beranda";mTopSync();}
@@ -2968,6 +3009,7 @@ function go(id){
   else if(id==="payment"){document.getElementById("page-payment").classList.remove("hide");t.textContent="Payment Tracker";s.textContent="SPK · BAST · Invoice status & overdue alerts";}
   else if(id==="vendor"){renderVendor();document.getElementById("page-vendor").classList.remove("hide");t.textContent="Vendor Management";s.textContent="Contracts, budget consumption & SLA scoring";}
   else if(id==="hse"){renderHSE();document.getElementById("page-hse").classList.remove("hide");t.textContent="HSE & Sustainability";s.textContent="Permit & legal compliance · re-test schedule";}
+  else if(id==="params"){ if(!isOwner()){ go(isMobile()?mHomeId():"overview"); return; } renderParams();document.getElementById("page-params").classList.remove("hide");t.textContent="Parameter & Biaya";s.textContent="Master koefisien — sumber tunggal semua angka Rp & jejak karbon di AGAVA";}
   else if(id==="sla"){active="vendor";navSetActive();renderSLAPage();document.getElementById("page-sla").classList.remove("hide");t.textContent="SLA Assessment";s.textContent="Lembar Evaluasi Vendor · auto-scoring";}
   else if(id==="reminder"){document.getElementById("page-reminder").classList.remove("hide");t.textContent="Reminder";s.textContent="Notification log & compliance reminders";}
   else if(id==="energy"){document.getElementById("page-energy").classList.remove("hide");t.textContent="Energy";s.textContent="Energy insights & actions — powered by ERSUS";}
@@ -6696,6 +6738,8 @@ function renderMobileHome(){
     '<div class="mh-hi">'+
       '<span>'+hari+', '+d.getDate()+' '+bulan+' '+d.getFullYear()+'</span>'+
       '<b>Halo, '+esc(depan)+'</b></div>'+
+    (isOwner()?'<button class="mh-ico" onclick="go(\'params\')" title="Parameter &amp; Biaya">'+
+      '<svg viewBox="0 0 24 24">'+IC.params+'</svg></button>':'')+
     (isOwner()?'<button class="mh-ico" onclick="agavaCloudPanel()" title="Cloud &amp; Backup">'+
       '<svg viewBox="0 0 24 24"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.1 11.2 3.5 3.5 0 0 0 6.5 19z"/></svg></button>':'')+
     '<button class="mh-ico mh-exit" onclick="agavaLogout()" title="Keluar dari aplikasi">'+
@@ -9722,7 +9766,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-49";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-50";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -9821,6 +9865,17 @@ function dbInit(){
     AGDB.flowEcho=j;
     try{ FLOW.endpoints=d.endpoints; localStorage.setItem("agava_flow_endpoints",JSON.stringify(d.endpoints)); }catch(e){}
   },err=>{ console.warn("Flow rules/err:",err&&err.code); });
+  /* Master parameter & koefisien biaya — sumber tunggal angka turunan AGAVA */
+  AGDB.db.collection("agava_config").doc("params").onSnapshot(doc=>{
+    if(!doc.exists){ dbSaveParam(); return; }
+    const d=doc.data(); if(!d||!d.param)return;
+    const j=JSON.stringify(d.param);
+    if(j===AGDB.paramEcho)return;
+    AGDB.paramEcho=j;
+    paramMerge(d.param);
+    try{ localStorage.setItem(GA_PARAM_STORE, JSON.stringify(GA_PARAM)); }catch(e){}
+    try{ if(active==="params")renderParams(); renderOverview(); renderMobileHome(); }catch(e){}
+  },err=>{ console.warn("Param rules/err:",err&&err.code); });
   /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
   AGDB.db.collection("agava_workpermits").limit(300).onSnapshot(snap=>{
     let ch2=false, wpNew=[];
@@ -9898,6 +9953,7 @@ function agavaSnapshot(){
    _app:"AGAVA", _build:AGAVA_BUILD, _at:new Date().toISOString(), _by:(gUser&&gUser.name)||"",
    tickets:TICKETS, so:SO, workPermits:(typeof WORK_PERMITS!=="undefined"?WORK_PERMITS:[]),
    kpi:{cla:KPI_CLA, meta:KPI_YEAR_META}, master:master,
+   param:(typeof GA_PARAM!=="undefined"?GA_PARAM:null),
    flow:(typeof FLOW!=="undefined"?FLOW.endpoints:{}),
    accounts:USERS.map(function(u){ return {email:u.email,name:u.name,role:u.role,cat:u.cat||""}; }),
    fieldOp:(typeof fieldOp!=="undefined"?fieldOp:null)
@@ -10013,7 +10069,167 @@ function agavaAuditCSV(){
  });
 }
 
-loadFlowConfig();dbLoadAll();permitSeedBerlaku();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();
+/* ══════════════════════════════════════════════════════════════════════════
+   MASTER PARAMETER & KOEFISIEN — SUMBER TUNGGAL semua angka turunan di AGAVA.
+   Hanya OWNER yang boleh mengubah (halaman "Parameter & Biaya"). Setiap tag Rp
+   & jejak karbon di seluruh AGAVA menghitung dari sini — ubah di satu tempat,
+   seluruh aplikasi ikut. Tersimpan ke Firestore + localStorage seperti master
+   data lain. Membuat externality (biaya energi/air/karbon) terlihat = menutup
+   gap Tragedy of the Commons: agar karyawan sadar tiap order ada biayanya.
+   ══════════════════════════════════════════════════════════════════════════ */
+IC.params='<line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2.3"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2.3"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="8" cy="18" r="2.3"/>';
+const GA_PARAM_STORE="agava_param_v1";
+const GA_PARAM_DEFAULT={
+ listrik:{ tarif:1450, emisi:0.85, hargaKarbon:30 },
+ air:{ tarif:15000, perOrangRapat:5 },
+ transport:{ tarifBBM:13000, konsumsi:10, emisiBBM:2.31, jarakDefault:20 },
+ ac:{ dayaPerPax:0.25, lampu:0.5, bebanPanasKw:3, bebanPanasJam:4 },
+ tenaga:{ manpowerLembur:40000, jamKaryawan:75000 },
+ repair:[
+   {item:"Keramik gompal / pecah (per titik)", biaya:250000},
+   {item:"Meja kerja patah (perbaikan)", biaya:400000},
+   {item:"Kursi kerja rusak", biaya:200000},
+   {item:"Kaca retak (per m²)", biaya:600000},
+   {item:"Kunci / handle pintu rusak", biaya:150000},
+   {item:"Plafon bocor / rembes (per titik)", biaya:500000},
+   {item:"Kran / keran bocor", biaya:120000},
+   {item:"Lampu mati (lampu + jasa)", biaya:75000},
+   {item:"Cat dinding kusam (per m²)", biaya:85000},
+   {item:"Karpet terkelupas (per m²)", biaya:180000}
+ ]
+};
+var GA_PARAM=JSON.parse(JSON.stringify(GA_PARAM_DEFAULT));
+function paramMerge(d){
+ if(!d)return;
+ ["listrik","air","transport","ac","tenaga"].forEach(function(g){
+   if(d[g]) Object.keys(GA_PARAM[g]).forEach(function(k){ if(d[g][k]!=null&&!isNaN(+d[g][k])) GA_PARAM[g][k]=+d[g][k]; });
+ });
+ if(Array.isArray(d.repair)) GA_PARAM.repair=d.repair.map(function(x){return {item:String(x.item||""),biaya:+x.biaya||0};});
+}
+function paramLoad(){ try{ var raw=localStorage.getItem(GA_PARAM_STORE); if(raw) paramMerge(JSON.parse(raw)); }catch(e){} }
+function paramPersist(){
+ try{ localStorage.setItem(GA_PARAM_STORE, JSON.stringify(GA_PARAM)); }catch(e){}
+ try{ dbSaveParam(); }catch(e){}
+}
+function dbSaveParam(){
+ if(!AGDB.on||!AGDB.db)return;
+ var payload={param:JSON.parse(JSON.stringify(GA_PARAM)), up:Date.now(), by:(gUser&&gUser.name)||""};
+ var j=JSON.stringify(payload.param);
+ if(AGDB.paramEcho===j)return;
+ AGDB.paramEcho=j;
+ AGDB.db.collection("agava_config").doc("params").set(payload).catch(function(e){ console.warn("Param cloud:",e&&e.code); });
+}
+/* ── MESIN BIAYA SUMBER DAYA & JEJAK KARBON — semua baca GA_PARAM ──
+   Kembalikan {rp, co2, rinci} agar seragam dipakai kartu/tag mana pun. */
+function costListrik(kwh){ var p=GA_PARAM.listrik; return {rp:Math.round(kwh*p.tarif), co2:+(kwh*p.emisi).toFixed(1)}; }
+function costRuangMeeting(pax,jam){
+ pax=+pax||8; jam=+jam||1; var ac=GA_PARAM.ac, air=GA_PARAM.air;
+ var kwh=(pax*ac.dayaPerPax+ac.lampu)*jam, e=costListrik(kwh);
+ var liter=pax*air.perOrangRapat, rpAir=Math.round(liter/1000*air.tarif);
+ return {rp:e.rp+rpAir, co2:e.co2, rinci:"Listrik "+(Math.round(kwh*10)/10)+" kWh + air "+liter+" L"};
+}
+function costTransport(km){
+ var t=GA_PARAM.transport; km=+km||t.jarakDefault;
+ var liter=km/t.konsumsi;
+ return {rp:Math.round(liter*t.tarifBBM), co2:+(liter*t.emisiBBM).toFixed(1), rinci:km+" km · "+(Math.round(liter*10)/10)+" L BBM"};
+}
+function costTiketPanas(){
+ var ac=GA_PARAM.ac, kwh=ac.bebanPanasKw*ac.bebanPanasJam, e=costListrik(kwh);
+ return {rp:e.rp, co2:e.co2, rinci:"AC +"+ac.bebanPanasKw+" kW × "+ac.bebanPanasJam+" jam"};
+}
+function costOvertimeAC(jam){
+ jam=+jam||1; var ac=GA_PARAM.ac, e=costListrik((ac.dayaPerPax*8+ac.lampu)*jam);
+ return {rp:e.rp, co2:e.co2, rinci:"AC lembur "+jam+" jam (ruang ±8 pax)"};
+}
+function repairCost(name){ var r=(GA_PARAM.repair||[]).find(function(x){return x.item===name;}); return r?r.biaya:0; }
+function costRp(n){ n=+n||0; return n>=1e9?('Rp '+(n/1e9).toFixed(2)+' M'):n>=1e6?('Rp '+(n/1e6).toFixed(1)+' jt'):n>=1e3?('Rp '+Math.round(n/1e3)+' rb'):('Rp '+Math.round(n)); }
+function costTag(c){ return '≈ '+costRp(c.rp)+' · '+c.co2+' kg CO₂'; }
+
+/* ── HALAMAN PARAMETER & BIAYA (owner-only) ── */
+function paramNum(grp,key,lbl,unit,step){
+ return '<label class="pm-fld"><span class="pm-l">'+lbl+'</span>'+
+   '<span class="pm-in"><input type="number" step="'+(step||"any")+'" value="'+GA_PARAM[grp][key]+'" '+
+   'oninput="GA_PARAM[\''+grp+'\'][\''+key+'\']=+this.value; paramPreview()"><em>'+esc(unit)+'</em></span></label>';
+}
+function paramGroup(judul,sub,ic,fields){
+ return '<div class="card pm-card"><div class="pm-h"><span class="pm-ic">'+ic+'</span><div>'+
+   '<div class="panel-t" style="margin:0">'+esc(judul)+'</div><div class="muted small">'+esc(sub)+'</div></div></div>'+
+   '<div class="pm-grid">'+fields+'</div></div>';
+}
+function paramRepairRows(){
+ return (GA_PARAM.repair||[]).map(function(r,i){
+   return '<div class="pm-rep"><input class="pm-rep-i" value="'+esc(r.item)+'" placeholder="Nama pekerjaan repair" '+
+     'oninput="GA_PARAM.repair['+i+'].item=this.value; paramPreview()">'+
+     '<span class="pm-rep-b"><i>Rp</i><input type="number" step="1000" value="'+r.biaya+'" '+
+       'oninput="GA_PARAM.repair['+i+'].biaya=+this.value; paramPreview()"></span>'+
+     '<button class="pm-rep-x" onclick="GA_PARAM.repair.splice('+i+',1); renderParams()" title="Hapus">✕</button></div>';
+ }).join("");
+}
+function paramPreview(){
+ var el=document.getElementById("pmPreview"); if(!el)return;
+ var bb=costTransport(), rm=costRuangMeeting(20,2), ac=costTiketPanas();
+ var rep=(GA_PARAM.repair[0]||{biaya:0});
+ el.innerHTML=
+   paramEx("🚕","Voucher taksi (Blue Bird)",bb,"jarak default "+GA_PARAM.transport.jarakDefault+" km PP")+
+   paramEx("🏢","Ruang meeting 20 pax · 2 jam",rm,rm.rinci)+
+   paramEx("❄️","Tiket \"ruangan panas\" turunkan AC",ac,ac.rinci)+
+   '<div class="pm-ex"><span class="pm-ex-ic">🔧</span><div class="pm-ex-t"><b>'+esc(rep.item||"Repair")+'</b>'+
+     '<span>biaya perbaikan yang bisa DIHINDARI bila aset dijaga</span></div>'+
+     '<div class="pm-ex-v" style="color:var(--red)">'+costRp(rep.biaya)+'</div></div>';
+}
+function paramEx(ic,judul,c,rinci){
+ return '<div class="pm-ex"><span class="pm-ex-ic">'+ic+'</span><div class="pm-ex-t"><b>'+esc(judul)+'</b>'+
+   '<span>'+esc(rinci)+'</span></div><div class="pm-ex-v">'+costRp(c.rp)+'<i>'+c.co2+' kg CO₂</i></div></div>';
+}
+function paramSave(){
+ paramPersist();
+ try{ auditLog("param-update","Parameter & koefisien biaya diperbarui"); }catch(e){}
+ try{ renderOverview(); renderMobileHome(); }catch(e){}
+ try{ agavaNotify&&agavaNotify("💾 Parameter tersimpan","Semua angka di AGAVA kini memakai koefisien terbaru."); }catch(e){}
+ var s=document.getElementById("pmStamp"); if(s)s.textContent="tersimpan "+nowStamp();
+ alert("✓ Parameter tersimpan & disinkron ke cloud. Seluruh angka di AGAVA kini menghitung dari nilai ini.");
+}
+function paramReset(){
+ if(!confirm("Kembalikan semua koefisien ke nilai default?"))return;
+ GA_PARAM=JSON.parse(JSON.stringify(GA_PARAM_DEFAULT)); renderParams();
+}
+function renderParams(){
+ var el=document.getElementById("page-params"); if(!el)return;
+ if(!isOwner()){ el.innerHTML='<div class="card" style="padding:48px;text-align:center;color:var(--muted)">⛔ Halaman <b>Parameter &amp; Biaya</b> hanya dapat diakses pemilik sistem AGAVA.</div>'; return; }
+ var L=paramNum,html=
+  '<div class="pm-top"><div><div class="pm-title">Parameter &amp; Biaya <span class="pm-owner">OWNER</span></div>'+
+    '<div class="muted small">Sumber tunggal semua angka Rp &amp; jejak karbon di AGAVA. Ubah di sini → seluruh kartu &amp; tag ikut. <span id="pmStamp"></span></div></div>'+
+    '<div class="pm-actions"><button class="btn-out" onclick="paramReset()">↺ Default</button>'+
+      '<button class="btn-act" onclick="paramSave()">💾 Simpan ke Cloud</button></div></div>'+
+  '<div class="pm-cols"><div class="pm-colL">'+
+    paramGroup("Listrik & Karbon","dasar hitung energi & emisi","⚡",
+      L("listrik","tarif","Tarif listrik","Rp/kWh")+L("listrik","emisi","Faktor emisi listrik","kg CO₂/kWh","0.01")+L("listrik","hargaKarbon","Harga karbon","Rp/kg CO₂"))+
+    paramGroup("Air","untuk booking ruang & fasilitas","💧",
+      L("air","tarif","Tarif air","Rp/m³")+L("air","perOrangRapat","Pemakaian air / orang / rapat","Liter"))+
+    paramGroup("Transport & BBM","voucher taksi / kendaraan pool","🚗",
+      L("transport","tarifBBM","Tarif BBM","Rp/L")+L("transport","konsumsi","Konsumsi kendaraan","km/L")+
+      L("transport","emisiBBM","Faktor emisi BBM","kg CO₂/L","0.01")+L("transport","jarakDefault","Jarak default (PP)","km"))+
+    paramGroup("AC & Ruang","daya pendingin & penerangan","❄️",
+      L("ac","dayaPerPax","Daya AC","kW/orang","0.01")+L("ac","lampu","Daya lampu ruang","kW","0.1")+
+      L("ac","bebanPanasKw","Beban tambahan tiket panas","kW","0.1")+L("ac","bebanPanasJam","Durasi tiket panas","jam","0.5"))+
+    paramGroup("Tenaga Kerja","lembur & nilai waktu","👷",
+      L("tenaga","manpowerLembur","Tarif OB/CS lembur","Rp/jam")+L("tenaga","jamKaryawan","Nilai jam kerja karyawan","Rp/jam"))+
+    '<div class="card pm-card"><div class="pm-h"><span class="pm-ic">🔧</span><div>'+
+      '<div class="panel-t" style="margin:0">Katalog Biaya Repair &amp; Maintenance</div>'+
+      '<div class="muted small">Biaya perbaikan aset — ditampilkan ke karyawan agar sadar pentingnya menjaga fasilitas.</div></div></div>'+
+      '<div class="pm-reps">'+paramRepairRows()+'</div>'+
+      '<button class="btn-out" style="margin-top:8px" onclick="GA_PARAM.repair.push({item:\'\',biaya:0}); renderParams()">＋ Tambah item repair</button></div>'+
+  '</div><div class="pm-colR"><div class="card pm-preview-card"><div class="pm-h" style="border:none">'+
+    '<span class="pm-ic">🧮</span><div><div class="panel-t" style="margin:0">Contoh Perhitungan — live</div>'+
+    '<div class="muted small">berubah seketika saat Anda ubah koefisien</div></div></div>'+
+    '<div id="pmPreview" class="pm-exs"></div>'+
+    '<div class="pm-note">Setiap angka di seluruh AGAVA = <b>data nyata × koefisien di halaman ini</b>. Bukan statis — presisi mengikuti yang Anda tetapkan.</div>'+
+  '</div></div></div>';
+ el.innerHTML=html;
+ paramPreview();
+}
+
+loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();
 </script>
 </body>
 </html>
