@@ -2205,9 +2205,9 @@ body.rg-open{overflow:hidden}
   .pi-hl-cv{font-size:calc(26px*var(--fz))}}
 @media(prefers-reduced-motion:reduce){.pi-hl::before,.pi-hl::after,.pi-hl-v{animation:none}}
 /* ── tabel Key Performance — review PDCA bulanan ── */
-.pik-row{display:grid;grid-template-columns:minmax(230px,2.2fr) 60px 84px 150px minmax(200px,1.6fr) 30px;gap:10px;align-items:center;padding:10px 6px;border-bottom:1px solid var(--line)}
+.pik-row{display:grid;grid-template-columns:minmax(230px,2.2fr) 60px 84px 150px minmax(200px,1.6fr) 30px;gap:10px 12px;align-items:center;padding:12px 14px;background:#f3f5f8;border:1px solid #e5e9f0;border-radius:12px;margin-bottom:10px}
 .pik-row:last-child{border-bottom:none}
-.pik-head{padding:6px;border-bottom:2px solid #cfdaeb;font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3}
+.pik-head{padding:4px 14px 8px;background:transparent;border:none;border-radius:0;margin-bottom:2px;font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3}
 .pik-head span:nth-child(2),.pik-head span:nth-child(3){text-align:center}
 .pik-kpi{display:flex;gap:10px;align-items:flex-start;min-width:0}
 .pik-name{font-size:calc(13px*var(--fz));font-weight:700;color:var(--ink)}
@@ -2216,8 +2216,12 @@ body.rg-open{overflow:hidden}
 .pik-chev{cursor:pointer;color:var(--muted);font-size:calc(9px*var(--fz));margin-left:6px;display:inline-block;transition:transform .2s,color .15s;user-select:none}
 .pik-chev:hover{color:var(--blue)}
 .pik-chev.open{transform:rotate(180deg);color:var(--blue)}
-.pik-detail{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;background:#f6f9fd;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px;font-size:calc(11.5px*var(--fz));color:var(--muted)}
+.pik-detail{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px;font-size:calc(11.5px*var(--fz));color:var(--muted)}
 .pik-det-item b{color:var(--ink);font-weight:700}
+.pik-jenis{width:100%}
+.pik-det-f{display:flex;flex-direction:column;gap:4px;font-size:calc(9.5px*var(--fz));font-weight:800;color:#7d8ca3;text-transform:uppercase;letter-spacing:.04em}
+.pik-det-f em{font-style:normal;font-weight:600;text-transform:none;letter-spacing:0;color:#aab4c2}
+.pik-det-f select{width:210px;max-width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink);background:#fff}
 .pik-det-tot b{color:#0f6e56}
 .pik-subwrap{width:100%}
 .pik-sub-head{display:grid;grid-template-columns:1fr 130px 30px;gap:10px;font-size:calc(9.5px*var(--fz));font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#7d8ca3;padding:0 2px 6px}
@@ -4324,6 +4328,7 @@ function kpiFieldSave(i,field,val){
    otomatis = rata-rata % pencapaian sub-KPI yang terisi. ── */
 let kpiKeyDet={};
 function kpiKeyDetToggle(i){ kpiKeyDet[i]=!kpiKeyDet[i]; renderOverview(); }
+function kpiSetType(i,val){ if(!kpiEditOn())return; var k=KPI_CLA[i]; if(!k)return; k.type=val; kpiPersist(); renderOverview(); }
 function kpiSubTotal(subs){ var v=(subs||[]).map(function(s){return s.v;}).filter(function(x){return x!=null&&!isNaN(x);}); return v.length?Math.round(v.reduce(function(a,b){return a+b;},0)/v.length):null; }
 function kpiSubEnsure(i){ var k=KPI_CLA[i]; if(!k)return; if(!Array.isArray(k.subs)||!k.subs.length){ k.subs=[{n:"",v:null},{n:"",v:null},{n:"",v:null},{n:"",v:null}]; } }
 function kpiSubSet(i,j,field,val){ if(!kpiEditOn())return; var k=KPI_CLA[i]; if(!k||!k.subs||!k.subs[j])return; if(field==='v'){ var n=parseFloat(val); k.subs[j].v=isNaN(n)?null:Math.max(0,Math.min(120,Math.round(n))); } else k.subs[j].n=val; kpiPersist(); renderOverview(); }
@@ -4333,11 +4338,14 @@ function kpiDetailHTML(r,i,ed){
  var subs=(KPI_CLA[i]&&KPI_CLA[i].subs)||[];
  if(!ed){
    var filled=subs.filter(function(s){return (s.n&&s.n.trim())||s.v!=null;});
-   if(!filled.length) return '<span class="pik-det-item" style="color:#9aa7b8">Belum ada sub-KPI. Buka <b>🔒 Ubah</b> untuk menambah &amp; input manual.</span>';
+   if(!filled.length) return '<span class="pik-det-item" style="color:#9aa7b8">—</span>';
    var tot=kpiSubTotal(subs);
    return filled.map(function(s){ return '<span class="pik-det-item">'+esc(s.n||'(sub KPI)')+': <b>'+(s.v==null?'—':s.v+'%')+'</b></span>'; }).join('')+
      '<span class="pik-det-item pik-det-tot">Total Pencapaian KPI: <b>'+(tot==null?'—':tot+'%')+'</b></span>';
  }
+ var kt=(KPI_CLA[i]&&KPI_CLA[i].type)||"";
+ var jenis='<div class="pik-jenis"><label class="pik-det-f">Jenis KPI <em>(agar % presisi routine / non-routine)</em>'+
+   '<select onchange="kpiSetType('+i+',this.value)">'+[['','otomatis'],['routine','Routine'],['nonroutine','Non-Routine']].map(function(t){return '<option value="'+t[0]+'"'+(kt===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></label></div>';
  kpiSubEnsure(i); subs=KPI_CLA[i].subs;
  var rows=subs.map(function(s,j){
    return '<div class="pik-sub-row"><input class="pik-sub-n" value="'+esc(s.n||'')+'" placeholder="Nama sub KPI" onchange="kpiSubSet('+i+','+j+',\'n\',this.value)">'+
@@ -4345,7 +4353,7 @@ function kpiDetailHTML(r,i,ed){
      '<button class="pik-sub-x" onclick="kpiSubDel('+i+','+j+')" title="hapus baris">✕</button></div>';
  }).join('');
  var tot=kpiSubTotal(subs);
- return '<div class="pik-subwrap"><div class="pik-sub-head"><span>Sub KPI</span><span>% Pencapaian</span><span></span></div>'+rows+
+ return jenis+'<div class="pik-subwrap"><div class="pik-sub-head"><span>Sub KPI</span><span>% Pencapaian</span><span></span></div>'+rows+
    '<div class="pik-sub-foot"><button class="btn-out pik-sub-add" onclick="kpiSubAdd('+i+')">+ Tambah sub KPI</button>'+
    '<span class="pik-sub-total">Total Pencapaian KPI: <b>'+(tot==null?'—':tot+'%')+'</b></span></div></div>';
 }
@@ -10415,7 +10423,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-69";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-70";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
