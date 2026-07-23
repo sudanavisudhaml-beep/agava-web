@@ -5672,12 +5672,12 @@ function insightCard(a){
 let ENERGY_MONTHS=["Jan","Feb","Mar","Apr","Mei","Jun","Jul"];
 let GRK_2019=[374280,374680,390480,407920,411120,null,null];
 let GRK_2026=[250240,250040,238920,287520,279520,null,null];
-let WATER_INT_2019=[1.07,1.11,0.99,1.08,0.85,null,null];
-let WATER_INT_2026=[0.98,0.92,0.82,1.08,0.99,null,null];
+let WATER_INT_2019=[1.07,1.11,0.99,1.08,0.85,0.86,null];
+let WATER_INT_2026=[0.98,0.92,0.90,1.19,0.99,0.57,null];
 let REM_PCT=[8,7,10,8,6,null,null];
 let REM_KWH=[20121,18035,24288,22635,17612,null,null];
-let WASTE_OK=[3444,3757,3039,3001,3460,null,null];
-let WASTE_NO=[209,254,0,205,247,null,null];
+let WASTE_OK=[3444,3757,3039,3001,3460,3500,null];
+let WASTE_NO=[181,198,31,30,35,35,null];
 function eNum(a){ return (a||[]).filter(function(v){return v!=null&&!isNaN(v);}); }
 function eSum(a){ return eNum(a).reduce(function(x,y){return x+y;},0); }
 function eAvgG(a){ var n=eNum(a); return n.length?eSum(n)/n.length:0; }
@@ -10266,7 +10266,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-64";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-65";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
