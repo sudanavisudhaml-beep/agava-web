@@ -1777,6 +1777,23 @@ body.rg-open{overflow:hidden}
   .mh-rright{display:none}
   .mh-empty{font-size:calc(13.5px*var(--fz));color:var(--m-fai);text-align:center;padding:40px 20px;
     border-radius:16px;background:var(--m-card);box-shadow:var(--m-sh)}
+  /* tag biaya sumber daya + jejak karbon per aktivitas */
+  .mh-cost{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;font-size:calc(11.5px*var(--fz));font-weight:700;color:#0a7d5e;margin-bottom:8px}
+  .mh-cost em{font-style:normal;font-weight:500;color:var(--m-fai);font-size:calc(10.5px*var(--fz))}
+  /* kartu agregat jejak biaya pesanan */
+  .mj-card{background:linear-gradient(135deg,#0b2447,#123b73);color:#fff;border-radius:16px;padding:15px 16px;margin-bottom:20px;box-shadow:0 6px 16px rgba(11,36,71,.22)}
+  .mj-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+  .mj-h span{font-size:calc(13.5px*var(--fz));font-weight:700}
+  .mj-h i{font-style:normal;font-size:calc(11px*var(--fz));opacity:.7}
+  .mj-main{display:flex;align-items:baseline;gap:12px;margin:9px 0 2px}
+  .mj-v{font-size:calc(28px*var(--fz));font-weight:800;letter-spacing:-.02em;line-height:1}
+  .mj-co2{font-size:calc(12.5px*var(--fz));font-weight:700;color:#7fe3c4}
+  .mj-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .mj-chip{font-size:calc(10.5px*var(--fz));font-weight:600;background:rgba(255,255,255,.13);padding:4px 9px;border-radius:99px}
+  .mj-idle{font-size:calc(11px*var(--fz));background:rgba(255,180,60,.18);color:#ffd591;border-radius:9px;padding:8px 10px;margin-top:11px;line-height:1.4}
+  .mj-idle b{color:#fff}
+  .mj-note{font-size:calc(10.5px*var(--fz));opacity:.72;line-height:1.5;margin-top:10px}
+  .mj-drawer{font-size:calc(11.5px*var(--fz));color:#0a4bb8;background:#eef5ff;border:1px solid #cfe0f8;border-radius:10px;padding:9px 12px;margin-top:12px;line-height:1.5}
   /* Papan GA Calendar — acara ruangan besar 3 hari ke depan (bukan tautan) */
   .mh-kal{display:flex;flex-direction:column;gap:8px}
   .mh-kday{border:none;border-radius:16px;background:var(--m-card);box-shadow:var(--m-sh);overflow:hidden}
@@ -6426,7 +6443,9 @@ function orderOpen(kind,no){
     '<span class="k">Detail</span><span class="v">'+esc(o.detail||"—")+'</span>'+
     '<span class="k">Tanggal</span><span class="v">'+esc(o.tgl||"—")+'</span>'+
     '<span class="k">Status</span><span class="v" style="color:'+o.warna+'">'+esc(o.status)+'</span>'+
+    (function(){ var c=gaActivityCost(o); return c.rp>0?'<span class="k">Biaya sumber daya</span><span class="v" style="color:#0a7d5e">'+costTag(c)+(c.rinci?' <small style="color:var(--muted)">('+esc(c.rinci)+')</small>':'')+'</span>':''; })()+
   '</div>'+
+  '<div class="mj-drawer">💡 Setiap layanan memakai sumber daya perusahaan — biaya ini nyata. Bijak memesan = hemat OPEX Astra.</div>'+
   '<button class="btn-out" style="width:100%;margin-top:12px" onclick="closeDrawer();go(\''+o.nav+'\')">Buka modul '+esc(modLabel(o.nav))+' →</button></div>';
  document.getElementById("ovl").classList.add("show");
 }
@@ -6677,9 +6696,11 @@ function renderMobileHome(){
  /* ── ORDER SAYA — daftar seperti desktop, klik untuk lihat perjalanan ── */
  var ord=myOrders();
  var listOrder=ord.length?'<div class="mh-list">'+ord.map(function(o){
+   var cc=gaActivityCost(o);
    return '<div class="mh-row" onclick="orderOpen(\''+o.kind+'\',\''+esc(o.no)+'\')">'+
      '<div class="mh-rhead"><b>'+esc(o.no)+'</b><i>'+esc(o.tgl||"")+'</i></div>'+
      '<div class="mh-rj">'+esc(o.judul||"")+'</div>'+
+     (cc.rp>0?'<div class="mh-cost">'+costTag(cc)+'<em>'+esc(cc.rinci||"")+'</em></div>':'')+
      '<div class="mh-rfoot">'+
        '<span class="mh-okind k-'+o.kind+'">'+esc(ORDER_LABEL[o.kind])+'</span>'+
        '<span class="mh-rd" style="color:'+o.warna+'">'+esc(o.status)+
@@ -6747,6 +6768,7 @@ function renderMobileHome(){
   '</div>'+
   mBannerHTML()+
   ikon+
+  mJejakCard()+
   mSecBlock("🗂️ Pengajuan Saya",ord.length+" pengajuan",(ord.length?"all":null),listOrder)+
   soBlok+wipBlok+remBlok+kal;
  /* titik geser untuk grid modul & banner */
@@ -9766,7 +9788,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-50";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-51";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10143,7 +10165,52 @@ function costOvertimeAC(jam){
 }
 function repairCost(name){ var r=(GA_PARAM.repair||[]).find(function(x){return x.item===name;}); return r?r.biaya:0; }
 function costRp(n){ n=+n||0; return n>=1e9?('Rp '+(n/1e9).toFixed(2)+' M'):n>=1e6?('Rp '+(n/1e6).toFixed(1)+' jt'):n>=1e3?('Rp '+Math.round(n/1e3)+' rb'):('Rp '+Math.round(n)); }
-function costTag(c){ return '≈ '+costRp(c.rp)+' · '+c.co2+' kg CO₂'; }
+function costTag(c){ return '≈ '+costRp(c.rp)+(c.co2>0?' · '+c.co2+' kg CO₂':''); }
+/* jam antara dua "HH:MM"; rbRoomCap dari denah — dasar hitung biaya per aktivitas */
+function hhmmJam(a,b){ function m(s){ var x=/^(\d{1,2}):(\d{2})/.exec(String(s||"")); return x?(+x[1]*60+ +x[2]):null; }
+ var A=m(a),B=m(b); if(A==null||B==null)return 1; var d=(B-A)/60; return d>0?Math.round(d*10)/10:1; }
+function rbRoomCap(id){ try{ for(var k in RB_ROOMS){ var r=RB_ROOMS[k].find(function(x){return x.id===id;}); if(r)return +r.cap||0; } }catch(e){} return 0; }
+/* Biaya sumber daya & jejak karbon dari SATU aktivitas (order dari myOrders, punya .ref). */
+function gaActivityCost(o){
+ var r=o.ref||{}, k=o.kind;
+ if(k==="room"){ var jam=hhmmJam(r.start,r.end), pax=+r.pax||rbRoomCap(r.room)||8; var c=costRuangMeeting(pax,jam); c.rinci=pax+" pax · "+jam+" jam"; return c; }
+ if(k==="transport"){ var n=(/(\d+)\s*(voucher|trip|unit|kali)/i.exec(r.detail||"")||[])[1], trips=+n||1;
+   var base=costTransport(); return trips>1?{rp:base.rp*trips, co2:+(base.co2*trips).toFixed(1), rinci:trips+"× "+base.rinci}:base; }
+ if(k==="overtime"){ var jm=hhmmJam(r.mulai,r.selesai);
+   if(/ac|pendingin|suhu|udara/i.test((r.jenis||"")+" "+(r.alasan||""))) return costOvertimeAC(jm);
+   var px=+r.pax||1; return {rp:Math.round(px*jm*GA_PARAM.tenaga.manpowerLembur), co2:0, rinci:px+" org × "+jm+" jam lembur"}; }
+ if(k==="complaint"){ var txt=((r.judul||"")+" "+(r.desc||r.detail||"")+" "+(r.cat||"")).toLowerCase();
+   if(/panas|suhu|\bac\b|dingin|gerah|pendingin/.test(txt)) return costTiketPanas();
+   return {rp:GA_PARAM.tenaga.manpowerLembur, co2:0, rinci:"penanganan lapangan ±1 jam"}; }
+ return {rp:0,co2:0,rinci:""};
+}
+/* Agregat jejak biaya pesanan milik user sendiri + potensi terbuang organisasi (super). */
+function mJejakBiaya(){
+ var ord=(typeof myOrders==="function"?myOrders():[]), tot=0,co2=0,byKind={};
+ ord.forEach(function(o){ var c=gaActivityCost(o); tot+=c.rp||0; co2+=c.co2||0; byKind[o.kind]=(byKind[o.kind]||0)+(c.rp||0); });
+ return {tot:tot, co2:+co2.toFixed(1), n:ord.length, byKind:byKind};
+}
+function mRoomIdle(){
+ if(!isSuper()||typeof RB_BOOKINGS==="undefined")return {rp:0,n:0};
+ var tot=0,n=0;
+ RB_BOOKINGS.forEach(function(b){ if(b.date&&b.date<TODAY_STR && b.status!=="In use" && b.status!=="Selesai"){
+   var c=costRuangMeeting(rbRoomCap(b.room)||8, hhmmJam(b.start,b.end)); tot+=c.rp; n++; } });
+ return {rp:tot,n:n};
+}
+function mJejakCard(){
+ var j=mJejakBiaya(); if(!j.n)return "";
+ var idle=mRoomIdle();
+ var lbl={complaint:"Layanan",room:"Ruang",transport:"Transport",overtime:"Overtime"};
+ var chips=Object.keys(j.byKind).filter(function(k){return j.byKind[k]>0;})
+   .map(function(k){ return '<span class="mj-chip">'+lbl[k]+' '+costRp(j.byKind[k])+'</span>'; }).join("");
+ return '<div class="mj-card">'+
+   '<div class="mj-h"><span>💡 Jejak Biaya Pesanan Saya</span><i>'+j.n+' aktivitas</i></div>'+
+   '<div class="mj-main"><div class="mj-v">'+costRp(j.tot)+'</div>'+
+     (j.co2>0?'<div class="mj-co2">'+j.co2+' kg CO₂</div>':'')+'</div>'+
+   (chips?'<div class="mj-chips">'+chips+'</div>':'')+
+   (idle.rp>0?'<div class="mj-idle">⚠ Potensi terbuang organisasi: <b>'+costRp(idle.rp)+'</b> · '+idle.n+' ruang lewat tanpa ditandai terpakai</div>':'')+
+   '<div class="mj-note">Setiap pesanan memakai sumber daya perusahaan. Sadari biayanya — hemat yang bisa dihemat.</div></div>';
+}
 
 /* ── HALAMAN PARAMETER & BIAYA (owner-only) ── */
 function paramNum(grp,key,lbl,unit,step){
