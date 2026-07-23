@@ -1735,17 +1735,80 @@ body.rg-open{overflow:hidden}
   .mbot span{display:grid;place-items:center;line-height:1}
   .mbot span svg{width:22px;height:22px;stroke:var(--m-fai);fill:none;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round}
-  .mbot i{font-style:normal;font-size:calc(10px*var(--fz));font-weight:600;color:var(--m-fai)}
+  .mbot i{font-style:normal;font-size:calc(9.5px*var(--fz));font-weight:600;color:var(--m-fai);white-space:nowrap}
   /* tab aktif */
-  body.on-mhome .mbot #mbHome i{color:var(--m-navy)}
-  body.on-mhome .mbot #mbHome span svg{stroke:var(--m-navy)}
+  .mbot button.on i{color:var(--m-navy);font-weight:700}
+  .mbot button.on span svg{stroke:var(--m-navy)}
+  /* badge angka di ikon bottom bar */
+  .mbot .mb-bdg{position:absolute;top:-4px;right:2px;min-width:15px;height:15px;border-radius:99px;background:#D92D20;
+    color:#fff;font-size:calc(9px*var(--fz));font-weight:800;font-style:normal;display:grid;place-items:center;padding:0 3px;
+    border:1.5px solid rgba(249,250,252,.95)}
   /* tombol utama yang menonjol di tengah */
   .mbot .mb-fab{padding:0;justify-content:center}
   .mbot .mb-fab span{width:50px;height:50px;border-radius:999px;background:var(--m-navy);margin-top:-22px;
     box-shadow:0 8px 18px rgba(11,36,71,.35)}
   .mbot .mb-fab span svg{width:22px;height:22px;stroke:#fff;stroke-width:2}
+  .mbot .mb-fab.on span{background:linear-gradient(135deg,#0a7cff,#00c6fb)}
   .mbot .mb-fab i{display:none}
   .mbot .mb-fab:active span{transform:scale(.94)}
+
+  /* ── BANNER AWARENESS ASTRA (HSE · Safety · Sustainability) ── */
+  .mh-bannerwrap{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;gap:10px;margin:2px 0 8px;padding:0}
+  .mh-bannerwrap::-webkit-scrollbar{display:none}
+  .mh-banner{flex:0 0 84%;scroll-snap-align:center;border-radius:18px;padding:15px 16px;color:#fff;position:relative;
+    box-shadow:0 6px 18px rgba(11,36,71,.22);overflow:hidden}
+  .mh-bn-tag{display:inline-block;font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    background:rgba(255,255,255,.18);padding:3px 9px;border-radius:99px;margin-bottom:10px}
+  .mh-bn-row{display:flex;align-items:flex-start;gap:11px}
+  .mh-bn-ic{font-size:calc(26px*var(--fz));line-height:1;flex:0 0 auto}
+  .mh-bn-t{font-size:calc(15.5px*var(--fz));font-weight:800;letter-spacing:-.2px;line-height:1.2}
+  .mh-bn-s{font-size:calc(11.5px*var(--fz));opacity:.92;line-height:1.4;margin-top:3px}
+  .mh-bn-astra{font-size:calc(9px*var(--fz));font-weight:700;letter-spacing:.1em;opacity:.7;margin-top:12px}
+  .mh-bdots{display:flex;justify-content:center;gap:6px;margin-bottom:18px}
+  .mh-bdots i{width:6px;height:6px;border-radius:50%;background:#D3D8E0;transition:.2s}
+  .mh-bdots i.on{width:16px;border-radius:4px;background:var(--m-navy)}
+
+  /* ── HALAMAN LAYANAN / NOTIFIKASI / DISCOVER ── */
+  .m-page-h{margin:2px 2px 16px}
+  .m-page-t{font-size:calc(22px*var(--fz));font-weight:800;letter-spacing:-.4px;color:var(--m-ink);display:flex;align-items:center;gap:8px}
+  .m-page-s{font-size:calc(12.5px*var(--fz));color:var(--m-mut);margin-top:3px}
+  .m-new{font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.06em;color:#fff;background:#12805C;
+    padding:3px 8px;border-radius:99px;vertical-align:middle}
+  .m-page-note{font-size:calc(11.5px*var(--fz));color:var(--m-mut);line-height:1.55;margin-top:14px;text-align:center;padding:0 8px}
+  .m-svc-list{display:flex;flex-direction:column;gap:9px}
+  .m-svc{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:14px 15px;border:none;border-radius:16px;
+    background:var(--m-card);box-shadow:var(--m-sh);cursor:pointer;font-family:var(--ff)}
+  .m-svc:active{transform:scale(.99);background:#FAFBFD}
+  .m-svc-ic{flex:0 0 44px;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:calc(21px*var(--fz))}
+  .m-svc-tx{flex:1;min-width:0}
+  .m-svc-tx b{display:block;font-size:calc(14.5px*var(--fz));font-weight:700;color:var(--m-ink);letter-spacing:-.2px}
+  .m-svc-tx small{font-size:calc(12px*var(--fz));color:var(--m-mut)}
+  .m-svc-go{flex:0 0 auto;font-size:calc(22px*var(--fz));color:#C6CBD4;font-weight:400}
+  /* notifikasi */
+  .m-notif-inbox{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 15px;border:none;
+    border-radius:16px;background:linear-gradient(135deg,#0b2447,#123b73);color:#fff;cursor:pointer;font-family:var(--ff);
+    box-shadow:0 6px 16px rgba(11,36,71,.25)}
+  .m-ni-ic{flex:0 0 40px;width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.15);display:grid;place-items:center}
+  .m-ni-ic svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .m-ni-tx{flex:1;min-width:0}
+  .m-ni-tx b{display:block;font-size:calc(14.5px*var(--fz));font-weight:700}
+  .m-ni-tx small{font-size:calc(11.5px*var(--fz));opacity:.85}
+  .m-ni-badge{flex:0 0 auto;min-width:24px;height:24px;border-radius:99px;background:#D92D20;color:#fff;
+    font-size:calc(12px*var(--fz));font-weight:800;display:grid;place-items:center;padding:0 7px}
+  .m-notif-row{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;border-radius:16px;background:var(--m-card);
+    box-shadow:var(--m-sh);margin-bottom:8px}
+  .m-notif-ic{flex:0 0 auto;font-size:calc(18px*var(--fz));line-height:1.2}
+  .m-notif-tx{flex:1;min-width:0}
+  .m-notif-t{font-size:calc(13.5px*var(--fz));font-weight:600;color:var(--m-ink);line-height:1.35}
+  .m-notif-s{font-size:calc(11.5px*var(--fz));color:var(--m-mut);margin-top:2px}
+  .m-notif-at{flex:0 0 auto;font-size:calc(10.5px*var(--fz));color:var(--m-fai)}
+  /* house rules */
+  .m-rules{display:flex;flex-direction:column;gap:2px;background:var(--m-card);border-radius:16px;box-shadow:var(--m-sh);padding:6px 4px}
+  .m-rule{display:flex;align-items:flex-start;gap:11px;padding:11px 12px;font-size:calc(13px*var(--fz));color:var(--m-sub);line-height:1.4}
+  .m-rule+.m-rule{border-top:1px solid var(--m-line)}
+  .m-rule-n{flex:0 0 22px;width:22px;height:22px;border-radius:99px;background:var(--m-chipbg);color:var(--m-chipfg);
+    font-size:calc(11px*var(--fz));font-weight:800;display:grid;place-items:center}
 }
 @media(prefers-reduced-motion:reduce){.mtop-glow{animation:none}}
 /* ── Halaman Overtime — pilih jenis lalu isi form ── */
@@ -2544,6 +2607,9 @@ html,body{max-width:100%}
     </div>
     <div class="wrap">
       <div id="page-mhome" class="hide"></div>
+      <div id="page-notif" class="hide"></div>
+      <div id="page-layanan" class="hide"></div>
+      <div id="page-discover" class="hide"></div>
       <div id="page-overtime" class="hide"></div>
       <div id="page-overview"></div>
       <div id="page-kpiyear" class="hide"></div>
@@ -2838,10 +2904,14 @@ function go(id){
   window._curPage=id;
   active=(id==="ersus")?"energy":id; navSetActive();
   try{ mBackSync(id); }catch(e){}
-  ["page-mhome","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
+  try{ mBotActive(id); }catch(e){}
+  ["page-mhome","page-notif","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   document.body.classList.toggle("on-mhome", id==="mhome");
   if(id==="mhome"){renderMobileHome();document.getElementById("page-mhome").classList.remove("hide");t.textContent="AGAVA";s.textContent="Beranda";mTopSync();}
+  else if(id==="notif"){renderNotif();document.getElementById("page-notif").classList.remove("hide");t.textContent="Notifikasi";s.textContent="Pemberitahuan & tindakan menunggu";}
+  else if(id==="layanan"){renderLayanan();document.getElementById("page-layanan").classList.remove("hide");t.textContent="Layanan GA";s.textContent="Semua layanan General Affairs";}
+  else if(id==="discover"){renderDiscover();document.getElementById("page-discover").classList.remove("hide");t.textContent="Discover GA";s.textContent="Fasilitas & informasi layanan GA";}
   else if(id==="overtime"){active="service";navSetActive();renderOvertime();document.getElementById("page-overtime").classList.remove("hide");t.textContent="Overtime";s.textContent="Perpanjangan AC & manpower lembur";}
   else if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="procurement"){procFilter="all";renderProc();document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
@@ -6053,7 +6123,7 @@ function mRoleTarget(){
  if(menus.indexOf("approvals")>=0) return {id:"approvals", ic:"📋", sv:"shield", t:"Approvals", n:pendingApprovals().length+(isSuper()?escalatedTickets().length+OVERTIME_REQ.filter(function(o){return (o.status||"Diajukan")==="Diajukan";}).length:0)};
  return {id:"service", ic:"🎧", sv:"head", t:"Services", n:0};
 }
-function mRoleGo(){ go(mRoleTarget().id); }
+function mRoleGo(){ go(mInbox().id); }
 function mHomeId(){ return gRole==="fieldops"?"fieldops":"mhome"; }
 function mGoHome(){ mStack.length=0; go(mHomeId()); }
 /* ══════════════════════════════════════════════════════════════════════════
@@ -6082,7 +6152,10 @@ function mBackSync(id){
  var btn=document.getElementById("mBackBtn"), txt=document.getElementById("mBackTxt"),
      ask=document.getElementById("mAskBtn");
  if(!btn)return;
- var diHome=(id===mHomeId());
+ /* Tab top-level (Beranda + tab bottom bar) tak perlu tombol back — bottom bar
+    selalu tampil sebagai jalur pindahnya. */
+ var topLevel=[mHomeId(),"notif","layanan","discover"];
+ var diHome=topLevel.indexOf(id)>=0;
  btn.classList.toggle("hide",diHome);
  if(ask)ask.classList.toggle("mtop-ask-min",!diHome);
  if(txt&&!diHome){
@@ -6137,32 +6210,53 @@ const MIC={
  head:'<path d="M4 13v-1a8 8 0 0 1 16 0v1"/><path d="M4 13h2.5v5H5a1 1 0 0 1-1-1zM20 13h-2.5v5H19a1 1 0 0 0 1-1z"/>',
  ticket:'<path d="M4 9V7a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a2.5 2.5 0 0 0 0 6v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a2.5 2.5 0 0 0 0-6z"/><path d="M13 6v12"/>',
  shield:'<path d="M9 12l2 2 4-5"/><path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"/>',
- bag:'<path d="M4 8h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>'
+ bag:'<path d="M4 8h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+ bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+ compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+ inv:'<path d="M6 3h9l4 4v14H6z"/><path d="M9.5 8h3M9.5 12h6M9.5 16h4"/>'
 };
 function micSvg(k){ return '<svg viewBox="0 0 24 24">'+(MIC[k]||MIC.ticket)+'</svg>'; }
 function mBotBtn(nav,ikon,label,id){
  return '<button onclick="'+nav+'"'+(id?' id="'+id+'"':'')+'><span>'+micSvg(ikon)+'</span><i>'+label+'</i></button>';
 }
+/* Bottom bar lima slot: Beranda · Notifikasi · + Layanan · Inbox(role) · Discover.
+   Operator Field Ops tanpa tombol + (tidak membuat pengajuan) → empat slot. */
+function mBotItem(tab,nav,ic,label,badge){
+ return '<button data-tab="'+tab+'" onclick="'+nav+'"><span>'+micSvg(ic)+
+   (badge>0?'<i class="mb-bdg">'+(badge>99?"99+":badge)+'</i>':'')+'</span><i>'+esc(label)+'</i></button>';
+}
 function mBotSync(){
  var bar=document.getElementById("mBot"); if(!bar)return;
+ var inb=mInbox();
+ var notifN=(typeof activeNotifs==="function"?activeNotifs().length:0);
  if(gRole==="fieldops"){
-   /* Operator lapangan tidak membuat tiket — tidak ada tombol tengah di sini. */
-   bar.style.gridTemplateColumns="repeat(3,1fr)";
+   bar.style.gridTemplateColumns="repeat(4,1fr)";
    bar.innerHTML=
-     mBotBtn("mGoHome()","home","Home","mbHome")+
-     mBotBtn("go('service')","head","Complaint")+
-     mBotBtn("go('myticket')","ticket","Tiket Saya");
+     mBotItem("home","mGoHome()","home","Beranda")+
+     mBotItem("notif","go('notif')","bell","Notifikasi",notifN)+
+     mBotItem(inb.id,"go('"+inb.id+"')",inb.sv,inb.label,inb.n)+
+     mBotItem("discover","go('discover')","compass","Discover");
  } else {
-   /* Complaint Handling naik jadi tombol utama di tengah — aksi paling sering. */
    bar.style.gridTemplateColumns="repeat(5,1fr)";
    bar.innerHTML=
-     mBotBtn("mGoHome()","home","Home","mbHome")+
-     mBotBtn("go('roombook')","room","Room")+
-     '<button class="mb-fab" onclick="go(\'createticket\')" title="Buat tiket Complaint Handling">'+
-       '<span>'+micSvg("plus")+'</span><i>Complaint</i></button>'+
-     mBotBtn("go('transport')","car","Transport")+
-     mBotBtn("go('overtime')","clock","Overtime");
+     mBotItem("home","mGoHome()","home","Beranda")+
+     mBotItem("notif","go('notif')","bell","Notifikasi",notifN)+
+     '<button class="mb-fab" data-tab="layanan" onclick="go(\'layanan\')" title="Buat pengajuan layanan GA">'+
+       '<span>'+micSvg("plus")+'</span><i>Layanan</i></button>'+
+     mBotItem(inb.id,"go('"+inb.id+"')",inb.sv,inb.label,inb.n)+
+     mBotItem("discover","go('discover')","compass","Discover");
  }
+ mBotActive(window._curPage||"mhome");
+}
+/* Sorot tab aktif — halaman form GA disorot ke tab Layanan, halaman inbox ke tab inbox. */
+function mBotActive(id){
+ var bar=document.getElementById("mBot"); if(!bar)return;
+ var map={mhome:"home",notif:"notif",layanan:"layanan",discover:"discover",
+   createticket:"layanan",roombook:"layanan",transport:"layanan",overtime:"layanan",createso:"layanan"};
+ var tab=map[id]||id;
+ [].forEach.call(bar.querySelectorAll("button"),function(b){
+   b.classList.toggle("on", b.getAttribute("data-tab")===tab);
+ });
 }
 function mTopSync(){
  if(!isMobile())return;
@@ -6172,9 +6266,9 @@ function mTopSync(){
  var el=document.getElementById("mDate"); if(el)el.textContent=hari+", "+d.getDate()+" "+bln;
  var tm=document.getElementById("mTime");
  if(tm)tm.textContent=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
- var r=mRoleTarget();
+ var r=mInbox();
  var ic=document.getElementById("mRoleIc"), bt=document.getElementById("mRoleBtn"), bd=document.getElementById("mRoleBdg");
- if(ic)ic.innerHTML=micSvg(r.sv||"ticket"); if(bt)bt.title=r.t;
+ if(ic)ic.innerHTML=micSvg(r.sv||"ticket"); if(bt)bt.title=r.label;
  if(bd){ bd.textContent=r.n; bd.classList.toggle("hide",!r.n); }
  var bb=document.getElementById("mBellBdg"), src=document.getElementById("bellBadge");
  if(bb&&src){ bb.textContent=src.textContent; bb.classList.toggle("hide",src.classList.contains("hide")); }
@@ -6256,6 +6350,230 @@ function orderOpen(kind,no){
   '<button class="btn-out" style="width:100%;margin-top:12px" onclick="closeDrawer();go(\''+o.nav+'\')">Buka modul '+esc(modLabel(o.nav))+' →</button></div>';
  document.getElementById("ovl").classList.add("show");
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE — SECTION BERBASIS ROLE, INBOX ADAPTIF, & HALAMAN Notifikasi/Layanan/Discover
+   AGAVA dipakai dua sisi: user eksternal (memakai layanan) & internal (memantau).
+   Section 1 "Pengajuan Saya" PUBLIC untuk semua; section 2–4 hanya untuk role
+   tertentu. Semua diturunkan dari data hidup — tidak ada dummy.
+   ══════════════════════════════════════════════════════════════════════════ */
+function mMenus(){ return (ROLES[gRole]&&ROLES[gRole].menus)||[]; }
+function mCanSO(){ return isSuper()||mMenus().indexOf("procurement")>=0; }
+function mCanWIP(){ return isSuper()||mobileGroup()==="ga-biasa"; }
+function mCanRemind(){ return isSuper()||mMenus().indexOf("reminder")>=0; }
+function mCanPay(){ return isSuper()||mMenus().indexOf("payment")>=0; }
+
+/* Inbox adaptif — namanya menyesuaikan role (dipakai bottom bar & top bar). */
+function mInbox(){
+ var menus=mMenus();
+ if(menus.indexOf("approvals")>=0)
+   return {id:"approvals", label:"Approval", sv:"shield",
+     n:pendingApprovals().length+(isSuper()?escalatedTickets().length+OVERTIME_REQ.filter(function(o){return (o.status||"Diajukan")==="Diajukan";}).length:0)};
+ if(gRole==="fieldops"||menus.indexOf("myticket")>=0)
+   return {id:"myticket", label:"My Tiket", sv:"ticket",
+     n:(function(){ var me=fieldOpName(); return TICKETS.filter(function(x){return x.pic===me&&(x.stg||0)<3;}).length; })()};
+ if(menus.indexOf("assigned")>=0)
+   return {id:"assigned", label:"Assigned SO", sv:"bag",
+     n:(function(){ var me=(gUser&&gUser.name)||""; return SO.filter(function(s){return (s.staffPIC||s.pic)===me&&s.apprDept==="Approved"&&(s.wstep||0)<4;}).length; })()};
+ if(menus.indexOf("payment")>=0)
+   return {id:"payment", label:"Assigned Inv", sv:"inv",
+     n:SO.filter(function(s){return s.invReceived&&!s.invReleased;}).length};
+ /* user eksternal tanpa inbox internal → pintasan ke pesanan/tiket miliknya */
+ return {id:"service", label:"Pesanan", sv:"ticket", n:0};
+}
+
+/* Pekerjaan berlangsung — gabungan lintas modul (Work Permit disetujui,
+   proyek berjalan, overtime hari ini). */
+function mWipItems(){
+ var out=[];
+ (typeof WORK_PERMITS!=="undefined"?WORK_PERMITS:[]).forEach(function(w){
+   if(w.status!=="Disetujui")return;
+   var aktif=(w.mulai<=TODAY_STR&&w.selesai>=TODAY_STR);
+   out.push({kind:"wp", ic:"🦺", no:esc(w.no||""), judul:w.judul||"Work Permit",
+     meta:[w.vendor,w.lokasi].filter(Boolean).join(" · "),
+     chip:"Building", chipCls:"k-complaint",
+     status:aktif?"Berlangsung":(w.mulai>TODAY_STR?"Terjadwal":"Selesai"),
+     warna:aktif?"#12805C":"#667085", open:"go('hse')"});
+ });
+ var projMap={};
+ (typeof PJ_P!=="undefined"?PJ_P:[]).forEach(function(a){
+   if(a.s<=TODAY_STR&&a.e>=TODAY_STR){ var k=(a.p||"").trim();
+     if(!projMap[k]||a.s>projMap[k].s) projMap[k]=a; }
+ });
+ Object.keys(projMap).forEach(function(k){ var a=projMap[k]; var nm=k.replace(/\s+/g," ").trim();
+   out.push({kind:"proj", ic:"📈", no:nm, judul:nm, meta:a.a+" · s/d "+fmtDay(a.e)+" "+a.e.slice(0,4),
+     chip:"Project", chipCls:"k-room", status:"Berjalan", warna:"#0a6ad6", open:"go('project')"}); });
+ (typeof OVERTIME_REQ!=="undefined"?OVERTIME_REQ:[]).forEach(function(o){
+   if((o.status||"")!=="Disetujui"||o.tgl!==TODAY_STR)return;
+   out.push({kind:"ot", ic:"⏱️", no:esc(o.no||""), judul:otJenis(o.jenis).nama,
+     meta:[(o.mulai||"")+"–"+(o.selesai||""),(o.lokasi||o.ruang||"")].filter(Boolean).join(" · "),
+     chip:"Overtime", chipCls:"k-overtime", status:"Hari ini", warna:"#6941C6", open:"go('service')"}); });
+ return out;
+}
+
+/* Pengingat — jatuh tempo terdekat dari seluruh master data + payment (role tertentu). */
+function mReminderItems(){
+ var rows=[];
+ function add(tag,name,due){ if(due) rows.push({tag:tag,name:name,due:due,d:dueDays(due)}); }
+ (typeof STNK!=="undefined"?STNK:[]).forEach(function(x){ add("STNK",x.plate+" · "+x.unit,x.due); });
+ (typeof PBB!=="undefined"?PBB:[]).forEach(function(x){ add("PBB",x.obj,x.due); });
+ (typeof IZIN!=="undefined"?IZIN:[]).forEach(function(x){ add("IZIN",x.name+" · "+x.site,x.due); });
+ (typeof IZIN_OPS!=="undefined"?IZIN_OPS:[]).forEach(function(x){ add("IZIN",x.name,x.due); });
+ (typeof PERMITS!=="undefined"?PERMITS:[]).forEach(function(x){ if(!x.closedAt) add("UJI",x.name,x.due); });
+ if(mCanPay()) (typeof SO!=="undefined"?SO:[]).forEach(function(s){
+   if(s.invReceived&&!s.invReleased) rows.push({tag:"BAYAR",name:s.item,due:s.invDue||null,
+     d:s.invDue?dueDays(s.invDue):null}); });
+ rows.sort(function(a,b){ return (a.d==null?9e9:a.d)-(b.d==null?9e9:b.d); });
+ return rows;
+}
+function mDueLabel(d){ if(d==null)return "perlu diproses"; if(d<0)return "lewat "+(-d)+" hr"; if(d===0)return "hari ini"; return d+" hr lagi"; }
+function mDueColor(d){ if(d==null)return "#B45309"; return d<0?"#D92D20":d<=30?"#B45309":"#12805C"; }
+const M_RTAG={STNK:"k-transport",PBB:"k-so",IZIN:"k-room",UJI:"k-complaint",BAYAR:"k-overtime"};
+
+/* Baris kartu generik — dipakai semua section (nomor/kanan · judul · chip+meta+panah). */
+function mCardRow(o){
+ return '<div class="mh-row"'+(o.open?' onclick="'+o.open+'"':'')+'>'+
+   '<div class="mh-rhead"><b>'+esc(o.no||"")+'</b>'+(o.right?'<i>'+esc(o.right)+'</i>':'')+'</div>'+
+   '<div class="mh-rj">'+esc(o.judul||"")+'</div>'+
+   '<div class="mh-rfoot">'+
+     (o.chip?'<span class="mh-okind '+(o.chipCls||"")+'">'+esc(o.chip)+'</span>':'')+
+     '<span class="mh-rd"'+(o.metaColor?' style="color:'+o.metaColor+'"':'')+'>'+esc(o.status||o.meta||"")+
+       (o.status&&o.meta?' · <span style="color:var(--m-mut)">'+esc(o.meta)+'</span>':'')+'</span>'+
+     mhChev()+
+   '</div></div>';
+}
+function mSecBlock(title,count,csvKind,listHtml,seeAll){
+ return '<div class="mh-sec"><div class="mh-sh"><b>'+title+'</b><span>'+esc(String(count))+'</span>'+
+   (seeAll?'<button class="mh-csv" onclick="'+seeAll+'">Semua</button>':
+     (csvKind?'<button class="mh-csv" onclick="exportLog(\''+csvKind+'\')">⬇ CSV</button>':''))+
+   '</div>'+listHtml+'</div>';
+}
+
+/* ── Banner awareness Astra (HSE · Safety Golden Rules · Sustainability) ──
+   Slot resmi untuk poster/kampanye korporat; digeser mendatar. */
+const M_BANNERS=[
+ {tag:"HSE Awareness", ic:"🦺", title:"Utamakan Keselamatan", sub:"Laporkan kondisi tidak aman sekecil apa pun lewat Complaint Handling.", g:"linear-gradient(135deg,#0b3d2e,#12805c)"},
+ {tag:"Safety Golden Rules", ic:"🛡️", title:"Patuhi Aturan Emas K3", sub:"Tak ada pekerjaan yang lebih penting dari keselamatan Anda.", g:"linear-gradient(135deg,#0b2447,#123b73)"},
+ {tag:"Sustainability", ic:"🌏", title:"Astra Menuju Net Zero", sub:"Hemat energi, pilah limbah, dukung target keberlanjutan 2030.", g:"linear-gradient(135deg,#134e2a,#2f9e44)"}
+];
+function mBannerHTML(){
+ return '<div class="mh-bannerwrap" id="mhBannerWrap">'+
+   M_BANNERS.map(function(b){
+     return '<div class="mh-banner" style="background:'+b.g+'">'+
+       '<div class="mh-bn-tag">'+esc(b.tag)+'</div>'+
+       '<div class="mh-bn-row"><span class="mh-bn-ic">'+b.ic+'</span>'+
+         '<div><div class="mh-bn-t">'+esc(b.title)+'</div>'+
+         '<div class="mh-bn-s">'+esc(b.sub)+'</div></div></div>'+
+       '<div class="mh-bn-astra">ASTRA · General Affairs</div></div>';
+   }).join("")+'</div>'+
+   '<div class="mh-bdots">'+M_BANNERS.map(function(_,i){return '<i class="'+(i===0?'on':'')+'"></i>';}).join("")+'</div>';
+}
+
+/* ── HALAMAN: LAYANAN GA (tombol + di bottom bar) ── */
+const M_LAYANAN=[
+ {t:"Complaint Handling", s:"Lapor keluhan / kerusakan fasilitas", ic:"🎫", cls:"k-complaint", go:"createticket"},
+ {t:"Room Reservation", s:"Pesan ruang meeting & aula", ic:"🏢", cls:"k-room", go:"roombook"},
+ {t:"Transport Booking", s:"Pool car · Blue Bird · GoCorp", ic:"🚗", cls:"k-transport", go:"transport"},
+ {t:"Overtime", s:"Perpanjangan AC & manpower lembur", ic:"⏱️", cls:"k-overtime", go:"overtime"}
+];
+function renderLayanan(){
+ var el=document.getElementById("page-layanan"); if(!el)return;
+ var extra=mCanSO()?'<button class="m-svc" onclick="go(\'createso\')">'+
+   '<span class="m-svc-ic k-so">🛒</span><span class="m-svc-tx"><b>Create Supply Order</b>'+
+   '<small>Ajukan permintaan pembelian ke Procurement</small></span>'+
+   '<span class="m-svc-go">›</span></button>':'';
+ el.innerHTML=
+   '<div class="m-page-h"><div class="m-page-t">Layanan GA</div>'+
+     '<div class="m-page-s">Pilih layanan — langsung diproses tim General Affairs</div></div>'+
+   '<div class="m-svc-list">'+
+   M_LAYANAN.map(function(x){
+     return '<button class="m-svc" onclick="go(\''+x.go+'\')">'+
+       '<span class="m-svc-ic '+x.cls+'">'+x.ic+'</span>'+
+       '<span class="m-svc-tx"><b>'+esc(x.t)+'</b><small>'+esc(x.s)+'</small></span>'+
+       '<span class="m-svc-go">›</span></button>';
+   }).join("")+extra+'</div>'+
+   '<div class="m-page-note">Setiap pengajuan otomatis mendapat nomor tiket dan bisa Anda pantau di <b>Beranda → Pengajuan Saya</b>.</div>';
+}
+
+/* ── HALAMAN: NOTIFIKASI ── */
+function renderNotif(){
+ var el=document.getElementById("page-notif"); if(!el)return;
+ var inb=mInbox();
+ var feed=(typeof activeNotifs==="function"?activeNotifs():[]);
+ var head='<div class="m-page-h"><div class="m-page-t">Notifikasi</div>'+
+   '<div class="m-page-s">Pemberitahuan & tindakan yang menunggu Anda</div></div>';
+ var inbox=inb.n>0?'<button class="m-notif-inbox" onclick="go(\''+inb.id+'\')">'+
+     '<span class="m-ni-ic">'+micSvg(inb.sv)+'</span>'+
+     '<span class="m-ni-tx"><b>'+esc(inb.label)+'</b><small>'+inb.n+' item menunggu tindakan Anda</small></span>'+
+     '<span class="m-ni-badge">'+inb.n+'</span></button>':'';
+ var list=feed.length?'<div class="mh-list" style="margin-top:12px">'+feed.map(function(n){
+     return '<div class="m-notif-row">'+
+       '<span class="m-notif-ic">'+(n.ic||"🔔")+'</span>'+
+       '<div class="m-notif-tx"><div class="m-notif-t">'+esc(n.t||"")+'</div>'+
+         (n.sub?'<div class="m-notif-s">'+esc(n.sub)+'</div>':'')+'</div>'+
+       (n.at?'<span class="m-notif-at">'+esc(n.at)+'</span>':'')+'</div>';
+   }).join("")+'</div>'
+   :'<div class="mh-empty" style="margin-top:12px">Tidak ada notifikasi baru. Semua terpantau.</div>';
+ el.innerHTML=head+inbox+list;
+}
+
+/* ── HALAMAN: DISCOVER (informasi layanan GA) ── */
+const M_HOUSERULES=[
+ "Gunakan kartu akses pribadi — jangan pinjamkan ke orang lain.",
+ "Ruang meeting wajib dikembalikan rapi; matikan AC & lampu setelah dipakai.",
+ "Dilarang merokok di seluruh area gedung kecuali smoking area.",
+ "Simpan barang berharga; GA tidak bertanggung jawab atas kehilangan pribadi."
+];
+const M_SHUTTLE=[
+ {rute:"AMDI ⇄ Menara Astra", jam:"07.00 · 12.00 · 17.00", ket:"Setiap hari kerja"},
+ {rute:"AMDI ⇄ Stasiun MRT Sunter", jam:"08.00 · 17.30", ket:"Senin–Jumat"},
+ {rute:"Menara Astra ⇄ ABC BSD", jam:"07.30 (berangkat) · 17.00 (pulang)", ket:"Reservasi H-1"}
+];
+function mDiscoverRooms(){
+ var out=[]; try{ for(var k in RB_ROOMS){ RB_ROOMS[k].forEach(function(r){
+   out.push({name:r.name, cap:+r.cap||0, site:k.split("|")[0]}); }); } }catch(e){}
+ out.sort(function(a,b){ return b.cap-a.cap; });
+ return out.slice(0,6);
+}
+function renderDiscover(){
+ var el=document.getElementById("page-discover"); if(!el)return;
+ var rooms=mDiscoverRooms();
+ var ev=(typeof PJ_E!=="undefined"?PJ_E:[]).filter(function(e){ return e.s>=TODAY_STR; })
+   .sort(function(a,b){ return (a.s||"").localeCompare(b.s||""); }).slice(0,4);
+ el.innerHTML=
+   '<div class="m-page-h"><div class="m-page-t">Discover GA <span class="m-new">NEW</span></div>'+
+     '<div class="m-page-s">Kenali fasilitas & layanan General Affairs Astra</div></div>'+
+   mBannerHTML()+
+   '<div class="mh-sec"><div class="mh-sh"><b>🏢 Fasilitas &amp; Ruang</b><span>'+rooms.length+' ruang unggulan</span></div>'+
+     '<div class="mh-list">'+rooms.map(function(r){
+       return '<div class="mh-row"><div class="mh-rj">'+esc(r.name)+'</div>'+
+         '<div class="mh-rfoot"><span class="mh-okind k-room">'+r.cap+' pax</span>'+
+         '<span class="mh-rd">'+esc(r.site)+' · ruang meeting / acara</span></div></div>';
+     }).join("")+'</div></div>'+
+   '<div class="mh-sec"><div class="mh-sh"><b>🚐 Layanan Shuttle GA</b><span>'+M_SHUTTLE.length+' rute</span></div>'+
+     '<div class="mh-list">'+M_SHUTTLE.map(function(s){
+       return '<div class="mh-row"><div class="mh-rj">'+esc(s.rute)+'</div>'+
+         '<div class="mh-rfoot"><span class="mh-okind k-transport">'+esc(s.ket)+'</span>'+
+         '<span class="mh-rd">'+esc(s.jam)+'</span></div></div>';
+     }).join("")+'</div></div>'+
+   (ev.length?'<div class="mh-sec"><div class="mh-sh"><b>📅 Event GA Mendatang</b><span>'+ev.length+' acara</span></div>'+
+     '<div class="mh-list">'+ev.map(function(e){
+       return '<div class="mh-row"><div class="mh-rhead"><b>'+esc(e.l||"")+'</b><i>'+esc(fmtDay(e.s)+" "+String(e.s).slice(0,4))+'</i></div>'+
+         '<div class="mh-rj">'+esc(e.n||"Acara GA")+'</div>'+
+         '<div class="mh-rfoot"><span class="mh-okind k-room">Event</span><span class="mh-rd">PIC: '+esc(e.pic||"GA")+'</span></div></div>';
+     }).join("")+'</div></div>':'')+
+   '<div class="mh-sec"><div class="mh-sh"><b>📋 House Rules</b><span>aturan gedung</span></div>'+
+     '<div class="m-rules">'+M_HOUSERULES.map(function(t,i){
+       return '<div class="m-rule"><span class="m-rule-n">'+(i+1)+'</span><span>'+esc(t)+'</span></div>';
+     }).join("")+'</div></div>';
+}
+
+/* Titik geser generik untuk strip mendatar (banner & modul). */
+function mDotSync(wrapId,dotsSel,host){
+ var wrap=document.getElementById(wrapId); if(!wrap)return;
+ wrap.onscroll=function(){ var p=Math.round(wrap.scrollLeft/wrap.clientWidth);
+   [].forEach.call((host||document).querySelectorAll(dotsSel),function(dot,i){ dot.classList.toggle("on",i===p); }); };
+}
+
 function renderMobileHome(){
  var el=document.getElementById("page-mhome"); if(!el||!isMobile())return;
  var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
@@ -6290,30 +6608,44 @@ function renderMobileHome(){
      '</div>'+
    '</div>';
  }).join("")+'</div>':'<div class="mh-empty">Belum ada order. Gunakan tombol layanan di bawah untuk mengajukan.</div>';
- /* ── SO SAYA — daftar, klik untuk lihat Lifecycle Journey SO ── */
+ /* ── SECTION 2 — Permintaan Pembelian (SO) · hanya role dengan akses procurement ── */
  var soBlok="";
- if(menus.indexOf("procurement")>=0){
-   var me=(gUser&&gUser.name)||"";
-   var mySO=SO.filter(function(s){ return (s.requester||s.req)===me; });
-   soBlok='<div class="mh-sec"><div class="mh-sh"><b>🛒 My Supply Order</b><span>'+mySO.length+' supply order</span>'+
-     (mySO.length?'<button class="mh-csv" onclick="exportLog(\'so\')">⬇ CSV</button>':'')+'</div>'+
-     (mySO.length?'<div class="mh-list">'+mySO.map(function(s){
-        var st=soStatusLabel(s);
-        return '<div class="mh-row" onclick="openDrawer(\''+esc(s.no)+'\')">'+
-          '<div class="mh-rhead"><b>'+esc(s.no)+'</b><i>Rp '+esc(String(s.nilai))+' M</i></div>'+
-          '<div class="mh-rj">'+esc(s.item||"")+'</div>'+
-          soMiniPips(s)+
-          '<div class="mh-rfoot">'+
-            '<span class="mh-okind k-so">'+esc(st.t)+'</span>'+
-            '<span class="mh-rd">'+esc(s.lokasi||"")+(s.jenis?' · '+esc(s.jenis):"")+'</span>'+
-            mhChev()+
-          '</div></div>';
-      }).join("")+'</div>':'<div class="mh-empty">Belum ada SO yang Anda buat.</div>')+'</div>';
+ if(mCanSO()){
+   var meN=(gUser&&gUser.name)||"";
+   var seesAll=isSuper()||gRole==="division";
+   var soArr=(seesAll?SO.slice():SO.filter(function(s){ return (s.requester||s.req)===meN; })).slice().reverse();
+   var soShown=soArr.slice(0,6);
+   var soRows=soShown.length?'<div class="mh-list">'+soShown.map(function(s){
+       var st=soStatusLabel(s);
+       return '<div class="mh-row" onclick="openDrawer(\''+esc(s.no)+'\')">'+
+         '<div class="mh-rhead"><b>'+esc(s.no)+'</b><i>Rp '+esc(String(s.nilai))+' M</i></div>'+
+         '<div class="mh-rj">'+esc(s.item||"")+'</div>'+soMiniPips(s)+
+         '<div class="mh-rfoot"><span class="mh-okind k-so">'+esc(st.t)+'</span>'+
+           '<span class="mh-rd">'+esc(s.lokasi||"")+(s.jenis?' · '+esc(s.jenis):"")+'</span>'+mhChev()+'</div></div>';
+     }).join("")+'</div>':'<div class="mh-empty">Belum ada permintaan pembelian.</div>';
+   soBlok=mSecBlock("🛒 Permintaan Pembelian",soArr.length+" SO",(soShown.length?"so":null),soRows);
  }
- /* ── GA CALENDAR di Beranda — HANYA papan info: acara di RUANGAN BESAR,
-      3 hari ke depan. Tidak mengalihkan ke modul; akses penuh lewat ikon modul. ── */
+ /* ── SECTION 3 — Pekerjaan Berlangsung · gabungan Work Permit + Proyek + Overtime ── */
+ var wipBlok="";
+ if(mCanWIP()){
+   var wip=mWipItems();
+   var wipRows=wip.length?'<div class="mh-list">'+wip.map(function(w){
+       return mCardRow({open:w.open,no:w.no,judul:w.judul,chip:w.chip,chipCls:w.chipCls,status:w.status,meta:w.meta,metaColor:w.warna});
+     }).join("")+'</div>':'<div class="mh-empty">Tidak ada pekerjaan berlangsung hari ini.</div>';
+   wipBlok=mSecBlock("🔧 Pekerjaan Berlangsung",wip.length+" aktivitas",null,wipRows);
+ }
+ /* ── SECTION 4 — Pengingat · jatuh tempo terdekat ── */
+ var remBlok="";
+ if(mCanRemind()){
+   var remAll=mReminderItems(), rem=remAll.slice(0,6);
+   var remRows=rem.length?'<div class="mh-list">'+rem.map(function(r){
+       return mCardRow({judul:r.name,chip:r.tag,chipCls:M_RTAG[r.tag]||"k-so",status:mDueLabel(r.d),metaColor:mDueColor(r.d),
+         right:r.due?(fmtDay(r.due)+" "+String(r.due).slice(0,4)):""});
+     }).join("")+'</div>':'<div class="mh-empty">Tidak ada jatuh tempo terdekat.</div>';
+   remBlok=mSecBlock("🔔 Pengingat",remAll.length+" item",null,remRows);
+ }
+ /* ── GA CALENDAR di Beranda — papan info acara ruangan besar 3 hari ke depan ── */
  var kal=mhKalenderHTML();
- /* hari & tanggal pindah ke sini — sejajar sapaan, rata kanan */
  var d=new Date();
  var hari=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][d.getDay()];
  var bulan=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][d.getMonth()];
@@ -6331,16 +6663,13 @@ function renderMobileHome(){
     '<button class="mh-ico mh-exit" onclick="agavaLogout()" title="Keluar dari aplikasi">'+
       '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>'+
   '</div>'+
+  mBannerHTML()+
   ikon+
-  '<div class="mh-sec"><div class="mh-sh"><b>📦 My Service Order</b><span>'+ord.length+' order</span>'+
-    (ord.length?'<button class="mh-csv" onclick="exportLog(\'all\')">⬇ CSV</button>':'')+'</div>'+listOrder+'</div>'+
-  soBlok+kal;
- /* titik halaman ikut posisi geser */
- var wrap=document.getElementById("mhModWrap");
- if(wrap){ wrap.onscroll=function(){
-   var p=Math.round(wrap.scrollLeft/wrap.clientWidth);
-   [].forEach.call(el.querySelectorAll(".mh-dots i"),function(dot,i){ dot.classList.toggle("on",i===p); });
- }; }
+  mSecBlock("🗂️ Pengajuan Saya",ord.length+" pengajuan",(ord.length?"all":null),listOrder)+
+  soBlok+wipBlok+remBlok+kal;
+ /* titik geser untuk grid modul & banner */
+ mDotSync("mhModWrap",".mh-dots i",el);
+ mDotSync("mhBannerWrap",".mh-bdots i",el);
 }
 function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
 function gaServiceButtons(){
@@ -9239,7 +9568,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-46";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-47";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
