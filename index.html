@@ -1953,8 +1953,8 @@ body.rg-open{overflow:hidden}
 /* ── Kartu poster blended (seragam semua slot) ── */
 .mps-b{position:relative;overflow:hidden;width:100%;height:100%;border-radius:20px;padding:20px 20px 24px;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 12px 30px rgba(11,36,71,.22)}
 /* foto: pita atas yang di-MASK agar tepi bawahnya larut mulus ke warna kartu */
-.mps-b-ph{position:absolute;left:0;right:0;top:0;height:60%;background-size:cover;background-position:center top;background-repeat:no-repeat;
-  -webkit-mask-image:linear-gradient(to bottom,#000 60%,transparent 100%);mask-image:linear-gradient(to bottom,#000 60%,transparent 100%)}
+.mps-b-ph{position:absolute;left:0;right:0;top:0;height:66%;background-size:cover;background-position:center top;background-repeat:no-repeat;
+  -webkit-mask-image:linear-gradient(to bottom,#000 45%,transparent 90%);mask-image:linear-gradient(to bottom,#000 45%,transparent 90%)}
 /* kilau lembut + scrim bawah supaya teks selalu terbaca di atas foto/gradient */
 .mps-b-glow{position:absolute;inset:-30% -20% auto;height:150%;pointer-events:none;background:radial-gradient(45% 55% at 20% 18%,rgba(255,255,255,.14),transparent 60%)}
 .mps-b-scrim{position:absolute;left:0;right:0;bottom:0;height:62%;pointer-events:none;background:linear-gradient(to top,rgba(6,10,20,.42) 0%,rgba(6,10,20,.14) 42%,transparent 100%)}
@@ -1985,6 +1985,15 @@ body.rg-open{overflow:hidden}
 .lb-hero{margin-bottom:16px}
 .lb-hero-t{font-size:calc(17px*var(--fz));font-weight:800;color:var(--ink);letter-spacing:-.01em}
 .lb-soon{display:inline-block;vertical-align:middle;margin-left:9px;font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:#b45309;background:#fff3e0;background:#fef3e2;border:1px solid #f6d9a8;border-radius:99px;padding:3px 10px}
+/* Energy — header kanan + editor data sementara (grafik auto-generate saat diisi) */
+.es-hr{margin-left:auto;text-align:right}
+.ee-btn{margin-left:14px;flex:0 0 auto;font-size:calc(11px*var(--fz))}
+.ee{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:14px;background:#fbfcfe;overflow-x:auto}
+.ee-row{display:grid;grid-template-columns:120px repeat(7,minmax(56px,1fr));gap:6px;align-items:center;margin-bottom:6px}
+.ee-head span{font-size:calc(9.5px*var(--fz));font-weight:800;color:#8a9bb0;text-align:center;text-transform:uppercase}
+.ee-lb{font-size:calc(11px*var(--fz));font-weight:700;color:var(--ink)}
+.ee-row input{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;padding:6px;font-family:var(--ff);font-size:calc(11.5px*var(--fz));color:var(--ink);text-align:right;background:#fff}
+.ee-note{font-size:calc(10.5px*var(--fz));color:#8a9bb0;margin-top:8px;line-height:1.5}
 .lb-hero-s{font-size:calc(12.5px*var(--fz));color:var(--muted);line-height:1.55;margin-top:6px;max-width:820px}
 .lb-flow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px}
 .lb-flow-s{font-size:calc(11px*var(--fz));font-weight:700;color:#5b6b80;background:#eef2f8;border:1px solid var(--line);border-radius:99px;padding:6px 12px}
@@ -3157,6 +3166,7 @@ function go(id){
   try{ mBackSync(id); }catch(e){}
   try{ mBotActive(id); }catch(e){}
   if(id!=="discover"){ try{ clearInterval(mpsTimer); }catch(e){} }
+  if(id!=="mhome"){ try{ clearInterval(mBanTimer); }catch(e){} }
   ["page-mhome","page-notif","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-landbank","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   document.body.classList.toggle("on-mhome", id==="mhome");
@@ -3411,9 +3421,9 @@ function kpiDeptData(){
  const r=gaServiceRating(), rv=parseFloat(r.score);
  K.push({ic:"⭐",name:"Rating Layanan GA",param:r.count+" responden · tiket selesai",target:"≥ 4.0",ach:r.score,pct:Math.round(rv/5*100),st:r.count===0?"warn":rv>=4?"ok":rv>=3.5?"warn":"bad",src:"Service"});
  // 3. Efisiensi Energi — dari data ERSUS (GRK 2026 vs baseline 2019)
- const avg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, avg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length;
+ const avg19=eAvgG(GRK_2019), avg26=eAvgG(GRK_2026);
  const red=Math.round((1-avg26/avg19)*1000)/10;
- K.push({ic:"⚡",name:"Efisiensi Energi",param:"Emisi vs baseline 2019 · "+ENERGY_MONTHS.length+" bln",target:"−10%",ach:"−"+red+"%",pct:Math.min(100,Math.round(red/10*100)),st:red>=10?"ok":red>=7?"warn":"bad",src:"Energy · ERSUS"});
+ K.push({ic:"⚡",name:"Efisiensi Energi",param:"Emisi vs baseline 2019 · "+eNum(GRK_2026).length+" bln",target:"−10%",ach:"−"+red+"%",pct:Math.min(100,Math.round(red/10*100)),st:red>=10?"ok":red>=7?"warn":"bad",src:"Energy · ERSUS"});
  // 4. SO On-Track — dari modul Procurement (SO.aging)
  const soOk=SO.filter(s=>s.aging==="On Track").length, soPct=SO.length?Math.round(soOk/SO.length*100):100;
  K.push({ic:"🛒",name:"SO On-Track",param:soOk+" dari "+SO.length+" SO berjalan",target:"≥ 90%",ach:soPct+"%",pct:soPct,st:soPct>=90?"ok":soPct>=75?"warn":"bad",src:"Procurement"});
@@ -3931,7 +3941,7 @@ function codecCostTally(scope){
  el.innerHTML=h; el.classList.add('show'); el.dataset.on=key;
 }
 function codecSubFnData(){
- const avgA=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+ const avgA=a=>eAvgG(a);   // null-safe: bulan kosong (Jun/Jul) diabaikan
  // 1. GFM ← ENERGY: GRK · Water · REM · Waste (routine · ESG 2030)
  const grkRed=(1-avgA(GRK_2026)/avgA(GRK_2019))*100, grkAtt=Math.min(100,grkRed/15*100);
  const watRed=(1-avgA(WATER_INT_2026)/avgA(WATER_INT_2019))*100, watAtt=Math.max(0,Math.min(100,watRed/13*100));
@@ -4485,7 +4495,7 @@ function codecBreakdownHTML(){
  const prj=CODEC_PROJECTS.length, prjAvg=Math.round(CODEC_PROJECTS.reduce((a,p)=>a+p.prog,0)/Math.max(prj,1));
  const closed=TICKETS.filter(t=>t.stg===3).length, toProc=TICKETS.filter(t=>t.toProc).length;
  const pipe=SO.filter(s=>s.invReceived&&!s.invReleased).length, relN=SO.filter(s=>s.invReleased).length;
- const avg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, avg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length;
+ const avg19=eAvgG(GRK_2019), avg26=eAvgG(GRK_2026);
  const red=Math.round((1-avg26/avg19)*1000)/10;
  return `<div class="cd-wrap2">
   <div class="cd-panel">
@@ -4497,7 +4507,7 @@ function codecBreakdownHTML(){
     <div class="cd-mini"><div class="t">PROJECT PLAN & ACTUAL</div><div class="v" style="color:#39e0c8">${prj}</div><span class="cd-tag" style="background:#123f33;color:#4be3a0">avg ${prjAvg}%</span><div class="d">${CODEC_PROJECTS.filter(p=>p.st==='ok').length} on-track · ${CODEC_PROJECTS.filter(p=>p.st==='blocked').length} blocked</div></div>
     <div class="cd-mini"><div class="t">TIKET SELESAI</div><div class="v" style="color:#ff6b81">${closed}</div><span class="cd-tag" style="background:#3f1230;color:#ff8aa8">dari ${TICKETS.length}</span><div class="d">+${toProc} lanjut ke procurement</div></div>
     <div class="cd-mini"><div class="t">PAYMENT PROGRESS</div><div class="v" style="color:#ffb84d">${pipe}</div><span class="cd-tag" style="background:#3f2a12;color:#ffcf87">pipeline aktif</span><div class="d">${relN} released · dari Payment Tracker</div></div>
-    <div class="cd-mini"><div class="t">KONSUMSI ENERGI</div><div class="v" style="color:#6ea8ff">−${red}%</div><span class="cd-tag" style="background:#12283f;color:#8ec2ff">${ENERGY_MONTHS[ENERGY_MONTHS.length-1]} 2026</span><div class="d">vs baseline 2019 · dari ERSUS</div></div>
+    <div class="cd-mini"><div class="t">KONSUMSI ENERGI</div><div class="v" style="color:#6ea8ff">−${red}%</div><span class="cd-tag" style="background:#12283f;color:#8ec2ff">${ENERGY_MONTHS[eLastI(GRK_2026)]} 2026</span><div class="d">vs baseline 2019 · dari ERSUS</div></div>
   </div></div>`;
 }
 /* ===== CODEC — Income Stream GA (pemanfaatan aset & ruang jadi pendapatan) =====
@@ -4656,7 +4666,7 @@ function renderOverview(){
  const tkTot=TICKETS.length, tkUn=TICKETS.filter(t=>t.stg===0).length, tkAsg=TICKETS.filter(t=>t.stg===1).length, tkIp=TICKETS.filter(t=>t.stg===2).length, tkRes=TICKETS.filter(t=>t.stg===3).length;
  const soTot=SO.length, soUpr=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=2).length, soSpk=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=3).length, soBast=SO.filter(s=>s.apprDept==="Approved"&&s.wstep>=4).length;
  const pipeN=SO.filter(s=>s.invReceived&&!s.invReleased).length;
- const eAvg19=GRK_2019.reduce((a,b)=>a+b,0)/GRK_2019.length, eAvg26=GRK_2026.reduce((a,b)=>a+b,0)/GRK_2026.length, eRed=Math.round((1-eAvg26/eAvg19)*1000)/10;
+ const eAvg19=eAvgG(GRK_2019), eAvg26=eAvgG(GRK_2026), eRed=Math.round((1-eAvg26/eAvg19)*1000)/10;
  const dueD=x=>Math.floor((new Date(x)-new Date(TODAY_STR))/86400000);
  const stnkO=STNK.filter(v=>dueD(v.due)<0).length, stnk30=STNK.filter(v=>{const d=dueD(v.due);return d>=0&&d<=30;}).length, stnkOK=STNK.length-stnkO-stnk30;
  const pbbO=PBB.filter(v=>dueD(v.due)<0).length, pbb30=PBB.filter(v=>{const d=dueD(v.due);return d>=0&&d<=30;}).length, pbbOK=PBB.length-pbbO-pbb30;
@@ -4677,12 +4687,12 @@ function renderOverview(){
  const areaArr=Object.entries(areaMap).sort((a,b)=>b[1]-a[1]); const areaMax=Math.max(...areaArr.map(x=>x[1]),1);
  const gdCbar=(l,v,max,c,blink)=>`<div class="gd-cbar ${blink?'gd-escblink':''}"><div class="gd-clab"><span>${l}</span><b style="color:${c}">${v}</b></div><div class="gd-ctrack"><i style="width:${Math.max(v/max*100,3)}%;background:${c}"></i></div></div>`;
  /* ---- Energy (10) ---- */
- const remMix=Math.round(REM_PCT.reduce((a,b)=>a+b,0)/REM_PCT.length);
+ const remMix=Math.round(eAvgG(REM_PCT));
  const wOk2=WASTE_OK.reduce((a,b)=>a+b,0), wAll2=WASTE_OK.reduce((a,b,i)=>a+b+WASTE_NO[i],0), wasteRec=Math.round(wOk2/wAll2*1000)/10;
- const watRed2=Math.round((1-(WATER_INT_2026.reduce((a,b)=>a+b,0))/(WATER_INT_2019.reduce((a,b)=>a+b,0)))*1000)/10;
- const eLatest=GRK_2026[GRK_2026.length-1], eOverMonths=GRK_2026.filter(v=>v>ENERGY_MONTHLY_CAP).length, eOver=eLatest>ENERGY_MONTHLY_CAP;
- const eYTDpct=Math.round(GRK_2026.reduce((a,b)=>a+b,0)/(ENERGY_MONTHLY_CAP*GRK_2026.length)*100);
- const eMax=Math.max(...GRK_2026);
+ const watRed2=Math.round((1-eAvgG(WATER_INT_2026)/eAvgG(WATER_INT_2019))*1000)/10;
+ const eLatest=GRK_2026[eLastI(GRK_2026)], eOverMonths=eNum(GRK_2026).filter(v=>v>ENERGY_MONTHLY_CAP).length, eOver=eLatest>ENERGY_MONTHLY_CAP;
+ const eYTDpct=Math.round(eSum(GRK_2026)/(ENERGY_MONTHLY_CAP*(eNum(GRK_2026).length||1))*100);
+ const eMax=Math.max.apply(null,eNum(GRK_2026).concat([1]));
  /* ---- Project (11) ---- */
  const PJL=codecProjects();
  const pjPlan=Math.round(PJL.reduce((a,p)=>a+p.plan,0)/Math.max(PJL.length,1)), pjAct=Math.round(PJL.reduce((a,p)=>a+p.actual,0)/Math.max(PJL.length,1));
@@ -4855,8 +4865,8 @@ function renderOverview(){
         <div class="gd-sub">Progress Penggunaan Energi YTD vs Target Maksimum</div>
         <div class="gd-blab"><span>Emisi YTD vs batas</span><b class="${eOver?'gd-escblink':''}" style="color:${eOver?'var(--red)':'var(--green)'};font-size:calc(17px*var(--fz));padding:${eOver?'2px 8px':'0'};border-radius:8px">${eYTDpct}%</b></div>${gdBar(eYTDpct,100,eOver?'var(--red)':'var(--green)',13)}
         <div class="gd-cl3" style="margin-top:7px">${eOverMonths?('🔴 '+eOverMonths+' bulan MELEBIHI batas '+fmtN(ENERGY_MONTHLY_CAP)+' kg CO₂e'):'semua bulan di bawah batas '+fmtN(ENERGY_MONTHLY_CAP)+' kg CO₂e'}</div>
-        <div class="gd-sub" style="margin-top:15px">Grafik Penggunaan Energi — ${ENERGY_MONTHS.length} bulan</div>
-        <div class="gd-spark">${GRK_2026.map((v,i)=>`<div class="gd-sp"><i style="height:${Math.round(v/eMax*100)}%;background:${v>ENERGY_MONTHLY_CAP?'var(--red)':'#2563EB'}" title="${fmtN(v)}"></i><small>${ENERGY_MONTHS[i]}</small></div>`).join('')}</div>
+        <div class="gd-sub" style="margin-top:15px">Grafik Penggunaan Energi — ${eNum(GRK_2026).length} bulan</div>
+        <div class="gd-spark">${GRK_2026.map((v,i)=>v==null?'':`<div class="gd-sp"><i style="height:${Math.round(v/eMax*100)}%;background:${v>ENERGY_MONTHLY_CAP?'var(--red)':'#2563EB'}" title="${fmtN(v)}"></i><small>${ENERGY_MONTHS[i]}</small></div>`).join('')}</div>
       </div>
       <div>
         <div class="gd-sub">Indikator Keberlanjutan</div>
@@ -5617,33 +5627,49 @@ function insightCard(a){
  return `<div class="insight ${cls}"><div class="ico">${ico}</div><div style="flex:1"><div style="font-weight:700;color:var(--ink);font-size:calc(13.5px*var(--fz))">${a.t}</div><div style="font-size:calc(12.5px*var(--fz));color:var(--muted);margin-top:3px">${a.d}</div></div>${(a.act&&a.act!=='—'&&!viewerOnly())?`<button class="btn-act">${a.act}</button>`:''}</div>`;
 }
 /* --- Energy module: data nyata 2026 vs baseline 2019 --- */
-const ENERGY_MONTHS=["Jan","Feb","Mar","Apr","Mei"];
-const GRK_2019=[374280,374680,390480,407920,411120];
-const GRK_2026=[250240,250040,238920,287520,279520];
-const WATER_INT_2019=[1.07,1.11,0.99,1.08,0.85];
-const WATER_INT_2026=[0.98,0.92,0.82,1.08,0.99];
-const REM_PCT=[8,7,10,8,6];
-const REM_KWH=[20121,18035,24288,22635,17612];
-const WASTE_OK=[3444,3757,3039,3001,3460];
-const WASTE_NO=[209,254,0,205,247];
+/* Timeline energi sampai Juli 2026. Jun/Jul = null (belum diinput) → diisi lewat
+   tombol Edit per section (sementara, sampai integrasi ERSUS). Semua turunan
+   (CODEC, Building, chart) memakai helper null-safe di bawah agar bulan kosong
+   tidak merusak rata-rata / pembacaan bulan terakhir. */
+let ENERGY_MONTHS=["Jan","Feb","Mar","Apr","Mei","Jun","Jul"];
+let GRK_2019=[374280,374680,390480,407920,411120,null,null];
+let GRK_2026=[250240,250040,238920,287520,279520,null,null];
+let WATER_INT_2019=[1.07,1.11,0.99,1.08,0.85,null,null];
+let WATER_INT_2026=[0.98,0.92,0.82,1.08,0.99,null,null];
+let REM_PCT=[8,7,10,8,6,null,null];
+let REM_KWH=[20121,18035,24288,22635,17612,null,null];
+let WASTE_OK=[3444,3757,3039,3001,3460,null,null];
+let WASTE_NO=[209,254,0,205,247,null,null];
+function eNum(a){ return (a||[]).filter(function(v){return v!=null&&!isNaN(v);}); }
+function eSum(a){ return eNum(a).reduce(function(x,y){return x+y;},0); }
+function eAvgG(a){ var n=eNum(a); return n.length?eSum(n)/n.length:0; }
+function eLastI(a){ for(var i=(a||[]).length-1;i>=0;i--){ if(a[i]!=null&&!isNaN(a[i]))return i; } return 0; }
 function fmtN(n){return Math.round(n).toLocaleString('id-ID');}
 function ekv(k,v,c){return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:calc(12.5px*var(--fz))"><span class="muted">${k}</span><b style="color:${c||'var(--ink)'}">${v}</b></div>`;}
+/* Line chart null-safe: titik hanya digambar utk bulan yang SUDAH diisi; garis
+   menyambung titik-titik berurutan. Sumbu-x tetap Jan..Jul (ENERGY_MONTHS). */
 function dualLineChart(a,b,color,key){
- const W=520,H=140,padL=8,padR=8,padT=16,padB=20,n=a.length;
- const all=a.concat(b),maxV=Math.max(...all)*1.06,minV=Math.min(...all)*0.9;
- const x=i=>padL+i*((W-padL-padR)/(n-1)),y=v=>padT+(H-padT-padB)*(1-(v-minV)/((maxV-minV)||1)),baseY=H-padB;
- const ap=a.map((v,i)=>[x(i),y(v)]),aline=smoothPath(ap),area=`${aline} L ${ap[n-1][0].toFixed(1)},${baseY.toFixed(1)} L ${ap[0][0].toFixed(1)},${baseY.toFixed(1)} Z`;
- const bp=b.map((v,i)=>[x(i),y(v)]),bline=smoothPath(bp),gid="dl"+key;
+ const W=520,H=140,padL=8,padR=8,padT=16,padB=20,n=ENERGY_MONTHS.length;
+ const vals=eNum(a).concat(eNum(b));
+ const maxV=(vals.length?Math.max.apply(null,vals):1)*1.06, minV=(vals.length?Math.min.apply(null,vals):0)*0.9;
+ const x=i=>padL+i*((W-padL-padR)/((n-1)||1)),y=v=>padT+(H-padT-padB)*(1-(v-minV)/((maxV-minV)||1)),baseY=H-padB;
+ const pts=arr=>arr.map((v,i)=>(v==null||isNaN(v))?null:[x(i),y(v)]);
+ const pathOf=P=>{let d="",go=false;P.forEach(p=>{if(!p){go=false;return;}d+=(go?" L ":" M ")+p[0].toFixed(1)+","+p[1].toFixed(1);go=true;});return d.trim();};
+ const ap=pts(a),bp=pts(b),aline=pathOf(ap),bline=pathOf(bp),gid="dl"+key;
+ const aN=ap.filter(Boolean);
+ const area=aN.length?`${aline} L ${aN[aN.length-1][0].toFixed(1)},${baseY.toFixed(1)} L ${aN[0][0].toFixed(1)},${baseY.toFixed(1)} Z`:"";
  const xl=ENERGY_MONTHS.map((m,i)=>`<text x="${x(i).toFixed(1)}" y="${H-4}" text-anchor="middle" font-size="9.5" fill="#9aa7b8">${m}</text>`).join("");
  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto">
   <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.18"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
-  <path d="${bline}" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="4 3"/>${bp.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.2" fill="#94a3b8"/>`).join("")}
-  <path d="${area}" fill="url(#${gid})"/><path d="${aline}" fill="none" stroke="${color}" stroke-width="2.6" stroke-linecap="round"/>${ap.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="#fff" stroke="${color}" stroke-width="2"/>`).join("")}${xl}</svg>`;
+  ${bline?`<path d="${bline}" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="4 3"/>`:''}${bp.filter(Boolean).map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.2" fill="#94a3b8"/>`).join("")}
+  ${area?`<path d="${area}" fill="url(#${gid})"/>`:''}${aline?`<path d="${aline}" fill="none" stroke="${color}" stroke-width="2.6" stroke-linecap="round"/>`:''}${aN.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3" fill="#fff" stroke="${color}" stroke-width="2"/>`).join("")}${xl}</svg>`;
 }
 function wasteBars(){
- const max=Math.max(...WASTE_OK.map((v,i)=>v+WASTE_NO[i]));
+ const tots=WASTE_OK.map((v,i)=>(v==null&&WASTE_NO[i]==null)?null:(v||0)+(WASTE_NO[i]||0));
+ const max=Math.max.apply(null,eNum(tots).concat([1]));
  return `<div style="display:flex;gap:12px;align-items:flex-end;height:130px;padding:6px 4px 0">${ENERGY_MONTHS.map((m,i)=>{
-   const tot=WASTE_OK[i]+WASTE_NO[i],h=110*tot/max,okh=h*WASTE_OK[i]/tot,pct=Math.round(WASTE_OK[i]/tot*100);
+   if(WASTE_OK[i]==null&&WASTE_NO[i]==null) return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:.5"><div style="font-size:calc(10px*var(--fz));color:#c8d2df">–</div><div style="width:62%;height:6px;border:1px dashed #d0d8e2;border-radius:4px"></div><div style="font-size:calc(10px*var(--fz));color:var(--muted)">${m}</div></div>`;
+   const ok=WASTE_OK[i]||0,no=WASTE_NO[i]||0,tot=ok+no||1,h=110*tot/max,okh=h*ok/tot,pct=Math.round(ok/tot*100);
    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
      <div style="font-size:calc(10px*var(--fz));color:#15a34a;font-weight:700">${pct}%</div>
      <div style="width:62%;height:${h.toFixed(0)}px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:4px;overflow:hidden">
@@ -5651,44 +5677,72 @@ function wasteBars(){
      <div style="font-size:calc(10px*var(--fz));color:var(--muted)">${m}</div></div>`;
  }).join("")}</div>`;
 }
+/* ── Edit data energi SEMENTARA (sampai integrasi ERSUS; owner-only). Setiap
+   perubahan → simpan + renderEnergy → grafik line ter-generate otomatis. ── */
+let energyEdit={};
+function eArr(name){ return {GRK_2026:GRK_2026,GRK_2019:GRK_2019,WATER_INT_2026:WATER_INT_2026,WATER_INT_2019:WATER_INT_2019,REM_PCT:REM_PCT,REM_KWH:REM_KWH,WASTE_OK:WASTE_OK,WASTE_NO:WASTE_NO}[name]; }
+function eEditToggle(k){ energyEdit[k]=!energyEdit[k]; renderEnergy(); }
+function eSetVal(name,i,v){ var A=eArr(name); if(!A)return; A[i]=(v===""||v==null)?null:+v; energyPersist(); renderEnergy(); }
+function energyPersist(){ try{ localStorage.setItem("agava_energy_v1",JSON.stringify({m:ENERGY_MONTHS,g26:GRK_2026,g19:GRK_2019,w26:WATER_INT_2026,w19:WATER_INT_2019,rp:REM_PCT,rk:REM_KWH,wo:WASTE_OK,wn:WASTE_NO})); }catch(e){} }
+function energyLoad(){ try{ var d=JSON.parse(localStorage.getItem("agava_energy_v1")); if(!d)return;
+  function rp(A,S){ if(A&&Array.isArray(S)){ A.length=0; S.forEach(function(x){A.push(x);}); } }
+  rp(ENERGY_MONTHS,d.m);rp(GRK_2026,d.g26);rp(GRK_2019,d.g19);rp(WATER_INT_2026,d.w26);rp(WATER_INT_2019,d.w19);rp(REM_PCT,d.rp);rp(REM_KWH,d.rk);rp(WASTE_OK,d.wo);rp(WASTE_NO,d.wn);
+ }catch(e){} }
+/* Pastikan timeline energi mencapai Juli 2026 — Jun/Jul (dst) dipadankan null bila
+   sumber (energy.json) masih 5 bulan, sehingga tombol Edit punya slot sampai Juli. */
+function energyToJul(){
+ var want=["Jan","Feb","Mar","Apr","Mei","Jun","Jul"];
+ want.forEach(function(m){ if(ENERGY_MONTHS.indexOf(m)<0) ENERGY_MONTHS.push(m); });
+ var L=ENERGY_MONTHS.length;
+ [GRK_2019,GRK_2026,WATER_INT_2019,WATER_INT_2026,REM_PCT,REM_KWH,WASTE_OK,WASTE_NO].forEach(function(A){ while(A.length<L) A.push(null); });
+}
+function eEditGrid(defs){
+ var head='<div class="ee-row ee-head"><span class="ee-lb"></span>'+ENERGY_MONTHS.map(function(m){return '<span>'+m+'</span>';}).join('')+'</div>';
+ var rows=defs.map(function(d){ var A=eArr(d.name);
+   return '<div class="ee-row"><span class="ee-lb">'+esc(d.label)+'</span>'+ENERGY_MONTHS.map(function(m,i){
+     return '<input type="number" step="'+(d.step||1)+'" value="'+(A[i]==null?'':A[i])+'" placeholder="–" onchange="eSetVal(\''+d.name+'\','+i+',this.value)">';
+   }).join('')+'</div>';
+ }).join('');
+ return '<div class="ee">'+head+rows+'<div class="ee-note">Isi angka per bulan (Jun/Jul dst boleh kosong) — grafik line ter-<b>generate otomatis</b> saat Anda isi. Sementara, sampai integrasi ERSUS.</div></div>';
+}
+function eBtn(k){ return isOwner()?'<button class="btn-out ee-btn" onclick="eEditToggle(\''+k+'\')">'+(energyEdit[k]?'✓ Selesai':'✎ Edit data')+'</button>':''; }
 function energySections(){
- const wOk=WASTE_OK.reduce((a,b)=>a+b,0),wTot=WASTE_OK.reduce((a,b,i)=>a+b+WASTE_NO[i],0),wPct=(wOk/wTot*100).toFixed(1);
+ const gRed=Math.round((1-eAvgG(GRK_2026)/eAvgG(GRK_2019))*100), gli=eLastI(GRK_2026);
+ const wRed=Math.round((1-eAvgG(WATER_INT_2026)/eAvgG(WATER_INT_2019))*100), wli=eLastI(WATER_INT_2026);
+ const rAvg=Math.round(eAvgG(REM_PCT)*10)/10, rli=eLastI(REM_PCT), rTarget=ENERGY_MONTHS.map(function(){return 8;});
+ const wo=eSum(WASTE_OK), wa=eSum(WASTE_OK)+eSum(WASTE_NO), wPct=wa?(wo/wa*100).toFixed(1):"0", sli=eLastI(WASTE_OK);
+ const d2=n=>(n||0).toFixed(2).replace(".",",");
  return `
- <div class="card sec"><div class="sec-h">${secIc('#e9f8ef','#15a34a','energy')}<div><h2>⚡ GRK — Konsumsi Listrik (kWh)</h2><div class="d">Listrik 2026 vs baseline 2019 · target turun 15%</div></div><div style="margin-left:auto;text-align:right"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#15a34a;line-height:1">−33%</div><span class="badge bd-ok" style="font-size:calc(10px*var(--fz))">di atas target</span></div></div>
-   <div class="sec-body"><div class="two">
+ <div class="card sec"><div class="sec-h">${secIc('#e9f8ef','#15a34a','energy')}<div><h2>⚡ GRK — Konsumsi Listrik (kWh)</h2><div class="d">Listrik 2026 vs baseline 2019 · target turun 15%</div></div><div class="es-hr"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#15a34a;line-height:1">−${gRed}%</div><span class="badge ${gRed>=15?'bd-ok':'bd-warn'}" style="font-size:calc(10px*var(--fz))">${gRed>=15?'di atas target':'di bawah target'}</span></div>${eBtn('grk')}</div>
+   <div class="sec-body">${energyEdit.grk?eEditGrid([{name:'GRK_2026',label:'Listrik 2026',step:1000},{name:'GRK_2019',label:'Baseline 2019',step:1000}]):''}<div class="two">
      <div>${dualLineChart(GRK_2026,GRK_2019,"#15a34a","grk")}<div style="display:flex;gap:14px;font-size:calc(10.5px*var(--fz));color:#9aa7b8"><span style="color:#15a34a">▬ Listrik 2026</span><span>- - Baseline 2019</span></div></div>
-     <div>${ekv("Listrik Mei 2026",fmtN(GRK_2026[4])+" kWh")}${ekv("Baseline Mei 2019",fmtN(GRK_2019[4])+" kWh")}${ekv("Delta YTD","−"+fmtN(652240)+" kWh","#15a34a")}${ekv("Penurunan Mei","−33%","#15a34a")}${ekv("Target 2026","−15%")}</div>
+     <div>${ekv("Listrik "+ENERGY_MONTHS[gli]+" 2026",fmtN(GRK_2026[gli]||0)+" kWh")}${ekv("Baseline "+ENERGY_MONTHS[gli]+" 2019",fmtN(GRK_2019[gli]||0)+" kWh")}${ekv("Rata-rata 2026",fmtN(eAvgG(GRK_2026))+" kWh")}${ekv("Penurunan rata-rata","−"+gRed+"%","#15a34a")}${ekv("Target 2026","−15%")}</div>
    </div></div>
  </div>
- <div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','energy')}<div><h2>💧 Water — Intensitas (m³/penghuni)</h2><div class="d">Intensitas 2026 vs 2019 · target turun 13%</div></div><div style="margin-left:auto;text-align:right"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#2563eb;line-height:1">−6%</div><span class="badge bd-warn" style="font-size:calc(10px*var(--fz))">di bawah target</span></div></div>
-   <div class="sec-body"><div class="two">
+ <div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','energy')}<div><h2>💧 Water — Intensitas (m³/penghuni)</h2><div class="d">Intensitas 2026 vs 2019 · target turun 13%</div></div><div class="es-hr"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#2563eb;line-height:1">−${wRed}%</div><span class="badge ${wRed>=13?'bd-ok':'bd-warn'}" style="font-size:calc(10px*var(--fz))">${wRed>=13?'di atas target':'di bawah target'}</span></div>${eBtn('water')}</div>
+   <div class="sec-body">${energyEdit.water?eEditGrid([{name:'WATER_INT_2026',label:'Intensitas 2026',step:0.01},{name:'WATER_INT_2019',label:'Intensitas 2019',step:0.01}]):''}<div class="two">
      <div>${dualLineChart(WATER_INT_2026,WATER_INT_2019,"#2563eb","water")}<div style="display:flex;gap:14px;font-size:calc(10.5px*var(--fz));color:#9aa7b8"><span style="color:#2563eb">▬ Intensitas 2026</span><span>- - 2019</span></div></div>
-     <div>${ekv("Intensitas Mei 2026","0,99 m³/org")}${ekv("Intensitas Mei 2019","0,85 m³/org")}${ekv("Penghuni 2019 → 2026","2.883 → 3.300")}${ekv("Rata-rata YTD 2026","0,96 m³/org")}${ekv("Target 2026","−13%")}</div>
+     <div>${ekv("Intensitas "+ENERGY_MONTHS[wli]+" 2026",d2(WATER_INT_2026[wli])+" m³/org")}${ekv("Intensitas "+ENERGY_MONTHS[wli]+" 2019",d2(WATER_INT_2019[wli])+" m³/org")}${ekv("Rata-rata 2026",d2(eAvgG(WATER_INT_2026))+" m³/org")}${ekv("Penurunan rata-rata","−"+wRed+"%",wRed>=13?"#15a34a":"#c2740a")}${ekv("Target 2026","−13%")}</div>
    </div></div>
  </div>
- <div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','energy')}<div><h2>☀ REM — Renewable Energy Mix</h2><div class="d">% energi terbarukan (solar) · target 2026: 8%</div></div><div style="margin-left:auto;text-align:right"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#c2740a;line-height:1">7,8%</div><span class="badge bd-warn" style="font-size:calc(10px*var(--fz))">rata-rata YTD</span></div></div>
-   <div class="sec-body"><div class="two">
-     <div>${dualLineChart(REM_PCT,[8,8,8,8,8],"#c2740a","rem")}<div style="display:flex;gap:14px;font-size:calc(10.5px*var(--fz));color:#9aa7b8"><span style="color:#c2740a">▬ Renewable %</span><span>- - Target 8%</span></div></div>
-     <div>${ekv("Mix Mei 2026","6%")}${ekv("Tertinggi (Mar)","10%")}${ekv("Produksi solar Mei",fmtN(REM_KWH[4])+" kWh")}${ekv("Rata-rata YTD","7,8%")}${ekv("Target 2026","8%")}</div>
+ <div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','energy')}<div><h2>☀ REM — Renewable Energy Mix</h2><div class="d">% energi terbarukan (solar) · target 2026: 8%</div></div><div class="es-hr"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#c2740a;line-height:1">${String(rAvg).replace(".",",")}%</div><span class="badge ${rAvg>=8?'bd-ok':'bd-warn'}" style="font-size:calc(10px*var(--fz))">rata-rata YTD</span></div>${eBtn('rem')}</div>
+   <div class="sec-body">${energyEdit.rem?eEditGrid([{name:'REM_PCT',label:'Renewable %',step:0.1},{name:'REM_KWH',label:'Solar (kWh)',step:100}]):''}<div class="two">
+     <div>${dualLineChart(REM_PCT,rTarget,"#c2740a","rem")}<div style="display:flex;gap:14px;font-size:calc(10.5px*var(--fz));color:#9aa7b8"><span style="color:#c2740a">▬ Renewable %</span><span>- - Target 8%</span></div></div>
+     <div>${ekv("Mix "+ENERGY_MONTHS[rli]+" 2026",(REM_PCT[rli]||0)+"%")}${ekv("Tertinggi",Math.max.apply(null,eNum(REM_PCT).concat([0]))+"%")}${ekv("Produksi solar "+ENERGY_MONTHS[rli],fmtN(REM_KWH[rli]||0)+" kWh")}${ekv("Rata-rata YTD",String(rAvg).replace(".",",")+"%")}${ekv("Target 2026","8%")}</div>
    </div></div>
  </div>
- <div class="card sec"><div class="sec-h">${secIc('#ede9fe','#7a4fd0','energy')}<div><h2>♻ Waste — Pengolahan Sampah (kg)</h2><div class="d">Terolah vs tidak terolah · target 99%</div></div><div style="margin-left:auto;text-align:right"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#7a4fd0;line-height:1">${wPct}%</div><span class="badge bd-warn" style="font-size:calc(10px*var(--fz))">terolah YTD</span></div></div>
-   <div class="sec-body"><div class="two">
+ <div class="card sec"><div class="sec-h">${secIc('#ede9fe','#7a4fd0','energy')}<div><h2>♻ Waste — Pengolahan Sampah (kg)</h2><div class="d">Terolah vs tidak terolah · target 99%</div></div><div class="es-hr"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#7a4fd0;line-height:1">${wPct}%</div><span class="badge ${(+wPct)>=99?'bd-ok':'bd-warn'}" style="font-size:calc(10px*var(--fz))">terolah YTD</span></div>${eBtn('waste')}</div>
+   <div class="sec-body">${energyEdit.waste?eEditGrid([{name:'WASTE_OK',label:'Terolah (kg)',step:10},{name:'WASTE_NO',label:'Tidak terolah (kg)',step:10}]):''}<div class="two">
      <div>${wasteBars()}<div style="display:flex;gap:14px;font-size:calc(10.5px*var(--fz));margin-top:4px"><span style="color:#16a34a">■ Terolah</span><span style="color:#dc2626">■ Tidak terolah</span></div></div>
-     <div>${ekv("Terolah Mei",fmtN(WASTE_OK[4])+" kg")}${ekv("Tidak terolah Mei",fmtN(WASTE_NO[4])+" kg")}${ekv("Total Mei",fmtN(WASTE_OK[4]+WASTE_NO[4])+" kg")}${ekv("Rata-rata terolah",wPct+"%")}${ekv("Target 2026","99%")}</div>
+     <div>${ekv("Terolah "+ENERGY_MONTHS[sli],fmtN(WASTE_OK[sli]||0)+" kg")}${ekv("Tidak terolah "+ENERGY_MONTHS[sli],fmtN(WASTE_NO[sli]||0)+" kg")}${ekv("Total "+ENERGY_MONTHS[sli],fmtN((WASTE_OK[sli]||0)+(WASTE_NO[sli]||0))+" kg")}${ekv("Rata-rata terolah",wPct+"%")}${ekv("Target 2026","99%")}</div>
    </div></div>
  </div>`;
 }
 function renderEnergy(){
  const el=document.getElementById("page-energy"); const eu=isEndUser();
  el.innerHTML=`
-  <div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,#f4fbf8,#eef4ff)">
-    <div class="sec-ic" style="background:#e1f5ee;color:#0f6e56"><svg viewBox="0 0 24 24" style="stroke-width:1.9;fill:none;stroke:currentColor">${IC.energy}</svg></div>
-    <div style="flex:1"><div style="font-weight:700;color:var(--ink);font-size:calc(14.5px*var(--fz))">Energy Intelligence${eu?'':' — ERSUS'}</div><div style="font-size:calc(12.5px*var(--fz));color:var(--muted);margin-top:2px">${eu?'Highlight performa energi GA — penghematan & keberlanjutan.':'Energy insights, anomalies & actions. Utility status & maintenance are in Building &amp; Utility.'}</div></div>
-    ${eu?'':'<button class="btn-out" onclick="openErsusPlatform()">Open ERSUS Platform →</button>'}
-  </div>
   <div class="card sec">
-    <div class="sec-h">${secIc('#e1f5ee','#0f6e56','energy')}<div><h2>Energy & Sustainability</h2><div class="d">GRK · Water · Renewable · Waste — progress vs 2026 target</div></div></div>
+    <div class="sec-h">${secIc('#e1f5ee','#0f6e56','energy')}<div><h2>Energy & Sustainability</h2><div class="d">GRK · Water · Renewable · Waste — progress vs 2026 target</div></div>${eu?'':'<button class="btn-out" style="margin-left:auto" onclick="openErsusPlatform()">Open ERSUS Platform →</button>'}</div>
     <div class="sec-body">${esgScorecard()}</div>
   </div>
   ${energySections()}
@@ -5701,7 +5755,7 @@ function renderEnergy(){
 /* Utility Status di-feed dari ERSUS (Energy Intelligence) — konsumsi diturunkan
    dari data energi bulanan yang dikelola ERSUS (bulan terakhir yang terisi). */
 function ersusUtility(){
- const i=Math.max(0,ENERGY_MONTHS.length-1);
+ const i=eLastI(GRK_2026);   // bulan terakhir yang SUDAH diisi (bukan sekadar indeks terakhir)
  const mon=ENERGY_MONTHS[i]||"—";
  const grk=GRK_2026[i]||0, grkB=GRK_2019[i]||0;
  const wat=WATER_INT_2026[i]||0, watB=WATER_INT_2019[i]||0;
@@ -6811,7 +6865,7 @@ function mSecBlock(title,count,csvKind,listHtml,seeAll){
 const M_BANNERS=[
  {tag:"HSE Awareness", ic:"🦺", title:"Utamakan Keselamatan", sub:"Laporkan kondisi tidak aman sekecil apa pun lewat Complaint Handling.", g:"linear-gradient(135deg,#0b3d2e,#12805c)"},
  {tag:"Safety Golden Rules", ic:"🛡️", title:"Patuhi Aturan Emas K3", sub:"Tak ada pekerjaan yang lebih penting dari keselamatan Anda.", g:"linear-gradient(135deg,#0b2447,#123b73)"},
- {tag:"Sustainability", ic:"🌏", title:"Astra Menuju Net Zero", sub:"Hemat energi, pilah limbah, dukung target keberlanjutan 2030.", g:"linear-gradient(135deg,#134e2a,#2f9e44)"}
+ {tag:"MKA · Mandatory Key Action", ic:"✅", title:"Tuntaskan Aksi Wajib K3L", sub:"Selesaikan Mandatory Key Action tepat waktu — pilar skor AGC Astra.", g:"linear-gradient(135deg,#3a2a05,#a9720a)"}
 ];
 function mBannerHTML(){
  return '<div class="mh-bannerwrap" id="mhBannerWrap">'+
@@ -6824,6 +6878,22 @@ function mBannerHTML(){
        '<div class="mh-bn-astra">ASTRA · General Affairs</div></div>';
    }).join("")+'</div>'+
    '<div class="mh-bdots">'+M_BANNERS.map(function(_,i){return '<i class="'+(i===0?'on':'')+'"></i>';}).join("")+'</div>';
+}
+/* Banner awareness (HSE · Golden Rule · MKA) — auto-swipe 5 dtk, terus looping. */
+var mBanTimer=null;
+function mBannerInit(){
+ clearInterval(mBanTimer);
+ var wrap=document.getElementById("mhBannerWrap");
+ if(!wrap || wrap.children.length<2) return;
+ mBanTimer=setInterval(function(){
+   var w=document.getElementById("mhBannerWrap");
+   if(!w || !w.isConnected){ clearInterval(mBanTimer); return; }
+   var kids=w.children, n=kids.length; if(n<2) return;
+   var step=kids[1].offsetLeft-kids[0].offsetLeft; if(step<=0) return;
+   var idx=Math.round(w.scrollLeft/step);
+   var next=(idx+1)%n;                          // looping: setelah terakhir → balik ke 0
+   kids[next].scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"});
+ },5000);
 }
 
 /* ── HALAMAN: LAYANAN GA (tombol + di bottom bar) ── */
@@ -6901,18 +6971,14 @@ function mDiscoverRooms(){
 /* Kartu poster SERAGAM (semua slot "seperti slot 1"): latar gradient BU +
    (opsional) foto yang di-MASK agar larut mulus ke warna kartu (blended, bukan
    tempelan) + teks: ◆ Bisnis Unit · Judul Produk/Event · Deskripsi. */
+/* KARTU POSTER SERAGAM — SEMUA slot pakai struktur slot 1 (Astra Healthcare):
+   latar gradient BU → lapisan gambar di-MASK (hitam 45% → transparan 90%) supaya
+   tepi bawah larut mulus ke warna kartu (blended, bukan kotak tertempel) → teks:
+   ◆ Bisnis Unit · Judul Product/Event · Description. Gambar ukuran APA PUN otomatis
+   pas box (background-size:cover pada pita). BUKAN gambar penuh menutup kartu. */
 function mPosterCard(p){
  var grad = p.grad || "linear-gradient(150deg,#0b2447,#123b73)";
  var u = p.img ? String(p.img).replace(/["')]/g,"") : "";
- var hasText = !!(p.judul || p.sub);
- /* POSTER PENUH (promo yang sudah lengkap teks & brand-nya) → tampil COVER
-    edge-to-edge (isi kartu penuh, tanpa sisa warna & tanpa overlay yang bentrok). */
- if(u && !hasText){
-   return '<div class="mps-b mps-cover" style="background:'+grad+';background-image:url(\''+u+'\')">'+
-     (p.tag?'<div class="mps-cover-cap">◆ '+esc(p.tag)+'</div>':'')+
-   '</div>';
- }
- /* KARTU BLEND/DESAIN → gradient + (opsional) foto pita-atas yang di-mask + teks. */
  return '<div class="mps-b" style="background:'+grad+'">'+
    (u?'<div class="mps-b-ph" style="background-image:url(\''+u+'\')"></div>':'')+
    '<div class="mps-b-glow"></div>'+
@@ -7093,6 +7159,7 @@ function renderMobileHome(){
  /* titik geser untuk grid modul & banner */
  mDotSync("mhModWrap",".mh-dots i",el);
  mDotSync("mhBannerWrap",".mh-bdots i",el);
+ try{ mBannerInit(); }catch(e){}          // banner awareness auto-swipe 5 dtk (looping)
 }
 function gaServiceSoon(n){ alert("🚧 "+n+" — modul layanan ini akan dikembangkan berikutnya."); }
 function gaServiceButtons(){
@@ -8999,15 +9066,21 @@ async function loadDataFiles(){
   const en=await getJSON("energy.json");
   if(en){
     DATA_LOADED.files.push("energy.json");
-    if(en.months) repl(ENERGY_MONTHS,en.months);
-    if(en.grk2019) repl(GRK_2019,en.grk2019);
-    if(en.grk2026) repl(GRK_2026,en.grk2026);
-    if(en.waterIntensity2019) repl(WATER_INT_2019,en.waterIntensity2019);
-    if(en.waterIntensity2026) repl(WATER_INT_2026,en.waterIntensity2026);
-    if(en.renewableMixPct) repl(REM_PCT,en.renewableMixPct);
-    if(en.renewableKwh) repl(REM_KWH,en.renewableKwh);
-    if(en.wasteTerolah) repl(WASTE_OK,en.wasteTerolah);
-    if(en.wasteTidakTerolah) repl(WASTE_NO,en.wasteTidakTerolah);
+    /* energy.json hanya MENYEMAI — bila user sudah pernah Edit data energi
+       (localStorage agava_energy_v1 ada), jangan ditimpa. */
+    if(!localStorage.getItem("agava_energy_v1")){
+      if(en.months) repl(ENERGY_MONTHS,en.months);
+      if(en.grk2019) repl(GRK_2019,en.grk2019);
+      if(en.grk2026) repl(GRK_2026,en.grk2026);
+      if(en.waterIntensity2019) repl(WATER_INT_2019,en.waterIntensity2019);
+      if(en.waterIntensity2026) repl(WATER_INT_2026,en.waterIntensity2026);
+      if(en.renewableMixPct) repl(REM_PCT,en.renewableMixPct);
+      if(en.renewableKwh) repl(REM_KWH,en.renewableKwh);
+      if(en.wasteTerolah) repl(WASTE_OK,en.wasteTerolah);
+      if(en.wasteTidakTerolah) repl(WASTE_NO,en.wasteTidakTerolah);
+      energyToJul();          // pastikan timeline sampai Juli 2026 (Jun/Jul kosong bila belum ada data)
+      try{ renderEnergy(); }catch(e){}
+    }
   }
   /* 4) daftar indikator CLA — hanya bobot & target; capaian tetap ditarik dari CODEC */
   const ky=await getJSON("kpi-tahunan.json");
@@ -10131,7 +10204,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-61";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-62";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10480,10 +10553,10 @@ const GA_PARAM_DEFAULT={
     desain (judul+sub+gradient bila img kosong). Owner atur di modul Parameter. */
  poster:[
    {img:"posters/heartology.jpg", tag:"ASTRA HEALTHCARE", judul:"Heartology · Cardiovascular Hospital", sub:"Pusat jantung kelas dunia di jantung Jakarta — kini bagian Astra (95,8% · 2024). 7 Pusat Unggulan · nilai H.E.A.R.T.", grad:"linear-gradient(155deg,#5c0a18 0%,#7a0b1e 45%,#c0143a 100%)"},
-   {img:"posters/astrapay.jpg", tag:"ASTRA FINANCIAL", judul:"", sub:"", grad:"linear-gradient(150deg,#021d4d 0%,#0a3aa8 100%)"},
-   {img:"posters/transum.jpg", tag:"ASTRA INTERNATIONAL", judul:"", sub:"", grad:"linear-gradient(150deg,#0f5a3a 0%,#1e88c8 100%)"}
+   {img:"posters/astrapay.jpg", tag:"ASTRA FINANCIAL", judul:"AstraPay — Nikmati Berbagai Promonya!", sub:"Dompet digital Astra untuk kebutuhan harian karyawan — cashback & promo tiap bulan.", grad:"linear-gradient(150deg,#021d4d 0%,#0a3aa8 100%)"},
+   {img:"posters/transum.jpg", tag:"ASTRA INTERNATIONAL", judul:"Ayo Naik Transum Jakarta", sub:"Bergerak bersama transportasi publik — nyaman, hemat, rendah emisi untuk Indonesia.", grad:"linear-gradient(150deg,#0f5a3a 0%,#1e88c8 100%)"}
  ],
- posterV:5   /* versi seed poster — dinaikkan saat mengirim poster default baru; migrasi otomatis lewat paramMerge */
+ posterV:6   /* versi seed poster — dinaikkan saat mengirim poster default baru; migrasi otomatis lewat paramMerge */
 };
 var GA_PARAM=JSON.parse(JSON.stringify(GA_PARAM_DEFAULT));
 function paramMerge(d){
@@ -10804,7 +10877,7 @@ function renderParams(){
  paramPreview();
 }
 
-loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();
+loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();
 </script>
 </body>
 </html>
