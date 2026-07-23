@@ -1942,6 +1942,33 @@ body.rg-open{overflow:hidden}
 .opex-ml{font-size:calc(10px*var(--fz));opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:900px){.opex-minis{grid-template-columns:repeat(2,1fr);flex-basis:100%}}
 @media(max-width:560px){.opex-v{font-size:calc(30px*var(--fz))}.opex-minis{grid-template-columns:1fr 1fr}}
+/* Poster Astra Healthcare · Heartology (slot Discover) */
+.mhp{position:relative;overflow:hidden;border-radius:20px;padding:20px 20px 18px;margin-bottom:18px;color:#fff;
+  background:linear-gradient(150deg,#7a0b1e 0%,#b3132f 45%,#e11d48 100%);box-shadow:0 12px 30px rgba(160,10,40,.32)}
+.mhp-glow{position:absolute;inset:-40% -20% auto;height:180%;pointer-events:none;
+  background:radial-gradient(45% 55% at 20% 25%,rgba(255,255,255,.2),transparent 60%),radial-gradient(40% 50% at 85% 70%,rgba(255,120,140,.32),transparent 62%)}
+.mhp>*{position:relative;z-index:1}
+.mhp-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mhp-astra{font-family:var(--mono,monospace);font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.12em;opacity:.9}
+.mhp-tag{font-size:calc(9px*var(--fz));font-weight:800;letter-spacing:.08em;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:99px}
+.mhp-ecg{display:block;width:100%;height:26px;margin:8px 0 4px;opacity:.5}
+.mhp-ecg path{fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mhp-brand{display:flex;align-items:center;gap:12px;margin-top:2px}
+.mhp-heart{font-size:calc(34px*var(--fz));line-height:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.25))}
+.mhp-title{font-size:calc(28px*var(--fz));font-weight:900;letter-spacing:-.02em;line-height:1}
+.mhp-sub{font-size:calc(11.5px*var(--fz));font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-top:3px}
+.mhp-lead{font-size:calc(12.5px*var(--fz));line-height:1.5;opacity:.96;margin:12px 0 0}
+.mhp-lead b{color:#ffe08a}
+.mhp-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0 0}
+.mhp-fact{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:9px 10px;text-align:center}
+.mhp-fact b{display:block;font-size:calc(20px*var(--fz));font-weight:900;line-height:1}
+.mhp-fact span{font-size:calc(9.5px*var(--fz));opacity:.82;line-height:1.25;display:block;margin-top:4px}
+.mhp-vlab{font-size:calc(10.5px*var(--fz));opacity:.8;margin:15px 0 6px}
+.mhp-vlab b{letter-spacing:.1em}
+.mhp-values{display:flex;flex-wrap:wrap;gap:6px}
+.mhp-values span{font-size:calc(10px*var(--fz));font-weight:600;background:rgba(255,255,255,.16);padding:4px 9px;border-radius:99px}
+.mhp-cta{font-size:calc(11px*var(--fz));line-height:1.45;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);opacity:.92}
+@media(max-width:360px){.mhp-facts{grid-template-columns:1fr}}
 /* panel Cloud & Backup */
 .cl-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:calc(12.5px*var(--fz));color:var(--ink)}
 .cl-row b{font-weight:800;color:#0a4bb8;text-align:right}
@@ -6680,6 +6707,26 @@ function mDiscoverRooms(){
  out.sort(function(a,b){ return b.cap-a.cap; });
  return out.slice(0,6);
 }
+/* ── Poster promosi Astra Healthcare · Heartology (slot Discover) ──
+   Disarikan dari company profile: RS jantung & pembuluh darah, kini bagian Astra
+   (ASII akuisisi 95,8% via Astra Sehat Nusantara, Rp 643 M, Okt 2024). Nilai
+   H.E.A.R.T · 7 pusat unggulan · teknologi kardiovaskular kelas dunia · Jakarta pusat. */
+function mHealthPosterHTML(){
+ var facts=[["7","Pusat Unggulan Jantung"],["512","Slices CT · 4D Echo · PFA"],["95,8%","diakuisisi Astra · 2024"]];
+ var val=["Honesty","Excellence","Attentiveness","Relentless","Teamwork"];
+ return '<div class="mhp">'+
+   '<div class="mhp-glow"></div>'+
+   '<div class="mhp-top"><span class="mhp-astra">◆ ASTRA HEALTHCARE</span><span class="mhp-tag">PROMOSI</span></div>'+
+   '<svg class="mhp-ecg" viewBox="0 0 320 40" preserveAspectRatio="none"><path d="M0,21 L150,21 L160,21 L168,7 L176,35 L184,15 L192,21 L320,21"/></svg>'+
+   '<div class="mhp-brand"><span class="mhp-heart">❤</span><div><div class="mhp-title">Heartology</div>'+
+     '<div class="mhp-sub">Cardiovascular Hospital</div></div></div>'+
+   '<div class="mhp-lead">Pusat jantung &amp; pembuluh darah kelas dunia di jantung Jakarta — <b>kini bagian dari Astra</b>. Diagnostik, intervensi, bedah &amp; aritmia dalam satu atap.</div>'+
+   '<div class="mhp-facts">'+facts.map(function(f){ return '<div class="mhp-fact"><b>'+f[0]+'</b><span>'+f[1]+'</span></div>'; }).join("")+'</div>'+
+   '<div class="mhp-vlab">Nilai kami — <b>H.E.A.R.T</b></div>'+
+   '<div class="mhp-values">'+val.map(function(v){ return '<span>'+v+'</span>'; }).join("")+'</div>'+
+   '<div class="mhp-cta">Rujukan jantung terpercaya untuk keluarga besar Astra · Thamrin–Sudirman–SCBD</div>'+
+ '</div>';
+}
 function renderDiscover(){
  var el=document.getElementById("page-discover"); if(!el)return;
  var rooms=mDiscoverRooms();
@@ -6688,6 +6735,7 @@ function renderDiscover(){
  el.innerHTML=
    '<div class="m-page-h"><div class="m-page-t">Discover GA <span class="m-new">NEW</span></div>'+
      '<div class="m-page-s">Kenali fasilitas & layanan General Affairs Astra</div></div>'+
+   mHealthPosterHTML()+
    mBannerHTML()+
    '<div class="mh-sec"><div class="mh-sh"><b>🏢 Fasilitas &amp; Ruang</b><span>'+rooms.length+' ruang unggulan</span></div>'+
      '<div class="mh-list">'+rooms.map(function(r){
@@ -9859,7 +9907,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-54";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-55";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
