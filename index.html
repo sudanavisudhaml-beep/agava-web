@@ -2216,10 +2216,21 @@ body.rg-open{overflow:hidden}
 .pik-chev{cursor:pointer;color:var(--muted);font-size:calc(9px*var(--fz));margin-left:6px;display:inline-block;transition:transform .2s,color .15s;user-select:none}
 .pik-chev:hover{color:var(--blue)}
 .pik-chev.open{transform:rotate(180deg);color:var(--blue)}
-.pik-detail{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;background:#f6f9fd;border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:6px;font-size:calc(11.5px*var(--fz));color:var(--muted)}
+.pik-detail{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;background:#f6f9fd;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px;font-size:calc(11.5px*var(--fz));color:var(--muted)}
 .pik-det-item b{color:var(--ink);font-weight:700}
-.pik-det-f{display:flex;flex-direction:column;gap:4px;font-size:calc(9.5px*var(--fz));font-weight:800;color:#7d8ca3;text-transform:uppercase;letter-spacing:.04em}
-.pik-det-f select{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:var(--ff);font-size:calc(12px*var(--fz));font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink);background:#fff;min-width:160px}
+.pik-det-tot b{color:#0f6e56}
+.pik-subwrap{width:100%}
+.pik-sub-head{display:grid;grid-template-columns:1fr 130px 30px;gap:10px;font-size:calc(9.5px*var(--fz));font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#7d8ca3;padding:0 2px 6px}
+.pik-sub-row{display:grid;grid-template-columns:1fr 130px 30px;gap:10px;align-items:center;margin-bottom:6px}
+.pik-sub-n{border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));color:var(--ink);background:#fff;min-width:0}
+.pik-sub-pct{display:flex;align-items:center;gap:4px}
+.pik-sub-pct input{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));color:var(--ink);text-align:right;background:#fff}
+.pik-sub-pct i{font-style:normal;color:var(--muted)}
+.pik-sub-x{border:none;background:none;color:#c8d2df;cursor:pointer;font-size:calc(13px*var(--fz))}
+.pik-sub-x:hover{color:var(--red)}
+.pik-sub-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;padding-top:9px;border-top:1px dashed var(--line)}
+.pik-sub-total{font-size:calc(12.5px*var(--fz));color:var(--muted)}
+.pik-sub-total b{color:#0f6e56;font-size:calc(14px*var(--fz))}
 .pik-bar{margin-top:6px;max-width:300px}
 .pik-c{font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--ink);text-align:center}
 .pik-ytd{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
@@ -4123,6 +4134,11 @@ function kpiClaRows(){
        src="CODEC → "+r.from+" → "+r.pick;
      } else { ach=f.ach; comp=f.comp; detail=f.note||""; }
    }
+   /* Sub-KPI manual (Page Ubah) menang: capaian KPI = rata-rata % pencapaian sub-KPI. */
+   if(Array.isArray(r.subs) && r.subs.some(function(s){return s.v!=null;})){
+     var st=kpiSubTotal(r.subs);
+     if(st!=null){ ach=st; src="Sub-KPI manual ("+r.subs.filter(function(s){return s.v!=null;}).length+" komponen)"; detail="Rata-rata pencapaian sub-KPI"; }
+   }
    const score=r.target?Math.min(120,Math.round(ach/r.target*100)):0;
    /* routine vs non-routine: ikut komponen yg dipilih → kalau ambil satu sub-fungsi utuh ikut sifat sub-fungsinya
       → KPI baru/custom dianggap inisiatif (non-routine) sampai sumbernya tersambung */
@@ -4304,26 +4320,34 @@ function kpiFieldSave(i,field,val){
  kpiPersist();
  var s=document.getElementById('pik-saved'); if(s){ s.style.opacity=1; setTimeout(function(){ s.style.opacity=0; },1500); }
 }
-/* ── Detail KPI (ganti subtitle jadi dropdown): buka/tutup + field dropdown editable ── */
+/* ── Detail KPI = daftar SUB-KPI (input manual di Page Ubah). Total KPI dihitung
+   otomatis = rata-rata % pencapaian sub-KPI yang terisi. ── */
 let kpiKeyDet={};
 function kpiKeyDetToggle(i){ kpiKeyDet[i]=!kpiKeyDet[i]; renderOverview(); }
-function kpiAttrSave(i,field,val){ if(!kpiEditOn())return; var k=KPI_CLA[i]; if(!k)return; k[field]=val; if(field==='from'&&val==='') k.pick=''; kpiPersist(); renderOverview(); }
+function kpiSubTotal(subs){ var v=(subs||[]).map(function(s){return s.v;}).filter(function(x){return x!=null&&!isNaN(x);}); return v.length?Math.round(v.reduce(function(a,b){return a+b;},0)/v.length):null; }
+function kpiSubEnsure(i){ var k=KPI_CLA[i]; if(!k)return; if(!Array.isArray(k.subs)||!k.subs.length){ k.subs=[{n:"",v:null},{n:"",v:null},{n:"",v:null},{n:"",v:null}]; } }
+function kpiSubSet(i,j,field,val){ if(!kpiEditOn())return; var k=KPI_CLA[i]; if(!k||!k.subs||!k.subs[j])return; if(field==='v'){ var n=parseFloat(val); k.subs[j].v=isNaN(n)?null:Math.max(0,Math.min(120,Math.round(n))); } else k.subs[j].n=val; kpiPersist(); renderOverview(); }
+function kpiSubAdd(i){ if(!kpiEditOn())return; kpiSubEnsure(i); KPI_CLA[i].subs.push({n:"",v:null}); kpiPersist(); renderOverview(); }
+function kpiSubDel(i,j){ if(!kpiEditOn())return; var k=KPI_CLA[i]; if(k&&k.subs){ k.subs.splice(j,1); if(!k.subs.length) delete k.subs; kpiPersist(); renderOverview(); } }
 function kpiDetailHTML(r,i,ed){
+ var subs=(KPI_CLA[i]&&KPI_CLA[i].subs)||[];
  if(!ed){
-   return '<span class="pik-det-item">Sumber: <b>'+esc(r.src||'—')+'</b></span>'+
-     '<span class="pik-det-item">Perspektif: <b>'+esc(r.persp||'—')+'</b></span>'+
-     (r.from?'<span class="pik-det-item">Sumber CODEC: <b>'+esc(r.from)+'</b></span>':'')+
-     (r.pick?'<span class="pik-det-item">Komponen: <b>'+esc(r.pick)+'</b></span>':'')+
-     '<span class="pik-det-item">Jenis: <b>'+(r.type==='routine'?'Routine':r.type==='nonroutine'?'Non-Routine':'otomatis')+'</b></span>';
+   var filled=subs.filter(function(s){return (s.n&&s.n.trim())||s.v!=null;});
+   if(!filled.length) return '<span class="pik-det-item" style="color:#9aa7b8">Belum ada sub-KPI. Buka <b>🔒 Ubah</b> untuk menambah &amp; input manual.</span>';
+   var tot=kpiSubTotal(subs);
+   return filled.map(function(s){ return '<span class="pik-det-item">'+esc(s.n||'(sub KPI)')+': <b>'+(s.v==null?'—':s.v+'%')+'</b></span>'; }).join('')+
+     '<span class="pik-det-item pik-det-tot">Total Pencapaian KPI: <b>'+(tot==null?'—':tot+'%')+'</b></span>';
  }
- var perspOpts=Object.keys(KPI_PERSP).map(function(p){return '<option'+(r.persp===p?' selected':'')+'>'+esc(p)+'</option>';}).join('');
- var fromList=(typeof codecSubFnData==='function')?codecSubFnData().map(function(f){return f.name;}):[];
- var fromOpts='<option value=""'+(!r.from?' selected':'')+'>— Custom / belum ada —</option>'+fromList.map(function(f){return '<option'+(r.from===f?' selected':'')+'>'+esc(f)+'</option>';}).join('');
- var types=[['','otomatis'],['routine','Routine'],['nonroutine','Non-Routine']];
- var typeOpts=types.map(function(t){return '<option value="'+t[0]+'"'+((r.type||'')===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('');
- return '<label class="pik-det-f">Perspektif<select onchange="kpiAttrSave('+i+',\'persp\',this.value)">'+perspOpts+'</select></label>'+
-   '<label class="pik-det-f">Sumber CODEC<select onchange="kpiAttrSave('+i+',\'from\',this.value)">'+fromOpts+'</select></label>'+
-   '<label class="pik-det-f">Jenis KPI<select onchange="kpiAttrSave('+i+',\'type\',this.value)">'+typeOpts+'</select></label>';
+ kpiSubEnsure(i); subs=KPI_CLA[i].subs;
+ var rows=subs.map(function(s,j){
+   return '<div class="pik-sub-row"><input class="pik-sub-n" value="'+esc(s.n||'')+'" placeholder="Nama sub KPI" onchange="kpiSubSet('+i+','+j+',\'n\',this.value)">'+
+     '<span class="pik-sub-pct"><input type="number" min="0" max="120" value="'+(s.v==null?'':s.v)+'" placeholder="—" onchange="kpiSubSet('+i+','+j+',\'v\',this.value)"><i>%</i></span>'+
+     '<button class="pik-sub-x" onclick="kpiSubDel('+i+','+j+')" title="hapus baris">✕</button></div>';
+ }).join('');
+ var tot=kpiSubTotal(subs);
+ return '<div class="pik-subwrap"><div class="pik-sub-head"><span>Sub KPI</span><span>% Pencapaian</span><span></span></div>'+rows+
+   '<div class="pik-sub-foot"><button class="btn-out pik-sub-add" onclick="kpiSubAdd('+i+')">+ Tambah sub KPI</button>'+
+   '<span class="pik-sub-total">Total Pencapaian KPI: <b>'+(tot==null?'—':tot+'%')+'</b></span></div></div>';
 }
 /* ── PDCA bulanan: state bulan terpilih + simpan YTD/catatan per KPI per bulan ── */
 const KPI_MON_ID=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -10391,7 +10415,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-68";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-69";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
