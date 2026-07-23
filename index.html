@@ -2212,6 +2212,14 @@ body.rg-open{overflow:hidden}
 .pik-kpi{display:flex;gap:10px;align-items:flex-start;min-width:0}
 .pik-name{font-size:calc(13px*var(--fz));font-weight:700;color:var(--ink)}
 .pik-src{font-size:calc(10.5px*var(--fz));color:#9aa7b8;margin-top:1px}
+/* detail KPI (ganti subtitle → dropdown) */
+.pik-chev{cursor:pointer;color:var(--muted);font-size:calc(9px*var(--fz));margin-left:6px;display:inline-block;transition:transform .2s,color .15s;user-select:none}
+.pik-chev:hover{color:var(--blue)}
+.pik-chev.open{transform:rotate(180deg);color:var(--blue)}
+.pik-detail{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;background:#f6f9fd;border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:6px;font-size:calc(11.5px*var(--fz));color:var(--muted)}
+.pik-det-item b{color:var(--ink);font-weight:700}
+.pik-det-f{display:flex;flex-direction:column;gap:4px;font-size:calc(9.5px*var(--fz));font-weight:800;color:#7d8ca3;text-transform:uppercase;letter-spacing:.04em}
+.pik-det-f select{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:var(--ff);font-size:calc(12px*var(--fz));font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink);background:#fff;min-width:160px}
 .pik-bar{margin-top:6px;max-width:300px}
 .pik-c{font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--ink);text-align:center}
 .pik-ytd{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
@@ -4223,7 +4231,7 @@ function codecPerfIndicatorHTML(){
    var pc=KPI_PERSP[r.persp]||'#5b6b80';
    return '<div class="pik-row">'+
      '<div class="pik-kpi"><span class="pi-code" style="background:'+pc+'1a;color:'+pc+'" title="'+esc(r.from||'KPI baru / custom')+'">'+pcode+'</span>'+
-       '<div style="min-width:0;flex:1"><div class="pik-name">'+esc(r.name)+'</div><div class="pik-src">'+esc(r.src)+'</div>'+
+       '<div style="min-width:0;flex:1"><div class="pik-name">'+esc(r.name)+'<span class="pik-chev'+(kpiKeyDet[i]?' open':'')+'" onclick="kpiKeyDetToggle('+i+')" title="lihat/ubah detail KPI">▾</span></div>'+
        '<div class="pik-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,ytd||0)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,r.target)+'%"></div></div></div></div></div>'+
      '<div class="pik-c">'+(ed?'<input class="pik-num" type="number" min="0" max="100" step="1" value="'+r.weight+'" onchange="kpiFieldSave('+i+',\'weight\',this.value)"/>':r.weight+'%')+'</div>'+
      '<div class="pik-c">'+(ed?'<input class="pik-num" type="number" min="0" max="120" step="1" value="'+r.target+'" onchange="kpiFieldSave('+i+',\'target\',this.value)"/>':r.target+'%')+'</div>'+
@@ -4235,6 +4243,7 @@ function codecPerfIndicatorHTML(){
         ?'<textarea rows="2" placeholder="progress / kendala / tindak lanjut bulan ini…" onchange="kpiMonSave('+i+',\'note\',this.value)">'+(e.note?esc(e.note):'')+'</textarea>'
         :'<span class="pik-notetx">'+(e.note?esc(e.note):'—')+'</span>')+'</div>'+
      '<div class="pik-c">'+(ed?'<button class="pi-x" onclick="codecRemoveKey('+i+')" title="hapus dari Key">✕</button>':'')+'</div>'+
+     (kpiKeyDet[i]?'<div class="pik-detail">'+kpiDetailHTML(r,i,ed)+'</div>':'')+
    '</div>';
  }).join(''):'<div class="muted small" style="padding:24px;text-align:center">Belum ada Key.'+(ed?' Klik <b>+ Tambah KPI Baru</b>.':' Klik <b>🔒 Ubah</b> untuk menambahkan.')+'</div>';
  /* jejak perubahan terakhir — tampil di bawah judul KPI */
@@ -4294,6 +4303,27 @@ function kpiFieldSave(i,field,val){
  k[field]=Math.max(0,Math.min(field==="weight"?100:120,Math.round(n)));
  kpiPersist();
  var s=document.getElementById('pik-saved'); if(s){ s.style.opacity=1; setTimeout(function(){ s.style.opacity=0; },1500); }
+}
+/* ── Detail KPI (ganti subtitle jadi dropdown): buka/tutup + field dropdown editable ── */
+let kpiKeyDet={};
+function kpiKeyDetToggle(i){ kpiKeyDet[i]=!kpiKeyDet[i]; renderOverview(); }
+function kpiAttrSave(i,field,val){ if(!kpiEditOn())return; var k=KPI_CLA[i]; if(!k)return; k[field]=val; if(field==='from'&&val==='') k.pick=''; kpiPersist(); renderOverview(); }
+function kpiDetailHTML(r,i,ed){
+ if(!ed){
+   return '<span class="pik-det-item">Sumber: <b>'+esc(r.src||'—')+'</b></span>'+
+     '<span class="pik-det-item">Perspektif: <b>'+esc(r.persp||'—')+'</b></span>'+
+     (r.from?'<span class="pik-det-item">Sumber CODEC: <b>'+esc(r.from)+'</b></span>':'')+
+     (r.pick?'<span class="pik-det-item">Komponen: <b>'+esc(r.pick)+'</b></span>':'')+
+     '<span class="pik-det-item">Jenis: <b>'+(r.type==='routine'?'Routine':r.type==='nonroutine'?'Non-Routine':'otomatis')+'</b></span>';
+ }
+ var perspOpts=Object.keys(KPI_PERSP).map(function(p){return '<option'+(r.persp===p?' selected':'')+'>'+esc(p)+'</option>';}).join('');
+ var fromList=(typeof codecSubFnData==='function')?codecSubFnData().map(function(f){return f.name;}):[];
+ var fromOpts='<option value=""'+(!r.from?' selected':'')+'>— Custom / belum ada —</option>'+fromList.map(function(f){return '<option'+(r.from===f?' selected':'')+'>'+esc(f)+'</option>';}).join('');
+ var types=[['','otomatis'],['routine','Routine'],['nonroutine','Non-Routine']];
+ var typeOpts=types.map(function(t){return '<option value="'+t[0]+'"'+((r.type||'')===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('');
+ return '<label class="pik-det-f">Perspektif<select onchange="kpiAttrSave('+i+',\'persp\',this.value)">'+perspOpts+'</select></label>'+
+   '<label class="pik-det-f">Sumber CODEC<select onchange="kpiAttrSave('+i+',\'from\',this.value)">'+fromOpts+'</select></label>'+
+   '<label class="pik-det-f">Jenis KPI<select onchange="kpiAttrSave('+i+',\'type\',this.value)">'+typeOpts+'</select></label>';
 }
 /* ── PDCA bulanan: state bulan terpilih + simpan YTD/catatan per KPI per bulan ── */
 const KPI_MON_ID=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
@@ -10361,7 +10391,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-67";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-68";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
