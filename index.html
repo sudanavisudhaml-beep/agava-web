@@ -1950,16 +1950,18 @@ body.rg-open{overflow:hidden}
 .mps-track{display:flex;align-items:stretch;transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform}
 /* slot 20% lebih besar & seragam — rasio 4:5, muat poster potret & lanskap */
 .mps-slide{flex:0 0 100%;min-width:0;aspect-ratio:4/5}
-.mps-img{position:relative;width:100%;height:100%;background-size:contain;background-position:center;background-repeat:no-repeat;border-radius:20px}
-.mps-cap{position:absolute;left:0;right:0;bottom:0;padding:28px 16px 14px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.74))}
-.mps-cap b{display:block;font-size:calc(15px*var(--fz));font-weight:800;line-height:1.25}
-.mps-cap span{display:block;font-size:calc(11.5px*var(--fz));opacity:.9;margin-top:3px;line-height:1.4}
-.mps-card{position:relative;overflow:hidden;width:100%;height:100%;padding:20px 20px 30px;color:#fff;border-radius:20px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 12px 30px rgba(11,36,71,.22)}
-.mps-glow{position:absolute;inset:-40% -20% auto;height:170%;pointer-events:none;background:radial-gradient(45% 55% at 22% 22%,rgba(255,255,255,.18),transparent 60%),radial-gradient(40% 50% at 85% 75%,rgba(255,255,255,.12),transparent 62%)}
-.mps-card>*{position:relative;z-index:1}
-.mps-tag{font-family:var(--mono,monospace);font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.1em;opacity:.85;margin-bottom:8px}
-.mps-t{font-size:calc(21px*var(--fz));font-weight:900;letter-spacing:-.01em;line-height:1.15}
-.mps-s{font-size:calc(12px*var(--fz));line-height:1.5;opacity:.95;margin-top:7px}
+/* ── Kartu poster blended (seragam semua slot) ── */
+.mps-b{position:relative;overflow:hidden;width:100%;height:100%;border-radius:20px;padding:20px 20px 24px;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 12px 30px rgba(11,36,71,.22)}
+/* foto: pita atas yang di-MASK agar tepi bawahnya larut mulus ke warna kartu */
+.mps-b-ph{position:absolute;left:0;right:0;top:0;height:60%;background-size:cover;background-position:center top;background-repeat:no-repeat;
+  -webkit-mask-image:linear-gradient(to bottom,#000 60%,transparent 100%);mask-image:linear-gradient(to bottom,#000 60%,transparent 100%)}
+/* kilau lembut + scrim bawah supaya teks selalu terbaca di atas foto/gradient */
+.mps-b-glow{position:absolute;inset:-30% -20% auto;height:150%;pointer-events:none;background:radial-gradient(45% 55% at 20% 18%,rgba(255,255,255,.14),transparent 60%)}
+.mps-b-scrim{position:absolute;left:0;right:0;bottom:0;height:62%;pointer-events:none;background:linear-gradient(to top,rgba(6,10,20,.42) 0%,rgba(6,10,20,.14) 42%,transparent 100%)}
+.mps-b-tx{position:relative;z-index:2}
+.mps-b-tag{font-family:var(--mono,monospace);font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.11em;text-transform:uppercase;opacity:.92;margin-bottom:8px}
+.mps-b-t{font-size:calc(21px*var(--fz));font-weight:900;letter-spacing:-.01em;line-height:1.15;text-shadow:0 1px 12px rgba(0,0,0,.28)}
+.mps-b-s{font-size:calc(12px*var(--fz));line-height:1.5;opacity:.96;margin-top:7px;text-shadow:0 1px 10px rgba(0,0,0,.25)}
 .mps-dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:6px;z-index:2}
 .mps-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .mps-dots i.on{width:20px;border-radius:4px;background:#fff}
@@ -1974,6 +1976,8 @@ body.rg-open{overflow:hidden}
 .pm-post-badge.img{background:#e3f3ec;color:#12805c}
 .pm-post-i,.pm-post-t{border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));color:var(--ink);background:#fff;min-width:0}
 .pm-post-t{resize:vertical}
+.pm-post-l{font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#8a9bb0;margin-top:3px}
+.pm-post-l em{font-style:normal;font-weight:600;text-transform:none;letter-spacing:0;color:#aab4c2}
 .pm-post-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 @media(max-width:560px){.pm-post-row{grid-template-columns:1fr}}
 /* panel Cloud & Backup */
@@ -6815,16 +6819,21 @@ function mDiscoverRooms(){
    H.E.A.R.T · 7 pusat unggulan · teknologi kardiovaskular kelas dunia · Jakarta pusat. */
 /* ── Poster slot Discover — carousel auto-swipe 5 dtk + gesture geser ──
    Isi dari GA_PARAM.poster (maks 5). Tiap poster: GAMBAR (img) atau kartu desain. */
+/* Kartu poster SERAGAM (semua slot "seperti slot 1"): latar gradient BU +
+   (opsional) foto yang di-MASK agar larut mulus ke warna kartu (blended, bukan
+   tempelan) + teks: ◆ Bisnis Unit · Judul Produk/Event · Deskripsi. */
 function mPosterCard(p){
- if(p.img){ var u=String(p.img).replace(/["')]/g,""); var bg=/^#?[0-9a-fA-F]{3,8}$/.test(String(p.grad||""))?p.grad:"#0b1220";
-   return '<div class="mps-img" style="background-image:url(\''+u+'\');background-color:'+bg+'">'+
-     ((p.judul||p.sub)?'<div class="mps-cap">'+(p.judul?'<b>'+esc(p.judul)+'</b>':'')+(p.sub?'<span>'+esc(p.sub)+'</span>':'')+'</div>':'')+'</div>';
- }
- return '<div class="mps-card" style="background:'+(p.grad||'linear-gradient(135deg,#0b2447,#123b73)')+'">'+
-   '<div class="mps-glow"></div>'+
-   (p.tag?'<div class="mps-tag">◆ '+esc(p.tag)+'</div>':'')+
-   '<div class="mps-t">'+esc(p.judul||"")+'</div>'+
-   (p.sub?'<div class="mps-s">'+esc(p.sub)+'</div>':'')+
+ var grad = p.grad || "linear-gradient(150deg,#0b2447,#123b73)";
+ var u = p.img ? String(p.img).replace(/["')]/g,"") : "";
+ return '<div class="mps-b" style="background:'+grad+'">'+
+   (u?'<div class="mps-b-ph" style="background-image:url(\''+u+'\')"></div>':'')+
+   '<div class="mps-b-glow"></div>'+
+   '<div class="mps-b-scrim"></div>'+
+   '<div class="mps-b-tx">'+
+     (p.tag?'<div class="mps-b-tag">◆ '+esc(p.tag)+'</div>':'')+
+     (p.judul?'<div class="mps-b-t">'+esc(p.judul)+'</div>':'')+
+     (p.sub?'<div class="mps-b-s">'+esc(p.sub)+'</div>':'')+
+   '</div>'+
  '</div>';
 }
 function mPosterSlotHTML(){
@@ -10034,7 +10043,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-58";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-59";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10382,11 +10391,11 @@ const GA_PARAM_DEFAULT={
     berupa GAMBAR (img: URL/data URI, otomatis pas slot via object-fit) ATAU kartu
     desain (judul+sub+gradient bila img kosong). Owner atur di modul Parameter. */
  poster:[
-   {img:"", judul:"Heartology · Cardiovascular Hospital", sub:"Pusat jantung kelas dunia di jantung Jakarta — kini bagian Astra (95,8% · 2024). 7 Pusat Unggulan · nilai H.E.A.R.T.", grad:"linear-gradient(150deg,#7a0b1e 0%,#e11d48 100%)", tag:"ASTRA HEALTHCARE"},
-   {img:"posters/astrapay.jpg", judul:"", sub:"", grad:"#032A6B", tag:""},
-   {img:"posters/transum.jpg", judul:"", sub:"", grad:"#43B8EE", tag:""}
+   {img:"posters/heartology.jpg", tag:"ASTRA HEALTHCARE", judul:"Heartology · Cardiovascular Hospital", sub:"Pusat jantung kelas dunia di jantung Jakarta — kini bagian Astra (95,8% · 2024). 7 Pusat Unggulan · nilai H.E.A.R.T.", grad:"linear-gradient(155deg,#5c0a18 0%,#7a0b1e 45%,#c0143a 100%)"},
+   {img:"", tag:"ASTRA FINANCIAL", judul:"AstraPay — Nikmati Berbagai Promonya!", sub:"Dompet digital Astra untuk kebutuhan harian karyawan — cashback & promo menarik tiap bulan.", grad:"linear-gradient(150deg,#021d4d 0%,#0a3aa8 100%)"},
+   {img:"", tag:"ASTRA INFRA · TRANSUM", judul:"Ayo Naik Transum Jakarta", sub:"Transportasi umum terintegrasi dukungan Astra — nyaman, hemat, rendah emisi untuk mobilitas harian.", grad:"linear-gradient(150deg,#0f5a3a 0%,#1e88c8 100%)"}
  ],
- posterV:2   /* versi seed poster — dinaikkan saat mengirim poster default baru; migrasi otomatis lewat paramMerge */
+ posterV:3   /* versi seed poster — dinaikkan saat mengirim poster default baru; migrasi otomatis lewat paramMerge */
 };
 var GA_PARAM=JSON.parse(JSON.stringify(GA_PARAM_DEFAULT));
 function paramMerge(d){
@@ -10606,13 +10615,18 @@ function paramPosterRows(){
  return (GA_PARAM.poster||[]).map(function(p,i){
    return '<div class="pm-post">'+
      '<div class="pm-post-h"><b>Poster '+(i+1)+'</b>'+
-       (p.img?'<span class="pm-post-badge img">gambar</span>':'<span class="pm-post-badge">kartu desain</span>')+
+       (p.img?'<span class="pm-post-badge img">+ gambar</span>':'<span class="pm-post-badge">kartu desain</span>')+
        '<button class="pm-rep-x" onclick="GA_PARAM.poster.splice('+i+',1); renderParams()" title="Hapus">✕</button></div>'+
-     '<input class="pm-post-i" value="'+esc(p.judul)+'" placeholder="Judul poster" oninput="GA_PARAM.poster['+i+'].judul=this.value">'+
-     '<textarea class="pm-post-t" rows="2" placeholder="Sub / keterangan" oninput="GA_PARAM.poster['+i+'].sub=this.value">'+esc(p.sub)+'</textarea>'+
-     '<input class="pm-post-i" value="'+esc(p.img)+'" placeholder="URL gambar (kosongkan → jadi kartu desain)" oninput="GA_PARAM.poster['+i+'].img=this.value; renderParams()">'+
-     '<div class="pm-post-row"><input class="pm-post-i" value="'+esc(p.tag||"")+'" placeholder="Tag kecil (mis. ASTRAPAY)" oninput="GA_PARAM.poster['+i+'].tag=this.value">'+
-       '<input class="pm-post-i" value="'+esc(p.grad||"")+'" placeholder="Gradient CSS (kartu)" oninput="GA_PARAM.poster['+i+'].grad=this.value"></div>'+
+     '<label class="pm-post-l">Bisnis Unit</label>'+
+     '<input class="pm-post-i" value="'+esc(p.tag||"")+'" placeholder="mis. ASTRA HEALTHCARE" oninput="GA_PARAM.poster['+i+'].tag=this.value">'+
+     '<label class="pm-post-l">Nama Product / Event</label>'+
+     '<input class="pm-post-i" value="'+esc(p.judul||"")+'" placeholder="mis. Heartology · Cardiovascular Hospital" oninput="GA_PARAM.poster['+i+'].judul=this.value">'+
+     '<label class="pm-post-l">Description</label>'+
+     '<textarea class="pm-post-t" rows="2" placeholder="Kalimat pendek yang menjelaskan produk/event" oninput="GA_PARAM.poster['+i+'].sub=this.value">'+esc(p.sub||"")+'</textarea>'+
+     '<label class="pm-post-l">Gambar <em>(opsional — di-blend ke kartu; kosongkan → kartu desain)</em></label>'+
+     '<input class="pm-post-i" value="'+esc(p.img||"")+'" placeholder="posters/namafile.jpg atau URL" oninput="GA_PARAM.poster['+i+'].img=this.value; renderParams()">'+
+     '<label class="pm-post-l">Warna latar <em>(gradient CSS)</em></label>'+
+     '<input class="pm-post-i" value="'+esc(p.grad||"")+'" placeholder="linear-gradient(150deg,#021d4d,#0a3aa8)" oninput="GA_PARAM.poster['+i+'].grad=this.value">'+
    '</div>';
  }).join("");
 }
