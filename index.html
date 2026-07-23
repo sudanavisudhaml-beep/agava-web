@@ -1417,7 +1417,7 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
    Penandanya sengaja berlapis supaya halaman kedua tidak tersembunyi: kedua
    kartu tab selalu terlihat (bukan cuma yang aktif), ada titik halaman di
    bawah, dan tombol lanjut di ujung tiap halaman. */
-.hse-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.hse-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .hse-tab{display:flex;align-items:center;gap:11px;text-align:left;padding:12px 14px;cursor:pointer;
   border:1px solid var(--line);border-radius:14px;background:#fff;font-family:var(--ff);
   transition:border-color .18s,box-shadow .18s,background .18s}
@@ -1464,7 +1464,35 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .izn-close{padding:5px 12px;font-size:calc(11px*var(--fz));font-weight:700;white-space:nowrap}
 .izn-closed{font-size:calc(11px*var(--fz));font-weight:800;color:var(--green);line-height:1.3}
 .izn-note{padding:11px 18px;font-size:calc(11px*var(--fz));color:var(--muted);background:#f8fafd;border-top:1px solid var(--line);line-height:1.6}
+/* ── AGC · Astra Green Company (halaman 3 HSE) ── */
+.agc-score{flex:0 0 auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.agc-score-v{font-size:calc(24px*var(--fz));font-weight:900;line-height:1}
+.agc-badge{font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.04em;padding:3px 10px;border-radius:99px}
+.agc-bar{height:7px;border-radius:99px;background:#eef1f5;margin:0 18px 4px;overflow:hidden}
+.agc-bar>div{height:100%;border-radius:99px;transition:width .5s}
+.agc-cl{padding:6px 18px 4px}
+.agc-grp{padding:8px 0;border-top:1px solid var(--line)}
+.agc-grp:first-child{border-top:none}
+.agc-grp-h{font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3;margin-bottom:6px}
+.agc-ci{display:flex;align-items:flex-start;gap:10px;padding:4px 0}
+.agc-ck{flex:0 0 18px;width:18px;height:18px;border-radius:99px;display:grid;place-items:center;font-size:calc(11px*var(--fz));font-weight:900;color:#fff;margin-top:1px}
+.agc-ck.ok{background:var(--green)} .agc-ck.no{background:#e0665c}
+.agc-ci-t{font-size:calc(12.5px*var(--fz));color:var(--ink);line-height:1.4}
+.agc-kas{padding:6px 18px 12px}
+.agc-ka{padding:11px 0;border-top:1px solid var(--line)}
+.agc-ka:first-child{border-top:none}
+.agc-ka-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px}
+.agc-ka-h b{font-size:calc(11.5px*var(--fz));font-weight:800;color:#0a4bb8;font-variant-numeric:tabular-nums}
+.agc-ka-st{font-size:calc(10px*var(--fz));font-weight:800;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.agc-ka-t{font-size:calc(13px*var(--fz));font-weight:600;color:var(--ink);line-height:1.35}
+.agc-ka-m{font-size:calc(11px*var(--fz));color:var(--muted);margin-top:3px}
+.agc-golden{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 18px 16px}
+.agc-gr{display:flex;align-items:flex-start;gap:9px;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:#fbfdff}
+.agc-gr-n{flex:0 0 22px;width:22px;height:22px;border-radius:99px;background:linear-gradient(135deg,#0b2447,#123b73);color:#fff;
+  font-size:calc(11px*var(--fz));font-weight:800;display:grid;place-items:center}
+.agc-gr-t{font-size:calc(11.5px*var(--fz));color:var(--sub,#344054);line-height:1.35;font-weight:500}
 @media(max-width:900px){
+  .agc-golden{grid-template-columns:1fr}
   .izn-head{display:none}
   /* Di HP kolomnya ditumpuk: nama melebar penuh, lalu masa berlaku & uji berkala
      berdampingan dengan labelnya sendiri, biaya dan tombol Close di baris akhir. */
@@ -1476,11 +1504,13 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
     letter-spacing:.06em;text-transform:uppercase;color:#9aa7b8;margin-bottom:2px}
   .izn-aksi{grid-column:1/3;text-align:left;margin-top:2px}
   .izn-act{grid-column:1/3}
-  /* dua halaman HSE di layar kecil */
+  /* tiga halaman HSE di layar kecil — tab dibuat menumpuk agar 3 kolom muat */
   .hse-kpi3{grid-template-columns:repeat(3,1fr);gap:8px}
-  .hse-tabs{gap:8px}
-  .hse-tab{padding:10px 11px;gap:9px}
-  .hse-tab-n{flex:0 0 22px;width:22px;height:22px;border-radius:8px}
+  .hse-tabs{gap:7px}
+  .hse-tab{flex-direction:column;align-items:flex-start;gap:6px;padding:10px 9px}
+  .hse-tab-n{flex:0 0 auto;width:22px;height:22px;border-radius:8px}
+  .hse-tab-t b{font-size:calc(12.5px*var(--fz))}
+  .hse-tab-t i{font-size:calc(10px*var(--fz))}
   .hse-sec{flex-wrap:wrap}.hse-sec-b{text-align:left;width:100%}
 }
 /* izin kerja */
@@ -9101,6 +9131,7 @@ function renderHSE(){
  const urgent=allDue.filter(x=>permitNextAction(x.due).urgent).length;
  const overdue=allDue.filter(x=>{const d=dueDays(x.due); return d!==null&&d<0;}).length;
  const wpPend=WORK_PERMITS.filter(w=>w.status==="Menunggu Review").length;
+ const agc=agcScore(), agcLvl=agcLevel(agc.pct);
  const izinRow=p=>hseIzinRow({nama:p.name, sub:p.area+' · '+(p.noIzin||'tanpa no. izin'),
    berlaku:p.berlaku, periode:p.periode, terbit:p.terbit, due:p.due,
    closedAt:p.closedAt, closeFn:"hseCloseIzin('"+esc(p.name).replace(/'/g,"\\'")+"')"});
@@ -9120,13 +9151,18 @@ function renderHSE(){
   <div class="hse-tabs">
     <button class="hse-tab" id="hseTab0" onclick="hseGoPage(0)">
       <span class="hse-tab-n">1</span>
-      <span class="hse-tab-t"><b>Monitoring Perizinan</b>
-        <i>${allDue.length} izin dipantau${urgent?` · <em>${urgent} perlu tindakan</em>`:' · terkendali'}</i></span>
+      <span class="hse-tab-t"><b>Perizinan</b>
+        <i>${allDue.length} izin${urgent?` · <em>${urgent} tindakan</em>`:' · terkendali'}</i></span>
     </button>
     <button class="hse-tab" id="hseTab1" onclick="hseGoPage(1)">
       <span class="hse-tab-n">2</span>
       <span class="hse-tab-t"><b>Izin Kerja</b>
-        <i>${WORK_PERMITS.length} pengajuan${wpPend?` · <em>${wpPend} menunggu review</em>`:' · tidak ada antrean'}</i></span>
+        <i>${WORK_PERMITS.length} pengajuan${wpPend?` · <em>${wpPend} review</em>`:''}</i></span>
+    </button>
+    <button class="hse-tab" id="hseTab2" onclick="hseGoPage(2)">
+      <span class="hse-tab-n">3</span>
+      <span class="hse-tab-t"><b>Safety Astra</b>
+        <i>AGC ${agc.pct}% · ${agcLvl.t}</i></span>
     </button>
   </div>
 
@@ -9172,6 +9208,26 @@ function renderHSE(){
         <div class="hse-sec-s">Pengajuan izin kerja berisiko &amp; risiko rendah ke PIC HSE · vendor bisa ajukan sendiri lewat QR</div></div>
     </div>
     ${wpPanelHTML()}
+    <button class="hse-lanjut" onclick="hseGoPage(2)">
+      <span class="hse-lanjut-t"><b>Halaman 3 — Astra Standard Safety Parameter</b>
+        <i>AGC ${agc.pct}% · ${agc.ok}/${agc.total} kriteria</i></span>
+      <span class="hse-lanjut-a">→</span></button>
+   </section>
+
+   <section class="hse-page">
+    <div class="hse-kpi3">
+      <div class="card kpi"><div class="l">Skor AGC</div><div class="v" style="color:${agcLvl.c}">${agc.pct}%</div></div>
+      <div class="card kpi"><div class="l">Key Action aktif</div><div class="v" style="color:${AGC_KEYACTION.filter(k=>k.status!=='Selesai').length?'var(--amber)':'var(--green)'}">${AGC_KEYACTION.filter(k=>k.status!=='Selesai').length}</div></div>
+      <div class="card kpi"><div class="l">Golden Rule</div><div class="v">${AGC_GOLDEN.length}</div></div>
+    </div>
+
+    <div class="hse-sec"><span class="hse-sec-n">3</span>
+      <div><div class="hse-sec-t">Astra Standard Safety Parameter</div>
+        <div class="hse-sec-s">Astra Green Company (AGC) · pemenuhan checklist, mandatory key action &amp; kampanye Safety Golden Rule</div></div>
+      <div class="hse-sec-b"><div class="l">Kategori AGC</div><div class="v" style="color:${agcLvl.c}">${agcLvl.t}</div>
+        <div class="s">${agc.pct}% terpenuhi</div></div>
+    </div>
+    ${agcPanelHTML()}
     <button class="hse-lanjut balik" onclick="hseGoPage(0)">
       <span class="hse-lanjut-a">←</span>
       <span class="hse-lanjut-t"><b>Halaman 1 — Monitoring Perizinan</b>
@@ -9182,13 +9238,14 @@ function renderHSE(){
   <div class="hse-dots">
     <i onclick="hseGoPage(0)" title="Halaman 1 — Monitoring Perizinan"></i>
     <i onclick="hseGoPage(1)" title="Halaman 2 — Izin Kerja"></i>
+    <i onclick="hseGoPage(2)" title="Halaman 3 — Astra Safety Parameter"></i>
   </div>`;
  hseGoPage(hsePage,true);   // kembali ke halaman yang sedang dibuka setelah render ulang
 }
 /* ── Pager dua halaman modul HSE ── */
 let hsePage=0;
 function hseGoPage(i,langsung){
- hsePage=Math.max(0,Math.min(1,+i||0));
+ hsePage=Math.max(0,Math.min(2,+i||0));
  var w=document.getElementById("hsePager");
  if(w){
    var x=hsePage*w.clientWidth;
@@ -9204,12 +9261,94 @@ function hsePagerSync(){
  if(i!==hsePage){ hsePage=i; hseTabSync(); }
 }
 function hseTabSync(){
- for(var i=0;i<2;i++){
+ for(var i=0;i<3;i++){
    var t=document.getElementById("hseTab"+i);
    if(t)t.classList.toggle("on",i===hsePage);
  }
  var d=document.querySelectorAll("#page-hse .hse-dots i");
  for(var j=0;j<d.length;j++) d[j].classList.toggle("on",j===hsePage);
+}
+
+/* ══ AGC · ASTRA GREEN COMPANY — parameter standar safety Astra (halaman 3 HSE) ══
+   Tiga komponen sesuai standar Astra: pemenuhan checklist, mandatory key action,
+   dan kampanye Safety Golden Rule. Data terstruktur agar mudah dijadikan master
+   data/cloud nanti — nilainya bisa diperbarui saat asesmen AGC berjalan. */
+const AGC_CHECKLIST=[
+ {area:"Kebijakan & Komitmen", item:"Kebijakan K3L ditandatangani manajemen puncak", ok:true},
+ {area:"Kebijakan & Komitmen", item:"Sasaran & program K3L tahunan ditetapkan", ok:true},
+ {area:"Organisasi K3", item:"P2K3 aktif & rapat rutin terdokumentasi", ok:true},
+ {area:"Organisasi K3", item:"Ahli K3 Umum tersertifikasi tersedia", ok:false},
+ {area:"Lingkungan", item:"Identifikasi aspek & dampak lingkungan mutakhir", ok:true},
+ {area:"Lingkungan", item:"Izin & pengelolaan limbah B3 sesuai", ok:true},
+ {area:"Lingkungan", item:"Pemantauan air limbah (IPLC) rutin", ok:false},
+ {area:"Tanggap Darurat", item:"Simulasi kebakaran & evakuasi ≥1×/tahun", ok:true},
+ {area:"Tanggap Darurat", item:"Proteksi kebakaran diinspeksi berkala", ok:true},
+ {area:"Energi & Emisi", item:"Monitoring energi & jejak karbon berjalan", ok:true}
+];
+const AGC_KEYACTION=[
+ {no:"MKA-01", act:"Sertifikasi ulang Ahli K3 Umum (2 personel)", due:"2026-08-15", pic:"HSE", status:"On Progress"},
+ {no:"MKA-02", act:"Kalibrasi alat ukur emisi cerobong genset", due:"2026-07-30", pic:"Building", status:"On Progress"},
+ {no:"MKA-03", act:"Pemantauan air limbah (IPLC) triwulan III", due:"2026-09-10", pic:"HSE", status:"Belum"},
+ {no:"MKA-04", act:"Audit internal AGC menyeluruh", due:"2026-10-01", pic:"HSE", status:"Belum"}
+];
+const AGC_GOLDEN=[
+ {n:1, t:"Bekerja hanya dengan izin kerja yang sah"},
+ {n:2, t:"Isolasi sumber energi berbahaya sebelum bekerja"},
+ {n:3, t:"Gunakan APD sesuai bahaya pekerjaan"},
+ {n:4, t:"Pakai pelindung jatuh saat di ketinggian"},
+ {n:5, t:"Uji gas & pastikan ventilasi di ruang terbatas"},
+ {n:6, t:"Jaga jarak aman dari alat berat & kendaraan"},
+ {n:7, t:"Bebas alkohol & narkoba saat bekerja"},
+ {n:8, t:"Laporkan setiap insiden & kondisi tidak aman"}
+];
+const AGC_CAMPAIGN={coverage:78, sesi:6, poster:12, periode:"Q3 2026"};
+function agcScore(){ var ok=AGC_CHECKLIST.filter(function(x){return x.ok;}).length;
+ return {ok:ok, total:AGC_CHECKLIST.length, pct:Math.round(ok/AGC_CHECKLIST.length*100)}; }
+function agcLevel(p){ return p>=90?{t:"Gold",c:"#B45309",b:"#FBEED7"}:p>=75?{t:"Green",c:"#12805C",b:"#E3F3EC"}:
+ p>=60?{t:"Blue",c:"#175CD3",b:"#E7F0FD"}:{t:"Red",c:"#B42318",b:"#FEECEB"}; }
+function agcKeyStatus(s){ return s==="Selesai"?{c:"#12805C",b:"#E3F3EC"}:s==="On Progress"?{c:"#B45309",b:"#FBEED7"}:{c:"#667085",b:"#EEF0F4"}; }
+function agcPanelHTML(){
+ var sc=agcScore(), lv=agcLevel(sc.pct);
+ var areas={}; AGC_CHECKLIST.forEach(function(x){ (areas[x.area]=areas[x.area]||[]).push(x); });
+ var checklist=Object.keys(areas).map(function(a){
+   return '<div class="agc-grp"><div class="agc-grp-h">'+esc(a)+'</div>'+
+     areas[a].map(function(x){
+       return '<div class="agc-ci"><span class="agc-ck '+(x.ok?'ok':'no')+'">'+(x.ok?'✓':'✕')+'</span>'+
+         '<span class="agc-ci-t">'+esc(x.item)+'</span></div>'; }).join("")+'</div>';
+ }).join("");
+ var keyRows=AGC_KEYACTION.map(function(k){ var st=agcKeyStatus(k.status), d=dueDays(k.due);
+   return '<div class="agc-ka"><div class="agc-ka-h"><b>'+esc(k.no)+'</b>'+
+     '<span class="agc-ka-st" style="color:'+st.c+';background:'+st.b+'">'+esc(k.status)+'</span></div>'+
+     '<div class="agc-ka-t">'+esc(k.act)+'</div>'+
+     '<div class="agc-ka-m">PIC '+esc(k.pic)+' · '+fmtDay(k.due)+' '+k.due.slice(0,4)+
+       ' · <span style="color:'+mDueColor(d)+'">'+mDueLabel(d)+'</span></div></div>';
+ }).join("");
+ var golden=AGC_GOLDEN.map(function(g){
+   return '<div class="agc-gr"><span class="agc-gr-n">'+g.n+'</span><span class="agc-gr-t">'+esc(g.t)+'</span></div>';
+ }).join("");
+ var c=AGC_CAMPAIGN;
+ return '<div class="card izn-card">'+
+   '<div class="izn-h"><span class="izn-ic">🟢</span><div style="flex:1;min-width:0">'+
+     '<div class="panel-t" style="margin:0">a. Pemenuhan Checklist AGC</div>'+
+     '<div class="muted small">'+sc.ok+' dari '+sc.total+' kriteria terpenuhi</div></div>'+
+     '<div class="agc-score"><div class="agc-score-v" style="color:'+lv.c+'">'+sc.pct+'%</div>'+
+       '<div class="agc-badge" style="color:'+lv.c+';background:'+lv.b+'">'+lv.t+'</div></div></div>'+
+   '<div class="agc-bar"><div style="width:'+sc.pct+'%;background:'+lv.c+'"></div></div>'+
+   '<div class="agc-cl">'+checklist+'</div>'+
+   '<div class="izn-note">Skor &amp; kategori mengikuti penilaian Astra Green Company (Gold ≥90 · Green ≥75 · Blue ≥60).</div></div>'+
+ '<div class="card izn-card">'+
+   '<div class="izn-h"><span class="izn-ic">🎯</span><div style="flex:1;min-width:0">'+
+     '<div class="panel-t" style="margin:0">b. Mandatory Key Action</div>'+
+     '<div class="muted small">'+AGC_KEYACTION.filter(function(k){return k.status!=="Selesai";}).length+' aksi wajib berjalan</div></div></div>'+
+   '<div class="agc-kas">'+keyRows+'</div></div>'+
+ '<div class="card izn-card">'+
+   '<div class="izn-h"><span class="izn-ic">🛡️</span><div style="flex:1;min-width:0">'+
+     '<div class="panel-t" style="margin:0">c. Campaign Safety Golden Rule</div>'+
+     '<div class="muted small">Sosialisasi '+c.periode+' · '+c.sesi+' sesi · '+c.poster+' poster</div></div>'+
+     '<div class="agc-score"><div class="agc-score-v" style="color:#12805C">'+c.coverage+'%</div>'+
+       '<div class="muted small">jangkauan</div></div></div>'+
+   '<div class="agc-bar"><div style="width:'+c.coverage+'%;background:#12805C"></div></div>'+
+   '<div class="agc-golden">'+golden+'</div></div>';
 }
 
 /* ╔═══════════════════════════════════════════════════════════════════╗
@@ -9568,7 +9707,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-47";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-48";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
