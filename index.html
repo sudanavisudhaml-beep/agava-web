@@ -1522,6 +1522,25 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .agc-bar>div{height:100%;border-radius:99px;transition:width .5s}
 .agc-cl{padding:6px 18px 4px}
 .agc-grp{padding:8px 0;border-top:1px solid var(--line)}
+/* AGC Conformity (meniru laporan AGC) */
+.agc-conf{padding:0;overflow:hidden}
+.agc-cf-title{font-size:calc(20px*var(--fz));font-weight:700;color:var(--muted);padding:16px 18px 6px}
+.agc-cf-title b{font-weight:800}
+.agc-cf-main{padding:0 16px}
+.agc-cf-bar{color:#fff;font-weight:800;font-size:calc(14px*var(--fz));letter-spacing:.04em;text-align:center;padding:15px;border-radius:10px 10px 0 0}
+.agc-cf-b{border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;padding:14px 18px}
+.agc-cf-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:5px 0}
+.agc-cf-l{display:flex;align-items:center;gap:9px;color:var(--ink);font-size:calc(13px*var(--fz))}
+.agc-cf-l i{font-style:normal;font-weight:800}
+.agc-cf-row b{font-size:calc(14px*var(--fz));font-weight:800}
+.agc-cf-st{text-align:right;font-style:italic;font-weight:700;font-size:calc(12.5px*var(--fz));margin-top:2px}
+.agc-cf-detail{display:block;margin:12px 0 0 auto;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-family:var(--ff);font-size:calc(12px*var(--fz));font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(16,32,54,.14)}
+.agc-cf-detail:active{transform:scale(.98)}
+.agc-cf-cps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:16px}
+.agc-cp-bar{color:#fff;font-weight:800;font-size:calc(12.5px*var(--fz));letter-spacing:.03em;text-align:center;padding:13px;border-radius:10px 10px 0 0}
+.agc-cp-b{border:1px solid var(--line);border-top:none;border-radius:0 0 10px 10px;padding:12px 15px}
+.agc-cf-detwrap{margin:0 16px 16px;border:1px solid var(--line);border-radius:10px}
+@media(max-width:760px){.agc-cf-cps{grid-template-columns:1fr}}
 .agc-grp:first-child{border-top:none}
 .agc-grp-h{font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3;margin-bottom:6px}
 .agc-ci{display:flex;align-items:flex-start;gap:10px;padding:4px 0}
@@ -9996,6 +10015,37 @@ const AGC_GOLDEN=[
  {n:8, t:"Laporkan setiap insiden & kondisi tidak aman"}
 ];
 const AGC_CAMPAIGN={coverage:78, sesi:6, poster:12, periode:"Q3 2026"};
+/* AGC Conformity — meniru laporan AGC (nilai warna Astra: EMAS/HIJAU/BIRU/MERAH/HITAM). */
+let agcConfDetail=false;
+const AGC_CONF={
+ nilaiAkhir:"BIRU",
+ agc:{nilai:"BIRU", pct:"69.05", lengkap:false},
+ cp:[
+   {n:"CP-Lingkungan", nilai:"BIRU", pct:null, lengkap:null},
+   {n:"CP-Safety", nilai:"HIJAU", pct:null, lengkap:false},
+   {n:"Legal Compliance", nilai:"EMAS", pct:"100", lengkap:true}
+ ]
+};
+function agcRateColor(v){ v=String(v||"").toUpperCase();
+ return v==="EMAS"?"#EAA800":v==="HIJAU"?"#00A651":v==="BIRU"?"#29ABE2":v==="MERAH"?"#E4002B":v==="HITAM"?"#1f2937":"#667085"; }
+function agcConfDetailToggle(){ agcConfDetail=!agcConfDetail; renderHSE(); }
+function agcConfHTML(checklistHTML){
+ var C=AGC_CONF, top=agcRateColor(C.nilaiAkhir), ac=agcRateColor(C.agc.nilai);
+ function row(lbl,val,col){ return '<div class="agc-cf-row"><span class="agc-cf-l"><i>➜</i> '+lbl+'</span><b style="color:'+col+'">'+val+'</b></div>'; }
+ function st(lengkap,col){ return lengkap==null?'':'<div class="agc-cf-st" style="color:'+col+'">'+(lengkap?'Lengkap':'Belum Lengkap')+'</div>'; }
+ var cps=C.cp.map(function(p){ var col=agcRateColor(p.nilai);
+   return '<div class="agc-cp"><div class="agc-cp-bar" style="background:'+col+'">'+esc(String(p.n).toUpperCase())+'</div>'+
+     '<div class="agc-cp-b">'+row('Nilai',esc(p.nilai),col)+(p.pct!=null?row('Persentase',p.pct+' %',col):'')+st(p.lengkap,col)+'</div></div>';
+ }).join('');
+ return '<div class="card izn-card agc-conf">'+
+   '<div class="agc-cf-title">Nilai Akhir: <b style="color:'+top+'">'+esc(C.nilaiAkhir)+'</b></div>'+
+   '<div class="agc-cf-main"><div class="agc-cf-bar" style="background:'+ac+'">AGC CONFORMITY</div>'+
+     '<div class="agc-cf-b">'+row('Nilai',esc(C.agc.nilai),ac)+row('Persentase',C.agc.pct+' %',ac)+st(C.agc.lengkap,ac)+
+       '<button class="agc-cf-detail" style="background:'+ac+'" onclick="agcConfDetailToggle()">'+(agcConfDetail?'Sembunyikan Detail':'Tampilkan Detail')+'</button></div></div>'+
+   '<div class="agc-cf-cps">'+cps+'</div>'+
+   (agcConfDetail?'<div class="agc-cl agc-cf-detwrap">'+checklistHTML+'</div>':'')+
+ '</div>';
+}
 function agcScore(){ var ok=AGC_CHECKLIST.filter(function(x){return x.ok;}).length;
  return {ok:ok, total:AGC_CHECKLIST.length, pct:Math.round(ok/AGC_CHECKLIST.length*100)}; }
 function agcLevel(p){ return p>=90?{t:"Gold",c:"#B45309",b:"#FBEED7"}:p>=75?{t:"Green",c:"#12805C",b:"#E3F3EC"}:
@@ -10021,15 +10071,7 @@ function agcPanelHTML(){
    return '<div class="agc-gr"><span class="agc-gr-n">'+g.n+'</span><span class="agc-gr-t">'+esc(g.t)+'</span></div>';
  }).join("");
  var c=AGC_CAMPAIGN;
- return '<div class="card izn-card">'+
-   '<div class="izn-h"><span class="izn-ic">🟢</span><div style="flex:1;min-width:0">'+
-     '<div class="panel-t" style="margin:0">a. Pemenuhan Checklist AGC</div>'+
-     '<div class="muted small">'+sc.ok+' dari '+sc.total+' kriteria terpenuhi</div></div>'+
-     '<div class="agc-score"><div class="agc-score-v" style="color:'+lv.c+'">'+sc.pct+'%</div>'+
-       '<div class="agc-badge" style="color:'+lv.c+';background:'+lv.b+'">'+lv.t+'</div></div></div>'+
-   '<div class="agc-bar"><div style="width:'+sc.pct+'%;background:'+lv.c+'"></div></div>'+
-   '<div class="agc-cl">'+checklist+'</div>'+
-   '<div class="izn-note">Skor &amp; kategori mengikuti penilaian Astra Green Company (Gold ≥90 · Green ≥75 · Blue ≥60).</div></div>'+
+ return agcConfHTML(checklist)+
  '<div class="card izn-card">'+
    '<div class="izn-h"><span class="izn-ic">🎯</span><div style="flex:1;min-width:0">'+
      '<div class="panel-t" style="margin:0">b. Mandatory Key Action</div>'+
@@ -10423,7 +10465,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-70";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-71";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
