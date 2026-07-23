@@ -10316,7 +10316,7 @@ function wpAct(i,st){
   alert((st==="Disetujui"?"✅ ":st==="Ditolak"?"⛔ ":"🏁 ")+w.no+" — "+st);
 }
 /* Firestore: pengajuan dari luar (QR) & internal disimpan di koleksi yang sama */
-function wpDbSave(w){ if(!AGDB.on||!AGDB.db||!w||!w.no)return; try{ AGDB.db.collection("agava_workpermits").doc(String(w.no)).set(JSON.parse(JSON.stringify(w)),{merge:true}); }catch(e){ console.warn("WP save:",e); } }
+function wpDbSave(w){ if(AGDB.ro||!AGDB.on||!AGDB.db||!w||!w.no)return; try{ AGDB.db.collection("agava_workpermits").doc(String(w.no)).set(JSON.parse(JSON.stringify(w)),{merge:true}); }catch(e){ console.warn("WP save:",e); } }
 function wpShowQR(){
   const url=wpUrl();
   const qr="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data="+encodeURIComponent(url);
@@ -10475,8 +10475,8 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-72";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
-const AGDB={on:false,db:null,pill:null};
+const AGAVA_BUILD="v2026.07.24-73";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
    /* Info bar status database DISEMBUNYIKAN (permintaan user) — elemennya tetap
@@ -10488,6 +10488,10 @@ function dbPill(txt,ok){
 }
 function dbInit(){
  try{
+  /* SAFEGUARD: di localhost (uji coba) JANGAN pernah menulis ke Firestore produksi —
+     baca boleh, tulis diblokir. Mencegah pengujian merusak data live. */
+  AGDB.ro = /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname);
+  if(AGDB.ro) console.warn("🔒 AGAVA localhost = READ-ONLY. Semua tulisan ke Firestore produksi (KPI/tiket/SO/master/flow/param/audit/push) DIBLOKIR. Data live aman dari pengujian.");
   if(typeof firebase==="undefined"||!firebase.initializeApp){ dbPill("Database: offline — mode lokal",false); return; }
   firebase.initializeApp({apiKey:"AIzaSyCS8QGySkAcjd-49CdjElhgeMJqBtBcY48",authDomain:"agava-astra.firebaseapp.com",projectId:"agava-astra",storageBucket:"agava-astra.firebasestorage.app",messagingSenderId:"157492176112",appId:"1:157492176112:web:00f66a9aa9d4e7df650e35"});
   AGDB.db=firebase.firestore();
@@ -10603,14 +10607,14 @@ function dbInit(){
   },err=>{ console.warn("WP rules/err:",err&&err.code); });
  }catch(e){ dbPill("Database: offline — mode lokal",false); console.warn("AGDB init:",e); }
 }
-function dbSaveTicket(t){ if(!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
+function dbSaveTicket(t){ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
 /* ── SO & KPI ikut sinkron Firestore ──
    SO: koleksi agava_so, 1 dokumen per SO. Lampiran foto/PDF TIDAK ikut ke cloud
    (bisa >1MB, limit Firestore) — lampiran tetap tersimpan lokal di perangkat pembuat.
    KPI + PDCA bulanan: 1 dokumen agava_config/kpi. Echo-guard mencegah loop tulis. */
 function dbStripSO(s){ var c=JSON.parse(JSON.stringify(s)); delete c.attachments; delete c.pdfAttachments; return c; }
 function dbSaveSOAll(){
- if(!AGDB.on||!AGDB.db)return;
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  AGDB.soEcho=AGDB.soEcho||{};
  SO.forEach(function(s){ if(!s||!s.no)return;
    var c=dbStripSO(s), j=JSON.stringify(c);
@@ -10620,7 +10624,7 @@ function dbSaveSOAll(){
  });
 }
 function dbSaveKPI(){
- if(!AGDB.on||!AGDB.db)return;
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  var payload={cla:JSON.parse(JSON.stringify(KPI_CLA)), meta:JSON.parse(JSON.stringify(KPI_YEAR_META)), up:Date.now(), by:(gUser&&gUser.name)||""};
  var j=JSON.stringify([payload.cla,payload.meta]);   // meta ikut → jejak "diubah oleh" tersimpan juga
  if(AGDB.kpiEcho===j)return;
@@ -10629,7 +10633,7 @@ function dbSaveKPI(){
 }
 /* ── MASTER DATA (STNK, PBB, Izin, Kontrak Vendor, Maintenance, dll) → Firestore ── */
 function dbSaveMaster(){
- if(!AGDB.on||!AGDB.db)return;
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  var out={}; Object.keys(DB_SETS).forEach(function(k){ out[k]=DB_SETS[k].get(); });
  var payload={sets:JSON.parse(JSON.stringify(out)), up:Date.now(), by:(gUser&&gUser.name)||""};
  var j=JSON.stringify(payload.sets);
@@ -10639,7 +10643,7 @@ function dbSaveMaster(){
 }
 /* ── KONFIGURASI FLOW Power Automate → Firestore (jangan hilang saat ganti perangkat) ── */
 function dbSaveFlow(){
- if(!AGDB.on||!AGDB.db)return;
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  var payload={endpoints:JSON.parse(JSON.stringify(FLOW.endpoints||{})), up:Date.now(), by:(gUser&&gUser.name)||""};
  var j=JSON.stringify(payload.endpoints);
  if(AGDB.flowEcho===j)return;
@@ -10652,7 +10656,7 @@ function auditLog(action,detail){
   var rec={action:action, detail:detail||"", user:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"",
     role:gRole||"", at:new Date().toISOString(), atLocal:nowStamp(), build:AGAVA_BUILD,
     ua:(navigator.userAgent||"").slice(0,160)};
-  if(AGDB.on&&AGDB.db) AGDB.db.collection("agava_audit").add(rec).catch(function(){});
+  if(!AGDB.ro&&AGDB.on&&AGDB.db) AGDB.db.collection("agava_audit").add(rec).catch(function(){});
  }catch(e){}
 }
 /* ── BACKUP PENUH: kumpulkan SEMUA data AGAVA jadi satu objek ── */
@@ -10681,6 +10685,7 @@ function agavaBackupDownload(){
 }
 /* Dorong SEMUA data lokal ke cloud (perbaiki bila ada yang belum tersinkron) */
 function agavaPushAll(){
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — penulisan ke cloud diblokir demi keamanan data live."); return; }
  if(!AGDB.on||!AGDB.db){ alert("⚠️ Database cloud sedang tidak terhubung. Coba lagi saat online."); return; }
  var n=0;
  TICKETS.forEach(function(t){ if(t&&t.no){ dbSaveTicket(t); n++; } });
@@ -10764,7 +10769,7 @@ function agavaAuditView(){
  }).catch(function(e){ alert("⚠️ Gagal membaca jejak aktivitas: "+(e&&e.code||e.message)); });
 }
 function agavaAuditCSV(){
- if(!AGDB.on||!AGDB.db)return;
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  AGDB.db.collection("agava_audit").orderBy("at","desc").limit(1000).get().then(function(snap){
    var q=function(v){ v=(v==null?"":String(v)); return '"'+v.replace(/"/g,'""')+'"'; };
    var lines=[["Waktu (UTC)","Waktu lokal","Aksi","User","Email","Role","Detail","Build"].map(q).join(",")];
@@ -10866,7 +10871,7 @@ function paramPersist(){
  try{ dbSaveParam(); }catch(e){}
 }
 function dbSaveParam(){
- if(!AGDB.on||!AGDB.db)return;
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  var payload={param:JSON.parse(JSON.stringify(GA_PARAM)), up:Date.now(), by:(gUser&&gUser.name)||""};
  var j=JSON.stringify(payload.param);
  if(AGDB.paramEcho===j)return;
