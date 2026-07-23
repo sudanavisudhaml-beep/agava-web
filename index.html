@@ -1942,33 +1942,36 @@ body.rg-open{overflow:hidden}
 .opex-ml{font-size:calc(10px*var(--fz));opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:900px){.opex-minis{grid-template-columns:repeat(2,1fr);flex-basis:100%}}
 @media(max-width:560px){.opex-v{font-size:calc(30px*var(--fz))}.opex-minis{grid-template-columns:1fr 1fr}}
-/* Poster Astra Healthcare · Heartology (slot Discover) */
-.mhp{position:relative;overflow:hidden;border-radius:20px;padding:20px 20px 18px;margin-bottom:18px;color:#fff;
-  background:linear-gradient(150deg,#7a0b1e 0%,#b3132f 45%,#e11d48 100%);box-shadow:0 12px 30px rgba(160,10,40,.32)}
-.mhp-glow{position:absolute;inset:-40% -20% auto;height:180%;pointer-events:none;
-  background:radial-gradient(45% 55% at 20% 25%,rgba(255,255,255,.2),transparent 60%),radial-gradient(40% 50% at 85% 70%,rgba(255,120,140,.32),transparent 62%)}
-.mhp>*{position:relative;z-index:1}
-.mhp-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.mhp-astra{font-family:var(--mono,monospace);font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.12em;opacity:.9}
-.mhp-tag{font-size:calc(9px*var(--fz));font-weight:800;letter-spacing:.08em;background:rgba(255,255,255,.2);padding:3px 8px;border-radius:99px}
-.mhp-ecg{display:block;width:100%;height:26px;margin:8px 0 4px;opacity:.5}
-.mhp-ecg path{fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.mhp-brand{display:flex;align-items:center;gap:12px;margin-top:2px}
-.mhp-heart{font-size:calc(34px*var(--fz));line-height:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.25))}
-.mhp-title{font-size:calc(28px*var(--fz));font-weight:900;letter-spacing:-.02em;line-height:1}
-.mhp-sub{font-size:calc(11.5px*var(--fz));font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-top:3px}
-.mhp-lead{font-size:calc(12.5px*var(--fz));line-height:1.5;opacity:.96;margin:12px 0 0}
-.mhp-lead b{color:#ffe08a}
-.mhp-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0 0}
-.mhp-fact{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:9px 10px;text-align:center}
-.mhp-fact b{display:block;font-size:calc(20px*var(--fz));font-weight:900;line-height:1}
-.mhp-fact span{font-size:calc(9.5px*var(--fz));opacity:.82;line-height:1.25;display:block;margin-top:4px}
-.mhp-vlab{font-size:calc(10.5px*var(--fz));opacity:.8;margin:15px 0 6px}
-.mhp-vlab b{letter-spacing:.1em}
-.mhp-values{display:flex;flex-wrap:wrap;gap:6px}
-.mhp-values span{font-size:calc(10px*var(--fz));font-weight:600;background:rgba(255,255,255,.16);padding:4px 9px;border-radius:99px}
-.mhp-cta{font-size:calc(11px*var(--fz));line-height:1.45;margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);opacity:.92}
-@media(max-width:360px){.mhp-facts{grid-template-columns:1fr}}
+/* Poster slot Discover — carousel auto-swipe */
+.mps{position:relative;margin-bottom:18px;overflow:hidden;border-radius:20px}
+.mps-track{display:flex;transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.mps-slide{flex:0 0 100%;min-width:0}
+.mps-img{position:relative;width:100%;aspect-ratio:16/10;background-size:cover;background-position:center;background-repeat:no-repeat;border-radius:20px}
+.mps-cap{position:absolute;left:0;right:0;bottom:0;padding:28px 16px 14px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.74))}
+.mps-cap b{display:block;font-size:calc(15px*var(--fz));font-weight:800;line-height:1.25}
+.mps-cap span{display:block;font-size:calc(11.5px*var(--fz));opacity:.9;margin-top:3px;line-height:1.4}
+.mps-card{position:relative;overflow:hidden;min-height:190px;padding:18px 18px 22px;color:#fff;border-radius:20px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 12px 30px rgba(11,36,71,.22)}
+.mps-glow{position:absolute;inset:-40% -20% auto;height:170%;pointer-events:none;background:radial-gradient(45% 55% at 22% 22%,rgba(255,255,255,.18),transparent 60%),radial-gradient(40% 50% at 85% 75%,rgba(255,255,255,.12),transparent 62%)}
+.mps-card>*{position:relative;z-index:1}
+.mps-tag{font-family:var(--mono,monospace);font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.1em;opacity:.85;margin-bottom:8px}
+.mps-t{font-size:calc(21px*var(--fz));font-weight:900;letter-spacing:-.01em;line-height:1.15}
+.mps-s{font-size:calc(12px*var(--fz));line-height:1.5;opacity:.95;margin-top:7px}
+.mps-dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:6px;z-index:2}
+.mps-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.mps-dots i.on{width:20px;border-radius:4px;background:#fff}
+@media(prefers-reduced-motion:reduce){.mps-track{transition:none}}
+/* editor poster di modul Parameter */
+.pm-posts{display:flex;flex-direction:column;gap:10px}
+.pm-post{border:1px solid var(--line);border-radius:12px;padding:11px;background:#fbfcfe;display:flex;flex-direction:column;gap:7px}
+.pm-post-h{display:flex;align-items:center;gap:8px}
+.pm-post-h b{font-size:calc(12.5px*var(--fz));color:var(--ink)}
+.pm-post-h .pm-rep-x{margin-left:auto}
+.pm-post-badge{font-size:calc(9px*var(--fz));font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:99px;background:#eef1f5;color:#8a9bb0}
+.pm-post-badge.img{background:#e3f3ec;color:#12805c}
+.pm-post-i,.pm-post-t{border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));color:var(--ink);background:#fff;min-width:0}
+.pm-post-t{resize:vertical}
+.pm-post-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+@media(max-width:560px){.pm-post-row{grid-template-columns:1fr}}
 /* panel Cloud & Backup */
 .cl-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:calc(12.5px*var(--fz));color:var(--ink)}
 .cl-row b{font-weight:800;color:#0a4bb8;text-align:right}
@@ -3068,6 +3071,7 @@ function go(id){
   active=(id==="ersus")?"energy":id; navSetActive();
   try{ mBackSync(id); }catch(e){}
   try{ mBotActive(id); }catch(e){}
+  if(id!=="discover"){ try{ clearInterval(mpsTimer); }catch(e){} }
   ["page-mhome","page-notif","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   document.body.classList.toggle("on-mhome", id==="mhome");
@@ -6711,21 +6715,46 @@ function mDiscoverRooms(){
    Disarikan dari company profile: RS jantung & pembuluh darah, kini bagian Astra
    (ASII akuisisi 95,8% via Astra Sehat Nusantara, Rp 643 M, Okt 2024). Nilai
    H.E.A.R.T · 7 pusat unggulan · teknologi kardiovaskular kelas dunia · Jakarta pusat. */
-function mHealthPosterHTML(){
- var facts=[["7","Pusat Unggulan Jantung"],["512","Slices CT · 4D Echo · PFA"],["95,8%","diakuisisi Astra · 2024"]];
- var val=["Honesty","Excellence","Attentiveness","Relentless","Teamwork"];
- return '<div class="mhp">'+
-   '<div class="mhp-glow"></div>'+
-   '<div class="mhp-top"><span class="mhp-astra">◆ ASTRA HEALTHCARE</span><span class="mhp-tag">PROMOSI</span></div>'+
-   '<svg class="mhp-ecg" viewBox="0 0 320 40" preserveAspectRatio="none"><path d="M0,21 L150,21 L160,21 L168,7 L176,35 L184,15 L192,21 L320,21"/></svg>'+
-   '<div class="mhp-brand"><span class="mhp-heart">❤</span><div><div class="mhp-title">Heartology</div>'+
-     '<div class="mhp-sub">Cardiovascular Hospital</div></div></div>'+
-   '<div class="mhp-lead">Pusat jantung &amp; pembuluh darah kelas dunia di jantung Jakarta — <b>kini bagian dari Astra</b>. Diagnostik, intervensi, bedah &amp; aritmia dalam satu atap.</div>'+
-   '<div class="mhp-facts">'+facts.map(function(f){ return '<div class="mhp-fact"><b>'+f[0]+'</b><span>'+f[1]+'</span></div>'; }).join("")+'</div>'+
-   '<div class="mhp-vlab">Nilai kami — <b>H.E.A.R.T</b></div>'+
-   '<div class="mhp-values">'+val.map(function(v){ return '<span>'+v+'</span>'; }).join("")+'</div>'+
-   '<div class="mhp-cta">Rujukan jantung terpercaya untuk keluarga besar Astra · Thamrin–Sudirman–SCBD</div>'+
+/* ── Poster slot Discover — carousel auto-swipe 5 dtk + gesture geser ──
+   Isi dari GA_PARAM.poster (maks 5). Tiap poster: GAMBAR (img) atau kartu desain. */
+function mPosterCard(p){
+ if(p.img){ var u=String(p.img).replace(/["')]/g,"");
+   return '<div class="mps-img" style="background-image:url(\''+u+'\')">'+
+     ((p.judul||p.sub)?'<div class="mps-cap">'+(p.judul?'<b>'+esc(p.judul)+'</b>':'')+(p.sub?'<span>'+esc(p.sub)+'</span>':'')+'</div>':'')+'</div>';
+ }
+ return '<div class="mps-card" style="background:'+(p.grad||'linear-gradient(135deg,#0b2447,#123b73)')+'">'+
+   '<div class="mps-glow"></div>'+
+   (p.tag?'<div class="mps-tag">◆ '+esc(p.tag)+'</div>':'')+
+   '<div class="mps-t">'+esc(p.judul||"")+'</div>'+
+   (p.sub?'<div class="mps-s">'+esc(p.sub)+'</div>':'')+
  '</div>';
+}
+function mPosterSlotHTML(){
+ var arr=(GA_PARAM.poster||[]).slice(0,5);
+ if(!arr.length)return "";
+ return '<div class="mps" id="mpsWrap"><div class="mps-track" id="mpsTrack">'+
+   arr.map(function(p){ return '<div class="mps-slide">'+mPosterCard(p)+'</div>'; }).join("")+'</div>'+
+   (arr.length>1?'<div class="mps-dots">'+arr.map(function(_,i){ return '<i class="'+(i===0?'on':'')+'" onclick="mpsGo('+i+',true)"></i>'; }).join("")+'</div>':'')+
+ '</div>';
+}
+var mpsTimer=null, mpsIdx=0;
+function mpsGo(i,manual){
+ var track=document.getElementById("mpsTrack"); if(!track)return; var n=track.children.length; if(!n)return;
+ mpsIdx=((i%n)+n)%n;
+ track.style.transform="translateX(-"+(mpsIdx*100)+"%)";
+ var dots=document.querySelectorAll("#mpsWrap .mps-dots i"); for(var j=0;j<dots.length;j++)dots[j].classList.toggle("on",j===mpsIdx);
+ if(manual)mpsRestart();
+}
+function mpsRestart(){ clearInterval(mpsTimer); var t=document.getElementById("mpsTrack");
+ if(t&&t.children.length>1) mpsTimer=setInterval(function(){ mpsGo(mpsIdx+1); },5000); }
+function mPosterInit(){
+ clearInterval(mpsTimer); mpsIdx=0;
+ var wrap=document.getElementById("mpsWrap"); if(!wrap)return;
+ mpsGo(0); mpsRestart();
+ var x0=null;
+ wrap.addEventListener("touchstart",function(e){ x0=e.touches[0].clientX; clearInterval(mpsTimer); },{passive:true});
+ wrap.addEventListener("touchend",function(e){ if(x0==null)return; var dx=e.changedTouches[0].clientX-x0;
+   if(Math.abs(dx)>40) mpsGo(mpsIdx+(dx<0?1:-1)); x0=null; mpsRestart(); },{passive:true});
 }
 function renderDiscover(){
  var el=document.getElementById("page-discover"); if(!el)return;
@@ -6735,8 +6764,7 @@ function renderDiscover(){
  el.innerHTML=
    '<div class="m-page-h"><div class="m-page-t">Discover GA <span class="m-new">NEW</span></div>'+
      '<div class="m-page-s">Kenali fasilitas & layanan General Affairs Astra</div></div>'+
-   mHealthPosterHTML()+
-   mBannerHTML()+
+   mPosterSlotHTML()+
    '<div class="mh-sec"><div class="mh-sh"><b>🏢 Fasilitas &amp; Ruang</b><span>'+rooms.length+' ruang unggulan</span></div>'+
      '<div class="mh-list">'+rooms.map(function(r){
        return '<div class="mh-row"><div class="mh-rj">'+esc(r.name)+'</div>'+
@@ -6759,6 +6787,7 @@ function renderDiscover(){
      '<div class="m-rules">'+M_HOUSERULES.map(function(t,i){
        return '<div class="m-rule"><span class="m-rule-n">'+(i+1)+'</span><span>'+esc(t)+'</span></div>';
      }).join("")+'</div></div>';
+ try{ mPosterInit(); }catch(e){}   // aktifkan auto-swipe poster
 }
 
 /* Titik geser generik untuk strip mendatar (banner & modul). */
@@ -9907,7 +9936,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-55";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-56";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10250,6 +10279,14 @@ const GA_PARAM_DEFAULT={
    {nama:"SCBD Sudirman", lat:-6.2246, lng:106.8095},
    {nama:"Bundaran HI", lat:-6.1946, lng:106.8230},
    {nama:"Stasiun MRT Sunter", lat:-6.1500, lng:106.8600}
+ ],
+ /* Poster slot Discover — maks 5, digeser otomatis tiap 5 dtk. Tiap poster boleh
+    berupa GAMBAR (img: URL/data URI, otomatis pas slot via object-fit) ATAU kartu
+    desain (judul+sub+gradient bila img kosong). Owner atur di modul Parameter. */
+ poster:[
+   {img:"", judul:"Heartology · Cardiovascular Hospital", sub:"Pusat jantung kelas dunia di jantung Jakarta — kini bagian Astra (95,8% · 2024). 7 Pusat Unggulan · nilai H.E.A.R.T.", grad:"linear-gradient(150deg,#7a0b1e 0%,#e11d48 100%)", tag:"ASTRA HEALTHCARE"},
+   {img:"", judul:"AstraPay — Nikmati Berbagai Promonya!", sub:"Cashback 9% untuk pulsa, voucher game, MRT, TransJakarta, Sayurbox & banyak lagi. Pengguna baru: voucher diskon hingga 90%.", grad:"linear-gradient(150deg,#0a3aa8 0%,#2563eb 100%)", tag:"ASTRAPAY"},
+   {img:"", judul:"Ayo Naik Transum Jakarta", sub:"Let's Move Together with Public Transportation. Perubahan dimulai dari kita — bergerak bersama untuk hari ini & masa depan Indonesia.", grad:"linear-gradient(150deg,#0f5a3a 0%,#1e88c8 100%)", tag:"SATU INDONESIA"}
  ]
 };
 var GA_PARAM=JSON.parse(JSON.stringify(GA_PARAM_DEFAULT));
@@ -10260,6 +10297,7 @@ function paramMerge(d){
  });
  if(Array.isArray(d.repair)) GA_PARAM.repair=d.repair.map(function(x){return {item:String(x.item||""),biaya:+x.biaya||0};});
  if(Array.isArray(d.lokasi)) GA_PARAM.lokasi=d.lokasi.map(function(x){return {nama:String(x.nama||""),lat:+x.lat||0,lng:+x.lng||0};});
+ if(Array.isArray(d.poster)) GA_PARAM.poster=d.poster.slice(0,5).map(function(x){return {img:String(x.img||""),judul:String(x.judul||""),sub:String(x.sub||""),grad:String(x.grad||""),tag:String(x.tag||"")};});
 }
 /* Jarak dua lokasi (km) — haversine × faktor jalan 1,3. null bila salah satu
    tak dikenal (pemanggil pakai jarak default). Ganti dgn data Blue Bird/GoCorp nanti. */
@@ -10428,6 +10466,20 @@ function paramRepairRows(){
      '<button class="pm-rep-x" onclick="GA_PARAM.repair.splice('+i+',1); renderParams()" title="Hapus">✕</button></div>';
  }).join("");
 }
+function paramPosterRows(){
+ return (GA_PARAM.poster||[]).map(function(p,i){
+   return '<div class="pm-post">'+
+     '<div class="pm-post-h"><b>Poster '+(i+1)+'</b>'+
+       (p.img?'<span class="pm-post-badge img">gambar</span>':'<span class="pm-post-badge">kartu desain</span>')+
+       '<button class="pm-rep-x" onclick="GA_PARAM.poster.splice('+i+',1); renderParams()" title="Hapus">✕</button></div>'+
+     '<input class="pm-post-i" value="'+esc(p.judul)+'" placeholder="Judul poster" oninput="GA_PARAM.poster['+i+'].judul=this.value">'+
+     '<textarea class="pm-post-t" rows="2" placeholder="Sub / keterangan" oninput="GA_PARAM.poster['+i+'].sub=this.value">'+esc(p.sub)+'</textarea>'+
+     '<input class="pm-post-i" value="'+esc(p.img)+'" placeholder="URL gambar (kosongkan → jadi kartu desain)" oninput="GA_PARAM.poster['+i+'].img=this.value; renderParams()">'+
+     '<div class="pm-post-row"><input class="pm-post-i" value="'+esc(p.tag||"")+'" placeholder="Tag kecil (mis. ASTRAPAY)" oninput="GA_PARAM.poster['+i+'].tag=this.value">'+
+       '<input class="pm-post-i" value="'+esc(p.grad||"")+'" placeholder="Gradient CSS (kartu)" oninput="GA_PARAM.poster['+i+'].grad=this.value"></div>'+
+   '</div>';
+ }).join("");
+}
 function paramLokasiRows(){
  return (GA_PARAM.lokasi||[]).map(function(r,i){
    return '<div class="pm-loc"><input class="pm-loc-n" value="'+esc(r.nama)+'" placeholder="Nama lokasi" '+
@@ -10497,6 +10549,13 @@ function renderParams(){
       '<div class="muted small">Koordinat (lat, lng) — dasar hitung jarak &amp; jejak karbon transport (haversine × 1,3). Nanti diganti data presisi Blue Bird/GoCorp.</div></div></div>'+
       '<div class="pm-reps">'+paramLokasiRows()+'</div>'+
       '<button class="btn-out" style="margin-top:8px" onclick="GA_PARAM.lokasi.push({nama:\'\',lat:0,lng:0}); renderParams()">＋ Tambah lokasi</button></div>'+
+    '<div class="card pm-card"><div class="pm-h"><span class="pm-ic">🖼️</span><div>'+
+      '<div class="panel-t" style="margin:0">Poster Slot Discover</div>'+
+      '<div class="muted small">Maks 5 poster · digeser otomatis tiap 5 detik di halaman Discover. Isi <b>URL gambar</b> (otomatis pas slot) atau kosongkan untuk kartu desain (judul + sub + gradient).</div></div></div>'+
+      '<div class="pm-posts">'+paramPosterRows()+'</div>'+
+      ((GA_PARAM.poster||[]).length<5
+        ?'<button class="btn-out" style="margin-top:8px" onclick="GA_PARAM.poster.push({img:\'\',judul:\'\',sub:\'\',grad:\'linear-gradient(135deg,#0b2447,#123b73)\',tag:\'\'}); renderParams()">＋ Tambah poster</button>'
+        :'<div class="muted small" style="margin-top:8px;color:#b45309">Maksimal 5 poster tercapai — hapus salah satu untuk menambah.</div>')+'</div>'+
   '</div><div class="pm-colR"><div class="card pm-preview-card"><div class="pm-h" style="border:none">'+
     '<span class="pm-ic">🧮</span><div><div class="panel-t" style="margin:0">Contoh Perhitungan — live</div>'+
     '<div class="muted small">berubah seketika saat Anda ubah koefisien</div></div></div>'+
