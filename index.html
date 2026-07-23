@@ -1926,6 +1926,22 @@ body.rg-open{overflow:hidden}
 .tr-est-v{font-weight:800;color:#0a7d5e}
 .tr-est.warn .tr-est-v{color:#8a5a00}
 .tr-est-s{font-size:calc(10.5px*var(--fz));color:var(--muted);margin-top:3px}
+/* Highlight OPEX — biaya sumber daya (CODEC & modul); pesan "gunakan bijak" */
+.opex-hl{display:flex;flex-wrap:wrap;align-items:center;gap:18px;color:#fff;border-radius:18px;padding:18px 22px;margin-bottom:16px;
+  background:linear-gradient(135deg,#0b2447 0%,#123b73 60%,#0f5a63 100%);box-shadow:0 10px 26px rgba(11,36,71,.22)}
+.opex-l{min-width:220px;flex:1 1 240px}
+.opex-cap{font-size:calc(10.5px*var(--fz));font-weight:800;letter-spacing:.09em;text-transform:uppercase;opacity:.62}
+.opex-v{font-size:calc(38px*var(--fz));font-weight:900;letter-spacing:-.02em;line-height:1.05;margin-top:3px}
+.opex-meta{font-size:calc(12px*var(--fz));opacity:.86;margin-top:6px;line-height:1.5}
+.opex-meta b{color:#ffd591}
+.opex-minis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex:1 1 430px;min-width:0}
+.opex-mini{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:9px 11px;min-width:0}
+.opex-mi{font-size:calc(18px*var(--fz));flex:0 0 auto}
+.opex-mt{min-width:0}
+.opex-mn{font-size:calc(15px*var(--fz));font-weight:800;line-height:1.1}
+.opex-ml{font-size:calc(10px*var(--fz));opacity:.72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:900px){.opex-minis{grid-template-columns:repeat(2,1fr);flex-basis:100%}}
+@media(max-width:560px){.opex-v{font-size:calc(30px*var(--fz))}.opex-minis{grid-template-columns:1fr 1fr}}
 /* panel Cloud & Backup */
 .cl-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:calc(12.5px*var(--fz));color:var(--ink)}
 .cl-row b{font-weight:800;color:#0a4bb8;text-align:right}
@@ -4522,6 +4538,7 @@ function renderOverview(){
 
   <div class="gd-sec" id="gd-kpi"><i></i>Performance Indikator</div>
   ${codecPerfIndicatorHTML()}
+  ${gaOpexHTML("all")}
   <div class="card mt16 gd-ratcard" onclick="go('service')" title="klik → buka modul Service">
     <div class="gd-ch"><span class="gd-chi">⭐</span><div><div class="gd-cht">Rating Pelayanan GA — ${codecMonthID()}</div><div class="gd-chs">rata-rata rating resolved ticket · sinkron dari modul Service · klik → buka Service</div></div><span class="gd-rgo">buka Service →</span></div>
     <div class="gd-rating">
@@ -6833,6 +6850,7 @@ function renderService(){
  }
  el.innerHTML=`
   ${gaServiceButtons()}
+  ${gaOpexHTML("all")}
   ${head}
   <div class="card svc-card">
     ${sup?'':'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Tiket Saya <span style="font-weight:400;color:var(--muted)">— hanya tiket yang Anda buat · status &amp; perjalanan terupdate realtime</span></div></div>'}
@@ -7382,6 +7400,7 @@ function renderTransport(){
  el.innerHTML=`
   <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="go('service')">← Back to Service</button>
     <button class="btn-out" style="margin-left:auto" onclick="exportLog('transport')" title="Unduh log transport (CSV/Excel)">⬇ CSV</button></div>
+  ${gaOpexHTML("transport")}
   <div class="ga-svc-bar" style="grid-template-columns:repeat(3,1fr)">
     <button class="ga-svc-btn" onclick="openTransport('pool')"><span class="ga-svc-ic" style="background:#eef4ff;color:#2563eb">🚗</span><span class="ga-svc-tx"><b>Kendaraan Pool</b><small>Pesan mobil pool GA</small></span></button>
     <button class="ga-svc-btn" onclick="openTransport('bluebird')"><span class="ga-svc-ic" style="background:#eaf3ff;color:#1e63c8">🚕</span><span class="ga-svc-tx"><b>Voucher Blue Bird</b><small>Taksi Blue Bird</small></span></button>
@@ -9820,7 +9839,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-52";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-53";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10246,6 +10265,40 @@ function gaActivityCost(o){
    if(/panas|suhu|\bac\b|dingin|gerah|pendingin/.test(txt)) return costTiketPanas();
    return {rp:GA_PARAM.tenaga.manpowerLembur, co2:0, rinci:"penanganan lapangan ±1 jam"}; }
  return {rp:0,co2:0,rinci:""};
+}
+/* ── Agregat biaya sumber daya organisasi (untuk Highlight OPEX di CODEC & modul) ── */
+function gaCostScope(kind){
+ var rp=0,co2=0,n=0; function add(c){ rp+=c.rp||0; co2+=c.co2||0; n++; }
+ if(kind==="complaint") (typeof TICKETS!=="undefined"?TICKETS:[]).forEach(function(t){ add(gaActivityCost({kind:"complaint",ref:t})); });
+ else if(kind==="room") (typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){ add(gaActivityCost({kind:"room",ref:b})); });
+ else if(kind==="transport") (typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(x){ add(gaActivityCost({kind:"transport",ref:x})); });
+ else if(kind==="overtime") (typeof OVERTIME_REQ!=="undefined"?OVERTIME_REQ:[]).forEach(function(o){ add(gaActivityCost({kind:"overtime",ref:o})); });
+ return {rp:rp, co2:+co2.toFixed(1), n:n};
+}
+function gaCostAll(){
+ var by={complaint:gaCostScope("complaint"),room:gaCostScope("room"),transport:gaCostScope("transport"),overtime:gaCostScope("overtime")};
+ return {rp:by.complaint.rp+by.room.rp+by.transport.rp+by.overtime.rp,
+   co2:+(by.complaint.co2+by.room.co2+by.transport.co2+by.overtime.co2).toFixed(1),
+   n:by.complaint.n+by.room.n+by.transport.n+by.overtime.n, by:by};
+}
+/* Box Highlight OPEX — reusable. scope: "all" (CODEC) atau satu jenis (per modul).
+   Pesan tetap: layanan baik ada biayanya → gunakan fasilitas & privilege dgn bijak. */
+const GA_KLBL={complaint:"Layanan",room:"Ruang & Event",transport:"Transport",overtime:"Overtime"};
+const GA_KIC={complaint:"🎧",room:"🏢",transport:"🚗",overtime:"⏱️"};
+function gaOpexHTML(scope){
+ var per=(typeof codecMonthID==="function")?(" · "+codecMonthID()):"";
+ var c, minis=[];
+ if(scope==="all"){ var a=gaCostAll(); c={rp:a.rp,co2:a.co2,n:a.n};
+   minis=Object.keys(a.by).map(function(k){ return {ic:GA_KIC[k],lbl:GA_KLBL[k],rp:a.by[k].rp,n:a.by[k].n}; }); }
+ else { c=gaCostScope(scope); }
+ return '<div class="opex-hl">'+
+   '<div class="opex-l"><div class="opex-cap">Biaya Sumber Daya '+(scope==="all"?"Operasi GA":esc(GA_KLBL[scope]||scope))+per+'</div>'+
+     '<div class="opex-v">'+costRp(c.rp)+'</div>'+
+     '<div class="opex-meta">'+c.co2+' kg CO₂ · '+c.n+' aktivitas · <b>gunakan fasilitas &amp; privilege dengan bijak</b></div></div>'+
+   (minis.length?'<div class="opex-minis">'+minis.map(function(m){
+     return '<div class="opex-mini"><span class="opex-mi">'+m.ic+'</span><div class="opex-mt"><div class="opex-mn">'+costRp(m.rp)+'</div><div class="opex-ml">'+esc(m.lbl)+' · '+m.n+'</div></div></div>';
+   }).join("")+'</div>':'')+
+ '</div>';
 }
 /* Agregat jejak biaya pesanan milik user sendiri + potensi terbuang organisasi (super). */
 function mJejakBiaya(){
