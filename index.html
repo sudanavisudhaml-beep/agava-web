@@ -1641,6 +1641,9 @@ body.rg-open{overflow:hidden}
   html body{background:var(--m-bg)}
   /* sidebar & hamburger DIHILANGKAN di HP — navigasi lewat ikon modul + bottom bar */
   .side,#mobBackdrop,.mob-menu{display:none!important}
+  /* tombol "← Back to X" dalam halaman hanya utk DESKTOP; di HP navigasi back
+     lewat chevron top bar (mStack → menu sebelumnya), jadi disembunyikan. */
+  .pg-back{display:none!important}
   body.side-open .side{transform:translateX(-100%)}
   .main{margin-left:0}
   /* ── TOP BAR ──
@@ -1944,13 +1947,14 @@ body.rg-open{overflow:hidden}
 @media(max-width:560px){.opex-v{font-size:calc(30px*var(--fz))}.opex-minis{grid-template-columns:1fr 1fr}}
 /* Poster slot Discover — carousel auto-swipe */
 .mps{position:relative;margin-bottom:18px;overflow:hidden;border-radius:20px}
-.mps-track{display:flex;transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform}
-.mps-slide{flex:0 0 100%;min-width:0}
-.mps-img{position:relative;width:100%;aspect-ratio:16/10;background-size:cover;background-position:center;background-repeat:no-repeat;border-radius:20px}
+.mps-track{display:flex;align-items:stretch;transition:transform .5s cubic-bezier(.2,.8,.2,1);will-change:transform}
+/* slot 20% lebih besar & seragam — rasio 4:5, muat poster potret & lanskap */
+.mps-slide{flex:0 0 100%;min-width:0;aspect-ratio:4/5}
+.mps-img{position:relative;width:100%;height:100%;background-size:contain;background-position:center;background-repeat:no-repeat;border-radius:20px}
 .mps-cap{position:absolute;left:0;right:0;bottom:0;padding:28px 16px 14px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.74))}
 .mps-cap b{display:block;font-size:calc(15px*var(--fz));font-weight:800;line-height:1.25}
 .mps-cap span{display:block;font-size:calc(11.5px*var(--fz));opacity:.9;margin-top:3px;line-height:1.4}
-.mps-card{position:relative;overflow:hidden;min-height:190px;padding:18px 18px 22px;color:#fff;border-radius:20px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 12px 30px rgba(11,36,71,.22)}
+.mps-card{position:relative;overflow:hidden;width:100%;height:100%;padding:20px 20px 30px;color:#fff;border-radius:20px;display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 12px 30px rgba(11,36,71,.22)}
 .mps-glow{position:absolute;inset:-40% -20% auto;height:170%;pointer-events:none;background:radial-gradient(45% 55% at 22% 22%,rgba(255,255,255,.18),transparent 60%),radial-gradient(40% 50% at 85% 75%,rgba(255,255,255,.12),transparent 62%)}
 .mps-card>*{position:relative;z-index:1}
 .mps-tag{font-family:var(--mono,monospace);font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.1em;opacity:.85;margin-bottom:8px}
@@ -3078,7 +3082,7 @@ function go(id){
   if(id==="mhome"){renderMobileHome();document.getElementById("page-mhome").classList.remove("hide");t.textContent="AGAVA";s.textContent="Beranda";mTopSync();}
   else if(id==="notif"){renderNotif();document.getElementById("page-notif").classList.remove("hide");t.textContent="Notifikasi";s.textContent="Pemberitahuan & tindakan menunggu";}
   else if(id==="layanan"){renderLayanan();document.getElementById("page-layanan").classList.remove("hide");t.textContent="Layanan GA";s.textContent="Semua layanan General Affairs";}
-  else if(id==="discover"){renderDiscover();document.getElementById("page-discover").classList.remove("hide");t.textContent="Discover GA";s.textContent="Fasilitas & informasi layanan GA";}
+  else if(id==="discover"){renderDiscover();document.getElementById("page-discover").classList.remove("hide");t.textContent="Discover";s.textContent="Kenali Kami Lebih Dekat";}
   else if(id==="overtime"){active="service";navSetActive();renderOvertime();document.getElementById("page-overtime").classList.remove("hide");t.textContent="Overtime";s.textContent="Perpanjangan AC & manpower lembur";}
   else if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="procurement"){procFilter="all";renderProc();document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
@@ -5653,7 +5657,7 @@ function renderErsus(){
  const need=ERSUS_ALERTS.filter(a=>a.sev!=='info').length;
  const el=document.getElementById("page-ersus");
  el.innerHTML=`
-  <div style="margin-bottom:16px"><button class="btn-out" onclick="go('energy')">← Back to Energy</button></div>
+  <div class="pg-back" style="margin-bottom:16px"><button class="btn-out" onclick="go('energy')">← Back to Energy</button></div>
   <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
     <div class="card kpi red"><div class="l">Needs action</div><div class="v">${need}</div></div>
     <div class="card kpi amber"><div class="l">Active anomalies</div><div class="v">3</div></div>
@@ -6718,8 +6722,8 @@ function mDiscoverRooms(){
 /* ── Poster slot Discover — carousel auto-swipe 5 dtk + gesture geser ──
    Isi dari GA_PARAM.poster (maks 5). Tiap poster: GAMBAR (img) atau kartu desain. */
 function mPosterCard(p){
- if(p.img){ var u=String(p.img).replace(/["')]/g,"");
-   return '<div class="mps-img" style="background-image:url(\''+u+'\')">'+
+ if(p.img){ var u=String(p.img).replace(/["')]/g,""); var bg=/^#?[0-9a-fA-F]{3,8}$/.test(String(p.grad||""))?p.grad:"#0b1220";
+   return '<div class="mps-img" style="background-image:url(\''+u+'\');background-color:'+bg+'">'+
      ((p.judul||p.sub)?'<div class="mps-cap">'+(p.judul?'<b>'+esc(p.judul)+'</b>':'')+(p.sub?'<span>'+esc(p.sub)+'</span>':'')+'</div>':'')+'</div>';
  }
  return '<div class="mps-card" style="background:'+(p.grad||'linear-gradient(135deg,#0b2447,#123b73)')+'">'+
@@ -6763,7 +6767,7 @@ function renderDiscover(){
    .sort(function(a,b){ return (a.s||"").localeCompare(b.s||""); }).slice(0,4);
  el.innerHTML=
    '<div class="m-page-h"><div class="m-page-t">Discover GA <span class="m-new">NEW</span></div>'+
-     '<div class="m-page-s">Kenali fasilitas & layanan General Affairs Astra</div></div>'+
+     '<div class="m-page-s">Kenali Kami Lebih Dekat</div></div>'+
    mPosterSlotHTML()+
    '<div class="mh-sec"><div class="mh-sh"><b>🏢 Fasilitas &amp; Ruang</b><span>'+rooms.length+' ruang unggulan</span></div>'+
      '<div class="mh-list">'+rooms.map(function(r){
@@ -7164,7 +7168,7 @@ function roomEventCard(){
 function renderCreateTicket(){
  const cats=KATEGORI8;
  document.getElementById("page-createticket").innerHTML=`
-  <div style="margin-bottom:16px"><button class="btn-out" onclick="go('service')">← Back to Service</button></div>
+  <div class="pg-back" style="margin-bottom:16px"><button class="btn-out" onclick="go('service')">← Back to Service</button></div>
   <div class="card pad" style="max-width:660px">
     <div class="panel-t" style="font-size:calc(15px*var(--fz))">New Service Ticket</div>
     <div class="vp-note">Fill the details below. After submit, the ticket is listed in the Service module.</div>
@@ -7363,7 +7367,7 @@ function renderRoomBook(){
  const img=RB_FLOORPLAN[key];
  const rooms=rbLayout(raw);
  el.innerHTML=`
-  <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="go('service')">← Back to Service</button>
+  <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out pg-back" onclick="go('service')">← Back to Service</button>
     <button class="btn-out" style="margin-left:auto" onclick="exportLog('room')" title="Unduh log reservasi ruang (CSV/Excel)">⬇ CSV</button></div>
   <div class="card pad" style="margin-bottom:16px">
     <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
@@ -7495,7 +7499,7 @@ function renderTransport(){
  const me=gUser?gUser.name:"", seeAll=transportSeeAll(), canAct=isPicTransport()||gRole==="admin";
  const list=seeAll?TRANSPORT_REQ:TRANSPORT_REQ.filter(r=>r.by===me);
  el.innerHTML=`
-  <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="go('service')">← Back to Service</button>
+  <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out pg-back" onclick="go('service')">← Back to Service</button>
     <button class="btn-out" style="margin-left:auto" onclick="exportLog('transport')" title="Unduh log transport (CSV/Excel)">⬇ CSV</button></div>
   ${gaOpexHTML("transport")}
   <div class="ga-svc-bar" style="grid-template-columns:repeat(3,1fr)">
@@ -7781,7 +7785,7 @@ function addSOItem(){ document.getElementById('so-items').insertAdjacentHTML('be
 function renderCreateSO(){
  const who=gUser?gUser.name:"—";
  document.getElementById("page-createso").innerHTML=`
-  <div style="margin-bottom:16px"><button class="btn-out" onclick="go('procurement')">← Back to Procurement</button></div>
+  <div class="pg-back" style="margin-bottom:16px"><button class="btn-out" onclick="go('procurement')">← Back to Procurement</button></div>
   <div class="card pad" style="max-width:680px">
     <div class="panel-t" style="font-size:calc(15px*var(--fz))">New Supply Order</div>
     <div class="vp-note">After submit, the SO is routed to <b>PIC Budget</b> → PIC Procurement → Dept Head for approval.</div>
@@ -9023,7 +9027,7 @@ function renderSLAPage(){
    return head+items;
  }).join("");
  el.innerHTML=`
-  <div style="margin-bottom:14px"><button class="btn-out" onclick="go('vendor')">← Back to Vendor Management</button></div>
+  <div class="pg-back" style="margin-bottom:14px"><button class="btn-out" onclick="go('vendor')">← Back to Vendor Management</button></div>
   <div class="card pad" style="margin-bottom:16px">
     <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;align-items:flex-start">
       <div><div class="panel-t" style="font-size:calc(15px*var(--fz));margin:0">LEMBAR EVALUASI VENDOR — ${c.vendor}</div>
@@ -9936,7 +9940,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-56";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-57";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10285,9 +10289,10 @@ const GA_PARAM_DEFAULT={
     desain (judul+sub+gradient bila img kosong). Owner atur di modul Parameter. */
  poster:[
    {img:"", judul:"Heartology · Cardiovascular Hospital", sub:"Pusat jantung kelas dunia di jantung Jakarta — kini bagian Astra (95,8% · 2024). 7 Pusat Unggulan · nilai H.E.A.R.T.", grad:"linear-gradient(150deg,#7a0b1e 0%,#e11d48 100%)", tag:"ASTRA HEALTHCARE"},
-   {img:"", judul:"AstraPay — Nikmati Berbagai Promonya!", sub:"Cashback 9% untuk pulsa, voucher game, MRT, TransJakarta, Sayurbox & banyak lagi. Pengguna baru: voucher diskon hingga 90%.", grad:"linear-gradient(150deg,#0a3aa8 0%,#2563eb 100%)", tag:"ASTRAPAY"},
-   {img:"", judul:"Ayo Naik Transum Jakarta", sub:"Let's Move Together with Public Transportation. Perubahan dimulai dari kita — bergerak bersama untuk hari ini & masa depan Indonesia.", grad:"linear-gradient(150deg,#0f5a3a 0%,#1e88c8 100%)", tag:"SATU INDONESIA"}
- ]
+   {img:"posters/astrapay.jpg", judul:"", sub:"", grad:"#032A6B", tag:""},
+   {img:"posters/transum.jpg", judul:"", sub:"", grad:"#43B8EE", tag:""}
+ ],
+ posterV:2   /* versi seed poster — dinaikkan saat mengirim poster default baru; migrasi otomatis lewat paramMerge */
 };
 var GA_PARAM=JSON.parse(JSON.stringify(GA_PARAM_DEFAULT));
 function paramMerge(d){
@@ -10297,7 +10302,13 @@ function paramMerge(d){
  });
  if(Array.isArray(d.repair)) GA_PARAM.repair=d.repair.map(function(x){return {item:String(x.item||""),biaya:+x.biaya||0};});
  if(Array.isArray(d.lokasi)) GA_PARAM.lokasi=d.lokasi.map(function(x){return {nama:String(x.nama||""),lat:+x.lat||0,lng:+x.lng||0};});
- if(Array.isArray(d.poster)) GA_PARAM.poster=d.poster.slice(0,5).map(function(x){return {img:String(x.img||""),judul:String(x.judul||""),sub:String(x.sub||""),grad:String(x.grad||""),tag:String(x.tag||"")};});
+ /* Poster: hormati data tersimpan HANYA bila versinya >= seed saat ini.
+    Data lama (tanpa posterV / lebih rendah) diabaikan → seed poster baru dipakai,
+    lalu edit owner berikutnya tersimpan dgn posterV terkini sehingga bertahan. */
+ if(Array.isArray(d.poster) && (+d.posterV||0) >= (+GA_PARAM_DEFAULT.posterV||0)){
+   GA_PARAM.poster=d.poster.slice(0,5).map(function(x){return {img:String(x.img||""),judul:String(x.judul||""),sub:String(x.sub||""),grad:String(x.grad||""),tag:String(x.tag||"")};});
+   GA_PARAM.posterV=+d.posterV||0;
+ }
 }
 /* Jarak dua lokasi (km) — haversine × faktor jalan 1,3. null bila salah satu
    tak dikenal (pemanggil pakai jarak default). Ganti dgn data Blue Bird/GoCorp nanti. */
