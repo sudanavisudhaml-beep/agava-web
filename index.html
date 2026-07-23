@@ -1994,6 +1994,12 @@ body.rg-open{overflow:hidden}
 .ee-lb{font-size:calc(11px*var(--fz));font-weight:700;color:var(--ink)}
 .ee-row input{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;padding:6px;font-family:var(--ff);font-size:calc(11.5px*var(--fz));color:var(--ink);text-align:right;background:#fff}
 .ee-note{font-size:calc(10.5px*var(--fz));color:#8a9bb0;margin-top:8px;line-height:1.5}
+/* baris hitung otomatis (ΣYTD, Δ, %YTD) — cara Sudana */
+.ee-calc{background:#eef2f8;border-radius:8px;margin-top:2px}
+.ee-calc span:not(.ee-lb){display:flex;align-items:center;justify-content:flex-end;font-size:calc(10.5px*var(--fz));color:#5b6b80;padding:5px 7px;font-variant-numeric:tabular-nums}
+.ee-calc .ee-lb{color:#64748b;font-weight:800;font-size:calc(9.5px*var(--fz));text-transform:uppercase;letter-spacing:.03em}
+.ee-delta span:not(.ee-lb){color:#0f6e56;font-weight:700}
+.ee-pct span:not(.ee-lb){font-weight:800;color:#b45309}
 .lb-hero-s{font-size:calc(12.5px*var(--fz));color:var(--muted);line-height:1.55;margin-top:6px;max-width:820px}
 .lb-flow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px}
 .lb-flow-s{font-size:calc(11px*var(--fz));font-weight:700;color:#5b6b80;background:#eef2f8;border:1px solid var(--line);border-radius:99px;padding:6px 12px}
@@ -5644,6 +5650,19 @@ function eNum(a){ return (a||[]).filter(function(v){return v!=null&&!isNaN(v);})
 function eSum(a){ return eNum(a).reduce(function(x,y){return x+y;},0); }
 function eAvgG(a){ var n=eNum(a); return n.length?eSum(n)/n.length:0; }
 function eLastI(a){ for(var i=(a||[]).length-1;i>=0;i--){ if(a[i]!=null&&!isNaN(a[i]))return i; } return 0; }
+/* Pencapaian YTD (cara Sudana): jumlahkan bulan yang terisi (2026 & 2019),
+   lalu %YTD = (ΣYTD2026 − ΣYTD2019) / ΣYTD2019 × 100 (negatif = di bawah baseline).
+   Kembalikan juga deret kumulatif per bulan utk ditampilkan di form edit. */
+function eYtd(a26,a19){
+ var s26=0,s19=0, cum26=[],cum19=[],delta=[],pctm=[];
+ for(var i=0;i<Math.max(a26.length,a19.length);i++){
+   var v26=a26[i], v19=a19[i];
+   if(v26!=null&&!isNaN(v26)&&v19!=null&&!isNaN(v19)){ s26+=v26; s19+=v19; }
+   cum26.push(s26); cum19.push(s19);
+   var d=s26-s19; delta.push(d); pctm.push(s19? Math.round(d/s19*1000)/10 : null);
+ }
+ return { s26:s26, s19:s19, pct: s19? Math.round((s26-s19)/s19*1000)/10 : 0, cum26:cum26, cum19:cum19, delta:delta, pctm:pctm };
+}
 function fmtN(n){return Math.round(n).toLocaleString('id-ID');}
 function ekv(k,v,c){return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:calc(12.5px*var(--fz))"><span class="muted">${k}</span><b style="color:${c||'var(--ink)'}">${v}</b></div>`;}
 /* Line chart null-safe: titik hanya digambar utk bulan yang SUDAH diisi; garis
@@ -5696,33 +5715,44 @@ function energyToJul(){
  var L=ENERGY_MONTHS.length;
  [GRK_2019,GRK_2026,WATER_INT_2019,WATER_INT_2026,REM_PCT,REM_KWH,WASTE_OK,WASTE_NO].forEach(function(A){ while(A.length<L) A.push(null); });
 }
-function eEditGrid(defs){
+function eEditGrid(defs, ytdPair){
  var head='<div class="ee-row ee-head"><span class="ee-lb"></span>'+ENERGY_MONTHS.map(function(m){return '<span>'+m+'</span>';}).join('')+'</div>';
  var rows=defs.map(function(d){ var A=eArr(d.name);
    return '<div class="ee-row"><span class="ee-lb">'+esc(d.label)+'</span>'+ENERGY_MONTHS.map(function(m,i){
      return '<input type="number" step="'+(d.step||1)+'" value="'+(A[i]==null?'':A[i])+'" placeholder="–" onchange="eSetVal(\''+d.name+'\','+i+',this.value)">';
    }).join('')+'</div>';
  }).join('');
- return '<div class="ee">'+head+rows+'<div class="ee-note">Isi angka per bulan (Jun/Jul dst boleh kosong) — grafik line ter-<b>generate otomatis</b> saat Anda isi. Sementara, sampai integrasi ERSUS.</div></div>';
+ /* Baris hitung otomatis (cara Sudana): ΣYTD 2019, ΣYTD 2026, Δ, %YTD — kumulatif per bulan. */
+ var ytd='';
+ if(ytdPair){
+   var Y=eYtd(eArr(ytdPair.a), eArr(ytdPair.b));
+   var big=Math.abs(Y.s26)>=100;
+   var fv=big?function(v){return fmtN(v);}:function(v){return (Math.round(v*100)/100).toString().replace('.',',');};
+   function crow(lbl,arr,fmt,cls){ return '<div class="ee-row ee-calc"><span class="ee-lb">'+lbl+'</span>'+ENERGY_MONTHS.map(function(m,i){ return '<span class="'+(cls||'')+'">'+(arr[i]==null?'–':fmt(arr[i]))+'</span>'; }).join('')+'</div>'; }
+   ytd = crow('ΣYTD 2019',Y.cum19,fv) + crow('ΣYTD 2026',Y.cum26,fv) + crow('Δ (2026−2019)',Y.delta,fv,'ee-delta')
+       + crow('% YTD',Y.pctm,function(v){return (v>0?'+':'')+v+'%';},'ee-pct');
+ }
+ return '<div class="ee">'+head+rows+ytd+'<div class="ee-note">Isi angka per bulan (Jun/Jul dst boleh kosong) — grafik line & <b>%YTD ter-generate otomatis</b>. %YTD = (ΣYTD2026 − ΣYTD2019) ÷ ΣYTD2019. Sementara, sampai integrasi ERSUS.</div></div>';
 }
 function eBtn(k){ return isOwner()?'<button class="btn-out ee-btn" onclick="eEditToggle(\''+k+'\')">'+(energyEdit[k]?'✓ Selesai':'✎ Edit data')+'</button>':''; }
 function energySections(){
- const gRed=Math.round((1-eAvgG(GRK_2026)/eAvgG(GRK_2019))*100), gli=eLastI(GRK_2026);
- const wRed=Math.round((1-eAvgG(WATER_INT_2026)/eAvgG(WATER_INT_2019))*100), wli=eLastI(WATER_INT_2026);
+ const gY=eYtd(GRK_2026,GRK_2019), gPct=Math.round(gY.pct), gMet=gY.pct<=-15, gli=eLastI(GRK_2026);
+ const wY=eYtd(WATER_INT_2026,WATER_INT_2019), wPctY=Math.round(wY.pct), wMet=wY.pct<=-13, wli=eLastI(WATER_INT_2026);
+ const sgn=n=>(n>0?'+':'')+n+'%';
  const rAvg=Math.round(eAvgG(REM_PCT)*10)/10, rli=eLastI(REM_PCT), rTarget=ENERGY_MONTHS.map(function(){return 8;});
  const wo=eSum(WASTE_OK), wa=eSum(WASTE_OK)+eSum(WASTE_NO), wPct=wa?(wo/wa*100).toFixed(1):"0", sli=eLastI(WASTE_OK);
  const d2=n=>(n||0).toFixed(2).replace(".",",");
  return `
- <div class="card sec"><div class="sec-h">${secIc('#e9f8ef','#15a34a','energy')}<div><h2>⚡ GRK — Konsumsi Listrik (kWh)</h2><div class="d">Listrik 2026 vs baseline 2019 · target turun 15%</div></div><div class="es-hr"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#15a34a;line-height:1">−${gRed}%</div><span class="badge ${gRed>=15?'bd-ok':'bd-warn'}" style="font-size:calc(10px*var(--fz))">${gRed>=15?'di atas target':'di bawah target'}</span></div>${eBtn('grk')}</div>
-   <div class="sec-body">${energyEdit.grk?eEditGrid([{name:'GRK_2026',label:'Listrik 2026',step:1000},{name:'GRK_2019',label:'Baseline 2019',step:1000}]):''}<div class="two">
+ <div class="card sec"><div class="sec-h">${secIc('#e9f8ef','#15a34a','energy')}<div><h2>⚡ GRK — Konsumsi Listrik (kWh)</h2><div class="d">Listrik 2026 vs baseline 2019 · target turun 15% · <b>%YTD</b></div></div><div class="es-hr"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:${gMet?'#15a34a':'#c2740a'};line-height:1">${sgn(gPct)}</div><span class="badge ${gMet?'bd-ok':'bd-warn'}" style="font-size:calc(10px*var(--fz))">${gMet?'di atas target':'di bawah target'}</span></div>${eBtn('grk')}</div>
+   <div class="sec-body">${energyEdit.grk?eEditGrid([{name:'GRK_2026',label:'Listrik 2026',step:1000},{name:'GRK_2019',label:'Baseline 2019',step:1000}],{a:'GRK_2026',b:'GRK_2019'}):''}<div class="two">
      <div>${dualLineChart(GRK_2026,GRK_2019,"#15a34a","grk")}<div style="display:flex;gap:14px;font-size:calc(10.5px*var(--fz));color:#9aa7b8"><span style="color:#15a34a">▬ Listrik 2026</span><span>- - Baseline 2019</span></div></div>
-     <div>${ekv("Listrik "+ENERGY_MONTHS[gli]+" 2026",fmtN(GRK_2026[gli]||0)+" kWh")}${ekv("Baseline "+ENERGY_MONTHS[gli]+" 2019",fmtN(GRK_2019[gli]||0)+" kWh")}${ekv("Rata-rata 2026",fmtN(eAvgG(GRK_2026))+" kWh")}${ekv("Penurunan rata-rata","−"+gRed+"%","#15a34a")}${ekv("Target 2026","−15%")}</div>
+     <div>${ekv("ΣYTD 2026 s.d "+ENERGY_MONTHS[gli],fmtN(gY.s26)+" kWh")}${ekv("ΣYTD 2019 (baseline)",fmtN(gY.s19)+" kWh")}${ekv("Δ YTD",fmtN(gY.s26-gY.s19)+" kWh",gMet?'#15a34a':'#c2740a')}${ekv("% YTD",sgn(gPct),gMet?'#15a34a':'#c2740a')}${ekv("Target 2026","−15%")}</div>
    </div></div>
  </div>
- <div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','energy')}<div><h2>💧 Water — Intensitas (m³/penghuni)</h2><div class="d">Intensitas 2026 vs 2019 · target turun 13%</div></div><div class="es-hr"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#2563eb;line-height:1">−${wRed}%</div><span class="badge ${wRed>=13?'bd-ok':'bd-warn'}" style="font-size:calc(10px*var(--fz))">${wRed>=13?'di atas target':'di bawah target'}</span></div>${eBtn('water')}</div>
-   <div class="sec-body">${energyEdit.water?eEditGrid([{name:'WATER_INT_2026',label:'Intensitas 2026',step:0.01},{name:'WATER_INT_2019',label:'Intensitas 2019',step:0.01}]):''}<div class="two">
+ <div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','energy')}<div><h2>💧 Water — Intensitas (m³/penghuni)</h2><div class="d">Intensitas 2026 vs 2019 · target turun 13% · <b>%YTD</b></div></div><div class="es-hr"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:${wMet?'#15a34a':'#c2740a'};line-height:1">${sgn(wPctY)}</div><span class="badge ${wMet?'bd-ok':'bd-warn'}" style="font-size:calc(10px*var(--fz))">${wMet?'di atas target':'di bawah target'}</span></div>${eBtn('water')}</div>
+   <div class="sec-body">${energyEdit.water?eEditGrid([{name:'WATER_INT_2026',label:'Intensitas 2026',step:0.01},{name:'WATER_INT_2019',label:'Intensitas 2019',step:0.01}],{a:'WATER_INT_2026',b:'WATER_INT_2019'}):''}<div class="two">
      <div>${dualLineChart(WATER_INT_2026,WATER_INT_2019,"#2563eb","water")}<div style="display:flex;gap:14px;font-size:calc(10.5px*var(--fz));color:#9aa7b8"><span style="color:#2563eb">▬ Intensitas 2026</span><span>- - 2019</span></div></div>
-     <div>${ekv("Intensitas "+ENERGY_MONTHS[wli]+" 2026",d2(WATER_INT_2026[wli])+" m³/org")}${ekv("Intensitas "+ENERGY_MONTHS[wli]+" 2019",d2(WATER_INT_2019[wli])+" m³/org")}${ekv("Rata-rata 2026",d2(eAvgG(WATER_INT_2026))+" m³/org")}${ekv("Penurunan rata-rata","−"+wRed+"%",wRed>=13?"#15a34a":"#c2740a")}${ekv("Target 2026","−13%")}</div>
+     <div>${ekv("ΣYTD 2026 s.d "+ENERGY_MONTHS[wli],d2(wY.s26)+" m³/org")}${ekv("ΣYTD 2019 (baseline)",d2(wY.s19)+" m³/org")}${ekv("Δ YTD",d2(wY.s26-wY.s19)+" m³/org",wMet?'#15a34a':'#c2740a')}${ekv("% YTD",sgn(wPctY),wMet?'#15a34a':'#c2740a')}${ekv("Target 2026","−13%")}</div>
    </div></div>
  </div>
  <div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','energy')}<div><h2>☀ REM — Renewable Energy Mix</h2><div class="d">% energi terbarukan (solar) · target 2026: 8%</div></div><div class="es-hr"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:#c2740a;line-height:1">${String(rAvg).replace(".",",")}%</div><span class="badge ${rAvg>=8?'bd-ok':'bd-warn'}" style="font-size:calc(10px*var(--fz))">rata-rata YTD</span></div>${eBtn('rem')}</div>
@@ -10204,7 +10234,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-62";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-63";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
