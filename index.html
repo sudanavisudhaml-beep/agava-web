@@ -1978,6 +1978,33 @@ body.rg-open{overflow:hidden}
 .pm-post-t{resize:vertical}
 .pm-post-l{font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#8a9bb0;margin-top:3px}
 .pm-post-l em{font-style:normal;font-weight:600;text-transform:none;letter-spacing:0;color:#aab4c2}
+/* ── Landbank & Asset ── */
+.lb-hero{margin-bottom:16px}
+.lb-hero-t{font-size:calc(17px*var(--fz));font-weight:800;color:var(--ink);letter-spacing:-.01em}
+.lb-hero-s{font-size:calc(12.5px*var(--fz));color:var(--muted);line-height:1.55;margin-top:6px;max-width:820px}
+.lb-flow{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:14px}
+.lb-flow-s{font-size:calc(11px*var(--fz));font-weight:700;color:#5b6b80;background:#eef2f8;border:1px solid var(--line);border-radius:99px;padding:6px 12px}
+.lb-flow-s.on{color:#0a7d5e;background:#e3f3ec;border-color:#bfe6d6}
+.lb-flow-a{color:#aab4c2;font-weight:800}
+.lb-2col{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:16px}
+.lb-opex-c,.lb-note-t{font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#0a7d5e}
+.lb-note-t{color:#5b6b80}
+.lb-opex-v{font-size:calc(30px*var(--fz));font-weight:900;color:#0a7d5e;line-height:1.1;margin-top:4px}
+.lb-opex-v.lb-opex-off{color:#9aa7b8}
+.lb-opex-m{font-size:calc(11.5px*var(--fz));color:var(--muted);margin-top:3px}
+.lb-opex-m.lb-opex-off b{color:#b45309}
+.lb-opex-src{font-size:calc(10px*var(--fz));color:#9aa7b8;margin-top:10px;line-height:1.5;border-top:1px solid var(--line);padding-top:9px}
+.lb-note-b{font-size:calc(12px*var(--fz));color:var(--muted);line-height:1.55;margin-top:6px}
+.lb-reg-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.lb-reg-h b{font-size:calc(13.5px*var(--fz));color:var(--ink)}
+.lb-reg-wrap{overflow-x:auto}
+.lb-reg{width:100%;border-collapse:collapse;font-size:calc(12px*var(--fz))}
+.lb-reg th{text-align:left;font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#8a9bb0;padding:8px 10px;border-bottom:2px solid var(--line);white-space:nowrap}
+.lb-reg td{padding:7px 10px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle}
+.lb-reg td input{width:100%;min-width:110px;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-family:var(--ff);font-size:calc(12px*var(--fz));color:var(--ink);background:#fff}
+.lb-pend{color:#9aa7b8;font-style:italic;white-space:nowrap}
+.lb-empty{padding:22px 12px;text-align:center;color:#9aa7b8;font-size:calc(12px*var(--fz));line-height:1.6}
+@media(max-width:760px){.lb-2col{grid-template-columns:1fr}}
 .pm-post-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 @media(max-width:560px){.pm-post-row{grid-template-columns:1fr}}
 /* panel Cloud & Backup */
@@ -2827,6 +2854,7 @@ html,body{max-width:100%}
       <div id="page-impact" class="hide"></div>
       <div id="page-procurement" class="hide"></div>
       <div id="page-building" class="hide"></div>
+      <div id="page-landbank" class="hide"></div>
       <div id="page-project" class="hide"></div>
       <div id="page-gacal" class="hide"></div>
       <div id="page-service" class="hide"></div>
@@ -2898,6 +2926,7 @@ const IC={
  energy:'<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/>',
  hse:'<path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/>',
  reminder:'<path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>',
+ landbank:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
  today:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>',
  upcoming:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
  approvals:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3.5h6V5H9z"/><path d="M8.5 13l2 2 4.5-4.5"/>',
@@ -2911,6 +2940,7 @@ const IC={
 const MENU=[
  {id:"overview",ic:"overview",label:"CODEC"},
  {id:"building",ic:"building",label:"Building & Utility"},
+ {id:"landbank",ic:"landbank",label:"Landbank & Asset"},
  {id:"project",ic:"project",label:"Project Development"},
  {id:"gacal",ic:"today",label:"GA Calendar"},
  {id:"service",ic:"service",label:"Services"},
@@ -2922,24 +2952,25 @@ const MENU=[
  {id:"energy",ic:"energy",label:"Energy"},
  {id:"hse",ic:"hse",label:"HSE & Sustainability"},
  {id:"approvals",ic:"approvals",label:"Approvals"},
- {id:"assigned",ic:"assigned",label:"Assigned SO"},
- {id:"reminder",ic:"reminder",label:"Reminder"}
+ {id:"assigned",ic:"assigned",label:"Assigned SO"}
 ];
+/* Reminder DIHILANGKAN dari nav (2026-07-23) — sudah ada ikon lonceng di top bar
+   (go('reminder')); halaman page-reminder tetap ada & bisa dibuka dari ikon itu. */
 let active="overview";
 let gRole="admin", gUser=null;
-const ALLMENUS=["overview","building","project","gacal","service","fieldops","procurement","payment","vendor","energy","hse","approvals","assigned","reminder"];
+const ALLMENUS=["overview","building","landbank","project","gacal","service","fieldops","procurement","payment","vendor","energy","hse","approvals","assigned"];
 const ROLES={
  admin:{label:"Administrator",tier:"*",edit:true,menus:ALLMENUS},
- chief:{label:"Chief of CHCD",tier:"Chief CHCD",menus:["overview","procurement","approvals","reminder"]},
- division:{label:"HCMS Division Head",tier:"Division Head",menus:["overview","procurement","approvals","reminder"]},
+ chief:{label:"Chief of CHCD",tier:"Chief CHCD",menus:["overview","procurement","approvals","landbank"]},
+ division:{label:"HCMS Division Head",tier:"Division Head",menus:["overview","procurement","approvals","landbank"]},
  dept:{label:"GA Dept Head",tier:"Dept Head",menus:ALLMENUS},
  section:{label:"Section Head",tier:"Section Head",menus:ALLMENUS},
- budget:{label:"PIC Budget",tier:"Budget",menus:["overview","procurement","approvals","reminder"]},
+ budget:{label:"PIC Budget",tier:"Budget",menus:["overview","procurement","approvals","landbank"]},
  proc:{label:"PIC Procurement",tier:"Procurement",menus:ALLMENUS},
- analyst:{label:"Analyst",tier:null,menus:["overview","procurement","service","reminder"]},
- staff:{label:"Staff Procurement",tier:null,menus:["overview","procurement","service","assigned","reminder"]},
- general:{label:"Staff (Non-GA)",tier:null,menus:["overview","service","energy","reminder"]},
- finance:{label:"Staff Finance",tier:null,menus:["overview","payment","reminder"]},
+ analyst:{label:"Analyst",tier:null,menus:["overview","procurement","service"]},
+ staff:{label:"Staff Procurement",tier:null,menus:["overview","procurement","service","assigned"]},
+ general:{label:"Staff (Non-GA)",tier:null,menus:["overview","service","energy"]},
+ finance:{label:"Staff Finance",tier:null,menus:["overview","payment","landbank"]},
  fieldops:{label:"Field Operator",tier:null,menus:["service","fieldops","myticket"]},   // persona MOBILE — Services + Field Ops + My Tickets
  fieldsup:{label:"Field Ops Supervisor",tier:"Procurement",menus:["service","fieldops","procurement","approvals"]}   // supervisor — terima eskalasi, buat SO
 };
@@ -3122,7 +3153,7 @@ function go(id){
   try{ mBackSync(id); }catch(e){}
   try{ mBotActive(id); }catch(e){}
   if(id!=="discover"){ try{ clearInterval(mpsTimer); }catch(e){} }
-  ["page-mhome","page-notif","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
+  ["page-mhome","page-notif","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-landbank","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   document.body.classList.toggle("on-mhome", id==="mhome");
   if(id==="mhome"){renderMobileHome();document.getElementById("page-mhome").classList.remove("hide");t.textContent="AGAVA";s.textContent="Beranda";mTopSync();}
@@ -3133,6 +3164,7 @@ function go(id){
   else if(id==="overview"){renderOverview();document.getElementById("page-overview").classList.remove("hide");t.textContent="Collaborative Deck";s.textContent="General Affair · Dashboard Monitoring · Welcome, "+(gUser?gUser.name:"there");}
   else if(id==="procurement"){procFilter="all";renderProc();document.getElementById("page-procurement").classList.remove("hide");t.textContent="Procurement";s.textContent="Supply Order lifecycle · SO → UPR → SPK → BAST → Invoice";}
   else if(id==="building"){renderBuilding();document.getElementById("page-building").classList.remove("hide");t.textContent="Building & Utility";s.textContent="Maintenance, utility status & BM tickets";}
+  else if(id==="landbank"){renderLandbank();document.getElementById("page-landbank").classList.remove("hide");t.textContent="Landbank & Asset";s.textContent="Aset & lahan Astra · OPEX perawatan ditarik dari SPK (terbit setelah Supply Order)";}
   else if(id==="project"){renderProject();document.getElementById("page-project").classList.remove("hide");t.textContent="Project Development";s.textContent="Project Timeline × Calendar of Event 2026 — radar overlap konstruksi vs reservasi";}
   else if(id==="gacal"){renderGACal();document.getElementById("page-gacal").classList.remove("hide");t.textContent="GA Calendar";s.textContent="Kalender terpadu GA — deteksi benturan project × event × ruang meeting";}
   else if(id==="service"){renderService();document.getElementById("page-service").classList.remove("hide");t.textContent="Services";s.textContent="4 layanan GA · Ticket, Room Booking, Transport, Rating · response time, PIC & escalations";}
@@ -5681,6 +5713,49 @@ function ersusUtility(){
    {i:"♻️",n:"Sampah Terolah",v:wPct+"%", b:kN(wOk)+" kg terolah", foot:(wPct>=99?"memenuhi target 99%":"di bawah target 99%"), good:wPct>=99}
  ]};
 }
+/* ═══════════ LANDBANK & ASSET ═══════════
+   Satu register semua aset & lahan Astra + OPEX perawatannya. Register aset =
+   master data (diinput SEKALI). OPEX perawatan DITARIK dari SPK (Surat Perintah
+   Kerja, terbit setelah Supply Order) — bukan input manual tiap buka AGAVA.
+   Sejalan north-star: operasional GA tanpa padat karya. Terhubung ke GA-04. */
+let ASSET_REG=[];
+try{ var _lbr=localStorage.getItem("agava_assetreg_v1"); if(_lbr) ASSET_REG=JSON.parse(_lbr)||[]; }catch(e){}
+function lbPersist(){ try{ localStorage.setItem("agava_assetreg_v1", JSON.stringify(ASSET_REG)); }catch(e){} }
+function lbAdd(){ ASSET_REG.push({nama:"",jenis:"Lahan",lokasi:"",nilai:""}); lbPersist(); renderLandbank(); }
+function lbDel(i){ ASSET_REG.splice(i,1); lbPersist(); renderLandbank(); }
+function lbSet(i,k,v){ if(ASSET_REG[i]){ ASSET_REG[i][k]=v; lbPersist(); } }
+function renderLandbank(){
+ var el=document.getElementById("page-landbank"); if(!el)return;
+ var own=isOwner();
+ var steps=['Supply Order','SPK terbit','Lingkup + biaya kerja','OPEX perawatan aset (otomatis)'];
+ var flow='<div class="lb-flow">'+steps.map(function(s,i){
+     return '<div class="lb-flow-s'+(i===3?' on':'')+'">'+esc(s)+'</div>'+(i<3?'<span class="lb-flow-a">→</span>':'');
+   }).join('')+'</div>';
+ var opex = GA_COST_LIVE
+   ? '<div class="lb-opex-v">'+costRp(0)+'</div><div class="lb-opex-m">dari SPK bulan berjalan</div>'
+   : '<div class="lb-opex-v lb-opex-off">—</div><div class="lb-opex-m lb-opex-off">menunggu upload data SPK · <b>build menyusul</b></div>';
+ var rows = ASSET_REG.length ? ASSET_REG.map(function(a,i){
+   function cell(k,ph){ return own?'<td><input value="'+esc(a[k]||"")+'" placeholder="'+ph+'" oninput="lbSet('+i+',\''+k+'\',this.value)"></td>':'<td>'+esc(a[k]||"—")+'</td>'; }
+   return '<tr>'+cell("nama","Nama aset/lahan")+cell("jenis","Lahan/Gedung/Kendaraan")+cell("lokasi","Lokasi")+cell("nilai","Nilai / Luas")+
+     '<td class="lb-pend">menunggu SPK</td>'+(own?'<td><button class="pm-rep-x" onclick="lbDel('+i+')" title="Hapus">✕</button></td>':'<td></td>')+'</tr>';
+ }).join('') : '<tr><td colspan="6" class="lb-empty">Belum ada aset terdaftar. '+(own?'Klik <b>+ Tambah Aset</b> — aset & lahan dicatat SEKALI sebagai master; OPEX perawatannya mengalir otomatis dari SPK.':'Menunggu registrasi aset oleh admin.')+'</td></tr>';
+ el.innerHTML=
+   '<div class="card pad lb-hero">'+
+     '<div class="lb-hero-t">Satu register aset &amp; lahan Astra — OPEX perawatan dari SPK</div>'+
+     '<div class="lb-hero-s">Semua aset &amp; lahan yang dimiliki/dikelola Astra beserta <b>OPEX perawatannya</b>. Angka biaya <b>tidak diinput manual</b> — ditarik dari <b>SPK (Surat Perintah Kerja)</b> yang terbit setelah Supply Order. Satu tempat, tanpa kerja ganda.</div>'+
+     flow+
+   '</div>'+
+   '<div class="lb-2col">'+
+     '<div class="card pad lb-opex"><div class="lb-opex-c">💰 OPEX Perawatan Aset · '+(typeof codecMonthID==="function"?codecMonthID():"")+'</div>'+opex+
+       '<div class="lb-opex-src">Sumber: file SPK per aset · terhubung ke <b>Performance Indikator GA-04</b> (Asset Maintenance).</div></div>'+
+     '<div class="card pad lb-note"><div class="lb-note-t">Kenapa dari SPK, bukan input manual?</div>'+
+       '<div class="lb-note-b">SPK = dokumen resmi lingkup + biaya kerja yang terbit setelah SO disetujui. Menariknya langsung membuat OPEX perawatan tiap aset akurat, bisa dipertanggungjawabkan, dan admin tak perlu rekap manual — sejalan tujuan AGAVA: operasional GA tanpa padat karya.</div></div>'+
+   '</div>'+
+   '<div class="card pad">'+
+     '<div class="lb-reg-h"><b>Register Aset &amp; Lahan</b>'+(own?'<button class="btn-act" onclick="lbAdd()">+ Tambah Aset</button>':'')+'</div>'+
+     '<div class="lb-reg-wrap"><table class="lb-reg"><thead><tr><th>Aset / Lahan</th><th>Jenis</th><th>Lokasi</th><th>Nilai / Luas</th><th>OPEX Perawatan YTD</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+   '</div>';
+}
 function renderBuilding(){
  const MONTHS=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
  const NOWM=new Date(TODAY_STR+"T00:00:00").getMonth();
@@ -6437,7 +6512,7 @@ function mBackSync(id){
    var m=MENU.find(function(x){return x.id===id;});
    var nama=m?m.label:({createticket:"Complaint Handling",roombook:"Room Reservation",
      transport:"Transport Booking",overtime:"Overtime",createso:"Create SO",
-     kpiyear:"KPI Tahunan",sla:"SLA Assessment",ersus:"ERSUS"}[id]||"Kembali");
+     kpiyear:"KPI Tahunan",sla:"SLA Assessment",ersus:"ERSUS",reminder:"Pengingat"}[id]||"Kembali");
    txt.textContent=nama;
  }
 }
@@ -10043,7 +10118,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.22-59";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.22-60";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10393,9 +10468,9 @@ const GA_PARAM_DEFAULT={
  poster:[
    {img:"posters/heartology.jpg", tag:"ASTRA HEALTHCARE", judul:"Heartology · Cardiovascular Hospital", sub:"Pusat jantung kelas dunia di jantung Jakarta — kini bagian Astra (95,8% · 2024). 7 Pusat Unggulan · nilai H.E.A.R.T.", grad:"linear-gradient(155deg,#5c0a18 0%,#7a0b1e 45%,#c0143a 100%)"},
    {img:"", tag:"ASTRA FINANCIAL", judul:"AstraPay — Nikmati Berbagai Promonya!", sub:"Dompet digital Astra untuk kebutuhan harian karyawan — cashback & promo menarik tiap bulan.", grad:"linear-gradient(150deg,#021d4d 0%,#0a3aa8 100%)"},
-   {img:"", tag:"ASTRA INFRA · TRANSUM", judul:"Ayo Naik Transum Jakarta", sub:"Transportasi umum terintegrasi dukungan Astra — nyaman, hemat, rendah emisi untuk mobilitas harian.", grad:"linear-gradient(150deg,#0f5a3a 0%,#1e88c8 100%)"}
+   {img:"", tag:"ASTRA INTERNATIONAL", judul:"Ayo Naik Transum Jakarta", sub:"Transportasi umum terintegrasi dukungan Astra — nyaman, hemat, rendah emisi untuk mobilitas harian.", grad:"linear-gradient(150deg,#0f5a3a 0%,#1e88c8 100%)"}
  ],
- posterV:3   /* versi seed poster — dinaikkan saat mengirim poster default baru; migrasi otomatis lewat paramMerge */
+ posterV:4   /* versi seed poster — dinaikkan saat mengirim poster default baru; migrasi otomatis lewat paramMerge */
 };
 var GA_PARAM=JSON.parse(JSON.stringify(GA_PARAM_DEFAULT));
 function paramMerge(d){
