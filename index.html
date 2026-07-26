@@ -863,6 +863,26 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .nlog-row.unseen .nalert{font-weight:800;color:var(--ink)}
 .nlog-row.unseen .nmod{color:var(--red)}
 .ndot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:6px;vertical-align:middle}
+/* ── CHAT GA Team ── */
+.chat-wrap{display:flex;flex-direction:column;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 6px 22px rgba(20,40,80,.08);border:1px solid #e8ecf2}
+.chat-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid #eef1f6;background:linear-gradient(135deg,#f4f8ff,#eef4ff)}
+.chat-head b{font-size:calc(14px*var(--fz));color:#12203a}
+.chat-head span{font-size:calc(10.5px*var(--fz));color:#8a97a8;text-align:right}
+.chat-scroll{padding:14px;overflow-y:auto;min-height:40vh;max-height:calc(100dvh - 280px);display:flex;flex-direction:column;gap:9px;background:#f6f8fb;-webkit-overflow-scrolling:touch}
+.chat-empty{text-align:center;color:#8a97a8;padding:44px 12px;font-size:calc(12.5px*var(--fz));line-height:1.7;margin:auto}
+.chat-msg{display:flex;flex-direction:column;max-width:82%}
+.chat-msg.me{align-self:flex-end;align-items:flex-end}
+.chat-msg.other{align-self:flex-start;align-items:flex-start}
+.chat-who{font-size:calc(10.5px*var(--fz));color:#5a6b82;font-weight:700;margin:0 5px 2px}
+.chat-bub{padding:9px 12px;border-radius:15px;font-size:calc(13px*var(--fz));line-height:1.42;word-break:break-word;white-space:pre-wrap}
+.chat-msg.other .chat-bub{background:#fff;color:#1a2740;border:1px solid #e6ebf2;border-top-left-radius:5px}
+.chat-msg.me .chat-bub{background:linear-gradient(135deg,#2563eb,#3a8fff);color:#fff;border-top-right-radius:5px}
+.chat-t{font-size:calc(9.5px*var(--fz));color:#9aa7b8;margin:2px 6px 0}
+.chat-inbar{display:flex;gap:8px;padding:10px;border-top:1px solid #eef1f6;background:#fff}
+.chat-input{flex:1;border:1px solid #d8e0ea;border-radius:22px;padding:10px 15px;font-size:calc(13px*var(--fz));outline:none;font-family:inherit;color:#12203a}
+.chat-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.chat-send{flex:0 0 auto;width:42px;height:42px;border:none;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3a8fff);display:grid;place-items:center;cursor:pointer}
+.chat-send svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nlog-row .naction{color:var(--muted);font-size:calc(12px*var(--fz))}
 .due-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .due-row:first-of-type{border-top:none}
@@ -2916,9 +2936,9 @@ html,body{max-width:100%}
         <span>Tanya AGAVA Copilot…</span>
       </button>
       <button class="mtop-ic" id="mRoleBtn" onclick="mRoleGo()" title="—"><span id="mRoleIc"></span><i class="mtop-bdg hide" id="mRoleBdg">0</i></button>
-      <button class="mtop-ic" onclick="go('reminder')" title="Reminder">
-        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
-        <i class="mtop-bdg hide" id="mBellBdg">0</i>
+      <button class="mtop-ic" onclick="go('chat')" title="Chat GA Team">
+        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <i class="mtop-bdg hide" id="mChatBdg">0</i>
       </button>
     </div>
   </div>
@@ -2961,6 +2981,7 @@ html,body{max-width:100%}
     <div class="wrap">
       <div id="page-mhome" class="hide"></div>
       <div id="page-notif" class="hide"></div>
+      <div id="page-chat" class="hide"></div>
       <div id="page-layanan" class="hide"></div>
       <div id="page-discover" class="hide"></div>
       <div id="page-overtime" class="hide"></div>
@@ -3269,11 +3290,12 @@ function go(id){
   try{ mBotActive(id); }catch(e){}
   if(id!=="discover"){ try{ clearInterval(mpsTimer); }catch(e){} }
   if(id!=="mhome"){ try{ clearInterval(mBanTimer); }catch(e){} }
-  ["page-mhome","page-notif","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-landbank","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
+  ["page-mhome","page-notif","page-chat","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-landbank","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   document.body.classList.toggle("on-mhome", id==="mhome");
   if(id==="mhome"){renderMobileHome();document.getElementById("page-mhome").classList.remove("hide");t.textContent="AGAVA";s.textContent="Beranda";mTopSync();}
   else if(id==="notif"){renderNotif();document.getElementById("page-notif").classList.remove("hide");t.textContent="Notifikasi";s.textContent="Pemberitahuan & tindakan menunggu";}
+  else if(id==="chat"){renderChat();document.getElementById("page-chat").classList.remove("hide");t.textContent="Chat";s.textContent="GA Team — obrolan antar pengguna AGAVA";chatMarkRead();}
   else if(id==="layanan"){renderLayanan();document.getElementById("page-layanan").classList.remove("hide");t.textContent="Layanan GA";s.textContent="Semua layanan General Affairs";}
   else if(id==="discover"){renderDiscover();document.getElementById("page-discover").classList.remove("hide");t.textContent="Discover";s.textContent="Kenali Kami Lebih Dekat";}
   else if(id==="overtime"){active="service";navSetActive();renderOvertime();document.getElementById("page-overtime").classList.remove("hide");t.textContent="Overtime";s.textContent="Perpanjangan AC & manpower lembur";}
@@ -6936,8 +6958,7 @@ function mTopSync(){
  var ic=document.getElementById("mRoleIc"), bt=document.getElementById("mRoleBtn"), bd=document.getElementById("mRoleBdg");
  if(ic)ic.innerHTML=micSvg(r.sv||"ticket"); if(bt)bt.title=r.label;
  if(bd){ bd.textContent=r.n; bd.classList.toggle("hide",!r.n); }
- var bb=document.getElementById("mBellBdg"), src=document.getElementById("bellBadge");
- if(bb&&src){ bb.textContent=src.textContent; bb.classList.toggle("hide",src.classList.contains("hide")); }
+ try{ chatBadge(); }catch(e){}   // ikon pojok kanan atas kini = Chat → tampilkan pesan belum dibaca
 }
 /* modul yang tampil sebagai ikon — mengikuti hak akses role */
 const MHOME_IC={overview:"📊",building:"🏢",project:"📈",gacal:"🗓️",service:"🎧",fieldops:"📡",myticket:"🎫",
@@ -7197,6 +7218,66 @@ function renderLayanan(){
 }
 
 /* ── HALAMAN: NOTIFIKASI ── */
+/* ══════════════════════════════════════════════════════════════════════════
+   CHAT GA TEAM — obrolan grup real-time antar pengguna AGAVA (Firestore agava_chat).
+   Satu ruang bersama; pesan urut waktu, gelembung sendiri di kanan. Belum dibaca →
+   angka di ikon chat (pojok kanan atas mobile). Buka Chat → tandai terbaca.
+   ══════════════════════════════════════════════════════════════════════════ */
+let CHAT=[], CHAT_UNSUB=null, CHAT_READY=false;
+function chatInit(){
+ if(!AGDB.db) return;
+ if(CHAT_UNSUB){ try{CHAT_UNSUB();}catch(e){} CHAT_UNSUB=null; }
+ CHAT_UNSUB=AGDB.db.collection("agava_chat").orderBy("ts","desc").limit(200).onSnapshot(function(snap){
+   CHAT=snap.docs.map(function(d){ var o=d.data()||{}; o.id=d.id; return o; }).reverse();
+   CHAT_READY=true; chatBadge();
+   if(active==="chat"){ renderChat(); chatMarkRead(); }
+ }, function(e){ console.warn("chat:",e&&e.code); });
+}
+function chatMailKey(){ return "agava_chatread_"+(((gUser&&gUser.email)||"anon")+"").toLowerCase(); }
+function chatSend(){
+ var inp=document.getElementById("chatInput"); if(!inp)return;
+ var txt=(inp.value||"").trim(); if(!txt)return;
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — kirim chat diblokir. Gunakan situs live AGAVA."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung — chat butuh koneksi internet."); return; }
+ inp.value="";
+ var msg={ text:txt.slice(0,1000), by:(gUser&&gUser.name)||"—", email:(gUser&&gUser.email)||"",
+   role:gRole||"", roleLabel:(ROLES[gRole]&&ROLES[gRole].label)||"", ts:Date.now(), at:new Date().toISOString() };
+ AGDB.db.collection("agava_chat").add(msg).catch(function(e){ alert("Gagal kirim: "+((e&&(e.code||e.message))||e)); });
+ try{ inp.focus(); }catch(e){}
+}
+function chatFmtTime(ts){ if(!ts)return""; var d=new Date(ts), now=new Date();
+ var hm=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+ if(d.toDateString()===now.toDateString())return hm;
+ var bln=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][d.getMonth()];
+ return d.getDate()+" "+bln+" "+hm; }
+function chatUnread(){ if(!CHAT.length)return 0; var last=+localStorage.getItem(chatMailKey())||0;
+ var mail=(((gUser&&gUser.email)||"")+"").toLowerCase();
+ return CHAT.filter(function(m){ return (m.ts||0)>last && (m.email||"").toLowerCase()!==mail; }).length; }
+function chatMarkRead(){ if(!CHAT.length)return; var latest=CHAT[CHAT.length-1].ts||Date.now();
+ try{ localStorage.setItem(chatMailKey(), String(latest)); }catch(e){} chatBadge(); }
+function chatBadge(){ var n=chatUnread(); var b=document.getElementById("mChatBdg"); if(b){ b.textContent=n>99?"99+":n; b.classList.toggle("hide",n===0); } }
+function renderChat(){
+ var el=document.getElementById("page-chat"); if(!el)return;
+ var mail=(((gUser&&gUser.email)||"")+"").toLowerCase();
+ var body=CHAT.length? CHAT.map(function(m){
+     var mine=(m.email||"").toLowerCase()===mail;
+     return '<div class="chat-msg '+(mine?'me':'other')+'">'+
+       (mine?'':'<div class="chat-who">'+esc(m.by||"—")+(m.roleLabel?' · '+esc(m.roleLabel):'')+'</div>')+
+       '<div class="chat-bub">'+esc(m.text||"")+'</div>'+
+       '<div class="chat-t">'+chatFmtTime(m.ts)+'</div></div>';
+   }).join("")
+   : '<div class="chat-empty">Belum ada pesan.<br>Mulai obrolan GA Team di sini 👋</div>';
+ el.innerHTML=
+   '<div class="chat-wrap">'+
+     '<div class="chat-head"><b>💬 GA Team</b><span>'+(CHAT_READY?USERS.length+' anggota · tersimpan di cloud':'menghubungkan…')+'</span></div>'+
+     '<div class="chat-scroll" id="chatScroll">'+body+'</div>'+
+     '<div class="chat-inbar">'+
+       '<input id="chatInput" class="chat-input" placeholder="Tulis pesan ke GA Team…" maxlength="1000" autocomplete="off" onkeydown="if(event.key===\'Enter\'){event.preventDefault();chatSend();}"/>'+
+       '<button class="chat-send" onclick="chatSend()" aria-label="Kirim"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></button>'+
+     '</div>'+
+   '</div>';
+ setTimeout(function(){ var sc=document.getElementById("chatScroll"); if(sc)sc.scrollTop=sc.scrollHeight; },30);
+}
 function renderNotif(){
  var el=document.getElementById("page-notif"); if(!el)return;
  var inb=mInbox();
@@ -10537,7 +10618,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.24-79";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.24-80";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10651,6 +10732,7 @@ function dbInit(){
     try{ localStorage.setItem(GA_PARAM_STORE, JSON.stringify(GA_PARAM)); }catch(e){}
     try{ if(active==="params")renderParams(); renderOverview(); renderMobileHome(); }catch(e){}
   },err=>{ console.warn("Param rules/err:",err&&err.code); });
+  try{ chatInit(); }catch(e){ console.warn("chatInit:",e); }   // Chat GA Team real-time
   /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
   AGDB.db.collection("agava_workpermits").limit(300).onSnapshot(snap=>{
     let ch2=false, wpNew=[];
