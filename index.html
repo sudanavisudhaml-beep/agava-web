@@ -10143,9 +10143,9 @@ function hseHighlightHTML(h){
    ║  Pengajuan eksternal (vendor/kontraktor) memakai halaman wp.html   ║
    ║  yang menulis ke database Firebase yang SAMA — bukan Excel kiriman.║
    ╚═══════════════════════════════════════════════════════════════════╝ */
+/* Work Permit dimulai KOSONG untuk go-live (2026-07-24) — diisi lewat modul HSE /
+   scan QR izin kerja. Contoh lama tersimpan di git & AGAVA-Backup-PreGoLive-2026-07-24.json */
 let WORK_PERMITS=[
- {no:"WP-202607-0001",judul:"Penggantian kompresor AC — Lt.6",vendor:"PT Mekar Jaya",pic:"Andi",pekerja:4,lokasi:"AMDI",mulai:"2026-07-18",selesai:"2026-07-19",risiko:"Sedang",jenis:"Pekerjaan Panas (Hot Work)",status:"Menunggu Review",src:"internal",created:"2026-07-16"},
- {no:"WP-202607-0002",judul:"Pembersihan fasad gondola sisi utara",vendor:"PT ISS Indonesia",pic:"Uhen",pekerja:6,lokasi:"Menara Astra",mulai:"2026-07-20",selesai:"2026-07-24",risiko:"Tinggi",jenis:"Bekerja di Ketinggian",status:"Disetujui",src:"qr",created:"2026-07-15"}
 ];
 /* Jenis pekerjaan → risiko bawaan. "Berisiko tinggi" = wajib dokumen pendukung lengkap. */
 const WP_JENIS=["Pekerjaan Umum (risiko rendah)","Pekerjaan Panas (Hot Work)","Bekerja di Ketinggian (Work at Height)","Ruang Terbatas (Confined Space)","Pekerjaan Listrik Bertegangan","Penggalian (Excavation)","Pekerjaan Angkat Berat (Lifting)","Bahan Kimia / B3"];
@@ -10494,7 +10494,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.24-74";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.24-75";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10766,8 +10766,46 @@ function agavaCloudPanel(){
    '<label class="btn-out" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:8px">'+
      '⬆️ Pulihkan dari File Backup<input type="file" accept="application/json,.json" style="display:none" onchange="agavaRestoreFile(this)"/></label>'+
    '<button class="btn-out" style="width:100%" onclick="agavaAuditView()">📜 Lihat Jejak Login &amp; Aktivitas</button>'+
+   '<div class="panel-t" style="margin:18px 0 6px;color:#b42318">Persiapan Go-Live</div>'+
+   '<div class="muted small" style="margin-bottom:8px;line-height:1.6">Hapus semua tiket, SO, & Work Permit <b>tes</b> agar mulai bersih. KPI, master data, konfigurasi flow, dan akun <b>tetap utuh</b>. Backup otomatis diunduh dulu.</div>'+
+   '<button class="btn-out" style="width:100%;border-color:#f3b4ad;color:#b42318;font-weight:800" onclick="agavaClearTestData()">🧹 Kosongkan Data Tes (Go-Live)</button>'+
   '</div>';
  document.getElementById("ovl").classList.add("show");
+}
+/* ── GO-LIVE: kosongkan data transaksi tes (tiket + SO + Work Permit), lokal + cloud ──
+   KPI, master data, flow, dan akun TIDAK disentuh. Backup diunduh dulu.
+   Respek AGDB.ro: dari localhost (uji) penghapusan cloud DITOLAK demi keamanan data live. */
+function agavaClearTestData(){
+ if(!isOwner()){ alert("⛔ Hanya pemilik sistem AGAVA yang dapat mengosongkan data."); return; }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — penghapusan data cloud diblokir.\nJalankan dari perangkat go-live (situs live AGAVA)."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung. Sambungkan dulu agar penghapusan tersinkron ke semua perangkat."); return; }
+ var nT=TICKETS.length, nS=SO.length, nW=(typeof WORK_PERMITS!=="undefined"?WORK_PERMITS.length:0);
+ if(nT+nS+nW===0){ alert("✅ Sudah bersih — tidak ada tiket, SO, atau Work Permit untuk dihapus."); return; }
+ if(!confirm("🧹 KOSONGKAN DATA TES sebelum go-live?\n\nDIHAPUS (perangkat ini + cloud):\n• "+nT+" tiket layanan\n• "+nS+" Supply Order\n• "+nW+" Work Permit\n\nTETAP AMAN (tidak disentuh):\n• KPI + review PDCA\n• Master data (STNK/PBB/vendor/maintenance)\n• Konfigurasi flow & daftar akun\n\nFile backup akan otomatis diunduh lebih dulu.\nLanjutkan?")) return;
+ if(!confirm("Konfirmasi TERAKHIR — tindakan ini permanen.\n\nHapus "+(nT+nS+nW)+" dokumen transaksi tes dari cloud?")) return;
+ try{ agavaBackupDownload(); }catch(e){}
+ var cols=["agava_tickets","agava_so","agava_workpermits"];
+ Promise.all(cols.map(function(col){
+   return AGDB.db.collection(col).get().then(function(snap){
+     if(snap.empty)return 0; var batch=AGDB.db.batch();
+     snap.forEach(function(d){ batch.delete(d.ref); });
+     return batch.commit().then(function(){ return snap.size; });
+   });
+ })).then(function(counts){
+   TICKETS.length=0; SO.length=0; if(typeof WORK_PERMITS!=="undefined") WORK_PERMITS.length=0;
+   AGDB.soEcho={};
+   try{ localStorage.removeItem(SO_STORE); }catch(e){}
+   try{ localStorage.removeItem("agava_wp_v1"); }catch(e){}
+   try{ soPersist(); }catch(e){}
+   try{ if(typeof wpPersist==="function") wpPersist(); }catch(e){}
+   auditLog("clear-test-data","hapus "+nT+" tiket · "+nS+" SO · "+nW+" WP (persiapan go-live)");
+   try{ renderService(); renderProc(); renderApprovals(); renderAssigned(); renderPayment(); renderFieldOps(); renderMyTickets(); renderHSE(); renderOverview(); updateBell(); }catch(e){}
+   try{ renderMobileHome(); }catch(e){}
+   closeDrawer();
+   alert("✅ Data tes dikosongkan — AGAVA siap go-live.\n\nCloud & perangkat ini kini bersih:\n• 0 tiket · 0 SO · 0 Work Permit\n\nKPI, master data, flow, dan akun tetap utuh.");
+ }).catch(function(e){
+   alert("⚠️ Sebagian gagal dihapus: "+((e&&(e.code||e.message))||e)+"\nCoba lagi saat koneksi stabil — data yang belum terhapus masih ada.");
+ });
 }
 function agavaAuditView(){
  if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung — jejak aktivitas tidak bisa dibaca."); return; }
