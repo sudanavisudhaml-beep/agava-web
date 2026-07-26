@@ -9640,6 +9640,7 @@ function saveRate(no){
  const t=TICKETS.find(x=>x.no===no); if(!t)return;
  if(!window._rateTmp){ alert("Pilih bintang dulu."); return; }
  t.rating=window._rateTmp; t.needRate=false; if(!t.closed)t.closed=TODAY_STR;
+ rateAckSet(t.no,t.rating);
  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,rating:t.rating,closed:t.closed});
  closeDrawer(); renderService(); renderOverview();
 }
@@ -9648,6 +9649,25 @@ function saveRate(no){
    bintang. Muncul untuk PEMOHON tiket begitu operator menyelesaikan pekerjaan.
    ══════════════════════════════════════════════════════════════════════════ */
 let RATE_GATE=null;
+/* ── Sinkron LINTAS-PERANGKAT gerbang rating ──
+   Begitu pemohon memberi rating (menutup kartu "Pekerjaan Selesai") di HP, keputusan
+   itu (a) dicatat lokal di agava_rateack_v1 DAN (b) didorong ke cloud lewat field
+   `rating` pada dokumen tiket. Kalau saat menilai perangkat sempat offline, catatan
+   lokal ini menahan kartu agar tidak muncul lagi di perangkat itu; dan begitu online
+   kembali, `rateHeal` menuliskan rating ke cloud sehingga AGAVA Web pun tahu tiket
+   sudah dinilai — kartu tidak akan muncul lagi di web. */
+const RATE_ACK_STORE="agava_rateack_v1";
+let RATE_ACK=(function(){ try{ return JSON.parse(localStorage.getItem(RATE_ACK_STORE))||{}; }catch(e){ return {}; } })();
+function rateAcked(no){ return !!(no && RATE_ACK[no]); }
+function rateAckSet(no,val){ if(!no)return; RATE_ACK[no]=(val==null?true:val); try{ localStorage.setItem(RATE_ACK_STORE,JSON.stringify(RATE_ACK)); }catch(e){} }
+/* Tiket dari cloud: bila perangkat ini pernah menilai tapi cloud belum punya rating
+   (dulu offline), terapkan lokal & dorong balik agar semua perangkat sinkron. */
+function rateHeal(t){
+ if(!t||!t.no) return;
+ var v=RATE_ACK[t.no]; if(!v || t.rating) return;
+ t.rating=(typeof v==="number"?v:5); t.needRate=false; if(!t.closed)t.closed=TODAY_STR;
+ try{ dbSaveTicket(t); }catch(e){}
+}
 /* Tiket milik user yang login, sudah diselesaikan operator, tapi belum dirating.
    Cocokkan lewat EMAIL akun dulu (unik), baru nama — supaya tidak meleset karena
    beda ejaan. needRate ditandai saat operator menutup tiket; tiket lama yang sudah
@@ -9658,6 +9678,7 @@ function rateGatePending(){
  if(!me&&!mail)return [];
  return TICKETS.filter(function(t){
    if((t.stg||0)<3 || t.rating) return false;
+   if(rateAcked(t.no)) return false;   // sudah dinilai/ditutup di perangkat ini → jangan tampilkan lagi
    if(!t.needRate && !(t.proof&&t.proof.length)) return false;
    var tm=String(t.email||"").trim().toLowerCase();
    if(tm&&mail) return tm===mail;
@@ -9714,6 +9735,7 @@ function rateGateSubmit(){
  var t=TICKETS.find(function(x){return x.no===RATE_GATE;});
  if(t){
    t.rating=window._rateTmp; t.needRate=false; if(!t.closed)t.closed=TODAY_STR;
+   rateAckSet(t.no,t.rating);   // catat lokal — tahan agar tak muncul lagi walau cloud sempat gagal
    dbSaveTicket(t);
    triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,rating:t.rating,closed:t.closed});
    try{ auditLog("ticket-rated", t.no+" · ★"+t.rating); }catch(e){}
@@ -10494,7 +10516,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.24-75";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.24-76";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10522,8 +10544,8 @@ function dbInit(){
       const d=ch.doc.data(); d.no=d.no||ch.doc.id;
       const i=TICKETS.findIndex(t=>t.no===d.no);
       if(ch.type==="removed"){ if(i>=0){TICKETS.splice(i,1);changed=true;} }
-      else if(i>=0){ Object.assign(TICKETS[i],d); syncTicketStage(TICKETS[i],d); changed=true; }
-      else { TICKETS.unshift(d); syncTicketStage(d,null); changed=true; if(AGDB.ticketsInit) arrivals.push(d); }
+      else if(i>=0){ Object.assign(TICKETS[i],d); syncTicketStage(TICKETS[i],d); rateHeal(TICKETS[i]); changed=true; }
+      else { TICKETS.unshift(d); syncTicketStage(d,null); rateHeal(d); changed=true; if(AGDB.ticketsInit) arrivals.push(d); }
     });
     if(changed){
       normalizeTickets();   // tiket dari perangkat lain ikut dilengkapi pemohon & SLA
