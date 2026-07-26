@@ -2942,7 +2942,7 @@ html,body{max-width:100%}
           <button class="live-chip" id="liveChip" onclick="liveToggle()" title="Click to connect a local Excel workbook"><span class="live-dot" id="liveDot"></span><span id="liveTxt">Connect Excel</span></button>
           <button class="copilot-btn" onclick="openCopilot()" title="Ask AGAVA Copilot"><svg class="cp-mark" viewBox="0 0 24 24"><defs><linearGradient id="cpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset=".5" stop-color="#39a0ff"/><stop offset="1" stop-color="#7a4fd0"/></linearGradient></defs><path fill="url(#cpg)" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/><path fill="url(#cpg)" opacity=".8" d="M19 14l.85 2.25L22 17.1l-2.15.85L19 20l-.85-2.05L16 17.1l2.15-.85z"/></svg><span class="cp-label">Ask AGAVA Copilot</span></button>
           <button class="icon-btn hide" id="cloudBtn" onclick="agavaCloudPanel()" title="Cloud &amp; Backup data AGAVA"><svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/><path d="M12 12v5"/><path d="M9.5 14.5L12 12l2.5 2.5"/></svg></button>
-          <button class="icon-btn" onclick="go('reminder')" title="Notifications" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span id="bellBadge" class="bell-badge hide">0</span></button>
+          <button class="icon-btn" onclick="go('reminder')" title="Notifikasi" style="position:relative"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span id="bellBadge" class="bell-badge hide">0</span></button>
           <button class="icon-btn" onclick="agavaLogout()" title="Keluar dari AGAVA"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
         </div>
       </div>
@@ -3286,7 +3286,7 @@ function go(id){
   else if(id==="hse"){renderHSE();document.getElementById("page-hse").classList.remove("hide");t.textContent="HSE & Sustainability";s.textContent="Permit & legal compliance · re-test schedule";}
   else if(id==="params"){ if(!isOwner()){ go(isMobile()?mHomeId():"overview"); return; } renderParams();document.getElementById("page-params").classList.remove("hide");t.textContent="Parameter & Biaya";s.textContent="Master koefisien — sumber tunggal semua angka Rp & jejak karbon di AGAVA";}
   else if(id==="sla"){active="vendor";navSetActive();renderSLAPage();document.getElementById("page-sla").classList.remove("hide");t.textContent="SLA Assessment";s.textContent="Lembar Evaluasi Vendor · auto-scoring";}
-  else if(id==="reminder"){document.getElementById("page-reminder").classList.remove("hide");t.textContent="Reminder";s.textContent="Notification log & compliance reminders";}
+  else if(id==="reminder"){document.getElementById("page-reminder").classList.remove("hide");t.textContent="Notifikasi";s.textContent="Semua tindakan, feedback & pengingat dari seluruh modul AGAVA";}
   else if(id==="energy"){document.getElementById("page-energy").classList.remove("hide");t.textContent="Energy";s.textContent="Energy insights & actions — powered by ERSUS";}
   else if(id==="ersus"){document.getElementById("page-ersus").classList.remove("hide");t.textContent="ERSUS · Energy Intelligence";s.textContent="Insights & notifications that need action";}
   else{const sb=document.getElementById("page-stub");sb.classList.remove("hide");const m=MENU.find(x=>x.id===id);t.textContent=m.label;s.textContent="This module is coming soon.";
@@ -4077,15 +4077,12 @@ function codecSubFnData(){
  const rel=SO.filter(s=>s.invReleased), relOk=rel.filter(s=>!invRelEst(s)||(s.invReleaseDate&&s.invReleaseDate<=invRelEst(s))).length;
  const late=SO.filter(s=>invReleaseOverdue(s)).length, den=rel.length+late;
  const payBPH=den?Math.round(relOk/den*100):100;
- /* GA-03 ← Payment Tracker · Procurement · PBB · STNK. (Asset STO & Land Bank pindah ke KEY — modulnya belum ada di AGAVA) */
+ /* GA-03 ← Payment Tracker · Procurement. (PBB & STNK ditunda — data confidential belum diupload;
+    Asset STO & Land Bank pindah ke KEY — modulnya belum ada di AGAVA) */
  const soOk=SO.filter(s=>s.aging==="On Track").length, procPct=SO.length?Math.round(soOk/SO.length*100):100;
- const pbbOk=PBB.filter(x=>x.due>=TODAY_STR).length, pbbPct=PBB.length?Math.round(pbbOk/PBB.length*100):100;
- const stnkOk=STNK.filter(x=>x.due>=TODAY_STR).length, stnkPct=STNK.length?Math.round(stnkOk/STNK.length*100):100;
  const admComp=[
    {n:"Payment BPH on-time — Payment Tracker",v:payBPH,type:"routine",nav:"payment"},
-   {n:"SO on-track — Procurement",v:procPct,type:"routine",nav:"procurement"},
-   {n:"Pembayaran PBB tidak lewat tempo ("+pbbOk+"/"+PBB.length+" objek)",v:pbbPct,type:"routine",nav:"reminder"},
-   {n:"STNK tidak lewat tempo ("+stnkOk+"/"+STNK.length+" kendaraan)",v:stnkPct,type:"routine",nav:"reminder"}
+   {n:"SO on-track — Procurement",v:procPct,type:"routine",nav:"procurement"}
  ];
  const adm=Math.round(avgA(admComp.map(c=>c.v)));
  // 4. Project Development ← Rejuvenation + Advanced Building System + Procurement Hub
@@ -4114,7 +4111,7 @@ function codecSubFnData(){
  const notes=[
    "GRK −"+(Math.round(grkRed*10)/10)+"% ✓ · Water −"+(Math.round(watRed*10)/10)+"% · REM "+(Math.round(avgA(REM_PCT)*10)/10)+"% · Waste "+(Math.round(wOk/wTot*1000)/10)+"% · dari modul Energy",
    VENDOR_PERF.length+" site dinilai · avg "+gsm+"% · dari modul Service",
-   "Payment "+payBPH+"% · Procurement "+procPct+"% · PBB "+pbbPct+"% · STNK "+stnkPct+"% · (Asset STO & Land Bank ada di KEY — modul belum ada)",
+   "Payment "+payBPH+"% · Procurement "+procPct+"% · (PBB & STNK ditunda — data confidential; Asset STO & Land Bank ada di KEY — modul belum ada)",
    codecProjects().length+" project"+(PJ_TIMELINE?" · live dari modul Project Development":"")+" · "+delayed+" di bawah 50% · + Procurement Hub "+CODEC_PROC_HUB.ach+"%",
    "Perizinan "+izinPct+"% (HSE) · Kontrak vendor "+konPct+"% · rata-rata SLA vendor "+slaPct+"% (Vendor Management)",
    "AGC "+p.agc.score+"% · MKA "+p.mka.score+"% · SGR "+p.sgr.score+"% · Compliance AIHO"
@@ -7074,8 +7071,7 @@ function mWipItems(){
 function mReminderItems(){
  var rows=[];
  function add(tag,name,due){ if(due) rows.push({tag:tag,name:name,due:due,d:dueDays(due)}); }
- (typeof STNK!=="undefined"?STNK:[]).forEach(function(x){ add("STNK",x.plate+" · "+x.unit,x.due); });
- (typeof PBB!=="undefined"?PBB:[]).forEach(function(x){ add("PBB",x.obj,x.due); });
+ /* STNK & PBB ditunda (data confidential belum diupload) — tidak ditampilkan dulu. */
  (typeof IZIN!=="undefined"?IZIN:[]).forEach(function(x){ add("IZIN",x.name+" · "+x.site,x.due); });
  (typeof IZIN_OPS!=="undefined"?IZIN_OPS:[]).forEach(function(x){ add("IZIN",x.name,x.due); });
  (typeof PERMITS!=="undefined"?PERMITS:[]).forEach(function(x){ if(!x.closedAt) add("UJI",x.name,x.due); });
@@ -8395,17 +8391,10 @@ async function soReadAttachments(){
 
 /* ============ REMINDER PAGE ============ */
 let NOTIFS=[];
-const STNK=[
- {plate:"B 1234 ABC",unit:"GA Pool Car",due:"2026-07-12"},
- {plate:"B 5678 DEF",unit:"Director Vehicle",due:"2026-06-26"},
- {plate:"B 9012 GHI",unit:"Operational Van",due:"2026-06-14"},
- {plate:"B 3456 JKL",unit:"GA Pool Car",due:"2026-09-02"}
-];
-const PBB=[
- {obj:"AMDI Sunter",note:"Land & building",due:"2026-08-31"},
- {obj:"ABC BSD",note:"Land & building",due:"2026-07-05"},
- {obj:"MA Warehouse",note:"Land & building",due:"2026-06-30"}
-];
+/* STNK & PBB dikosongkan (2026-07-24): data confidential & belum diupload.
+   Panel input master-nya juga disembunyikan sampai datanya siap. */
+const STNK=[];
+const PBB=[];
 const IZIN=[
  {name:"Genset Operation Permit",site:"AMDI",due:"2026-09-01"},
  {name:"Lift Operation Cert (SLO)",site:"Tower",due:"2026-06-22"},
@@ -8636,7 +8625,7 @@ function renderReminder(){
  const active=[...apprNotifs, ...payNotifs, ...NOTIFS.filter(n=>!n.done)];
  document.getElementById("page-reminder").innerHTML=`
   ${clarifyReminderHTML()}
-  <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>Notification & Alert Log</h2><div class="d">Alerts & approvals from all AGAVA modules · ${active.length} items need action</div></div></div>
+  <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>Log Notifikasi & Tindakan</h2><div class="d">Peringatan & persetujuan dari seluruh modul AGAVA · ${active.length} perlu ditindaklanjuti</div></div></div>
     <div class="sec-body">
       ${active.length?`<div class="nlog-head"><span>Module</span><span>Alert</span><span>Status</span><span>Action</span><span></span></div>
       ${active.map(n=>`<div class="nlog-row"><span class="nmod">${n.module}</span><span class="nalert">${n.alert}</span><span><span class="badge ${n.cls}">${n.status}</span></span><span class="naction">${n.action}</span><span>${n.approval?`<button class="btn-out" style="padding:7px 11px;font-size:calc(12px*var(--fz))" onclick="go('approvals')">Review</button>`:n.pay?`<button class="btn-out" style="padding:7px 11px;font-size:calc(12px*var(--fz))" onclick="go('payment')">Open</button>`:`<button class="btn-act" style="padding:7px 12px;font-size:calc(12px*var(--fz))" onclick="followUp(${n.id})">Follow up</button>`}</span></div>`).join("")}`
@@ -8644,22 +8633,8 @@ function renderReminder(){
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
-    <div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','reminder')}<div><h2>🚗 Vehicle · STNK</h2><div class="d">${STNK.length} vehicles</div></div></div>
-      <div class="sec-body">${STNK.map(v=>dueRow(v.plate,v.unit,v.due)).join("")}</div></div>
-    <div class="card sec"><div class="sec-h">${secIc('#e9f8ef','#15a34a','reminder')}<div><h2>🏢 Property Tax · PBB</h2><div class="d">${PBB.length} objects</div></div></div>
-      <div class="sec-body">${PBB.map(p=>dueRow(p.obj,p.note,p.due)).join("")}</div></div>
-    <div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','reminder')}<div><h2>📄 Permits</h2><div class="d">${IZIN.length} permits</div></div></div>
-      <div class="sec-body">${IZIN.map(z=>dueRow(z.name,z.site,z.due)).join("")}</div></div>
-  </div>
-
-  <div class="db-zone">
-    <div class="db-zone-h"><span class="db-zone-badge">🗄️ MASTER DATA · INPUT LANGSUNG DI AGAVA</span>
-      <span class="muted small">AGAVA adalah sumber datanya. Excel/SharePoint hanya bayangan untuk menjalankan flow — bukan tempat mengetik data.</span></div>
-    ${dbPanel("stnk","hitung mundur & status jatuh tempo dihitung otomatis")}
-    ${dbPanel("pbb")}
-    ${dbPanel("izin","tampil juga di CODEC → Permit")}
-  </div>`;
+  ${IZIN.length?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','reminder')}<div><h2>📄 Reminder Perizinan</h2><div class="d">${IZIN.length} dokumen · jatuh tempo dihitung otomatis</div></div></div>
+      <div class="sec-body">${IZIN.map(z=>dueRow(z.name,z.site,z.due)).join("")}</div></div>`:''}`;
 }
 
 /* ============ APPROVALS PAGE (tier-aware) ============ */
@@ -10516,7 +10491,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.24-77";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.24-78";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -11227,7 +11202,13 @@ function renderParams(){
     '<div class="muted small">berubah seketika saat Anda ubah koefisien</div></div></div>'+
     '<div id="pmPreview" class="pm-exs"></div>'+
     '<div class="pm-note">Setiap angka di seluruh AGAVA = <b>data nyata × koefisien di halaman ini</b>. Bukan statis — presisi mengikuti yang Anda tetapkan.</div>'+
-  '</div></div></div>';
+  '</div></div></div>'+
+  /* Master Data — dipindah dari modul Notifikasi (2026-07-24): hanya owner yang boleh input. */
+  '<div class="db-zone" style="margin-top:22px">'+
+    '<div class="db-zone-h"><span class="db-zone-badge">🗄️ MASTER DATA · INPUT LANGSUNG DI AGAVA</span>'+
+      '<span class="muted small">AGAVA adalah sumber datanya. Excel/SharePoint hanya bayangan untuk menjalankan flow — bukan tempat mengetik data. STNK &amp; PBB menyusul saat datanya siap.</span></div>'+
+    dbPanel("izin","reminder jatuh tempo tampil di CODEC → Permit &amp; modul Notifikasi")+
+  '</div>';
  el.innerHTML=html;
  paramPreview();
 }
