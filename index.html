@@ -5507,7 +5507,7 @@ function appBadge(n){ try{ if("setAppBadge" in navigator){ if(n>0)navigator.setA
    Isi AGAVA_FCM_VAPID dengan Web Push certificate key dari Firebase Console
    (Project settings → Cloud Messaging → Web Push certificates → Generate key pair).
    Kosong = FCM dilewati; notifikasi realtime biasa tetap jalan. Panduan: FCM-SETUP.md */
-const AGAVA_FCM_VAPID="";
+const AGAVA_FCM_VAPID="BEtrrV_EVIvEFx6bDmFGwIdVV9_vRjT4HHrkoBKM43wVsjifFLjH1SsPyEwIeHJU-v_Ntu2F-uRsAA-LBduz5qc";
 function fcmInit(){
  try{
   if(!AGAVA_FCM_VAPID)return;
@@ -10516,7 +10516,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.24-76";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.24-77";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
