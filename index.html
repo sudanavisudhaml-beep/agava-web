@@ -858,6 +858,11 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .nlog-row{border-bottom:1px solid var(--line);font-size:calc(13px*var(--fz))}
 .nlog-row .nmod{font-weight:700;color:var(--ink);font-size:calc(12px*var(--fz))}
 .nlog-row .nalert{color:var(--text)}
+/* Belum dilihat (perlu follow-up): tebal + titik merah + latar tipis. */
+.nlog-row.unseen{background:#fff8f7}
+.nlog-row.unseen .nalert{font-weight:800;color:var(--ink)}
+.nlog-row.unseen .nmod{color:var(--red)}
+.ndot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:6px;vertical-align:middle}
 .nlog-row .naction{color:var(--muted);font-size:calc(12px*var(--fz))}
 .due-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .due-row:first-of-type{border-top:none}
@@ -1922,6 +1927,12 @@ body.rg-open{overflow:hidden}
   .m-notif-t{font-size:calc(13.5px*var(--fz));font-weight:600;color:var(--m-ink);line-height:1.35}
   .m-notif-s{font-size:calc(11.5px*var(--fz));color:var(--m-mut);margin-top:2px}
   .m-notif-at{flex:0 0 auto;font-size:calc(10.5px*var(--fz));color:var(--m-fai)}
+  /* belum ditindak: tebal + latar tipis + titik merah */
+  .m-notif-row{cursor:pointer}
+  .m-notif-row.unseen{background:#fff7f6;box-shadow:inset 0 0 0 1px #f6cfca,var(--m-sh)}
+  .m-notif-row.unseen .m-notif-t{font-weight:800;color:var(--m-ink)}
+  .m-notif-cnt{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:var(--red,#dc2626);color:#fff;font-size:calc(11px*var(--fz));font-weight:800;vertical-align:middle;margin-left:6px}
+  .m-markall{display:block;width:100%;margin:10px 0 2px;padding:9px;border:none;border-radius:12px;background:#eef2f7;color:#33415a;font-size:calc(12px*var(--fz));font-weight:700}
   /* house rules */
   .m-rules{display:flex;flex-direction:column;gap:2px;background:var(--m-card);border-radius:16px;box-shadow:var(--m-sh);padding:6px 4px}
   .m-rule{display:flex;align-items:flex-start;gap:11px;padding:11px 12px;font-size:calc(13px*var(--fz));color:var(--m-sub);line-height:1.4}
@@ -7189,22 +7200,26 @@ function renderLayanan(){
 function renderNotif(){
  var el=document.getElementById("page-notif"); if(!el)return;
  var inb=mInbox();
- var feed=(typeof activeNotifs==="function"?activeNotifs():[]);
- var head='<div class="m-page-h"><div class="m-page-t">Notifikasi</div>'+
-   '<div class="m-page-s">Pemberitahuan & tindakan yang menunggu Anda</div></div>';
+ var items=(typeof notifItems==="function"?notifItems():[]);
+ var unseenN=items.filter(function(i){return !notifSeen(i.key);}).length;
+ var head='<div class="m-page-h"><div class="m-page-t">Notifikasi'+(unseenN?' <span class="m-notif-cnt">'+unseenN+'</span>':'')+'</div>'+
+   '<div class="m-page-s">Yang tebal belum Anda tindak · ketuk untuk menandai sudah</div></div>';
  var inbox=inb.n>0?'<button class="m-notif-inbox" onclick="go(\''+inb.id+'\')">'+
      '<span class="m-ni-ic">'+micSvg(inb.sv)+'</span>'+
      '<span class="m-ni-tx"><b>'+esc(inb.label)+'</b><small>'+inb.n+' item menunggu tindakan Anda</small></span>'+
      '<span class="m-ni-badge">'+inb.n+'</span></button>':'';
- var list=feed.length?'<div class="mh-list" style="margin-top:12px">'+feed.map(function(n){
-     return '<div class="m-notif-row">'+
-       '<span class="m-notif-ic">'+(n.ic||"🔔")+'</span>'+
-       '<div class="m-notif-tx"><div class="m-notif-t">'+esc(n.t||"")+'</div>'+
-         (n.sub?'<div class="m-notif-s">'+esc(n.sub)+'</div>':'')+'</div>'+
-       (n.at?'<span class="m-notif-at">'+esc(n.at)+'</span>':'')+'</div>';
+ var markAll=unseenN?'<button class="m-markall" onclick="notifMarkAllSeen()">✓ Tandai semua dibaca</button>':'';
+ var list=items.length?'<div class="mh-list" style="margin-top:12px">'+items.map(function(n){
+     var uns=!notifSeen(n.key);
+     var ic=n.open==='approvals'?'📋':n.open==='payment'?'💳':'🔔';
+     return '<div class="m-notif-row'+(uns?' unseen':'')+'" onclick="notifOpen(\''+n.key+'\',\''+(n.open||'')+'\')">'+
+       '<span class="m-notif-ic">'+(uns?'<i class="ndot"></i>':'')+ic+'</span>'+
+       '<div class="m-notif-tx"><div class="m-notif-t">'+esc(n.alert||n.module)+'</div>'+
+         '<div class="m-notif-s">'+esc(n.module)+' · '+esc(n.status||'')+'</div></div>'+
+       mhChev()+'</div>';
    }).join("")+'</div>'
    :'<div class="mh-empty" style="margin-top:12px">Tidak ada notifikasi baru. Semua terpantau.</div>';
- el.innerHTML=head+inbox+list;
+ el.innerHTML=head+inbox+markAll+list;
 }
 
 /* ── HALAMAN: DISCOVER (informasi layanan GA) ── */
@@ -8597,7 +8612,41 @@ function dueStatus(due){ const d=Math.floor((new Date(due)-new Date(TODAY_STR))/
  return {cls:"bd-ok",txt:d+"d left"}; }
 function dueRow(name,sub,due){ const s=dueStatus(due); return `<div class="due-row"><div><div class="dj">${name}</div><div class="dm">${sub} · due ${due}</div></div><span class="badge ${s.cls}">${s.txt}</span></div>`; }
 function myBookingCount(){ return (typeof RB_BOOKINGS!=="undefined"&&gUser)?RB_BOOKINGS.filter(b=>b.email===gUser.email||b.by===gUser.name).length:0; }
-function updateBell(){ const n=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(isSuper()?escalatedTickets().length:0)+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); appBadge(n); const b=document.getElementById("bellBadge"); if(!b)return; b.textContent=n; b.classList.toggle("hide",n===0); }
+/* ══════════════════════════════════════════════════════════════════════════
+   STATUS "SUDAH DILIHAT" per notifikasi (per user).
+   Item yang BELUM diklik = TEBAL + dihitung di gelembung merah. Begitu diklik →
+   ditandai dilihat: angka gelembung berkurang (bisa jadi 0) & teks tidak lagi tebal.
+   Tujuan: user tahu apa yang perlu di-follow up vs apa yang sudah di-follow up.
+   ══════════════════════════════════════════════════════════════════════════ */
+let NOTIF_SEEN={}, NOTIF_SEEN_EMAIL=null;
+function notifSeenEnsure(){ var e=(((gUser&&gUser.email)||"anon")+"").toLowerCase();
+  if(e!==NOTIF_SEEN_EMAIL){ NOTIF_SEEN_EMAIL=e; try{ NOTIF_SEEN=JSON.parse(localStorage.getItem("agava_notifseen_"+e))||{}; }catch(x){ NOTIF_SEEN={}; } } }
+function notifSeen(k){ notifSeenEnsure(); return !!NOTIF_SEEN[k]; }
+function notifMarkSeen(k){ if(!k)return; notifSeenEnsure(); if(NOTIF_SEEN[k])return; NOTIF_SEEN[k]=1;
+  try{ localStorage.setItem("agava_notifseen_"+NOTIF_SEEN_EMAIL,JSON.stringify(NOTIF_SEEN)); }catch(e){} }
+/* Daftar tunggal item notifikasi (approval · payment · notif sistem) — dipakai
+   modul Notifikasi (web+mobile) DAN penghitung gelembung, supaya selalu konsisten. */
+function notifItems(){
+ var items=[];
+ pendingApprovals().forEach(function(a){ var no=(a.item||"").split(" — ")[0];
+   items.push({key:"appr:"+(a.tier||"")+":"+no, module:"Approval · "+a.tier, alert:a.item, status:a.source||a.status, cls:"bd-proc", action:"Menunggu "+a.tier, open:"approvals"}); });
+ if(payRemRole()) paymentReminders().forEach(function(x){ var wait=x.kind==='wait';
+   items.push({key:"pay:"+x.s.no+":"+(x.kind||""), module:"Payment · Budget",
+     alert: wait? x.s.no+" — "+(x.s.vendor||'vendor')+" · Menunggu Invoice "+invWaitHK(x.s)+" HK" : x.s.no+" — "+(x.s.vendor||'vendor')+" (Rp "+invNom(x.s)+" jt)",
+     status: wait? "Vendor belum kirim invoice (≥5 HK)" : "Lewat estimasi rilis "+fmtDay(invRelEst(x.s)),
+     cls: wait?'bd-warn':'bd-crit', action: wait?"Tagih invoice":"F-up treasury", open:"payment"}); });
+ NOTIFS.filter(function(n){return !n.done;}).forEach(function(n){
+   items.push({key:"notif:"+n.id, module:n.module, alert:n.alert, status:n.status, cls:n.cls, action:n.action, followId:n.id}); });
+ return items;
+}
+function notifUnseenCount(){ notifSeenEnsure(); return notifItems().filter(function(i){ return !NOTIF_SEEN[i.key]; }).length; }
+/* klik item → tandai dilihat, lalu buka modulnya / tuntaskan notif */
+function notifOpen(key,target){ notifMarkSeen(key); if(target){ go(target); } else { try{renderReminder();}catch(e){} try{renderNotif();}catch(e){} updateBell(); } }
+function notifFollowUp(key,id){ notifMarkSeen(key); const x=NOTIFS.find(n=>n.id===id); if(x)x.done=true; renderReminder(); updateBell(); }
+function notifMarkAllSeen(){ notifSeenEnsure(); notifItems().forEach(function(i){ NOTIF_SEEN[i.key]=1; });
+  try{ localStorage.setItem("agava_notifseen_"+NOTIF_SEEN_EMAIL,JSON.stringify(NOTIF_SEEN)); }catch(e){}
+  renderReminder(); try{ renderNotif(); }catch(e){} updateBell(); }
+function updateBell(){ const n=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):notifUnseenCount())+myClarifyCount(); appBadge(n); const b=document.getElementById("bellBadge"); if(!b)return; b.textContent=n; b.classList.toggle("hide",n===0); }
 function followUp(id){ const x=NOTIFS.find(n=>n.id===id); if(x)x.done=true; renderReminder(); updateBell(); }
 function rbRoomName(id){ for(const k in RB_ROOMS){ const r=RB_ROOMS[k].find(x=>x.id===id); if(r)return r.name; } return id; }
 function renderReminder(){
@@ -8618,18 +8667,15 @@ function renderReminder(){
     </div>`;
    return;
  }
- const apprNotifs=pendingApprovals().map(a=>({approval:true,module:"Approval · "+a.tier,alert:a.item,status:a.source,cls:"bd-proc",action:"Awaiting "+a.tier}));
- const payNotifs=(payRemRole()?paymentReminders():[]).map(x=> x.kind==='wait'
-   ? {pay:true,module:"Payment · Budget",alert:x.s.no+" — "+(x.s.vendor||'vendor')+" · Menunggu Invoice "+invWaitHK(x.s)+" HK",status:"Vendor belum kirim invoice (≥5 HK)",cls:'bd-warn',action:"Tagih invoice"}
-   : {pay:true,module:"Payment · Budget",alert:x.s.no+" — "+(x.s.vendor||'vendor')+" (Rp "+invNom(x.s)+" jt)",status:"Lewat estimasi rilis "+fmtDay(invRelEst(x.s)),cls:'bd-crit',action:"F-up treasury → Konfirmasi Release"});
- const active=[...apprNotifs, ...payNotifs, ...NOTIFS.filter(n=>!n.done)];
+ const items=notifItems();
+ const unseenN=items.filter(i=>!notifSeen(i.key)).length;
  document.getElementById("page-reminder").innerHTML=`
   ${clarifyReminderHTML()}
-  <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>Log Notifikasi & Tindakan</h2><div class="d">Peringatan & persetujuan dari seluruh modul AGAVA · ${active.length} perlu ditindaklanjuti</div></div></div>
+  <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>Log Notifikasi & Tindakan</h2><div class="d">Peringatan & persetujuan dari seluruh modul AGAVA · <b>${unseenN} belum ditindak</b> dari ${items.length} item</div></div>${items.length?`<button class="btn-out" style="margin-left:auto;padding:6px 12px;font-size:calc(11.5px*var(--fz))" onclick="notifMarkAllSeen()">✓ Tandai semua dibaca</button>`:''}</div>
     <div class="sec-body">
-      ${active.length?`<div class="nlog-head"><span>Module</span><span>Alert</span><span>Status</span><span>Action</span><span></span></div>
-      ${active.map(n=>`<div class="nlog-row"><span class="nmod">${n.module}</span><span class="nalert">${n.alert}</span><span><span class="badge ${n.cls}">${n.status}</span></span><span class="naction">${n.action}</span><span>${n.approval?`<button class="btn-out" style="padding:7px 11px;font-size:calc(12px*var(--fz))" onclick="go('approvals')">Review</button>`:n.pay?`<button class="btn-out" style="padding:7px 11px;font-size:calc(12px*var(--fz))" onclick="go('payment')">Open</button>`:`<button class="btn-act" style="padding:7px 12px;font-size:calc(12px*var(--fz))" onclick="followUp(${n.id})">Follow up</button>`}</span></div>`).join("")}`
-      :'<div style="text-align:center;padding:40px;color:var(--green);font-weight:600">✅ All clear — no active alerts. Great job!</div>'}
+      ${items.length?`<div class="nlog-head"><span>Module</span><span>Alert</span><span>Status</span><span>Action</span><span></span></div>
+      ${items.map(n=>{const uns=!notifSeen(n.key);return `<div class="nlog-row${uns?' unseen':''}"><span class="nmod">${uns?'<i class="ndot"></i>':''}${n.module}</span><span class="nalert">${n.alert}</span><span><span class="badge ${n.cls}">${n.status}</span></span><span class="naction">${n.action}</span><span>${n.open?`<button class="btn-out" style="padding:7px 11px;font-size:calc(12px*var(--fz))" onclick="notifOpen('${n.key}','${n.open}')">Buka</button>`:`<button class="btn-act" style="padding:7px 12px;font-size:calc(12px*var(--fz))" onclick="notifFollowUp('${n.key}',${n.followId})">Follow up</button>`}</span></div>`;}).join("")}`
+      :'<div style="text-align:center;padding:40px;color:var(--green);font-weight:600">✅ Semua beres — tidak ada notifikasi aktif.</div>'}
     </div>
   </div>
 
@@ -8664,7 +8710,7 @@ function soPendingAll(){ return SO.filter(s=>soGateTier(s)).map(s=>({approval:tr
 function approvalsForTier(){ return soApprovalsForTier(gTier).length + APPROVALS.filter(a=>a.tier===gTier && a.status==="Pending").length; }
 function pendingApprovals(){ return APPROVALS.filter(a=>a.status==="Pending").concat(soPendingAll()); }
 function activeNotifs(){ return NOTIFS.filter(n=>!n.done); }
-function navBadge(id){ let c=0; if(id==="approvals")c=approvalsForTier(); else if(id==="assigned"){ const me=gUser?gUser.name:""; c=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprProc==="Approved" && s.apprDept==="Approved" && s.wstep<4).length; } else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):(activeNotifs().length+pendingApprovals().length+(payRemRole()?paymentReminders().length:0)))+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
+function navBadge(id){ let c=0; if(id==="approvals")c=approvalsForTier(); else if(id==="assigned"){ const me=gUser?gUser.name:""; c=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprProc==="Approved" && s.apprDept==="Approved" && s.wstep<4).length; } else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):notifUnseenCount())+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
 function approveSO(no,gate,decision){
  var s=SO.find(x=>x.no===no); if(!s)return;
  s.ts=s.ts||{}; s.tsf=s.tsf||{};
@@ -10491,7 +10537,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.24-78";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.24-79";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
