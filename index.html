@@ -7137,10 +7137,29 @@ function mBannerInit(){
    var w=document.getElementById("mhBannerWrap");
    if(!w || !w.isConnected){ clearInterval(mBanTimer); return; }
    var kids=w.children, n=kids.length; if(n<2) return;
-   var step=kids[1].offsetLeft-kids[0].offsetLeft; if(step<=0) return;
-   var idx=Math.round(w.scrollLeft/step);
+   if(kids[1].offsetLeft-kids[0].offsetLeft<=0) return;   // tata letak belum terukur
+   /* Diam kalau banner sedang tidak terlihat di layar — tidak ada gunanya menggeser
+      sesuatu yang tak dilihat, dan ini menjaga halaman benar-benar tenang saat di-scroll. */
+   var r=w.getBoundingClientRect(), vh=window.innerHeight||document.documentElement.clientHeight||0;
+   if(r.bottom<=0 || r.top>=vh) return;
+   /* Kontainer ini memakai scroll-snap "x mandatory" + align center. Konsekuensinya:
+      target HARUS titik center-align — kalau meleset, snap menarik balik ke posisi semula
+      dan banner terlihat diam. Hitung dari titik tengah, bukan dari offsetLeft. */
+   var cx=r.left+r.width/2, idx=0, best=Infinity;
+   for(var i=0;i<n;i++){ var ir=kids[i].getBoundingClientRect();
+     var d=Math.abs((ir.left+ir.width/2)-cx); if(d<best){ best=d; idx=i; } }
    var next=(idx+1)%n;                          // looping: setelah terakhir → balik ke 0
-   kids[next].scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"});
+   var nr=kids[next].getBoundingClientRect();
+   var target=w.scrollLeft+((nr.left+nr.width/2)-cx), before=w.scrollLeft;
+   /* HANYA geser horizontal DI DALAM kontainer banner.
+      JANGAN pakai scrollIntoView: itu ikut menggeser halaman secara vertikal, sehingga
+      layar "ketarik" balik ke atas tiap 5 detik saat user sedang scroll ke bawah. */
+   w.style.scrollSnapType="none";               // supaya animasi smooth tidak dibatalkan snap
+   w.scrollTo({left:target, behavior:"smooth"});
+   setTimeout(function(){
+     if(Math.abs(w.scrollLeft-before)<2) w.scrollLeft=target;  // cadangan bila smooth diabaikan
+     w.style.scrollSnapType="";                 // kembalikan snap (sudah pas di titik snap)
+   },600);
  },5000);
 }
 
@@ -10475,7 +10494,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.24-73";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.24-74";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
