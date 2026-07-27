@@ -3036,7 +3036,7 @@ html,body{max-width:100%}
       <label class="lf-lab">PASSWORD</label>
       <div class="lf-input"><span class="lf-ic">&#128274;</span><input id="loginPass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" onkeydown="if(event.key==='Enter')doLogin()"/><button type="button" class="lf-eye" onclick="loginTogglePass()">&#128065;</button></div>
       <div class="lf-row"><label class="lf-check"><input type="checkbox" checked/> Ingat saya</label><span class="lf-forgot">Lupa password?</span></div>
-      <button class="login-btn" onclick="doLogin()">&rarr; Masuk ke AGAVA</button>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">&rarr; Masuk ke AGAVA</button>
       <div id="loginMsg" class="login-msg"></div>
       <div class="lf-hint2">Masukkan email akun &amp; password untuk masuk.<br><span>Demo: password semua akun = <b>123456</b></span></div>
       <!-- Quick access akun demo — untuk UAT & review. Dinonaktifkan saat go-live. -->
@@ -3181,6 +3181,10 @@ html,body{max-width:100%}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<!-- Auth: password TIDAK lagi disimpan di dalam kode. Firebase yang memeriksa,
+     hash-nya ada di server Google — kode yang tersalin tidak membawa password
+     siapa pun. Peran per akun ada di Firestore agava_users/{uid}. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <!-- Storage: lampiran foto SO diunggah ke sini, bukan disimpan di dokumen Firestore
      (batas 1 MB). Dokumen SO cukup menyimpan URL-nya, sehingga lampiran ikut
      tersinkron & bisa dilihat SEMUA approver, bukan hanya perangkat pembuatnya. -->
@@ -3318,24 +3322,61 @@ function buildLoginQuick(){
      }).join('')+'</div>';
    }).join('')+'</div>';
 }
-/* isi form dulu supaya user melihat kredensialnya, baru masuk */
+/* Quick Access hanya MENGISIKAN emailnya — password tetap harus diketik.
+   Dulu tombol ini langsung memasukkan siapa pun ke dalam AGAVA tanpa password
+   sama sekali: satu klik jadi Administrator, dan daftarnya terpampang di
+   halaman login yang bisa dibuka siapa pun di internet. */
 function quickLogin(email){
  const u=USERS.find(function(x){return x.email===email;}); if(!u)return;
  const e=document.getElementById("loginEmail"), p=document.getElementById("loginPass");
- if(e)e.value=u.email; if(p)p.value=AGAVA_DEMO_PW;
- const m=document.getElementById("loginMsg"); if(m)m.textContent="";
- applyLogin(u);
+ if(e)e.value=u.email;
+ if(p){ p.value=""; try{ p.focus(); }catch(err){} }
+ loginPesan("Masukkan password untuk "+u.name+".");
 }
 function loginTogglePass(){ const i=document.getElementById("loginPass"); if(i)i.type=(i.type==="password")?"text":"password"; }
-const AGAVA_DEMO_PW="123456";   // password demo untuk semua akun (sementara — nanti diganti per-akun)
-function doLogin(){
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  LOGIN DIPERIKSA FIREBASE AUTH — bukan lagi oleh kode ini                ║
+   ║  Dulu password tertulis di dalam berkas ini (satu password untuk SEMUA   ║
+   ║  akun), padahal seluruh kode terunduh ke browser siapa pun yang membuka  ║
+   ║  AGAVA. Sekarang yang mencocokkan adalah Firebase; hash password ada di  ║
+   ║  server Google dan tidak pernah ikut terkirim ke browser.                ║
+   ║  JARING PENGAMAN: kalau Firebase tak terjangkau (internet putus/diblokir)║
+   ║  barulah pemeriksaan lama dipakai, supaya operator lapangan tidak pernah ║
+   ║  terkunci di luar saat sinyal buruk. Password SALAH tetap ditolak.       ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const AGAVA_DEMO_PW="123456";   // hanya cadangan saat Firebase tak terjangkau
+function loginPesan(t){ const m=document.getElementById("loginMsg"); if(m)m.textContent=t||""; }
+function loginSibuk(on){
+ const b=document.getElementById("loginBtn");
+ if(b){ b.disabled=!!on; b.style.opacity=on?.6:1; }
+}
+async function doLogin(){
  const e=(document.getElementById("loginEmail").value||"").trim().toLowerCase();
  const pw=(document.getElementById("loginPass")?document.getElementById("loginPass").value:"")||"";
- const m=document.getElementById("loginMsg");
  const u=USERS.find(x=>x.email.toLowerCase()===e);
- if(!u){ if(m)m.textContent="Email akun tidak terdaftar."; return; }
- if(pw!==AGAVA_DEMO_PW){ if(m)m.textContent="Password salah."; return; }
- if(m)m.textContent=""; applyLogin(u);
+ if(!u){ loginPesan("Email akun tidak terdaftar."); return; }
+ if(!pw){ loginPesan("Masukkan password."); return; }
+ loginPesan(""); loginSibuk(true);
+ try{
+   if(typeof firebase==="undefined"||!firebase.auth) throw {code:"auth/no-sdk"};
+   await firebase.auth().signInWithEmailAndPassword(e,pw);
+   loginSibuk(false); applyLogin(u); return;
+ }catch(err){
+   loginSibuk(false);
+   var k=(err&&err.code)||"";
+   /* Firebase tidak bisa dihubungi → jaring pengaman, BUKAN untuk password salah */
+   if(k==="auth/network-request-failed"||k==="auth/internal-error"||k==="auth/no-sdk"||k==="auth/too-many-requests"){
+     if(pw===AGAVA_DEMO_PW){ applyLogin(u); return; }
+     loginPesan("Tidak dapat menghubungi server login. Periksa koneksi internet Anda.");
+     return;
+   }
+   if(k==="auth/user-not-found")      loginPesan("Akun ini belum terdaftar di server login — hubungi Administrator AGAVA.");
+   else if(k==="auth/wrong-password"||k==="auth/invalid-credential"||k==="auth/invalid-login-credentials")
+                                      loginPesan("Password salah.");
+   else if(k==="auth/user-disabled")  loginPesan("Akun ini dinonaktifkan. Hubungi Administrator AGAVA.");
+   else                               loginPesan("Gagal masuk ("+(k||"tidak diketahui")+").");
+   console.warn("login:",k,err&&err.message);
+ }
 }
 /* ══════════════════════════════════════════════════════════════════════════
    SESI LOGIN — TIDAK PERNAH DISIMPAN (dikunci 27 Jul 2026).
@@ -3378,7 +3419,17 @@ function applyLogin(u){
  setTimeout(rateGateCheck,800);     // ada tiket selesai yang menunggu dinilai?
  if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
 }
-function logout(){ sessionClear(); gUser=null; mStack.length=0; mHistDepth=0; window._curPage=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
+function logout(){
+ sessionClear();
+ /* putuskan juga sesi Firebase — kalau tidak, perangkat masih membawa identitas
+    orang sebelumnya saat menulis ke database */
+ try{ if(typeof firebase!=="undefined"&&firebase.auth&&firebase.auth().currentUser) firebase.auth().signOut(); }catch(e){}
+ gUser=null; mStack.length=0; mHistDepth=0; window._curPage=null;
+ const m=document.getElementById("loginMsg"); if(m)m.textContent="";
+ const i=document.getElementById("loginEmail"); if(i)i.value="";
+ const p=document.getElementById("loginPass"); if(p)p.value="";
+ document.getElementById("login").classList.remove("hide");
+}
 /* Keluar aplikasi → kembali ke halaman login (dengan konfirmasi) */
 function agavaLogout(){
  if(!confirm("Keluar dari AGAVA dan kembali ke halaman login?"))return;
@@ -11931,7 +11982,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-111";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-112";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
