@@ -873,6 +873,20 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 @keyframes mPullSpin{to{transform:rotate(360deg)}}
 /* ── Kartu draft ── */
 .draft-card{border:1px solid #f6ddb4;background:linear-gradient(180deg,#fffdf8,#fff)}
+/* ── Kartu Jejak Biaya & Karbon (Beranda HP) ── */
+.mcost{background:var(--m-card,#fff);border-radius:16px;padding:14px;box-shadow:var(--m-sh,0 2px 10px rgba(20,40,80,.06));cursor:pointer}
+.mcost-top{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mcost-b{background:linear-gradient(160deg,#f2f8ff,#eef4ff);border-radius:12px;padding:10px 12px}
+.mcost-l{font-size:calc(10.5px*var(--fz));color:#6b7a90;font-weight:600;margin-bottom:3px}
+.mcost-v{font-size:calc(17px*var(--fz));font-weight:800;color:#0a4bb8;line-height:1.15}
+.mcost-v small{font-size:calc(10.5px*var(--fz));font-weight:700}
+.mcost-co2{color:#15803d}
+.mcost-minis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.mcost-mini{background:#f7f9fc;border-radius:10px;padding:7px 4px;text-align:center;overflow:hidden}
+.mcost-mini span{font-size:calc(13px*var(--fz));display:block;line-height:1}
+.mcost-mini b{display:block;font-size:calc(10.5px*var(--fz));color:#1a2740;font-weight:800;margin-top:3px;white-space:nowrap}
+.mcost-mini i{display:block;font-style:normal;font-size:calc(8.8px*var(--fz));color:#8a97a8;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mcost-note{margin-top:9px;font-size:calc(10px*var(--fz));color:#8a97a8;line-height:1.5}
 /* ── CHAT GA Team ── */
 /* Tinggi DIPATOK ke layar (bukan mengikuti isi) supaya kolom tulis selalu menempel
    di bawah & daftar pesan yang bergulir di dalamnya — seperti WhatsApp. */
@@ -3329,6 +3343,10 @@ function go(id){
     if(window._curPage!==mHomeId()) mStack.push(window._curPage);
     mArm();                                   // sediakan 1 "perangkap" tombol back HP
   }
+  /* Beranda = AKAR. Begitu tiba di Beranda, riwayat dikosongkan supaya tombol
+     back HP tidak bisa "mundur" ke halaman yang sudah ditinggalkan (dulu bisa
+     melompat balik ke Chat). */
+  if(isMobile()&&id===mHomeId()) mStack.length=0;
   window._curPage=id;
   active=(id==="ersus")?"energy":id; navSetActive();
   try{ mBackSync(id); }catch(e){}
@@ -6874,6 +6892,20 @@ function mArm(){ try{ history.pushState({agava:window._curPage||"home"},""); }ca
    Muat ulang penuh dipakai supaya versi build terbaru & data terbaru ikut terambil.
    Draft pengajuan aman karena tersimpan di perangkat, bukan di memori halaman.
    ══════════════════════════════════════════════════════════════════════════ */
+/* Segarkan TANPA memuat ulang halaman — supaya tidak terlempar ke halaman Login
+   (sesi login hanya ada di memori). Data sendiri sudah realtime dari Firestore;
+   yang dilakukan di sini: muat ulang cache lokal + gambar ulang semua modul. */
+function mSoftRefresh(){
+ try{ soLoad(); wpLoad(); }catch(e){}
+ try{ normalizeSO(); normalizeTickets(); }catch(e){}
+ var fns=["renderMobileHome","renderService","renderProc","renderApprovals","renderAssigned",
+          "renderPayment","renderFieldOps","renderMyTickets","renderHSE","renderOverview",
+          "renderReminder","renderNotif","updateBell","chatBadge"];
+ fns.forEach(function(f){ try{ if(typeof window[f]==="function") window[f](); }catch(e){} });
+ var ind=document.getElementById("mPull");
+ if(ind){ ind.classList.remove("spin","ready"); ind.style.transform=""; ind.style.opacity=""; }
+ try{ var app=document.querySelector("div.app"); if(app) app.scrollTop=0; }catch(e){}
+}
 function mPullInit(){
  var app=document.querySelector("div.app"); if(!app)return;
  var ind=document.getElementById("mPull");
@@ -6899,7 +6931,7 @@ function mPullInit(){
    if(!pulling){ y0=null; return; }
    var d=Math.min(dist*0.5,96);
    ind.style.transition="transform .25s ease,opacity .25s ease";
-   if(d>=TRIG){ ind.classList.add("spin"); setTimeout(function(){ location.reload(); },260); }
+   if(d>=TRIG){ ind.classList.add("spin"); setTimeout(mSoftRefresh,240); }
    else { reset(); setTimeout(function(){ ind.style.transition=""; },300); }
    y0=null; dist=0; pulling=false;
  },{passive:true});
@@ -7093,10 +7125,16 @@ function mSwipeInit(){
 function mHistoryInit(){
  try{ history.replaceState({agava:"home"},""); }catch(e){}
  window.addEventListener("popstate",function(){
-   if(!isMobile())return;
-   if(mInterceptBack(true))return;           // overlay terbuka → tutup, history sudah di-rearm
+   /* Perangkap dipasang LEBIH DULU dan TANPA SYARAT. Kalau tidak, sekali saja
+      handler ini keluar lebih awal (mis. bukan mode HP), tombol back HP akan
+      lolos ke riwayat browser di luar aplikasi — itulah yang dulu memunculkan
+      kembali kolom Chat lalu AGAVA Copilot. */
+   mArm();
+   if(!isMobile())return;                     // desktop: perangkap tetap terpasang, sisanya diabaikan
+   if(mInterceptBack(false))return;           // overlay terbuka → cukup ditutup
+   /* Sudah di Beranda → Beranda adalah akar: tetap di sini, jangan mundur lagi. */
+   if(active===mHomeId()||!mStack.length){ if(active!==mHomeId()) go(mHomeId()); return; }
    mNavConsumeBack();                         // mundur TEPAT satu layar
-   mArm();                                    // pasang perangkap lagi → back berikutnya juga tertangkap
  });
 }
 /* Bottom bar berbeda untuk operator lapangan: Home · Complaint (pantau) · My Tickets */
@@ -7761,6 +7799,7 @@ function renderMobileHome(){
   ikon+
   mJejakCard()+
   mSecBlock("🗂️ Pengajuan Saya",ord.length+" pengajuan",(ord.length?"all":null),listOrder)+
+  mCostCardHTML()+
   soBlok+wipBlok+remBlok+kal;
  /* titik geser untuk grid modul & banner */
  mDotSync("mhModWrap",".mh-dots i",el);
@@ -10879,7 +10918,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-88";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-89";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -11534,6 +11573,36 @@ function gaCostList(scope){
 }
 /* Box Highlight OPEX — reusable. scope: "all" (CODEC) atau satu jenis (per modul).
    Pesan tetap: layanan baik ada biayanya → gunakan fasilitas & privilege dgn bijak. */
+/* ══════════════════════════════════════════════════════════════════════════
+   KARTU JEJAK BIAYA & KARBON — Beranda HP, tampil SELALU (default).
+   Angkanya DITURUNKAN dari aktivitas nyata (tiket · ruang · transport · lembur)
+   × koefisien di modul Parameter & Biaya. Belum ada aktivitas → Rp 0 / 0 kg,
+   BUKAN angka contoh. Diketuk → rincian yang menjumlah persis ke angka ini.
+   ══════════════════════════════════════════════════════════════════════════ */
+function mCostCardHTML(){
+ var a; try{ a=gaCostAll(); }catch(e){ return ""; }
+ var per=""; try{ per=(typeof codecMonthID==="function")?codecMonthID():""; }catch(e){}
+ var kosong=(!a.n||(!a.rp&&!a.co2));
+ var mini=["complaint","room","transport","overtime"].map(function(k){
+   var b=a.by[k]||{rp:0,n:0};
+   return '<div class="mcost-mini"><span>'+(GA_KIC[k]||"")+'</span>'+
+     '<b>'+costRp(b.rp||0)+'</b><i>'+esc(GA_KLBL[k]||k)+' · '+(b.n||0)+'</i></div>';
+ }).join("");
+ return '<div class="mh-sec"><div class="mh-sh"><b>💡 Jejak Biaya &amp; Karbon</b>'+
+     '<span>'+esc(per)+'</span></div>'+
+   '<div class="mcost" onclick="try{codecCostTally(\'total\')}catch(e){}">'+
+     '<div class="mcost-top">'+
+       '<div class="mcost-b"><div class="mcost-l">Biaya sumber daya</div>'+
+         '<div class="mcost-v">'+costRp(a.rp||0)+'</div></div>'+
+       '<div class="mcost-b"><div class="mcost-l">Jejak karbon</div>'+
+         '<div class="mcost-v mcost-co2">'+(a.co2||0)+' <small>kg CO₂</small></div></div>'+
+     '</div>'+
+     '<div class="mcost-minis">'+mini+'</div>'+
+     '<div class="mcost-note">'+(kosong
+       ? 'Belum ada aktivitas tercatat — angka akan terisi sendiri begitu tiket, ruang, transport, atau lembur masuk.'
+       : 'Diturunkan dari '+a.n+' aktivitas nyata × koefisien Parameter &amp; Biaya · ketuk untuk rincian')+'</div>'+
+   '</div></div>';
+}
 const GA_KLBL={complaint:"Layanan",room:"Ruang & Event",transport:"Transport",overtime:"Overtime"};
 const GA_KIC={complaint:"🎧",room:"🏢",transport:"🚗",overtime:"⏱️"};
 function gaOpexHTML(scope){
