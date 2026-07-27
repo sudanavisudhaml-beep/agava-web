@@ -6770,6 +6770,25 @@ function ticketReqName(t){
  var u=t.email?USERS.find(function(x){return x.email===t.email;}):null;
  return u?u.name:"—";
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  ATURAN TETAP: SETIAP LAYANAN MENAMPILKAN NAMA PEMBUATNYA                ║
+   ║  Apa pun yang dibuat di modul Service — tiket, reservasi ruang, order    ║
+   ║  transport, pengajuan lembur — harus selalu memperlihatkan siapa yang    ║
+   ║  mengajukan. Bentuk datanya berbeda per layanan (tiket: requester;       ║
+   ║  booking/transport/lembur: by; SO: req), jadi satu fungsi ini yang       ║
+   ║  menyamakan pembacaannya — termasuk menelusuri nama dari email akun.     ║
+   ║  Pakai pemohonNama()/pemohonChip() untuk SETIAP layanan baru.            ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function pemohonNama(r){
+ if(!r) return "—";
+ var n=r.requester||r.by||r.req||r.pemohon||r.createdBy||"";
+ if(!n && r.email){
+   var u=USERS.find(function(x){ return String(x.email).toLowerCase()===String(r.email).toLowerCase(); });
+   if(u) n=u.name;
+ }
+ return n||"—";
+}
+function pemohonChip(r){ return '🙋 Pemohon <b>'+esc(pemohonNama(r))+'</b>'; }
 function normalizeTickets(){ TICKETS.forEach((t,i)=>{
   if(!t.slaMs){ t.slaMs={}; if(t.created){ t.slaMs.created=new Date(t.created+'T09:00:00').getTime(); if((t.stg||0)>=1)t.slaMs.pickup=new Date(t.created+'T09:30:00').getTime(); if((t.stg||0)>=3)t.slaMs.resolved=new Date((t.closed||t.created)+'T12:00:00').getTime(); } }
   if(!t.prio&&!t.priority)t.prio=t.esc?'High':'Medium';
@@ -8714,10 +8733,10 @@ function roomEventCard(){
    <button class="btn-out" onclick="connectLive()" title="Connect a local Excel workbook with a 'Rooms' sheet — auto-refresh every 10s">${LIVE.connected?'⟳ Reconnect Excel':'🔗 Connect Excel'}</button></div>
   <div class="sec-body"><div class="two">
     <div><div class="panel-t">Today — ${todays.length} bookings · ${paxToday} pax</div>
-      ${todays.length?todays.map(b=>`<div class="trow"><div><div class="tj">${b.room}</div><div class="tm">${b.event} · ${b.start}–${b.end}${b.pax?' · '+b.pax+' pax':''}</div></div><span class="badge ${b.status==='In use'?'bd-info':'bd-warn'}">${b.status}</span></div>`).join(""):'<div class="muted small" style="padding:18px 0">No bookings today.</div>'}
+      ${todays.length?todays.map(b=>`<div class="trow"><div><div class="tj">${b.room}</div><div class="tm">${b.event} · ${b.start}–${b.end}${b.pax?' · '+b.pax+' pax':''}</div><div class="tm">${pemohonChip(b)}</div></div><span class="badge ${b.status==='In use'?'bd-info':'bd-warn'}">${b.status}</span></div>`).join(""):'<div class="muted small" style="padding:18px 0">No bookings today.</div>'}
     </div>
     <div><div class="panel-t">Upcoming events — next 30 days</div>
-      ${upcoming.length?upcoming.map(b=>`<div class="up-item"><span class="ud">${fmtDay(b.date)}</span><span class="un"><b>${b.start}</b> · ${b.event}<div class="muted small">${b.room}${b.pax?' · '+b.pax+' pax':''}</div></span></div>`).join(""):'<div class="muted small" style="padding:18px 0">No upcoming events.</div>'}
+      ${upcoming.length?upcoming.map(b=>`<div class="up-item"><span class="ud">${fmtDay(b.date)}</span><span class="un"><b>${b.start}</b> · ${b.event}<div class="muted small">${b.room}${b.pax?' · '+b.pax+' pax':''} · ${pemohonChip(b)}</div></span></div>`).join(""):'<div class="muted small" style="padding:18px 0">No upcoming events.</div>'}
     </div>
   </div></div></div>`;
 }
@@ -9032,7 +9051,7 @@ function rbShowPop(e,id){
  const room=(RB_ROOMS[rbSite+"|"+rbFloor]||[]).find(r=>r.id===id); if(!room)return;
  const bk=rbRoomBookings(id,TODAY_STR), pop=document.getElementById("rbpop"); if(!pop)return;
  pop.innerHTML=`<div class="rb-pop-h"><b>${room.name}</b><span class="muted small">${room.cap} pax · ${rbSite} ${rbFloor}</span></div>
-   <div class="rb-pop-b">${bk.length?bk.map(b=>`<div class="rb-slot"><span class="rb-time">${b.start}–${b.end}</span><span>${b.title}<div class="muted small">${b.email||b.by||''}</div></span></div>`).join(""):'<div class="muted small" style="padding:8px 0">✓ Kosong hari ini — bisa langsung dibook.</div>'}</div>
+   <div class="rb-pop-b">${bk.length?bk.map(b=>`<div class="rb-slot"><span class="rb-time">${b.start}–${b.end}</span><span>${b.title}<div class="muted small">${pemohonChip(b)}${b.email?' · '+esc(b.email):''}</div></span></div>`).join(""):'<div class="muted small" style="padding:8px 0">✓ Kosong hari ini — bisa langsung dibook.</div>'}</div>
    <button class="btn-act" style="width:100%;margin-top:9px;padding:8px" onclick="rbOpenForm('${id}')">+ Booking</button>
    ${rbRoomStatus(id)==='busy'?`<button class="btn-out" style="width:100%;margin-top:7px;padding:8px;font-size:calc(11.5px*var(--fz))" onclick="rbIdleCheck('${id}')">🛰️ Simulasi ERSUS: ruang idle 30 mnt</button>`:''}`;
  pop.classList.remove("hide");
@@ -9094,8 +9113,11 @@ function rbSaveBooking(){
  const email=(document.getElementById("rb-by").value||"").trim()||(gUser?gUser.email:"");
  const rbNo=orderNo("room");   // setiap reservasi ruang punya nomor tiket
  RB_BOOKINGS.push({no:rbNo,room:s.room,date:s.date,start,end,title,by:(gUser?gUser.name:""),email});
- // jembatan → ROOM_BOOKINGS (Service Room&Event card, GA Calendar, deteksi konflik) — src:'rb' agar sinkron saat release
- ROOM_BOOKINGS.unshift({room:rbRoomName(s.room),event:title,date:s.date,start:start,end:end,status:"Booked",src:"rb",rbRoom:s.room,rbStart:start});
+ /* jembatan → ROOM_BOOKINGS (Service Room&Event card, GA Calendar, deteksi konflik) — src:'rb' agar sinkron saat release.
+    by & email IKUT dibawa: tanpa itu reservasi tampil di modul Service tanpa
+    pemiliknya, padahal setiap layanan wajib menunjukkan siapa yang mengajukan. */
+ ROOM_BOOKINGS.unshift({room:rbRoomName(s.room),event:title,date:s.date,start:start,end:end,status:"Booked",
+   src:"rb",rbRoom:s.room,rbStart:start,no:rbNo,by:(gUser?gUser.name:""),email:email});
  closeDrawer(); renderRoomBook(); renderService(); updateBell(); renderReminder(); try{ renderMobileHome(); }catch(e){}
  alert("✅ Reservasi ruang tersimpan.\nNo. tiket: "+rbNo+"\n"+title+"\n"+s.date+" · "+start+"–"+end+"\n(ERSUS akan menyalakan fasilitas ruangan saat jadwal mulai.)");
 }
@@ -10139,7 +10161,9 @@ function escTicketRow(t){
      '<div class="esc-no"><b>'+esc(t.no)+'</b><span class="badge bd-crit" style="font-size:calc(9px*var(--fz))">Eskalasi</span>'+
        (umur!=null?'<span class="esc-age">'+fmtDur(umur)+' lalu</span>':'')+'</div>'+
      '<div class="esc-t">'+esc(t.judul||'')+'</div>'+
-     '<div class="esc-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+' · dieskalasi oleh <b>'+esc(t.escBy||'operator')+'</b></div>'+
+     /* pemohon asli ikut tampil — approver memutuskan membuat SO untuk KELUHAN SIAPA */
+     '<div class="esc-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+' · '+pemohonChip(t)+
+       ' · dieskalasi oleh <b>'+esc(t.escBy||'operator')+'</b></div>'+
      (t.escNote?'<div class="esc-note">💬 '+esc(t.escNote)+'</div>':'')+
    '</div>'+
    '<div class="esc-act">'+
