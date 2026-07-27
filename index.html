@@ -3351,7 +3351,14 @@ function doLogin(){
 const SESSION_KEY="agava_session_v1";
 function sessionClear(){ try{ localStorage.removeItem(SESSION_KEY); }catch(e){} }
 function applyLogin(u){
- gUser=u; gRole=u.role; var tt=ROLES[gRole].tier; if(tt&&tt!=="*")gTier=tt;
+ gUser=u; gRole=u.role;
+ /* Tier approval SELALU ditetapkan ulang saat login. Dulu hanya ditimpa kalau
+    role punya tier, sehingga akun tanpa wewenang approval (Analyst, Staff)
+    mewarisi tier "Section Head" bawaan — dan bisa melihat antrean approval
+    milik Section Head. Tanpa tier = tidak memegang gate mana pun.
+    Administrator (tier "*") tetap mulai dari Section Head + pemilih tier. */
+ var tt=ROLES[gRole].tier;
+ gTier=(tt&&tt!=="*")?tt:(tt==="*"?"Section Head":"");
  const sn=document.getElementById("suName"); if(sn)sn.textContent=u.name;
  const sr=document.getElementById("suRole"); if(sr)sr.textContent=roleTitle(u);
  const sa=document.getElementById("suAvatar"); if(sa)sa.textContent=ini(u.name);
@@ -3359,7 +3366,7 @@ function applyLogin(u){
  /* riwayat back dimulai bersih dari Home — jangan bawa halaman sebelum login */
  mStack.length=0; mHistDepth=0; window._curPage=null;
  /* Di HP: operator lapangan langsung masuk modul Field Ops, lainnya ke Beranda */
- go(isMobile()?(gRole==="fieldops"?"fieldops":"mhome"):ROLES[gRole].menus[0]);
+ go(isMobile()?(gRole==="fieldops"?"fieldops":"mhome"):(myMenus()[0]||"overview"));
  mBotSync();
  document.getElementById("login").classList.add("hide");
  var cb=document.getElementById("cloudBtn"); if(cb)cb.classList.toggle("hide",!isOwner());   // Cloud & Backup: KHUSUS OWNER
@@ -3386,7 +3393,7 @@ function agavaLogout(){
 /* SO_SUMMARY / TIKET_SUMMARY / fetchSOSummary dihapus — SEMUA tampilan derive langsung dari
    array SO & TICKETS (single source). Integrasi SharePoint nanti: map list item → SO[] lalu renderAll(). */
 function buildNav(){
-  const allowed=(ROLES[gRole]&&ROLES[gRole].menus)||MENU.map(m=>m.id);
+  const allowed=myMenus().length?myMenus():MENU.map(m=>m.id);
   var html=MENU.filter(m=>allowed.includes(m.id)).map(m=>
     `<a data-id="${m.id}" class="${m.id===active?'active':''}" onclick="go('${m.id}')" title="${m.label}">
       <svg viewBox="0 0 24 24">${IC[m.ic]}</svg><span class="nav-txt">${m.label}</span>${navBadge(m.id)}</a>`).join("");
@@ -3720,6 +3727,17 @@ const SUPER_ROLES=["admin","section","dept","chief","proc","budget"];
    (super:true di USERS) — supaya satu-dua orang bisa dinaikkan tanpa ikut
    menaikkan semua rekan se-role. */
 function isSuper(){ return SUPER_ROLES.indexOf(gRole)>=0 || !!(gUser&&gUser.super); }
+/* ══ MODUL YANG BOLEH DIBUKA AKUN INI ══
+   Akun yang dinaikkan ke kelompok Super lewat tanda super:true mendapat modul
+   LENGKAP seperti anggota Super lainnya, tanpa harus menaikkan role-nya (yang
+   akan ikut menaikkan semua rekan se-role). Satu fungsi ini dipakai seluruh
+   aplikasi — nav sidebar, ikon modul mobile, halaman awal, dan penyaring
+   notifikasi — supaya hak akses tidak pernah berbeda antar tempat. */
+function menusFor(u,role){
+ if(u&&u.super) return ALLMENUS.slice();
+ return (ROLES[role]&&ROLES[role].menus)||[];
+}
+function myMenus(){ return menusFor(gUser,gRole); }
 /* OWNER — satu-satunya akun yang boleh membuka panel Cloud & Backup
    (dorong data, unduh backup, restore, jejak login). Bukan sekadar admin. */
 const AGAVA_OWNER="sudana.visudha@ai.astra.co.id";
@@ -7346,7 +7364,7 @@ function foTicketCard(t){
   var pip=t.stg>=3?'#15a34a':t.stg>=1?'#0a7cff':'#c2740a';
   var bar=[0,1,2,3].map(n=>'<i class="'+(t.stg>=n?'on':'')+'"></i>').join('');
   var neu=(!t.pic||t.stg===0);
-  var canSO=ROLES[gRole]&&ROLES[gRole].menus&&ROLES[gRole].menus.indexOf('procurement')>=0;
+  var canSO=myMenus().indexOf('procurement')>=0;
   var sla=ticketSLA(t);
   /* Field Ops = papan rebutan tiket. Hanya tombol AMBIL; begitu diambil tombol HILANG,
      lanjutannya dikerjakan operator di modul My Tickets. */
@@ -7522,7 +7540,7 @@ function mobileGroup(){
 }
 /* modul yang tampil di ikon bar mobile, per kelompok */
 function mobileMods(){
- var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
+ var menus=myMenus();
  var grp=mobileGroup();
  if(grp==="umum"||grp==="fieldops") return [];
  var boleh;
@@ -7557,7 +7575,7 @@ function mobileModLabel(m){
 }
 /* ikon peran di top bar: Approval / Assigned SO / My Tickets sesuai role */
 function mRoleTarget(){
- var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
+ var menus=myMenus();
  if(menus.indexOf("myticket")>=0) return {id:"myticket", ic:"🎫", sv:"ticket", t:"My Tickets", n:(function(){ var me=fieldOpName(); return TICKETS.filter(function(x){return x.pic===me&&(x.stg||0)<3;}).length; })()};
  if(menus.indexOf("assigned")>=0 && gRole==="staff") return {id:"assigned", ic:"💼", sv:"bag", t:"Assigned SO", n:(function(){ var me=(gUser&&gUser.name)||""; return SO.filter(function(s){return (s.staffPIC||s.pic)===me&&s.apprDept==="Approved"&&(s.wstep||0)<4;}).length; })()};
  if(menus.indexOf("approvals")>=0) return {id:"approvals", ic:"📋", sv:"shield", t:"Approvals", n:pendingApprovals().length+(isSuper()?escalatedTickets().length+OVERTIME_REQ.filter(function(o){return (o.status||"Diajukan")==="Diajukan";}).length:0)};
@@ -7999,7 +8017,7 @@ function orderOpen(kind,no){
    Section 1 "Pengajuan Saya" PUBLIC untuk semua; section 2–4 hanya untuk role
    tertentu. Semua diturunkan dari data hidup — tidak ada dummy.
    ══════════════════════════════════════════════════════════════════════════ */
-function mMenus(){ return (ROLES[gRole]&&ROLES[gRole].menus)||[]; }
+function mMenus(){ return myMenus(); }
 function mCanSO(){ return isSuper()||mMenus().indexOf("procurement")>=0; }
 function mCanWIP(){ return isSuper()||mobileGroup()==="ga-biasa"; }
 function mCanRemind(){ return isSuper()||mMenus().indexOf("reminder")>=0; }
@@ -8405,7 +8423,7 @@ function mDotSync(wrapId,dotsSel,host){
 
 function renderMobileHome(){
  var el=document.getElementById("page-mhome"); if(!el||!isMobile())return;
- var menus=(ROLES[gRole]&&ROLES[gRole].menus)||[];
+ var menus=myMenus();
  var mods=mobileMods();   // per kelompok role — user umum tidak dapat ikon modul
  /* Ikon modul: pakai ikon SVG yang SAMA dengan desktop, ukuran seragam,
     disusun 4 kolom × 2 baris per halaman, digeser mendatar antar halaman. */
@@ -11873,7 +11891,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-108";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-109";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
