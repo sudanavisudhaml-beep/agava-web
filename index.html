@@ -878,6 +878,11 @@ html,body{overscroll-behavior-y:contain}
 @keyframes mPullSpin{to{transform:rotate(360deg)}}
 /* ── Kartu draft ── */
 .draft-card{border:1px solid #f6ddb4;background:linear-gradient(180deg,#fffdf8,#fff)}
+/* ── Reminder jatuh tempo (STNK & PBB) ── */
+.rmd-ack{font-size:calc(10.5px*var(--fz));color:#0f6e56;margin-top:4px;font-weight:600}
+.rmd-breach{background:#fdecec;border:1px solid #f3b4ad;color:#b42318;border-radius:12px;
+  padding:10px 12px;margin-bottom:12px;font-size:calc(11.5px*var(--fz));line-height:1.6}
+.rmd-breach b{display:block;margin-bottom:3px}
 /* ── Kartu Jejak Biaya & Karbon (Beranda HP) ── */
 .mcost{background:var(--m-card,#fff);border-radius:16px;padding:14px;box-shadow:var(--m-sh,0 2px 10px rgba(20,40,80,.06));cursor:pointer}
 .mcost-top{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -2994,7 +2999,11 @@ html,body{max-width:100%}
         <svg viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg>
         <span>Tanya AGAVA Copilot…</span>
       </button>
-      <button class="mtop-ic" id="mRoleBtn" onclick="mRoleGo()" title="—"><span id="mRoleIc"></span><i class="mtop-bdg hide" id="mRoleBdg">0</i></button>
+      <!-- Dulu ikon Approval (kembar dengan yang di bottom bar) → kini modul
+           Reminder khusus jatuh tempo STNK & PBB, bersebelahan dengan Chat. -->
+      <button class="mtop-ic" id="mRoleBtn" onclick="go('rmd')" title="Reminder — STNK &amp; PBB">
+        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <i class="mtop-bdg hide" id="mRoleBdg">0</i></button>
       <button class="mtop-ic" onclick="go('chat')" title="Chat GA Team">
         <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
         <i class="mtop-bdg hide" id="mChatBdg">0</i>
@@ -3041,6 +3050,7 @@ html,body{max-width:100%}
       <div id="page-mhome" class="hide"></div>
       <div id="page-notif" class="hide"></div>
       <div id="page-chat" class="hide"></div>
+      <div id="page-rmd" class="hide"></div>
       <div id="page-layanan" class="hide"></div>
       <div id="page-discover" class="hide"></div>
       <div id="page-overtime" class="hide"></div>
@@ -3177,6 +3187,9 @@ const USERS=[
  {email:"leonardus.ariyantosatriawan@ai.astra.co.id",name:"Leonardus Ariyanto Satriawan",role:"dept"},
  {email:"elok.normarosediana@ai.astra.co.id",name:"Elok Norma Rosediana",role:"section"},
  {email:"yessy@ai.astra.co.id",name:"Yessy",role:"budget"},
+ /* Yessy memegang DUA peran → dua akun. Masuk sebagai Section Head: melihat semua
+    (kategori miliknya + akumulasi biaya). Masuk sebagai PIC Budget: hanya dirinya. */
+ {email:"yessy.section@ai.astra.co.id",name:"Yessy",role:"section"},
  {email:"sudana.proc@ai.astra.co.id",name:"Sudana Visudha",role:"proc"},
  {email:"alma.tasyafiandara@ai.astra.co.id",name:"Alma Tasya",role:"analyst"},
  {email:"stevano.wicaksana@ai.astra.co.id",name:"Stevano",role:"analyst"},
@@ -3379,11 +3392,12 @@ function go(id){
   try{ chatModeSync(id==="chat"&&isMobile()); }catch(e){}   // chat: kolom tulis menggantikan bottom bar
   if(id!=="discover"){ try{ clearInterval(mpsTimer); }catch(e){} }
   if(id!=="mhome"){ try{ clearInterval(mBanTimer); }catch(e){} }
-  ["page-mhome","page-notif","page-chat","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-landbank","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
+  ["page-mhome","page-notif","page-chat","page-rmd","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-landbank","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   document.body.classList.toggle("on-mhome", id==="mhome");
   if(id==="mhome"){renderMobileHome();document.getElementById("page-mhome").classList.remove("hide");t.textContent="AGAVA";s.textContent="Beranda";mTopSync();}
   else if(id==="notif"){renderNotif();document.getElementById("page-notif").classList.remove("hide");t.textContent="Notifikasi";s.textContent="Pemberitahuan & tindakan menunggu";}
+  else if(id==="rmd"){renderReminderAsset();document.getElementById("page-rmd").classList.remove("hide");t.textContent="Reminder Aset";s.textContent="Jatuh tempo STNK kendaraan & PBB lahan";}
   else if(id==="chat"){renderChat();document.getElementById("page-chat").classList.remove("hide");t.textContent="Chat";s.textContent="GA Team — obrolan antar pengguna AGAVA";chatMarkRead();}
   else if(id==="layanan"){renderLayanan();document.getElementById("page-layanan").classList.remove("hide");t.textContent="Layanan GA";s.textContent="Semua layanan General Affairs";}
   else if(id==="discover"){renderDiscover();document.getElementById("page-discover").classList.remove("hide");t.textContent="Discover";s.textContent="Kenali Kami Lebih Dekat";}
@@ -6182,6 +6196,145 @@ function lbTableHTML(){
    '<div class="lb-search"><input placeholder="Cari asset id, alias, kota…" value="'+esc(lbSearch)+'" oninput="lbSetSearch(this.value)"></div></div>'+
    '<div class="sec-body"><div class="lb-tblwrap"><table class="lb-tbl"><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div></div></div>';
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   REMINDER JATUH TEMPO — STNK kendaraan & PBB lahan.
+   Alur bertingkat (dihitung dari tanggal jatuh tempo, bukan dijadwalkan manual):
+     Tier 1 · H-30  → pengingat saja (tanpa tuntutan aksi)
+     Tier 2 · H-14  → salah satu PIC WAJIB klik "Mengetahui"
+     Tier 3 · H-3   → PIC WAJIB klik "Sudah Diperpanjang" (tenggat s/d jatuh tempo)
+     Lewat jatuh tempo tanpa perpanjangan → BREACH (masuk log operator Field Ops)
+   Tiap tingkat yang tenggatnya lewat tanpa aksi → otomatis eskalasi ke GA Dept
+   Head sebagai kartu di Chat. Penerima: Section Asset Management (Yessy),
+   PIC Transport (Mujibur), PIC Asset (M Zhaenuri).
+   ══════════════════════════════════════════════════════════════════════════ */
+const RMD_PIC=["Yessy","Mujibur","M Zhaenuri"];
+const RMD_STORE="agava_reminders_v1";
+let RMD=[], RMD_BREACH=[];
+function rmdLoad(){ try{ var r=JSON.parse(localStorage.getItem(RMD_STORE)||"null");
+  if(r&&Array.isArray(r.items)){ RMD=r.items; RMD_BREACH=r.breach||[]; } }catch(e){} }
+function rmdPersist(){ try{ localStorage.setItem(RMD_STORE,JSON.stringify({items:RMD,breach:RMD_BREACH})); }catch(e){}
+  try{ rmdDbSave(); }catch(e){} }
+function rmdDbSave(){ if(AGDB.ro||!AGDB.on||!AGDB.db)return;
+  try{ AGDB.db.collection("agava_config").doc("reminders")
+        .set({items:RMD,breach:RMD_BREACH,up:Date.now(),by:(gUser&&gUser.name)||""},{merge:true}); }catch(e){} }
+function rmdDays(r){ try{ return Math.round((new Date(r.due+"T00:00:00")-new Date(TODAY_STR+"T00:00:00"))/86400000); }catch(e){ return 9999; } }
+/* 0 = aman/selesai · 1..3 = tingkat aktif · 4 = lewat jatuh tempo */
+function rmdTier(r){
+ if(r.renew&&r.renew.at) return 0;                 // sudah diperpanjang → tuntas
+ var d=rmdDays(r);
+ if(d<0) return 4;
+ if(d<=3) return 3;
+ if(d<=14) return 2;
+ if(d<=30) return 1;
+ return 0;
+}
+function rmdIsPIC(){ return !!(gUser&&(RMD_PIC.indexOf(gUser.name)>=0||gRole==="admin"||gRole==="dept")); }
+function utcStamp(){ return new Date().toISOString().replace("T"," ").slice(0,16)+" UTC"; }
+function rmdAck(id){
+ if(!rmdIsPIC()){ alert("Hanya PIC (Yessy · Mujibur · M Zhaenuri) yang dapat menandai."); return; }
+ var r=RMD.find(function(x){return x.id===id;}); if(!r)return;
+ r.ack={by:(gUser&&gUser.name)||"", at:utcStamp()};
+ rmdPersist(); rmdRefresh();
+ try{ auditLog("reminder-ack", r.nama+" · "+r.due); }catch(e){}
+}
+function rmdRenew(id){
+ if(!rmdIsPIC()){ alert("Hanya PIC (Yessy · Mujibur · M Zhaenuri) yang dapat menandai."); return; }
+ var r=RMD.find(function(x){return x.id===id;}); if(!r)return;
+ if(!confirm("Tandai \""+r.nama+"\" SUDAH DIPERPANJANG?\n\nStatus akan tercatat atas nama Anda beserta waktu (UTC).")) return;
+ r.renew={by:(gUser&&gUser.name)||"", at:utcStamp()};
+ rmdPersist(); rmdRefresh();
+ try{ auditLog("reminder-renew", r.nama+" · "+r.due); }catch(e){}
+}
+/* Sapu berkala: tandai breach & eskalasi ke Dept Head bila tenggat terlewat. */
+function rmdSweep(){
+ var ubah=false;
+ RMD.forEach(function(r){
+   var t=rmdTier(r);
+   /* Tier 3 tercapai tapi Tier 2 tak pernah diakui → eskalasi */
+   if(t===3 && !(r.ack&&r.ack.at) && !r.esc2){ r.esc2=true; ubah=true; rmdEscalate(r,"Tier 2 (H-14) lewat tanpa \"Mengetahui\""); }
+   /* Lewat jatuh tempo tanpa perpanjangan → BREACH + eskalasi */
+   if(t===4 && !(r.renew&&r.renew.at) && !r.breach){
+     r.breach=true; ubah=true;
+     RMD_BREACH.push({id:r.id, nama:r.nama, jenis:r.jenis, due:r.due, at:utcStamp(),
+       ack:(r.ack&&r.ack.by)||"—", pic:RMD_PIC.join(" / ")});
+     rmdEscalate(r,"BREACH — lewat jatuh tempo tanpa perpanjangan");
+   }
+ });
+ if(ubah) rmdPersist();
+}
+/* Eskalasi → kartu di Chat GA Team, ditujukan ke GA Dept Head. */
+function rmdEscalate(r,sebab){
+ var txt="⚠️ ESKALASI REMINDER — untuk GA Dept Head\n"+
+   (r.jenis==="stnk"?"🚗 STNK: ":"🏢 PBB: ")+r.nama+
+   (r.detail?" ("+r.detail+")":"")+"\nJatuh tempo: "+r.due+
+   "\nSebab: "+sebab+"\nPIC: "+RMD_PIC.join(" · ");
+ try{
+   if(!AGDB.ro&&AGDB.on&&AGDB.db){
+     AGDB.db.collection("agava_chat").add({text:txt, by:"AGAVA · Reminder", email:"agava@system",
+       role:"system", roleLabel:"Eskalasi Otomatis", kind:"escalation", ts:Date.now(),
+       at:new Date().toISOString()}).catch(function(){});
+   }
+ }catch(e){}
+ try{ auditLog("reminder-escalate", r.nama+" · "+sebab); }catch(e){}
+}
+function rmdRefresh(){ try{ renderLandbank(); }catch(e){} try{ renderReminderAsset(); }catch(e){} try{ updateBell(); }catch(e){} }
+/* CRUD sederhana — owner/PIC menambah data jatuh tempo */
+function rmdAdd(){
+ if(!rmdIsPIC()){ alert("Hanya PIC atau Administrator yang dapat menambah data."); return; }
+ var jenis=prompt("Jenis data — ketik: stnk  atau  pbb","stnk"); if(!jenis)return;
+ jenis=String(jenis).toLowerCase().trim(); if(jenis!=="stnk"&&jenis!=="pbb"){ alert("Hanya 'stnk' atau 'pbb'."); return; }
+ var nama=prompt(jenis==="stnk"?"Nomor polisi (mis. B 1234 ABC)":"Nama objek pajak / lahan"); if(!nama)return;
+ var detail=prompt(jenis==="stnk"?"Unit / pemakai (opsional)":"Lokasi / keterangan (opsional)")||"";
+ var due=prompt("Tanggal jatuh tempo (YYYY-MM-DD)",""); if(!due||!/^\d{4}-\d{2}-\d{2}$/.test(due)){ alert("Format tanggal harus YYYY-MM-DD."); return; }
+ RMD.unshift({id:"R"+Date.now(), jenis:jenis, nama:nama, detail:detail, due:due});
+ rmdPersist(); rmdSweep(); rmdRefresh();
+}
+function rmdDel(id){ if(!rmdIsPIC())return; if(!confirm("Hapus data reminder ini?"))return;
+ RMD=RMD.filter(function(x){return x.id!==id;}); rmdPersist(); rmdRefresh(); }
+function rmdBadgeCount(){ return RMD.filter(function(r){ var t=rmdTier(r); return t>=2; }).length; }
+function rmdStatusHTML(r){
+ var t=rmdTier(r), d=rmdDays(r);
+ if(r.renew&&r.renew.at) return '<span class="badge bd-ok">✅ Sudah diperpanjang · '+esc(r.renew.by)+' ('+esc(r.renew.at)+')</span>';
+ if(t===4) return '<span class="badge bd-crit">⛔ BREACH · lewat '+Math.abs(d)+' hari</span>';
+ var ack=(r.ack&&r.ack.at)?'<div class="rmd-ack">👁 Diketahui PIC '+esc(r.ack.by)+' ('+esc(r.ack.at)+')</div>':'';
+ var lbl=t===3?'<span class="badge bd-crit">Tier 3 · H-'+Math.max(d,0)+' — wajib perpanjang</span>'
+        :t===2?'<span class="badge bd-warn">Tier 2 · H-'+d+' — wajib "Mengetahui"</span>'
+        :t===1?'<span class="badge bd-info">Tier 1 · H-'+d+' — pengingat</span>'
+        :'<span class="badge bd-ok">Aman · '+d+' hari lagi</span>';
+ return lbl+ack;
+}
+function rmdActionHTML(r){
+ var t=rmdTier(r), b=[];
+ if(r.renew&&r.renew.at) return '<span class="muted small">—</span>';
+ if(t>=2 && !(r.ack&&r.ack.at)) b.push('<button class="btn-mini ok" onclick="rmdAck(\''+r.id+'\')">Mengetahui</button>');
+ if(t>=3) b.push('<button class="btn-mini" style="background:#0a4bb8;color:#fff" onclick="rmdRenew(\''+r.id+'\')">Sudah Diperpanjang</button>');
+ if(rmdIsPIC()) b.push('<button class="btn-mini no" onclick="rmdDel(\''+r.id+'\')">Hapus</button>');
+ return b.length?b.join(" "):'<span class="muted small">—</span>';
+}
+/* Panel dipakai bersama: tab di modul Landbank (web) & halaman modul (HP) */
+function rmdPanelHTML(){
+ rmdSweep();
+ var urut=RMD.slice().sort(function(a,b){ return (a.due||"").localeCompare(b.due||""); });
+ var baris=urut.map(function(r){
+   return '<div class="due-row"><div style="min-width:0"><div class="dj">'+(r.jenis==="stnk"?"🚗 ":"🏢 ")+esc(r.nama)+'</div>'+
+     '<div class="dm">'+esc(r.detail||(r.jenis==="stnk"?"Kendaraan":"Objek PBB"))+' · jatuh tempo '+esc(r.due)+'</div>'+
+     '<div style="margin-top:5px">'+rmdStatusHTML(r)+'</div></div>'+
+     '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">'+rmdActionHTML(r)+'</div></div>';
+ }).join("");
+ var brs=RMD_BREACH.length?'<div class="rmd-breach"><b>⛔ '+RMD_BREACH.length+' pelanggaran tercatat</b> — tercatat di log operator Field Ops'+
+   RMD_BREACH.slice(-3).map(function(x){ return '<div>· '+esc(x.nama)+' — jatuh tempo '+esc(x.due)+' ('+esc(x.at)+')</div>'; }).join("")+'</div>':'';
+ return '<div class="card sec"><div class="sec-h">'+secIc('#fdf3e3','#c2740a','reminder')+
+   '<div><h2>🔔 Reminder Jatuh Tempo — STNK &amp; PBB</h2>'+
+   '<div class="d">'+RMD.length+' data · Tier 1 H-30 pengingat · Tier 2 H-14 wajib "Mengetahui" · Tier 3 H-3 wajib "Sudah Diperpanjang" · lewat tempo = breach &amp; eskalasi ke Dept Head</div></div>'+
+   (rmdIsPIC()?'<button class="btn-act" style="margin-left:auto" onclick="rmdAdd()">＋ Tambah Data</button>':'')+'</div>'+
+   '<div class="sec-body">'+brs+(baris||'<div class="muted small" style="padding:30px;text-align:center">Belum ada data jatuh tempo. Klik <b>＋ Tambah Data</b> untuk memasukkan STNK kendaraan atau PBB lahan.</div>')+'</div></div>';
+}
+/* Halaman modul khusus HP (ikon di sebelah Chat) */
+function renderReminderAsset(){
+ var el=document.getElementById("page-rmd"); if(!el)return;
+ el.innerHTML='<div class="m-page-h"><div class="m-page-t">Reminder Aset</div>'+
+   '<div class="m-page-s">Jatuh tempo STNK kendaraan &amp; PBB lahan</div></div>'+rmdPanelHTML();
+}
 function renderLandbank(){
  var el=document.getElementById("page-landbank"); if(!el)return;
  if(!LANDBANK||!ID_PROV){ el.innerHTML='<div class="card pad" style="text-align:center;color:var(--muted);padding:50px">Memuat data land bank…</div>'; lbDataLoad(); return; }
@@ -6190,6 +6343,7 @@ function renderLandbank(){
    lbMoneyRow()+
    '<div class="card sec"><div class="sec-h">'+secIc('#e1f5ee','#0f6e56','landbank')+'<div><h2>Sebaran Aset per Provinsi</h2><div class="d">Peta Indonesia + heatmap idle · klik provinsi untuk saring daftar</div></div></div>'+
      '<div class="sec-body">'+lbProvPanel()+lbMapHTML()+'</div></div>'+
+   rmdPanelHTML()+          /* Tab/section Reminder — STNK & PBB menyatu di modul aset */
    lbTableHTML();
 }
 function renderBuilding(){
@@ -6762,6 +6916,11 @@ function renderFieldOps(){
       '<div><div class="panel-t" style="margin:0">👷 Log Record Operator</div>'+
         '<div class="muted small">'+st.length+' operator terdaftar · response &amp; resolution time, jumlah pickup, SLA compliance — dasar penilaian akhir tahun</div></div>'+
       '<button class="btn-act" onclick="foExportCSV()">⬇ Unduh CSV</button></div>'+
+      /* Pelanggaran jatuh tempo STNK/PBB ikut tercatat di log operator */
+      ((typeof RMD_BREACH!=="undefined"&&RMD_BREACH.length)
+        ? '<div class="rmd-breach"><b>⛔ '+RMD_BREACH.length+' pelanggaran jatuh tempo (STNK/PBB)</b>'+
+          RMD_BREACH.slice(-5).map(function(x){ return '<div>· '+esc(x.nama)+' — jatuh tempo '+esc(x.due)+' · tercatat '+esc(x.at)+' · PIC '+esc(x.pic||"")+'</div>'; }).join("")+'</div>'
+        : '')+
       (st.length?('<div class="fo-oplog-w"><table class="fo-oplog-t"><thead><tr>'+
         '<th>Operator</th><th>Role · Shift</th><th>Pickup</th><th>Selesai</th><th>Terbuka</th><th>Eskalasi</th>'+
         '<th>Avg Response</th><th>Avg Resolution</th><th>Breach</th><th>SLA</th><th>Rating</th></tr></thead><tbody>'+
@@ -7230,10 +7389,11 @@ function mTopSync(){
  var el=document.getElementById("mDate"); if(el)el.textContent=hari+", "+d.getDate()+" "+bln;
  var tm=document.getElementById("mTime");
  if(tm)tm.textContent=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
- var r=mInbox();
- var ic=document.getElementById("mRoleIc"), bt=document.getElementById("mRoleBtn"), bd=document.getElementById("mRoleBdg");
- if(ic)ic.innerHTML=micSvg(r.sv||"ticket"); if(bt)bt.title=r.label;
- if(bd){ bd.textContent=r.n; bd.classList.toggle("hide",!r.n); }
+ /* Tombol kanan atas = modul Reminder (STNK & PBB). Angkanya = jatuh tempo yang
+    sudah menuntut aksi (Tier 2 ke atas), bukan lagi antrian Approval. */
+ var bd=document.getElementById("mRoleBdg");
+ if(bd){ var rn=(typeof rmdBadgeCount==="function")?rmdBadgeCount():0;
+   bd.textContent=rn; bd.classList.toggle("hide",!rn); }
  try{ chatBadge(); }catch(e){}   // ikon pojok kanan atas kini = Chat → tampilkan pesan belum dibaca
 }
 /* modul yang tampil sebagai ikon — mengikuti hak akses role */
@@ -9041,10 +9201,10 @@ function ticketSectionOwner(t){
 function ticketNotifFor(t){
  if(!gUser||!t) return false;
  if(gRole==="admin"||gRole==="dept") return true;                 // lihat semua kategori
- /* Dicocokkan lewat NAMA di SECTION_MAP, bukan role — karena pemilik kategori
-    tidak selalu ber-role "section" (mis. Yessy ber-role PIC Budget tapi memegang
-    Tenant, Asset, Hospitality, Room & Event, dan Transport). */
- if(ticketSectionOwner(t)===gUser.name) return true;
+ /* Pemilik kategori (SECTION_MAP) HANYA saat masuk sebagai Section Head. Yessy
+    punya dua akun: sebagai Section Head ia menerima kategorinya; sebagai PIC
+    Budget ia hanya melihat permintaannya sendiri. */
+ if(gRole==="section" && ticketSectionOwner(t)===gUser.name) return true;
  return ticketMine(t);                                            // pemohon: tiketnya sendiri
 }
 /* Angka gelembung di ikon modul Services */
@@ -10982,7 +11142,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-91";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-92";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -11875,7 +12035,7 @@ function renderParams(){
  paramPreview();
 }
 
-loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();try{ sessionRestore(); }catch(e){}
+loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();rmdLoad();try{ rmdSweep(); }catch(e){}try{ sessionRestore(); }catch(e){}
 </script>
 </body>
 </html>
