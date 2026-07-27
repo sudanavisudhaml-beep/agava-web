@@ -5793,6 +5793,13 @@ async function soDocSave(){
  if(typeof html2canvas==="undefined"){ alert("Library PDF belum termuat — coba refresh (Ctrl+Shift+R)."); return; }
  var s=SO.find(function(x){return x.no===soDocCur;})||{};
  var pdfs=s.pdfAttachments||[];
+ /* Jangan pernah menghasilkan PDF yang lampirannya hilang tanpa pemberitahuan. */
+ var cek=await soDocLampiranCek(s);
+ if(!cek.ok && !confirm("⚠️ "+cek.n+" lampiran tidak akan ikut tercetak di PDF ini.\n\n"+
+     "Berkas lampiran tersimpan di Firebase Storage, tetapi bucket-nya belum punya konfigurasi CORS — "+
+     "pembuat PDF tidak diizinkan membaca berkasnya. Lampiran tetap terlihat di layar AGAVA.\n\n"+
+     "Perbaikan sekali saja (Google Cloud Shell):\ngcloud storage buckets update gs://agava-astra.firebasestorage.app --cors-file=cors.json\n\n"+
+     "Lanjut simpan PDF tanpa lampiran?")) return;
  var btn=document.getElementById('soDocSaveBtn'); var lbl=btn?btn.textContent:''; if(btn){ btn.textContent='⏳ Menyimpan…'; btn.disabled=true; }
  var fname=(soDocCur?String(soDocCur).replace(/[^\w-]+/g,'_'):'Supply_Order')+'.pdf';
  /* lepas dulu skala tampilan HP — PDF harus ditangkap pada ukuran asli 820px, bukan versi mengecil */
@@ -5808,18 +5815,21 @@ async function soDocSave(){
      var p1=doc.addPage([wpt,hpt]);
      var png=await doc.embedPng(imgUrl);
      p1.drawImage(png,{x:0,y:0,width:wpt,height:hpt});
+     var pdfGagal=[];
      for(var k=0;k<pdfs.length;k++){
        try{
          var bytes=await fetch(pdfs[k].url).then(function(r){return r.arrayBuffer();});
          var src=await PDFDocument.load(bytes,{ignoreEncryption:true});
          var copied=await doc.copyPages(src, src.getPageIndices());
          copied.forEach(function(pg){ doc.addPage(pg); });
-       }catch(err){ console.warn('jahit PDF gagal:',pdfs[k].name,err); }
+       }catch(err){ pdfGagal.push(pdfs[k].name||('lampiran '+(k+1))); console.warn('jahit PDF gagal:',pdfs[k].name,err); }
      }
      var out=await doc.save();
      var blob=new Blob([out],{type:'application/pdf'});
      var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; document.body.appendChild(a); a.click();
      setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+     if(pdfGagal.length) alert("⚠️ Dokumen SO tersimpan, tetapi "+pdfGagal.length+" lampiran PDF GAGAL dijahit:\n· "+pdfGagal.join("\n· ")+
+       "\n\nBerkasnya tidak bisa dibaca pembuat PDF (paling sering: konfigurasi CORS bucket Storage belum diatur).");
    } else if(window.jspdf){
      var jsPDF=window.jspdf.jsPDF; var wmm=210,hmm=210*canvas.height/canvas.width;
      var pdf=new jsPDF({orientation:'p',unit:'mm',format:[wmm,hmm]}); pdf.addImage(imgUrl,'PNG',0,0,wmm,hmm,undefined,'FAST'); pdf.save(fname);
@@ -11467,7 +11477,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-98";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-99";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -11704,20 +11714,62 @@ async function agavaStorageTest(){
  if(AGDB.ro){ alert("🔒 Mode uji coba (localhost/file://) — tulis ke cloud diblokir.\nBuka AGAVA dari alamat produksi untuk menguji Storage."); return; }
  var st=agavaStorage();
  if(!st){ alert("⛔ Library Firebase Storage tidak termuat di halaman ini."); return; }
+ var bucket=(st.app&&st.app.options&&st.app.options.storageBucket)||"-";
  var path="uji/storage-"+Date.now()+".jpg";
  var cv=document.createElement("canvas"); cv.width=120; cv.height=80;
  var c=cv.getContext("2d"); c.fillStyle="#0a7cff"; c.fillRect(0,0,120,80);
  c.fillStyle="#fff"; c.font="bold 12px sans-serif"; c.fillText("UJI AGAVA",14,45);
- var t0=Date.now(), langkah="unggah";
+ var t0=Date.now(), langkah="unggah", url="";
  try{
    var snap=await st.ref(path).putString(cv.toDataURL("image/jpeg",0.7),"data_url");
-   langkah="ambil URL"; var url=await snap.ref.getDownloadURL();
-   langkah="baca kembali"; var r=await fetch(url); var byte=(await r.blob()).size;
-   langkah="hapus berkas uji"; await st.refFromURL(url).delete();
-   alert("✅ Firebase Storage BERFUNGSI ("+(Date.now()-t0)+" ms).\n\nBerkas uji "+byte+" byte berhasil diunggah, dibaca, lalu dihapus.\nLampiran foto/PDF SO & foto tiket akan tersinkron ke semua approver.");
+   langkah="ambil URL"; url=await snap.ref.getDownloadURL();
  }catch(e){
-   alert("⛔ Firebase Storage BELUM BERFUNGSI — gagal saat "+langkah+".\n\nKode: "+((e&&e.code)||"-")+"\nPesan: "+((e&&e.message)||"-")+"\nBucket: "+((st.app&&st.app.options&&st.app.options.storageBucket)||"-")+"\n\nPaling sering: Storage belum diaktifkan di Firebase Console (Build → Storage → Get started) atau rules-nya menutup akses.\nSelama belum aktif, lampiran hanya tersimpan di perangkat pembuat.");
+   alert("⛔ Firebase Storage BELUM BERFUNGSI — gagal saat "+langkah+".\n\nKode: "+((e&&e.code)||"-")+"\nPesan: "+((e&&e.message)||"-")+"\nBucket: "+bucket+
+     "\n\nPaling sering: Storage belum diaktifkan di Firebase Console (Build → Storage → Get started) atau rules-nya menutup akses.\nSelama belum aktif, lampiran hanya tersimpan di perangkat pembuat.");
+   return;
  }
+ /* Unggah berhasil ≠ selesai. Dua kemampuan berbeda yang harus diuji terpisah:
+    (a) TAMPIL  → <img src> biasa, tidak butuh CORS
+    (b) DIJAHIT ke SO PDF → html2canvas & pdf-lib memuat berkas dengan mode CORS.
+    Bucket baru TIDAK punya konfigurasi CORS, jadi (a) jalan tapi (b) gagal —
+    lampiran terlihat di layar namun hilang dari PDF yang diunduh. */
+ var polos=await new Promise(function(res){ var im=new Image(); im.onload=function(){res(true);}; im.onerror=function(){res(false);}; im.src=url; });
+ var cors =await new Promise(function(res){ var im=new Image(); im.crossOrigin="anonymous"; im.onload=function(){res(true);}; im.onerror=function(){res(false);}; im.src=url; });
+ var ms=Date.now()-t0;
+ try{ await st.refFromURL(url).delete(); }catch(e){}
+ if(polos&&cors){
+   alert("✅ Firebase Storage BERFUNGSI PENUH ("+ms+" ms).\n\n• unggah & hapus: OK\n• tampil di semua perangkat: OK\n• dijahit ke SO PDF: OK\n\nLampiran foto/PDF SO & foto tiket tersinkron ke semua approver.");
+ } else {
+   alert("⚠️ Storage AKTIF tapi BELUM LENGKAP ("+ms+" ms).\n\n• unggah & hapus: OK\n• tampil di layar semua perangkat: "+(polos?"OK":"GAGAL")+
+     "\n• dijahit ke SO PDF: GAGAL — bucket belum punya konfigurasi CORS\n\nAkibatnya foto lampiran TERLIHAT di AGAVA tapi HILANG dari SO PDF yang diunduh.\n\nPerbaikan (Google Cloud Console → Cloud Shell, sekali saja):\n\n"+
+     "echo '[{\"origin\":[\"*\"],\"method\":[\"GET\",\"HEAD\"],\"responseHeader\":[\"Content-Type\",\"Content-Length\"],\"maxAgeSeconds\":3600}]' > cors.json\n"+
+     "gcloud storage buckets update gs://"+bucket+" --cors-file=cors.json\n\nSetelah itu tekan tombol ini lagi.");
+ }
+}
+/* Sebelum membuat SO PDF: pastikan lampiran benar-benar bisa ikut tercetak.
+   Berkas Storage tanpa konfigurasi CORS akan tampil kosong di PDF — lebih baik
+   user diberi tahu sebelum mengunduh daripada menemukan lampiran hilang. */
+async function soDocLampiranCek(s){
+ var foto=(s.attachments||[]).filter(function(a){ return a&&/^https?:/.test(a.url||""); });
+ var pdf =(s.pdfAttachments||[]).filter(function(p){ return p&&/^https?:/.test(p.url||""); });
+ var n=foto.length+pdf.length;
+ if(!n) return {ok:true, n:0};                       // lampiran lokal (data URL) selalu bisa dijahit
+ /* Foto diuji lewat <img crossOrigin> (sama seperti html2canvas). PDF diuji lewat
+    fetch (sama seperti penjahit pdf-lib). Cukup satu berkas — CORS berlaku
+    se-bucket, bukan per berkas. */
+ if(foto.length){
+   var u=foto[0].url+(foto[0].url.indexOf("?")>=0?"&":"?")+"cek="+Date.now();
+   var ok=await new Promise(function(res){
+     var im=new Image(); im.crossOrigin="anonymous";
+     var done=false, t=setTimeout(function(){ if(!done){ done=true; res(false); } },6000);
+     var akhir=function(v){ if(!done){ done=true; clearTimeout(t); res(v); } };
+     im.onload=function(){ akhir(true); }; im.onerror=function(){ akhir(false); };
+     im.src=u;
+   });
+   return {ok:ok, n:n};
+ }
+ try{ await fetch(pdf[0].url,{method:"GET"}); return {ok:true, n:n}; }
+ catch(e){ return {ok:false, n:n}; }
 }
 function dbSaveSOAll(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
