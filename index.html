@@ -1048,6 +1048,27 @@ html,body{overscroll-behavior-y:contain}
   border-radius:9px;cursor:pointer;font-weight:600;transition:.15s}
 .ptab.on{background:var(--blue);color:#fff;border-color:var(--blue)}
 .ptab:not(.on):hover{border-color:#cdddf7;color:var(--blue)}
+/* ── Strip pindah bulan (daftar SO & tiket) ──
+   Sengaja dibedakan dari .ptab: .ptab menyaring TAHAP, strip ini menyaring
+   WAKTU. Bentuk pil + warna navy supaya tidak terbaca sebagai tab tahap. */
+.bl-strip{display:flex;gap:7px;overflow-x:auto;padding-bottom:10px;margin-bottom:2px;-webkit-overflow-scrolling:touch}
+.bl-strip::-webkit-scrollbar{height:5px}
+.bl-strip::-webkit-scrollbar-thumb{background:#dbe4ef;border-radius:9px}
+.bl-chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 14px;
+  font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:600;color:var(--muted);cursor:pointer;
+  transition:.15s;white-space:nowrap}
+.bl-chip b{font-weight:800;opacity:.6;margin-left:4px}
+.bl-chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.bl-chip.on b{opacity:.75}
+.bl-chip:not(.on):hover{border-color:#cdddf7;color:var(--blue)}
+/* Judul pemisah bulan — versi daftar (div) & versi tabel (tr) */
+.bl-sep{position:sticky;top:0;z-index:1;padding:8px 16px;background:#f2f6fb;border-bottom:1px solid var(--line);
+  font-size:calc(11.5px*var(--fz));font-weight:800;color:var(--ink);letter-spacing:.03em;text-transform:uppercase}
+.bl-sep span{font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
+tr.bl-trsep td{background:#f2f6fb;padding:8px 16px;font-size:calc(11.5px*var(--fz));font-weight:800;color:var(--ink);
+  letter-spacing:.03em;text-transform:uppercase;border-bottom:1px solid var(--line)}
+tr.bl-trsep td span{font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
+tr.bl-trsep:hover td{background:#f2f6fb}
 
 table{width:100%;border-collapse:collapse;font-size:calc(13px*var(--fz))}
 thead th{text-align:left;padding:12px 14px;font-size:calc(11px*var(--fz));text-transform:uppercase;letter-spacing:.5px;
@@ -1925,6 +1946,18 @@ body.rg-open{overflow:hidden}
   /* Daftar order & SO — tiap baris jadi kartu putih sendiri, seperti desain:
      nomor & tanggal di baris atas, judul tebal, lalu chip + keterangan + panah. */
   .mh-list{display:flex;flex-direction:column;gap:8px}
+  /* Beranda menampilkan 5 baris; sisanya di balik tombol. display:contents saat
+     terbuka supaya baris tambahan ikut jarak flex induknya, bukan jadi blok
+     terpisah — jadi tidak ada garis jahitan antara 5 pertama & sisanya. */
+  .mh-sisa{display:none}
+  .mh-sisa.on{display:contents}
+  .mh-more{display:block;width:100%;margin-top:8px;border:1px dashed #D8DEE8;background:transparent;
+    border-radius:16px;padding:11px;font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:600;
+    color:var(--m-blue);cursor:pointer}
+  .mh-more:active{background:#F4F7FB}
+  .mh-more i{font-style:normal;display:inline-block;transition:transform .2s}
+  .mh-more.on i{transform:rotate(180deg)}
+  .mh-batas{margin-top:8px;text-align:center;font-size:calc(11.5px*var(--fz));color:var(--m-mut);line-height:1.45}
   .mh-row{display:block;padding:13px 14px;border-radius:16px;background:var(--m-card);
     box-shadow:var(--m-sh);cursor:pointer}
   .mh-row:active{transform:scale(.995);background:#FAFBFD}
@@ -6356,6 +6389,63 @@ async function soImportApply(){
    (cloudGagal?"\n\n⚠️ Sebagian gagal diunggah ke cloud — lampiran itu hanya ada di perangkat ini. Cek tombol Uji Firebase Storage di panel Cloud & Backup."
              :"\n\nBuka SO-nya → Dokumen SO → lampiran sudah terjahit di PDF."));
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   PENGELOMPOKAN PER BULAN — daftar SO & tiket menumpuk sampai ratusan baris.
+   Alih-alih satu gulungan panjang, isinya dipilah per bulan: satu bulan satu
+   layar, pindah bulan cukup satu ketukan pada strip di atas daftar. Yang
+   terbaru dipilih otomatis, jadi yang paling sering dilihat langsung terbuka.
+
+   Tanggalnya dari goLiveMs() — sumber yang SAMA dengan penentu live/arsip,
+   supaya bulan yang tampil tidak pernah berbeda dengan label "dibuat" di
+   barisnya. Cadangan: membaca YYYYMM dari nomor dokumen (SO-202606-0011 /
+   GA-202607-0143) untuk record lama yang tanggalnya kosong.
+   ══════════════════════════════════════════════════════════════════════════ */
+const BULAN_ID=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const BULAN_SG=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+function bulanKey(r){
+ var ms=goLiveMs(r);
+ if(ms>0){ var d=new Date(ms); return d.getFullYear()+"-"+('0'+(d.getMonth()+1)).slice(-2); }
+ var m=String((r&&r.no)||"").match(/-(\d{4})(\d{2})-/);
+ return m?(m[1]+"-"+m[2]):"0000-00";
+}
+function bulanLabel(k,pendek){
+ var p=String(k).split("-");
+ if(p.length<2||p[0]==="0000"||!BULAN_ID[(+p[1])-1]) return "Tanpa tanggal";
+ return (pendek?BULAN_SG:BULAN_ID)[(+p[1])-1]+" "+p[0];
+}
+/* → [{key,label,rows:[]}] terbaru lebih dulu. Urutan DI DALAM bulan dibiarkan
+   apa adanya supaya tampilan satu bulan sama persis dengan sebelumnya. */
+function kelompokBulan(arr){
+ var peta={},urut=[];
+ (arr||[]).forEach(function(r){
+   var k=bulanKey(r);
+   if(!peta[k]){ peta[k]={key:k,label:bulanLabel(k),rows:[]}; urut.push(k); }
+   peta[k].rows.push(r);
+ });
+ urut.sort(function(a,b){ return String(b).localeCompare(String(a)); });
+ return urut.map(function(k){ return peta[k]; });
+}
+/* Bulan yang benar-benar dipakai: pilihan user bila masih ada isinya, kalau
+   tidak (mis. pindah filter) jatuh ke bulan terbaru. "" = tampilkan semua. */
+function bulanTerpilih(grup,pilih){
+ if(pilih==="") return "";
+ if(pilih&&grup.some(function(g){return g.key===pilih;})) return pilih;
+ return grup.length?grup[0].key:"";
+}
+function bulanStripHTML(grup,sel,fn){
+ if(grup.length<2) return "";
+ var total=grup.reduce(function(n,g){ return n+g.rows.length; },0);
+ return '<div class="bl-strip"><button class="bl-chip'+(sel?"":" on")+'" onclick="'+fn+'(\'\')" title="Tampilkan seluruh bulan">Semua <b>'+total+'</b></button>'+
+   grup.map(function(g){
+     return '<button class="bl-chip'+(g.key===sel?" on":"")+'" onclick="'+fn+'(\''+g.key+'\')">'+
+       esc(bulanLabel(g.key,true))+' <b>'+g.rows.length+'</b></button>';
+   }).join("")+'</div>';
+}
+function bulanSepText(g,satuan){ return bulanLabel(g.key)+' <span>· '+g.rows.length+' '+satuan+'</span>'; }
+
+let procBulan=null;                                  /* null = belum dipilih → bulan terbaru */
+function procSetBulan(k){ procBulan=k; renderProc(); }
+
 function renderProc(){
  const el=document.getElementById("page-procurement");
  const ap=s=>s.apprDept==="Approved";
@@ -6370,6 +6460,10 @@ function renderProc(){
    if(procFilter==="spk")return ap(s)&&s.wstep===3;
    if(procFilter==="bast")return ap(s)&&s.wstep>=4;
  });
+ /* Dipilah per bulan agar tidak ada gulungan ratusan baris. */
+ const grup=kelompokBulan(list);
+ const selB=bulanTerpilih(grup,procBulan);
+ const tampil=selB?grup.filter(g=>g.key===selB):grup;
  el.innerHTML=`
  <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px">${soImportBoleh()?'<button class="btn-out" onclick="soImportPanel()" title="Tempelkan foto / dokumen PDF ke SO yang sudah ada">📎 Impor Lampiran</button>':''}${viewerOnly()?'':'<button class="btn-act" onclick="go(\'createso\')">+ Create SO</button>'}</div>
  <div class="funnel">
@@ -6387,11 +6481,12 @@ function renderProc(){
    <div class="ptab ${procFilter==='bast'?'on':''}" onclick="procFilter='bast';renderProc()">BAST & Invoice</div>
  </div>
 
+ ${bulanStripHTML(grup,selB,"procSetBulan")}
  <div class="card" style="overflow-x:auto">
    <table><thead><tr>
      <th>Item</th><th>PIC</th><th>Value</th><th>Approver</th><th>Stage</th><th>Status</th>
    </tr></thead><tbody>
-   ${list.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;return `<tr onclick="openDrawer('${s.no}')">
+   ${tampil.map(G=>`<tr class="bl-trsep"><td colspan="6">${bulanSepText(G,"SO")}</td></tr>`+G.rows.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;return `<tr onclick="openDrawer('${s.no}')">
      <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0"><div class="so-no-sm">${s.no}</div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span><span style="color:#9aa7b8">🕒 dibuat ${recCreatedLabel(s)}</span>
         ${soMiniPips(s)}</div></div></td>
      <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
@@ -6399,7 +6494,7 @@ function renderProc(){
      <td><span class="badge bd-neu">${tier(s.nilai)}</span></td>
      <td><div class="so-stage"><span class="badge ${st.c}">${st.t}</span>${`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>`}</div></td>
      <td>${agingBadge(s.aging)}</td>
-   </tr>`}).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'}</td></tr>`}
+   </tr>`}).join("")).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'}</td></tr>`}
    </tbody></table>
  </div>
  <div style="display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap">
@@ -6969,6 +7064,8 @@ function renderErsus(){
 
 /* ============ SERVICE PAGE ============ */
 let svcFilter="all";
+let svcBulan=null;                                   /* null = belum dipilih → bulan terbaru */
+function svcSetBulan(k){ svcBulan=k; renderService(); }
 const TSTAGES=["Submitted","Assigned","In Progress","Resolved"];
 function svcPip(s){ return s==="Resolved"?"#15a34a":s==="In Progress"?"#2563eb":s==="Assigned"?"#c2740a":"#9aa7b8"; }
 function svcBadge(s){ const m={"Submitted":"bd-neu","Assigned":"bd-warn","In Progress":"bd-info","Resolved":"bd-ok"}; return `<span class="badge ${m[s]||'bd-neu'}">${s}</span>`; }
@@ -8272,6 +8369,34 @@ function mCardRow(o){
      mhChev()+
    '</div></div>';
 }
+/* ── Daftar ringkas di Beranda: 5 baris tampil, sisanya di balik tombol ──
+   Sengaja TIDAK memanggil renderMobileHome() saat dibuka — cukup menukar kelas
+   CSS — supaya posisi gulir pengguna tidak melompat ke atas.
+   `maks` membatasi berapa baris yang benar-benar dirender; kalau ada yang
+   dipotong, jumlahnya DITULIS, tidak dibuang diam-diam. */
+const MH_TAMPIL=5, MH_MAKS=50;
+function mhListRingkas(key,rows,kata,awalan,modul){
+ awalan=awalan||"";
+ if(!rows.length&&!awalan) return "";
+ var dipotong=Math.max(0,rows.length-MH_MAKS);
+ var pakai=rows.slice(0,MH_MAKS);
+ var atas=pakai.slice(0,MH_TAMPIL), sisa=pakai.slice(MH_TAMPIL);
+ return '<div class="mh-list">'+awalan+atas.join("")+
+   (sisa.length?'<div class="mh-sisa" id="mhSisa-'+key+'">'+sisa.join("")+'</div>':'')+'</div>'+
+   (sisa.length?'<button class="mh-more" id="mhMore-'+key+'" data-k="'+esc(kata)+'" onclick="mhMoreToggle(\''+key+'\')">'+
+     'Lihat '+sisa.length+' '+esc(kata)+' lainnya <i>⌄</i></button>':'')+
+   (dipotong?'<div class="mh-batas">'+MH_MAKS+' terbaru dari '+rows.length+' · '+dipotong+
+     ' lainnya ada di modul '+esc(modul||"terkait")+'</div>':'');
+}
+function mhMoreToggle(key){
+ var box=document.getElementById("mhSisa-"+key), btn=document.getElementById("mhMore-"+key);
+ if(!box||!btn)return;
+ var buka=box.classList.toggle("on");
+ btn.classList.toggle("on",buka);
+ var n=box.children.length, kata=btn.getAttribute("data-k")||"item";
+ btn.innerHTML=(buka?"Tutup "+n+" "+kata:"Lihat "+n+" "+kata+" lainnya")+' <i>⌄</i>';
+}
+
 function mSecBlock(title,count,csvKind,listHtml,seeAll){
  return '<div class="mh-sec"><div class="mh-sh"><b>'+title+'</b><span>'+esc(String(count))+'</span>'+
    (seeAll?'<button class="mh-csv" onclick="'+seeAll+'">Semua</button>':
@@ -8615,7 +8740,7 @@ function renderMobileHome(){
  /* ── ORDER SAYA — daftar seperti desktop, klik untuk lihat perjalanan ── */
  var ord=myOrders();
  var dRows=draftRowsMobile();
- var listOrder=(ord.length||dRows)?'<div class="mh-list">'+dRows+ord.map(function(o){
+ var ordRows=ord.map(function(o){
    var cc=gaActivityCost(o);
    return '<div class="mh-row" onclick="orderOpen(\''+o.kind+'\',\''+esc(o.no)+'\')">'+
      '<div class="mh-rhead"><b>'+esc(o.no)+'</b><i>'+esc(o.tgl||"")+'</i></div>'+
@@ -8628,15 +8753,17 @@ function renderMobileHome(){
        mhChev()+
      '</div>'+
    '</div>';
- }).join("")+'</div>':'<div class="mh-empty">Belum ada order. Gunakan tombol layanan di bawah untuk mengajukan.</div>';
+ });
+ var listOrder=(ord.length||dRows)
+   ? mhListRingkas("ord",ordRows,"pengajuan",dRows,"Services")
+   : '<div class="mh-empty">Belum ada order. Gunakan tombol layanan di bawah untuk mengajukan.</div>';
  /* ── SECTION 2 — Permintaan Pembelian (SO) · hanya role dengan akses procurement ── */
  var soBlok="";
  if(mCanSO()){
    var meN=(gUser&&gUser.name)||"";
    var seesAll=isSuper()||gRole==="division";
    var soArr=(seesAll?SO.slice():SO.filter(function(s){ return (s.requester||s.req)===meN; })).slice().reverse();
-   var soShown=soArr.slice(0,6);
-   var soRows=soShown.length?'<div class="mh-list">'+soShown.map(function(s){
+   var soRowsArr=soArr.map(function(s){
        var st=soStatusLabel(s);
        return '<div class="mh-row" onclick="openDrawer(\''+esc(s.no)+'\')">'+
          '<div class="mh-rhead"><b>'+esc(s.no)+'</b><i>Rp '+esc(String(s.nilai))+' M</i></div>'+
@@ -8644,8 +8771,11 @@ function renderMobileHome(){
          '<div class="mh-rfoot"><span class="mh-okind k-so">'+esc(st.t)+'</span>'+
            '<span class="mh-rd">🕒 '+esc(recCreatedLabel(s))+'</span>'+mhChev()+'</div>'+
          '<div class="mh-rd" style="margin-top:2px">'+esc(s.lokasi||"")+(s.jenis?' · '+esc(s.jenis):"")+'</div></div>';
-     }).join("")+'</div>':'<div class="mh-empty">Belum ada permintaan pembelian.</div>';
-   soBlok=mSecBlock("🛒 Permintaan Pembelian",soArr.length+" SO",(soShown.length?"so":null),soRows);
+     });
+   var soRows=soRowsArr.length
+     ? mhListRingkas("so",soRowsArr,"SO",null,"Procurement")
+     : '<div class="mh-empty">Belum ada permintaan pembelian.</div>';
+   soBlok=mSecBlock("🛒 Permintaan Pembelian",soArr.length+" SO",(soRowsArr.length?"so":null),soRows);
  }
  /* ── SECTION 3 — Pekerjaan Berlangsung · gabungan Work Permit + Proyek + Overtime ── */
  var wipBlok="";
@@ -8720,6 +8850,10 @@ function renderService(){
  const base=visibleTickets();   // hanya admin & Dept Head lihat semua; sisanya tiket sendiri
  const total=base.length, ongoing=base.filter(t=>t.status!=="Resolved").length, resolved=base.filter(t=>t.status==="Resolved").length, esc=base.filter(t=>t.esc&&t.status!=="Resolved").length;
  const list=base.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?(t.esc&&t.status!=="Resolved"): svcFilter==="resolved"?t.status==="Resolved":true);
+ /* Dipilah per bulan — tiket menumpuk jauh lebih cepat daripada SO. */
+ const grup=kelompokBulan(list);
+ const selB=bulanTerpilih(grup,svcBulan);
+ const tampil=selB?grup.filter(g=>g.key===selB):grup;
  const pills=[["all","All",total],["open","Ongoing",ongoing],["esc","Escalated",esc],["resolved","Resolved",resolved]];
  const el=document.getElementById("page-service");
  let head="";
@@ -8758,8 +8892,9 @@ function renderService(){
     </div>
     <div style="padding:16px 16px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${pills.map(p=>`<div class="ptab ${svcFilter===p[0]?'on':''}" onclick="svcFilter='${p[0]}';renderService()">${p[1]} <b style="opacity:.7">${p[2]}</b></div>`).join("")}
       <button class="btn-out" style="margin-left:auto;padding:6px 11px;font-size:calc(12px*var(--fz))" onclick="exportLog('ticket')" title="Unduh log tiket (CSV/Excel)">⬇ CSV</button></div>
+    ${grup.length>1?`<div style="padding:0 16px 12px">${bulanStripHTML(grup,selB,"svcSetBulan")}</div>`:''}
     <div class="svc-head"><span></span><span>Ticket</span><span style="text-align:center">Response</span><span>PIC</span><span>Status</span></div>
-    <div class="svc-list">${list.length?list.map(ticketRow).join(""):('<div class="muted small" style="padding:30px;text-align:center">'+(sup?'No tickets in this filter.':'Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.')+'</div>')}</div>
+    <div class="svc-list">${list.length?tampil.map(G=>`<div class="bl-sep">${bulanSepText(G,"tiket")}</div>`+G.rows.map(ticketRow).join("")).join(""):('<div class="muted small" style="padding:30px;text-align:center">'+(sup?'No tickets in this filter.':'Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.')+'</div>')}</div>
   </div>`;
 }
 let ticketSeq=143;
@@ -12193,7 +12328,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-121";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-122";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
