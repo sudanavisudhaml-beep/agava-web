@@ -1847,8 +1847,10 @@ function todayOf(p){
   return clamp(d, 0, num(p.duration) || 0);
 }
 function saveProjects(){
-  try { localStorage.setItem(PJ_STORE, JSON.stringify(state.projects)); }
+  try { localStorage.setItem(PJ_STORE, JSON.stringify(state.projects)); }   // cache perangkat
   catch(e){ console.warn("PJ save:", e); }
+  try { cloudSave(state.projects); }                                        // sumber kebenaran: cloud AGAVA
+  catch(e){ console.warn("PJ cloud:", e); }
   pushToParent();
 }
 function loadProjects(){
@@ -3263,6 +3265,34 @@ function wireEvents() {
 /* ═════════════════════════════════════════════════════
    BOOT
    ═════════════════════════════════════════════════════ */
+/* ═════════════════════════════════════════════════════
+   SINKRON CLOUD — AGAVA yang memegang koneksi Firestore
+   Data proyek TIDAK lagi hidup di localStorage satu perangkat: setiap simpanan
+   dikirim ke induk (AGAVA) untuk ditulis ke agava_config/projects, dan setiap
+   perubahan dari perangkat lain masuk lewat agavaProjectsFromCloud().
+   localStorage tetap dipakai sebagai cache supaya app ini utuh saat offline
+   atau dibuka sendiri (standalone).
+   ═════════════════════════════════════════════════════ */
+function cloudSave(list){
+  try{
+    if(window.parent && window.parent !== window && typeof window.parent.pjCloudSave === "function")
+      window.parent.pjCloudSave(list);
+  }catch(e){ /* standalone / cross-origin — abaikan */ }
+}
+/* dipanggil AGAVA saat data cloud tiba atau berubah dari perangkat lain */
+window.agavaProjectsFromCloud = function(list){
+  try{
+    if(!Array.isArray(list) || !list.length) return;
+    if(JSON.stringify(list) === JSON.stringify(state.projects)) return;   // sudah sama
+    state.projects = list;
+    try{ localStorage.setItem(PJ_STORE, JSON.stringify(list)); }catch(e){}
+    const id = state.currentProjectId && list.some(p => p.id === state.currentProjectId)
+      ? state.currentProjectId : null;
+    navigate(id ? state.currentView : "dashboard", id);
+    pushToParent();
+    showToast("Data proyek termuat dari AGAVA (" + list.length + " proyek)");
+  }catch(e){ console.warn("terima proyek dari cloud:", e); }
+};
 function init() {
   state.projects = loadProjects() || buildSample();
   wireEvents();

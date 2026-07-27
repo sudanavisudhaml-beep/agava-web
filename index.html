@@ -3908,7 +3908,43 @@ function renderProject(){
  const el=document.getElementById('page-project'); if(!el)return;
  if(el.querySelector('#pjFrame'))return;
  el.innerHTML=`<div class="pj-frame-wrap"><iframe id="pjFrame" src="pj-timeline.html" title="Project Timeline — AGAVA"></iframe></div>`;
+ var f=document.getElementById('pjFrame');
+ if(f) f.addEventListener('load',function(){ pjPushToFrame(); });   // frame siap → kirim data cloud
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  PROJECT DEVELOPMENT — DATA PINDAH KE CLOUD                              ║
+   ║  Dulu timeline hanya tersimpan di localStorage perangkat yang mengedit:  ║
+   ║  update Stevano (27 Jul 2026) tidak pernah sampai ke siapa pun, dan      ║
+   ║  perangkat lain justru menampilkan 3 proyek CONTOH fiktif seolah nyata.  ║
+   ║  Sekarang sumber kebenarannya satu dokumen Firestore agava_config/       ║
+   ║  projects; localStorage tinggal cache. Aplikasi timeline (iframe         ║
+   ║  same-origin) memanggil pjCloudSave() tiap menyimpan, dan menerima       ║
+   ║  data lewat agavaProjectsFromCloud().                                    ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+let PJ_CLOUD=null;               // daftar proyek versi cloud (array) — null = belum termuat
+function pjPushToFrame(){
+ try{
+   if(!PJ_CLOUD||!PJ_CLOUD.length)return;
+   var f=document.getElementById('pjFrame');
+   if(f&&f.contentWindow&&typeof f.contentWindow.agavaProjectsFromCloud==="function")
+     f.contentWindow.agavaProjectsFromCloud(PJ_CLOUD);
+ }catch(e){ console.warn("kirim proyek ke frame:",e&&e.message); }
+}
+/* dipanggil DARI dalam iframe setiap kali penggunanya menyimpan perubahan */
+function pjCloudSave(list){
+ try{
+   if(!Array.isArray(list))return;
+   PJ_CLOUD=list;
+   if(AGDB.ro||!AGDB.on||!AGDB.db)return;                       // uji coba / offline → cukup lokal
+   AGDB.pjEcho=JSON.stringify(list);
+   AGDB.db.collection("agava_config").doc("projects").set({
+     list:JSON.stringify(list), n:list.length,
+     by:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"", up:new Date().toISOString()
+   },{merge:true}).catch(function(e){ console.warn("simpan proyek:",e&&e.code); });
+   try{ auditLog("project-update", list.length+" proyek · "+list.map(function(p){return p.name;}).join(" · ").slice(0,160)); }catch(e){}
+ }catch(e){ console.warn("pjCloudSave:",e&&e.message); }
+}
+window.pjCloudSave=pjCloudSave;
 /* (gantt lama dipertahankan sbg sumber data PJ_P/PJ_E untuk deteksi benturan GA Calendar) */
 function renderProjectLegacy(){
  const el=document.getElementById('page-project-legacy'); if(!el)return;   // tidak ada → no-op
@@ -11891,7 +11927,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-109";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-110";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -11980,6 +12016,20 @@ function dbInit(){
     try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){}
     try{ renderOverview(); }catch(e){}
   },err=>{ console.warn("KPI rules/err:",err&&err.code); });
+  /* Project Development — timeline proyek, satu dokumen bersama.
+     Perubahan dari perangkat mana pun langsung mendarat di semua layar; tidak
+     ada lagi update yang terkubur di localStorage satu orang. */
+  AGDB.db.collection("agava_config").doc("projects").onSnapshot(doc=>{
+    if(!doc.exists)return;
+    const d=doc.data(); if(!d||!d.list)return;
+    let list; try{ list=JSON.parse(d.list); }catch(e){ return; }
+    if(!Array.isArray(list)||!list.length)return;
+    const j=JSON.stringify(list);
+    if(j===AGDB.pjEcho)return;                  // gema dari simpanan kita sendiri
+    AGDB.pjEcho=j; PJ_CLOUD=list;
+    try{ pjPushToFrame(); }catch(e){}
+    console.info("Project Development dimuat dari cloud:",list.length,"proyek · terakhir disimpan oleh",d.by||"—");
+  },err=>{ console.warn("Projects rules/err:",err&&err.code); });
   /* Master data (STNK/PBB/Izin/Kontrak/Maintenance) — satu dokumen bersama */
   AGDB.db.collection("agava_config").doc("master").onSnapshot(doc=>{
     if(!doc.exists){ dbSaveMaster(); return; }
