@@ -882,6 +882,9 @@ html,body{overscroll-behavior-y:contain}
 .sod-draft{margin-top:10px;padding:7px 12px;border:1px dashed #d9822b;border-radius:8px;
   background:#fff8ef;color:#b45309;font-size:11px;font-weight:700;text-align:center;letter-spacing:.02em}
 /* ── Reminder jatuh tempo (STNK & PBB) ── */
+/* Status eskalasi pada kartu tiket operator */
+.fo-esc{margin-top:6px;display:flex;flex-direction:column;gap:3px}
+.fo-esc i{font-style:normal;font-size:calc(9.5px*var(--fz));color:#0f6e56}
 .rmd-ack{font-size:calc(10.5px*var(--fz));color:#0f6e56;margin-top:4px;font-weight:600}
 .rmd-breach{background:#fdecec;border:1px solid #f3b4ad;color:#b42318;border-radius:12px;
   padding:10px 12px;margin-bottom:12px;font-size:calc(11.5px*var(--fz));line-height:1.6}
@@ -3122,6 +3125,10 @@ html,body{max-width:100%}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+<!-- Storage: lampiran foto SO diunggah ke sini, bukan disimpan di dokumen Firestore
+     (batas 1 MB). Dokumen SO cukup menyimpan URL-nya, sehingga lampiran ikut
+     tersinkron & bisa dilihat SEMUA approver, bukan hanya perangkat pembuatnya. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
 /* ---------- icons ---------- */
 const IC={
@@ -6522,7 +6529,7 @@ function ticketJourneyGroups(t){
    :{t:"Persiapan operator sebelum mulai",cls:"active",sub:(sla.startMin!=null?"sudah "+fmtDur(sla.startMin)+" · ":"")+"maks "+SLA_START_MAX+" mnt"+(sla.startBreach?" · ⚠ lewat batas":"")});
  /* perjalanan kecil menuju checkpoint Resolved: eskalasi, lanjut SO, masa pengerjaan */
  var pre4=[];
- if(t.esc) pre4.push({t:"⚠ Eskalasi ke Supervisor"+(t.escBy?" — "+esc(t.escBy):""),cls:"done",sub:"operator tidak dapat menyelesaikan sendiri — dinaikkan ke level Supervisor"});
+ if(t.esc) pre4.push({t:"⚠ Eskalasi ke Section Head"+(t.escBy?" — "+esc(t.escBy):""),cls:"done",sub:"operator tidak dapat menyelesaikan sendiri — dinaikkan ke Section Head untuk dibuatkan SO"});
  if(t.toProc) pre4.push({t:"↳ Dibuatkan SO — lanjut ke Procurement",cls:"done",sub:"butuh pengadaan untuk menyelesaikan tiket"});
  if(stg===2) pre4.push({t:"Pengerjaan berjalan",cls:"active",sub:(sla.resMin!=null?"sudah "+fmtDur(sla.resMin)+" · ":"")+"target resolusi "+fmtDur(sla.tg.res)+(sla.resBreach?" · ⚠ SLA BREACH":"")});
  if(t.proof&&t.proof.length) pre4.push({t:"📸 Foto bukti pekerjaan dilampirkan",cls:"done",sub:t.proof.length+" foto oleh "+esc(t.closedBy||t.pic||"operator")+(t.closeNote?" · "+esc(t.closeNote):"")});
@@ -6607,7 +6614,7 @@ function ticketAging(t){
    Berjalan tiap 30 detik. Ditandai di tiket (slaAlert) supaya tidak berbunyi berulang,
    dan ikut tersimpan ke Firestore agar semua perangkat sepakat sudah dieskalasi. */
 let FO_WATCH=null;
-function foWatchdog(){
+function foWatchdog(){ try{ ticketSoSync(); }catch(e){}
  try{
    var naik=[];
    TICKETS.forEach(function(t){
@@ -6719,7 +6726,41 @@ function fieldOpsSetGroup(g){ fieldOpsGroup=g; renderFieldOps(); }
 /* ── WIP LIMIT: 1 operator maksimal 3 tiket terbuka bersamaan ──
    Terbuka = sudah di-pickup (stg 1–2) dan belum Resolved. Selesai satu → boleh ambil lagi. */
 const FO_WIP_MAX=3;
-function foOpenBy(name){ return TICKETS.filter(function(t){ return t.pic===name && (t.stg||0)>=1 && (t.stg||0)<3; }); }
+/* ══ TIKET "DIPARKIR" — sedang diekskalasi ══
+   Tiket yang dinaikkan ke Section Head (menunggu SO dibuat, lalu menunggu
+   Procurement menuntaskannya) TIDAK lagi menghabiskan slot WIP operator: slotnya
+   kosong sehingga ia bisa mengambil tiket lain. Tiketnya sendiri TETAP tampil di
+   My Tickets — justru harus terlihat sedang dieskalasi — sampai benar-benar
+   ditutup operator setelah SO tuntas di Procurement. */
+function ticketParked(t){ return !!(t && t.esc && (t.stg||0)<3 && !t.soDone); }
+/* Status perjalanan eskalasi untuk ditampilkan di kartu operator */
+function ticketEscState(t){
+ if(!t||!t.esc) return null;
+ if(t.soDone) return {t:"SO selesai — silakan tutup tiket", cls:"bd-ok", ic:"✅"};
+ if(t.soNo)   return {t:"SO "+t.soNo+" berjalan di Procurement", cls:"bd-proc", ic:"🛒"};
+ if(t.escDone)return {t:"Ditangani Section Head", cls:"bd-proc", ic:"⏫"};
+ return {t:"Diekskalasi — Section Head sedang membuat SO", cls:"bd-warn", ic:"⏫"};
+}
+/* Slot WIP: tiket terparkir tidak dihitung */
+function foOpenBy(name){ return TICKETS.filter(function(t){ return t.pic===name && (t.stg||0)>=1 && (t.stg||0)<3 && !ticketParked(t); }); }
+/* Semua tiket yang masih dipegang operator (termasuk yang terparkir) — untuk tampilan */
+function foHeldBy(name){ return TICKETS.filter(function(t){ return t.pic===name && (t.stg||0)>=1 && (t.stg||0)<3; }); }
+/* Sinkron: SO milik tiket sudah tuntas di Procurement → kembalikan ke operator. */
+function ticketSoSync(){
+ var ubah=false;
+ TICKETS.forEach(function(t){
+   if(!t||!t.soNo||t.soDone) return;
+   var s=SO.find(function(x){ return x.no===t.soNo; });
+   if(!s) return;
+   /* "Ditutup di Procurement" = pekerjaan SO tuntas (wstep 4) atau tahap akhir. */
+   if((s.wstep||0)>=4 || s.stage>=6){
+     t.soDone=true; t.soDoneAt=nowStamp(); ubah=true;
+     try{ dbSaveTicket(t); }catch(e){}
+     try{ agavaNotify("✅ SO selesai — tiket siap ditutup", t.no+" · "+(t.judul||"")+" · SO "+t.soNo); }catch(e){}
+   }
+ });
+ if(ubah){ try{ renderFieldOps(); renderMyTickets(); renderService(); updateBell(); }catch(e){} }
+}
 function fieldOpsPickup(no){
   var t=TICKETS.find(x=>x.no===no); if(!t)return;
   if(gRole==='fieldops' && !(fieldOp&&fieldOp.name)){ fieldOpRegister(); return; }   // wajib registrasi dulu
@@ -6891,6 +6932,10 @@ function foTicketCard(t){
     '<div class="fo-tik-h"><span class="so-dot" style="background:'+(t.esc?'#dc2626':pip)+'"></span><span class="fo-no">'+t.no+'</span>'+(fresh?'<span class="fo-newtag">BARU</span>':'')+(t.esc?'<span class="badge bd-crit" style="font-size:calc(9px*var(--fz))">Esc: '+esc(t.escBy||'')+'</span>':'')+'<span class="fo-st">'+st+'</span></div>'+
     '<div class="fo-tik-t">'+esc(t.judul||'')+'</div>'+
     '<div class="fo-tik-m">'+esc(t.lokasi||'')+(t.pic?' · 👷 '+esc(t.pic):'')+'</div>'+
+    /* Perjalanan eskalasi terlihat jelas: tiket TIDAK hilang dari daftar operator,
+       justru menampilkan sedang di tangan Section Head / Procurement. */
+    (function(){ var e=ticketEscState(t); return e?'<div class="fo-esc"><span class="badge '+e.cls+'">'+e.ic+' '+esc(e.t)+'</span>'+
+      (ticketParked(t)?'<i>slot WIP dibebaskan — Anda bisa ambil tiket lain</i>':'')+'</div>':''; })()+
     '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+cd+act+'</div>';
 }
 function renderFieldOps(){
@@ -8925,10 +8970,13 @@ async function submitSO(){
  const nilai=parseFloat(document.getElementById("so-nilai").value)||0;
  const req=gUser?gUser.name:"—";
  const itemStr=rows.map(r=>r.item+(r.qty?` (${r.qty})`:"")).join(", ");
- const att=await soReadAttachments();   // {images, pdfs} — foto utk grid Lampiran, PDF dijahit ke Dokumen SO
+ let att=await soReadAttachments();   // {images, pdfs} — foto utk grid Lampiran, PDF dijahit ke Dokumen SO
  // Create in-app, then trigger the Power Automate flow for Procurement
  const res=await triggerFlow("createSO",{items:rows,lokasi,kategori:kat,budget,nilai,requester:req})||{};
  const no=res.no||soSeq();
+ /* Unggah lampiran ke Storage SETELAH nomor SO ada, supaya berkasnya rapi per SO
+    dan URL-nya (bukan base64) yang tersimpan → approver mana pun bisa melihat. */
+ att=await soUploadAttachments(att,no);
  const isSec=(gRole==="section");   // Section Head buat SO sendiri → gate Section otomatis lewat
  const so={no,item:itemStr,items:rows,lokasi:lokasi,req:req,requester:req,deptDiv:deptDiv,pic:"",staffPIC:"",nilai:nilai,jenis:"Goods",kategori:kat,budgetFlag:budget,vendor:"",fup:"",attachments:att.images,pdfAttachments:att.pdfs,
    apprSection:isSec?"Approved":"Pending",sectionBy:"",apprBudget:isSec?"Pending":"—",apprProc:"—",apprDept:"—",wstep:0,ts:{created:nowStamp()},tsf:{},invStatus:"",spkNo:"",stage:0,aging:"On Track"};
@@ -11166,7 +11214,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-93";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-94";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -11231,7 +11279,7 @@ function dbInit(){
       else { SO.unshift(d); AGDB.soEcho[d.no]=JSON.stringify(dbStripSO(d)); ch3=true; if(AGDB.soInit) soNew.push(d); }
     });
     if(ch3){
-      normalizeSO();
+      normalizeSO(); try{ ticketSoSync(); }catch(e){}
       try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){}
       renderProc(); renderApprovals(); renderAssigned(); renderPayment(); renderOverview(); updateBell();
     }
@@ -11308,7 +11356,37 @@ function dbSaveTicket(t){ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no)return; try{
    SO: koleksi agava_so, 1 dokumen per SO. Lampiran foto/PDF TIDAK ikut ke cloud
    (bisa >1MB, limit Firestore) — lampiran tetap tersimpan lokal di perangkat pembuat.
    KPI + PDCA bulanan: 1 dokumen agava_config/kpi. Echo-guard mencegah loop tulis. */
-function dbStripSO(s){ var c=JSON.parse(JSON.stringify(s)); delete c.attachments; delete c.pdfAttachments; return c; }
+/* Lampiran kini berupa URL Firebase Storage (pendek), jadi AMAN ikut ke Firestore
+   dan bisa dilihat semua approver. Yang masih berupa data URL (base64 warisan
+   lama / gagal unggah) tetap dibuang agar dokumen tidak melewati batas 1 MB. */
+function dbStripSO(s){
+ var c=JSON.parse(JSON.stringify(s));
+ var kecil=function(a){ return (a||[]).filter(function(x){ return x&&typeof x.url==="string"&&x.url.indexOf("data:")!==0; }); };
+ c.attachments=kecil(c.attachments);
+ c.pdfAttachments=(c.pdfAttachments||[]).map(function(p){ return {name:p.name, url:(p.url&&p.url.indexOf("data:")!==0)?p.url:""}; });
+ return c;
+}
+/* Unggah lampiran foto/PDF ke Firebase Storage → kembalikan daftar {url,name}. */
+async function soUploadAttachments(att,no){
+ var hasil={images:(att&&att.images)||[], pdfs:(att&&att.pdfs)||[]};
+ try{
+   if(AGDB.ro) return hasil;                                   // localhost: jangan sentuh cloud
+   if(typeof firebase==="undefined"||!firebase.storage) return hasil;
+   var st=firebase.storage();
+   async function up(item,i,jenis){
+     if(!item||!item.url||item.url.indexOf("data:")!==0) return item;   // sudah URL
+     try{
+       var ref=st.ref("so/"+no+"/"+jenis+"-"+i+"-"+Date.now()+(jenis==="pdf"?".pdf":".jpg"));
+       var snap=await ref.putString(item.url,"data_url");
+       var url=await snap.ref.getDownloadURL();
+       return Object.assign({},item,{url:url});
+     }catch(e){ console.warn("upload lampiran:",e&&e.message); return item; }
+   }
+   hasil.images=await Promise.all(hasil.images.map(function(x,i){ return up(x,i,"foto"); }));
+   hasil.pdfs  =await Promise.all(hasil.pdfs.map(function(x,i){ return up(x,i,"pdf"); }));
+ }catch(e){ console.warn("soUploadAttachments:",e&&e.message); }
+ return hasil;
+}
 function dbSaveSOAll(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  AGDB.soEcho=AGDB.soEcho||{};
