@@ -5883,7 +5883,9 @@ function soPip(s){var p=soPhase(s);return (p==="rejected")?"#dc2626":(p==="work"
    ║  berkas yang menempel tanpa dilihat dulu.                                ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 let SO_IMPOR=[];
-function soImportBoleh(){ return isOwner()||gRole==="proc"||gRole==="admin"; }
+/* KHUSUS OWNER (Sudana Visudha). Impor menempelkan berkas ke SO milik orang lain
+   dan menulis langsung ke cloud — kewenangan pemilik sistem, bukan admin biasa. */
+function soImportBoleh(){ return isOwner(); }
 /* Cocokkan angka di nama berkas dengan akhiran nomor SO yang benar-benar ada.
    "SO 11 - SUSI.pdf" → 11 → SO-202606-0011. Angka yang tidak cocok dilewati,
    jadi "SO-202606-0009.pdf" tetap terbaca sebagai SO nomor 9. */
@@ -5897,7 +5899,7 @@ function soImportTebakNo(nama){
  return "";
 }
 function soImportPanel(){
- if(!soImportBoleh()){ alert("⛔ Impor lampiran hanya untuk Procurement, Admin, atau pemilik sistem."); return; }
+ if(!soImportBoleh()){ alert("⛔ Impor Lampiran hanya dapat dibuka oleh pemilik sistem AGAVA."); return; }
  SO_IMPOR=[];
  document.getElementById("drawer").innerHTML=
   '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
@@ -11592,7 +11594,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-100";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-101";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -11768,8 +11770,16 @@ function dbSaveTicket(t){ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no)return; try{
 function dbStripSO(s){
  var c=JSON.parse(JSON.stringify(s));
  var kecil=function(a){ return (a||[]).filter(function(x){ return x&&typeof x.url==="string"&&x.url.indexOf("data:")!==0; }); };
- c.attachments=kecil(c.attachments);
- c.pdfAttachments=(c.pdfAttachments||[]).map(function(p){ return {name:p.name, url:(p.url&&p.url.indexOf("data:")!==0)?p.url:""}; });
+ var img=kecil(c.attachments);
+ var pdf=(c.pdfAttachments||[]).map(function(p){ return {name:p.name, url:(p.url&&p.url.indexOf("data:")!==0)?p.url:""}; })
+          .filter(function(p){ return p.url; });
+ /* JANGAN pernah menulis daftar lampiran KOSONG. Dulu field-nya selalu ditulis,
+    jadi satu perangkat yang salinan SO-nya belum memuat lampiran akan MENGHAPUS
+    lampiran yang sudah ada di cloud begitu ia menyimpan (set merge menimpa field
+    dengan array kosong). AGAVA tidak punya fitur "hapus lampiran", jadi kosong
+    selalu berarti "tidak tahu", bukan "memang tidak ada". */
+ if(img.length) c.attachments=img; else delete c.attachments;
+ if(pdf.length) c.pdfAttachments=pdf; else delete c.pdfAttachments;
  return c;
 }
 /* ══ FIREBASE STORAGE — wadah lampiran (foto & PDF SO, foto tiket) ══
