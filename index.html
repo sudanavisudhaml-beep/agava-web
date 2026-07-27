@@ -604,6 +604,23 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .fo-tik-t{font-size:calc(13px*var(--fz));font-weight:700;color:var(--ink);margin:5px 0 2px;line-height:1.3}
 .fo-tik-m{font-size:calc(11px*var(--fz));color:var(--muted)}
 .fo-btn{width:100%;padding:8px;font-size:calc(12.5px*var(--fz));margin-top:2px}
+/* ── Deskripsi · catatan · lampiran foto PEMOHON (tampil di Field Ops & My Tickets) ──
+   Operator harus paham persis masalahnya SEBELUM menekan Ambil Tiket. */
+.tk-brief{margin:8px 0 2px;padding-top:8px;border-top:1px dashed var(--line)}
+.tk-brief-l{font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.5px;color:#9aa7b8;text-transform:uppercase;margin-bottom:3px}
+.tk-brief-d{font-size:calc(12.5px*var(--fz));color:var(--ink);line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.tk-brief-d.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tk-brief-d i{color:#9aa7b8;font-weight:400}
+.tk-brief-n{margin-top:7px;background:#fff8e6;border:1px solid #f3e0b4;border-radius:9px;padding:7px 9px;
+  font-size:calc(12px*var(--fz));color:#6b5310;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.tk-att{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.tk-att img{width:56px;height:56px;object-fit:cover;border-radius:9px;border:1px solid var(--line);cursor:zoom-in;background:#f3f6fa}
+.tk-att-lb{font-size:calc(10px*var(--fz));font-weight:800;color:#0a4bb8;background:#eef5ff;border-radius:20px;padding:2px 8px}
+.tk-att-more{font-size:calc(11px*var(--fz));font-weight:700;color:var(--muted)}
+.tk-noatt{font-size:calc(11px*var(--fz));color:#9aa7b8;font-style:italic;margin-top:7px}
+.tk-det{width:100%;margin-top:8px;border:1px solid var(--line);background:#f7fafd;color:#0a4bb8;font-weight:700;
+  border-radius:9px;padding:7px;font-size:calc(11.5px*var(--fz));cursor:pointer;font-family:var(--ff)}
+.tk-det:hover{border-color:#bcd3f5;background:#eef5ff}
 @media(max-width:820px){.fo-grid{grid-template-columns:1fr}.fo-chan-body{max-height:none}}
 .fo-tik-esc{border-color:rgba(220,38,38,.4)!important}
 /* My Tickets — operator lapangan */
@@ -708,6 +725,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .sod-tbl td{height:26px}
 .sod-tbl td.c{text-align:center}
 .sod-tbl th:nth-child(1){width:32px}.sod-tbl th:nth-child(3){width:50px}.sod-tbl th:nth-child(4),.sod-tbl th:nth-child(5){width:58px}.sod-tbl th:nth-child(6){width:52px}.sod-tbl th:nth-child(7){width:62px}
+/* spesifikasi teknis sebagai sub-baris URAIAN BARANG · lokasi sebagai baris tebal KETERANGAN */
+.sod-spec{font-size:calc(9.5px*var(--fz));color:#444;font-style:italic;line-height:1.3;margin-top:2px}
+.sod-ket-lok{font-weight:700}
 .sod-marks{margin-top:34px;font-size:calc(8.5px*var(--fz));line-height:1.5;text-align:left;color:#333}
 .sod-ts{color:#0a7cff;font-weight:600}
 .sod-fup{color:#0a7cff;font-weight:700}
@@ -1457,7 +1477,11 @@ tbody tr{cursor:pointer;transition:.12s}tbody tr:hover{background:#f8fafd}
 .dot.ok{background:#16a34a}.dot.warn{background:#f5a623}.dot.crit{background:#dc2626}
 .so-no-sm{font-size:calc(10.5px*var(--fz));font-weight:600;letter-spacing:.3px;color:#9aa7b8;margin-bottom:3px}
 .so-dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex:0 0 8px}
-.so-itbl{width:100%;border-collapse:collapse}
+.so-itbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+.so-itbl{width:100%;border-collapse:collapse;min-width:640px}
+.so-itbl th.c-item{min-width:150px}.so-itbl th.c-spec{min-width:130px}.so-itbl th.c-sat{min-width:78px}
+.so-itbl th.c-qty{min-width:62px}.so-itbl th.c-lok{min-width:120px}.so-itbl th.c-ket{min-width:140px}
+.so-itbl select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 6px;font-size:calc(12.5px*var(--fz));font-family:var(--ff);background:#fff;color:var(--ink);outline:none}
 .so-itbl th{text-align:left;font-size:calc(10.5px*var(--fz));color:var(--muted);font-weight:700;padding:4px 6px;text-transform:uppercase;letter-spacing:.4px}
 .so-itbl td{padding:3px 6px;border-top:1px solid var(--line)}
 .so-itbl input{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:calc(13px*var(--fz));font-family:var(--ff);outline:none}
@@ -5694,7 +5718,7 @@ function soSigMark(sig,ts){ if(!sig)return''; var body=sig.img?('<img class="sod
 function soDocNoBox(s){ if(s&&s.no){ var m=s.no.match(/(\d+)$/); if(m)return String(+m[1]); } return '1'; }
 function soDocHTML(s){
  s=s||{};
- var its=(s.items&&s.items.length)?s.items:[{item:s.item||'',qty:s.qty||'',spec:s.spec||'',ket:s.lokasi||''}];
+ var its=(s.items&&s.items.length)?s.items:[{item:s.item||'',qty:s.qty||'',spec:s.spec||'',satuan:s.satuan||'',lokasi:s.lokasi||'',ket:''}];
  var n=Math.max(5,its.length), rows='';
  /* Angka budget = estimasi (Rp juta) dari form Create SO, terisi saat PIC Budget bertindak:
     approve langsung → kolom DALAM BUDGET · ekskalasi ke Dept Head → kolom DILUAR BUDGET. */
@@ -5703,7 +5727,12 @@ function soDocHTML(s){
  var outBudgetCell=(s.apprBudget==='Escalated')?budgetVal:'';
  for(var i=0;i<n;i++){ var it=its[i]||{}; var has=!!(it.item);
    var inB=(i===0)?inBudgetCell:''; var outB=(i===0)?outBudgetCell:'';
-   rows+='<tr><td class="c">'+(has?(i+1):'')+'</td><td>'+esc(it.item||'')+'</td><td class="c">'+(has?(it.satuan||'pc'):'')+'</td><td class="c">'+inB+'</td><td class="c">'+outB+'</td><td class="c">'+(has?(it.qty||''):'')+'</td><td class="c"></td><td>'+esc(it.ket||it.spec||(has?(s.lokasi||''):''))+'</td></tr>';
+   /* URAIAN BARANG = nama item + spesifikasi teknis di bawahnya.
+      KETERANGAN    = lokasi (tebal) + keterangan yang diisi di form Create SO. */
+   var uraian=has?(esc(it.item||'')+(it.spec?'<div class="sod-spec">'+esc(it.spec)+'</div>':'')):'';
+   var lok=has?(it.lokasi||s.lokasi||''):'';
+   var ket=(lok?'<div class="sod-ket-lok">'+esc(lok)+'</div>':'')+(has&&it.ket?esc(it.ket):'');
+   rows+='<tr><td class="c">'+(has?(i+1):'')+'</td><td>'+uraian+'</td><td class="c">'+(has?esc(it.satuan||'Pc'):'')+'</td><td class="c">'+inB+'</td><td class="c">'+outB+'</td><td class="c">'+(has?esc(it.qty||''):'')+'</td><td class="c"></td><td>'+ket+'</td></tr>';
  }
  var sec=SO_SIGN[s.sectionBy]||SO_SIGN['Elok Norma Rosediana'];
  var dept=SO_SIGN['Leonardus Ariyanto Satriawan'];
@@ -6506,6 +6535,67 @@ function proofView(no,i){
    (t.closeNote?'<br><span class="muted">📝 '+esc(t.closeNote)+'</span>':'')+'</div></div>';
  ov.classList.add('show');
 }
+/* ══ DESKRIPSI · CATATAN · LAMPIRAN FOTO DARI PEMOHON ══
+   Sebelumnya deskripsi tiket hanya tersimpan, tidak pernah terlihat operator —
+   ia menekan "Ambil Tiket" tanpa tahu masalahnya. Sekarang deskripsi, catatan
+   tambahan, dan foto pemohon ikut tampil di kartu Field Ops, My Tickets,
+   drawer detail, dan tiket pemohon di Services. */
+function tkPhotos(t){ return (t&&t.photos&&t.photos.length)?t.photos:[]; }
+function tkPhotoView(no,i){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ var ph=tkPhotos(t); if(!ph[i])return;
+ var ov=document.getElementById('proofOvl');
+ if(!ov){ ov=document.createElement('div'); ov.id='proofOvl'; ov.className='proof-ovl';
+   ov.onclick=function(){ ov.classList.remove('show'); }; document.body.appendChild(ov); }
+ ov.innerHTML='<div class="proof-box"><img src="'+ph[i].url+'"/>'+
+   '<div class="proof-cap"><b>'+esc(t.no)+'</b> · '+esc(t.judul||'')+'<br>'+
+   '<span class="muted">lampiran pemohon '+(i+1)+' dari '+ph.length+' · 🙋 '+esc(ticketReqName(t))+
+   (ph[i].at?' · 🕐 '+esc(ph[i].at):'')+'</span></div></div>';
+ ov.classList.add('show');
+}
+/* full=false → deskripsi dipangkas 3 baris + maks 3 foto (kartu Field Ops)
+   full=true  → deskripsi utuh + semua foto (My Tickets, drawer detail) */
+function tkBriefHTML(t,full){
+ var d=String(t.desc||'').trim(); if(d==='—')d='';
+ var n=String(t.note||'').trim();
+ var ph=tkPhotos(t), lim=full?ph.length:3;
+ var h='<div class="tk-brief"><div class="tk-brief-l">🗒 Deskripsi pemohon</div>'+
+   '<div class="tk-brief-d'+(full?'':' clamp')+'">'+(d?esc(d):'<i>tidak diisi pemohon</i>')+'</div>';
+ if(n) h+='<div class="tk-brief-n"><b>📝 Catatan tambahan:</b> '+esc(n)+'</div>';
+ if(ph.length) h+='<div class="tk-att"><span class="tk-att-lb">📷 '+ph.length+' foto pemohon</span>'+
+     ph.slice(0,lim).map(function(im,i){ return '<img src="'+im.url+'" onclick="event.stopPropagation();tkPhotoView(\''+t.no+'\','+i+')" title="lihat foto '+(i+1)+'"/>'; }).join('')+
+     (ph.length>lim?'<span class="tk-att-more">+'+(ph.length-lim)+' lagi</span>':'')+'</div>';
+ else h+='<div class="tk-noatt">tanpa lampiran foto dari pemohon</div>';
+ return h+'</div>';
+}
+/* Detail lengkap tiket untuk operator — dibuka dari kartu Field Ops sebelum diambil */
+function tkDetail(no){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ var sla=ticketSLA(t), ag=ticketAging(t), neu=(!t.pic||(t.stg||0)===0);
+ var foot = neu
+   ? '<button class="btn-act" style="width:100%" onclick="closeDrawer();fieldOpsPickup(\''+t.no+'\')">🙋 Ambil Tiket Ini</button>'
+   : ((t.stg||0)<3 ? '<div class="tk-monitor">✓ Sudah diambil <b>'+esc(t.pic||'operator')+'</b> — lanjutkan di modul My Tickets.</div>'
+                   : '<span class="badge bd-ok">Tiket selesai</span>');
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div class="sono" style="font-size:calc(15px*var(--fz))">'+esc(t.no)+(t.esc?' <span class="badge bd-crit">Escalated</span>':'')+'</div>'+
+   '<div style="font-size:calc(14.5px*var(--fz));color:var(--ink);font-weight:700;margin-top:5px">'+esc(t.judul||'')+'</div>'+
+   '<div class="muted small" style="margin-top:3px">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+' · '+esc(sla.pr)+'</div></div>'+
+  '<div class="db">'+
+   '<div class="kv">'+
+     '<span class="k">Pemohon</span><span class="v"><span class="avt">'+ini(ticketReqName(t))+'</span> '+esc(ticketReqName(t))+
+       (t.email?'<div class="muted small" style="font-weight:400">'+esc(t.email)+'</div>':'')+'</span>'+
+     '<span class="k">Dibuat</span><span class="v">'+esc(recCreatedLabel(t))+'</span>'+
+     '<span class="k">Prioritas</span><span class="v">'+esc(sla.pr)+' <span class="muted small" style="font-weight:400">· target resolusi '+fmtDur(sla.tg.res)+'</span></span>'+
+     '<span class="k">Status</span><span class="v" style="color:'+ag.c+'">'+esc(ag.t)+'</span>'+
+     '<span class="k">Operator</span><span class="v">'+(t.pic?esc(t.pic):'<span class="muted small" style="font-weight:400">belum diambil</span>')+'</span>'+
+   '</div>'+
+   tkBriefHTML(t,true)+
+   (t.escNote?'<div class="tk-brief-n" style="margin-top:10px"><b>⏫ Alasan eskalasi:</b> '+esc(t.escNote)+(t.escBy?' — '+esc(t.escBy):'')+'</div>':'')+
+   '<div style="margin-top:14px">'+foot+'</div>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+}
 function ticketRow(t){
  const bar=[0,1,2,3].map(i=>`<i class="${t.stg>=i?'on':''}"></i>`).join("");
  const sla=ticketSLA(t);
@@ -6570,7 +6660,8 @@ function openTicket(no){
       <span class="k">Ambil → mulai</span><span class="v">${fmtDur(sla.startMin)} <span class="muted small" style="font-weight:400">· maks ${SLA_START_MAX} mnt${sla.startBreach?' · ⚠ breach':''}</span></span>
       <span class="k">Resolution time</span><span class="v">${fmtDur(sla.resMin)} <span class="muted small" style="font-weight:400">· target ${fmtDur(sla.tg.res)}${sla.resBreach?' · ⚠ breach':''}</span></span>
     </div>
-    <div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>
+    ${tkBriefHTML(t,true)}
+    <div class="panel-t" style="margin-bottom:4px;margin-top:14px">Lifecycle Journey</div>
     <div class="muted small" style="margin-bottom:10px">4 checkpoint besar · perjalanan kecil di antaranya (respon, eskalasi, SO) ikut tergambar</div>
     ${jtHTML(ticketJourneyGroups(t))}
     <div style="margin-top:14px">${foot}</div>
@@ -6716,7 +6807,9 @@ function soFromTicket(no){
  var t=TICKETS.find(x=>x.no===no); if(!t)return;
  window._soFromTicket=no;
  go('createso');
- var row=document.querySelector('#so-items tr'); if(row){ var inp=row.querySelectorAll('input'); if(inp[0])inp[0].value=t.judul||''; if(inp[1])inp[1].value=(t.escNote||''); }
+ var row=document.querySelector('#so-items tr');
+ if(row){ var set=function(k,v){ var el=row.querySelector('[data-k="'+k+'"]'); if(el)el.value=v; };
+   set('item',t.judul||''); set('spec',t.escNote||''); set('lokasi',t.lokasi||''); set('ket','tindak lanjut tiket '+t.no); }
  var cat=document.getElementById('so-cat'); if(cat)cat.value=foNormCat(t.cat);
  var dd=document.getElementById('so-deptdiv'); if(dd)dd.value="GENERAL AFFAIR";
  alert("📋 Buat SO dari tiket "+no+".\nKategori & item sudah diisi otomatis dari tiket — lengkapi lalu Submit.");
@@ -6788,7 +6881,13 @@ function fieldOpsPickup(no){
   if(fieldOp){ t.opRole=fieldOp.role||""; t.opShift=fieldOp.shift||""; }   // untuk log record CSV
   dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,pic:me});
   renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
-  alert("✅ Tiket "+no+" diambil oleh "+me+".\nMuncul di modul My Tickets Anda.\nSlot terpakai: "+(open.length+1)+"/"+FO_WIP_MAX+".");
+  /* briefing singkat saat tiket diambil: apa masalahnya, catatan pemohon, ada berapa foto */
+  var ph=tkPhotos(t), dsc=String(t.desc||"").trim();
+  var brief="\n\n📋 "+(t.judul||"")+"\n📍 "+(t.lokasi||"-")+
+    "\n🗒 "+((dsc&&dsc!=="—")?dsc:"(pemohon tidak mengisi deskripsi)")+
+    (t.note?"\n📝 Catatan: "+t.note:"")+
+    (ph.length?"\n📷 "+ph.length+" foto pemohon terlampir — buka di My Tickets":"");
+  alert("✅ Tiket "+no+" diambil oleh "+me+"."+brief+"\n\nMuncul di modul My Tickets Anda.\nSlot terpakai: "+(open.length+1)+"/"+FO_WIP_MAX+".");
 }
 /* Mulai kerjakan — HANYA dari My Tickets, oleh operator yang mengambil tiket */
 function foAdvance(no){
@@ -6947,6 +7046,9 @@ function foTicketCard(t){
        justru menampilkan sedang di tangan Section Head / Procurement. */
     (function(){ var e=ticketEscState(t); return e?'<div class="fo-esc"><span class="badge '+e.cls+'">'+e.ic+' '+esc(e.t)+'</span>'+
       (ticketParked(t)?'<i>slot WIP dibebaskan — Anda bisa ambil tiket lain</i>':'')+'</div>':''; })()+
+    /* deskripsi, catatan & foto pemohon terlihat SEBELUM tiket diambil */
+    tkBriefHTML(t,false)+
+    '<button class="tk-det" onclick="tkDetail(\''+t.no+'\')">🔍 Buka detail lengkap</button>'+
     '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+cd+act+'</div>';
 }
 function renderFieldOps(){
@@ -7036,6 +7138,8 @@ function myTicketCard(t){
    '<div class="mt-h"><span class="so-dot" style="background:'+pip+'"></span><span class="fo-no">'+t.no+'</span>'+(t.esc?'<span class="badge bd-crit" style="font-size:calc(9px*var(--fz))">Escalated</span>':'')+'<span class="mt-prio prio-'+(sla.pr||'Medium').toLowerCase()+'">'+sla.pr+'</span><span class="fo-st" style="color:'+ag.c+'">'+esc(ag.t)+'</span></div>'+
    '<div class="mt-t">'+esc(t.judul||'')+'</div>'+
    '<div class="fo-tik-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div>'+
+   /* operator yang memegang tiket melihat deskripsi UTUH + catatan + semua foto pemohon */
+   tkBriefHTML(t,true)+
    '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+cd+
    '<div class="mt-sla mt-sla3">'+
      '<div class="mt-sla-i'+(sla.respBreach?' breach':'')+'"><span>Response</span><b>'+fmtDur(sla.respMin)+'</b><small>maks '+SLA_PICK_MAX+' mnt</small></div>'+
@@ -8332,9 +8436,71 @@ function renderCreateTicket(){
     <div class="field"><label>Priority</label><select id="ct-prio"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></div></div>
     <div class="two" style="gap:0 16px"><div class="field"><label>Location</label><input id="ct-loc" placeholder="Building / floor / room"/></div>
     <div class="field"><label>Requester</label><input id="ct-req" value="${gUser?gUser.name:''}" disabled style="background:#f1f4f8;color:var(--muted)"/></div></div>
-    <div class="field"><label>Description</label><textarea id="ct-desc" placeholder="Describe the issue…"></textarea></div>
+    <div class="field"><label>Description <span class="muted small">(dibaca operator sebelum mengambil tiket)</span></label><textarea id="ct-desc" rows="3" placeholder="Jelaskan masalahnya: apa yang rusak/dibutuhkan, sejak kapan, dampaknya…"></textarea></div>
+    <div class="field"><label>Catatan tambahan <span class="muted small">(opsional)</span></label><textarea id="ct-note" rows="2" placeholder="mis. akses lewat pintu belakang · hubungi Pak Budi 0812xxxx · hanya bisa dikerjakan setelah jam 17.00"></textarea></div>
+    <div class="field"><label>Lampiran Foto <span class="muted small">(maks ${CT_PHOTO_MAX} foto — sangat membantu operator)</span></label>
+      <label class="fo-cam"><input type="file" accept="image/*" multiple onchange="ctPhotoPick(this)"/>
+        <span class="fo-cam-ic">📷</span><b>Ambil / Pilih Foto</b><small>foto kondisi di lapangan · bisa lebih dari satu</small></label>
+      <div id="ctPhotoPrev" class="fo-prev"></div>
+    </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-act" onclick="submitTicket()">Submit Ticket</button>${draftBtn('createticket')}<button class="btn-out" onclick="go('service')">Cancel</button></div>
   </div>`;
+ window._ctPhoto={imgs:[]}; ctPhotoRender();
+}
+/* ── Lampiran foto dari PEMOHON saat membuat tiket ──
+   Dikompres (maks 1000px, JPEG q0.7) lalu diunggah ke Firebase Storage supaya
+   dokumen tiket di Firestore tetap kecil dan fotonya terlihat di SEMUA perangkat
+   (operator, Section Head, pemohon) — bukan hanya perangkat pembuatnya. */
+const CT_PHOTO_MAX=5;
+function ctPhotoPick(input){
+ var files=[].slice.call(input.files||[]); input.value=""; if(!files.length)return;
+ window._ctPhoto=window._ctPhoto||{imgs:[]};
+ files.forEach(function(f){
+  if(window._ctPhoto.imgs.length>=CT_PHOTO_MAX){ return; }
+  var rd=new FileReader();
+  rd.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var mx=1000, w=img.width, h=img.height;
+      if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;} else {w=Math.round(w*mx/h);h=mx;} }
+      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      if(window._ctPhoto.imgs.length>=CT_PHOTO_MAX){ ctPhotoRender(); return; }
+      window._ctPhoto.imgs.push({url:cv.toDataURL('image/jpeg',0.7), at:nowStamp(), name:f.name||''});
+      ctPhotoRender();
+    };
+    img.src=e.target.result;
+  };
+  rd.readAsDataURL(f);
+ });
+ if(files.length>CT_PHOTO_MAX) alert("Maksimal "+CT_PHOTO_MAX+" foto per tiket — kelebihannya tidak dilampirkan.");
+}
+function ctPhotoRender(){
+ var p=window._ctPhoto||{imgs:[]}, box=document.getElementById('ctPhotoPrev'); if(!box)return;
+ box.innerHTML=p.imgs.map(function(im,i){
+   return '<div class="fo-prev-i"><img src="'+im.url+'"/><button type="button" onclick="ctPhotoDel('+i+')" title="hapus">✕</button></div>';
+ }).join('');
+}
+function ctPhotoDel(i){ if(!window._ctPhoto)return; window._ctPhoto.imgs.splice(i,1); ctPhotoRender(); }
+/* Unggah lampiran foto tiket ke Storage → simpan URL-nya di dokumen tiket.
+   Gagal / localhost (AGDB.ro) → tetap pakai data URL supaya tiket tidak kehilangan foto. */
+async function tkUploadPhotos(imgs,no){
+ var out=imgs||[];
+ try{
+   if(!out.length) return out;
+   if(AGDB.ro) return out;                                        // localhost: jangan sentuh cloud
+   if(typeof firebase==="undefined"||!firebase.storage) return out;
+   var st=firebase.storage();
+   out=await Promise.all(out.map(async function(im,i){
+     if(!im||!im.url||im.url.indexOf("data:")!==0) return im;
+     try{
+       var ref=st.ref("tiket/"+no+"/foto-"+i+"-"+Date.now()+".jpg");
+       var snap=await ref.putString(im.url,"data_url");
+       return Object.assign({},im,{url:await snap.ref.getDownloadURL()});
+     }catch(e){ console.warn("upload foto tiket:",e&&e.message); return im; }
+   }));
+ }catch(e){ console.warn("tkUploadPhotos:",e&&e.message); }
+ return out;
 }
 async function submitTicket(){
  const title=(document.getElementById("ct-title").value||"").trim()||"New service request";
@@ -8342,15 +8508,20 @@ async function submitTicket(){
  const prio=document.getElementById("ct-prio").value;
  const loc=(document.getElementById("ct-loc").value||"").trim()||"—";
  const desc=(document.getElementById("ct-desc").value||"").trim()||"—";
+ const note=((document.getElementById("ct-note")||{}).value||"").trim();
  const req=gUser?gUser.name:"";
  const reqEmail=gUser&&gUser.email?gUser.email:"";
  // Create in-app, then trigger the Power Automate flow and apply its response.
  // Payload key = schema yang harus didaftarkan di trigger "When an HTTP request is received".
- const res=await triggerFlow("createTicket",{title, cat, priority:prio, lokasi:loc, description:desc, requester:req, requesterEmail:reqEmail, created:TODAY_STR})||{};
+ const res=await triggerFlow("createTicket",{title, cat, priority:prio, lokasi:loc, description:desc, note:note, requester:req, requesterEmail:reqEmail, created:TODAY_STR})||{};
  if(res.ok===false){ alert("⚠️ Flow 'Create Ticket' gagal dipanggil ("+(res.error||('HTTP '+(res.httpStatus||'?')))+").\nTiket tetap dibuat lokal di AGAVA.\nCek URL/CORS flow di Vendor Management → Power Automate Bridge."); }
  const no=res.ticketNo||nextTicketNo();
- draftClearAfterSubmit(); TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,email:reqEmail,prio:prio,desc:desc,ts:{0:nowStamp()},slaMs:{created:nowMs()}});
+ /* foto diunggah SETELAH nomor tiket ada → berkasnya rapi per tiket & URL-nya
+    (bukan base64) yang tersimpan, jadi operator di perangkat lain bisa melihat */
+ const fotos=await tkUploadPhotos(((window._ctPhoto&&window._ctPhoto.imgs)||[]).slice(0,CT_PHOTO_MAX),no);
+ draftClearAfterSubmit(); TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,email:reqEmail,prio:prio,desc:desc,note:note,photos:fotos,ts:{0:nowStamp()},slaMs:{created:nowMs()}});
  dbSaveTicket(TICKETS[0]);
+ window._ctPhoto={imgs:[]};
  notifySound();   // tiket baru masuk ke inbox layanan / tim lapangan
  svcFilter="all"; renderService(); renderOverview(); renderBuilding(); go("service");
  if(res.ticketNo && !res._sim){ alert("✅ Tiket dibuat & flow Power Automate dijalankan.\nNomor dari flow: "+no+"\nStatus: "+(res.status||"Submitted")); }
@@ -8932,7 +9103,16 @@ function rbIdleNo(roomId){
 }
 
 /* Create SO — full page */
-function soItemRow(h){ return `<tr><td><input placeholder="${h?'mis. Lampu LED 3000K':''}"/></td><td><input placeholder="${h?'spesifikasi':''}"/></td><td><input placeholder="${h?'10 Pc':''}" style="width:72px"/></td><td><button type="button" class="so-rm" onclick="this.closest('tr').remove()">✕</button></td></tr>`; }
+/* Satuan mengikuti kolom SATUAN pada formulir Supply Order Astra */
+const SO_SATUAN=["Pc","Unit","Set","Box","Pack","Roll","Lembar","Meter","Kg","Liter","Lot","Ls"];
+function soItemRow(h){ return `<tr>
+  <td><input data-k="item" placeholder="${h?'mis. Lampu LED 3000K':''}"/></td>
+  <td><input data-k="spec" placeholder="${h?'spesifikasi':''}"/></td>
+  <td><select data-k="satuan">${SO_SATUAN.map(u=>`<option>${u}</option>`).join("")}</select></td>
+  <td><input data-k="qty" placeholder="${h?'10':''}"/></td>
+  <td><input data-k="lokasi" placeholder="${h?'AMDI Lt.3 Pantry':''}"/></td>
+  <td><input data-k="ket" placeholder="${h?'mis. ganti unit rusak':''}"/></td>
+  <td><button type="button" class="so-rm" onclick="this.closest('tr').remove()">✕</button></td></tr>`; }
 function addSOItem(){ document.getElementById('so-items').insertAdjacentHTML('beforeend', soItemRow(false)); }
 function renderCreateSO(){
  const who=gUser?gUser.name:"—";
@@ -8946,11 +9126,11 @@ function renderCreateSO(){
       <div class="field"><label>Dept / Divisi <span class="muted small">(muncul di dokumen SO)</span></label><input id="so-deptdiv" placeholder="mis. GENERAL AFFAIR" value="GENERAL AFFAIR"/></div>
     </div>
     <div class="two" style="gap:0 16px">
-      <div class="field"><label>Lokasi</label><select id="so-lokasi"><option>AMDI</option><option>MA</option><option>ABC BSD</option><option>ABC BDG</option></select></div>
+      <div class="field"><label>Lokasi <span class="muted small">(site — jadi default lokasi item)</span></label><select id="so-lokasi"><option>AMDI</option><option>MA</option><option>ABC BSD</option><option>ABC BDG</option></select></div>
       <div class="field"><label>Kategori</label><select id="so-cat">${KATEGORI8.map(c=>`<option>${c}</option>`).join("")}</select></div>
     </div>
-    <div class="field"><label>Daftar Item Permintaan</label>
-      <table class="so-itbl"><thead><tr><th>Item</th><th>Spesifikasi</th><th>Qty</th><th></th></tr></thead><tbody id="so-items">${Array.from({length:5},(_,i)=>soItemRow(i===0)).join("")}</tbody></table>
+    <div class="field"><label>Daftar Item Permintaan <span class="muted small">(Satuan, Lokasi &amp; Keterangan ikut tercetak di Dokumen SO)</span></label>
+      <div class="so-itbl-wrap"><table class="so-itbl"><thead><tr><th class="c-item">Item</th><th class="c-spec">Spesifikasi</th><th class="c-sat">Satuan</th><th class="c-qty">Qty</th><th class="c-lok">Lokasi</th><th class="c-ket">Keterangan</th><th></th></tr></thead><tbody id="so-items">${Array.from({length:5},(_,i)=>soItemRow(i===0)).join("")}</tbody></table></div>
       <button type="button" class="btn-out" style="margin-top:8px;padding:7px 13px;font-size:calc(12.5px*var(--fz))" onclick="addSOItem()">+ Tambah Item</button>
     </div>
     <div class="two" style="gap:0 16px">
@@ -8972,15 +9152,19 @@ function renderCreateSO(){
 }
 function soAttName(inp){ const n=inp.files.length; const el=document.getElementById('so-att-name'); if(el) el.textContent = n? (n+" file: "+Array.from(inp.files).map(f=>f.name).join(", ")) : "Belum ada file"; }
 async function submitSO(){
- const rows=Array.from(document.querySelectorAll('#so-items tr')).map(tr=>{const i=tr.querySelectorAll('input');return {item:i[0].value.trim(),spec:i[1].value.trim(),qty:i[2].value.trim()};}).filter(r=>r.item);
+ const rows=Array.from(document.querySelectorAll('#so-items tr')).map(tr=>{
+   const g=k=>{ const el=tr.querySelector('[data-k="'+k+'"]'); return el?String(el.value||'').trim():''; };
+   return {item:g('item'),spec:g('spec'),satuan:g('satuan'),qty:g('qty'),lokasi:g('lokasi'),ket:g('ket')};
+ }).filter(r=>r.item);
  if(!rows.length){ alert("Tambahkan minimal 1 item permintaan."); return; }
  const lokasi=document.getElementById("so-lokasi").value;
+ rows.forEach(r=>{ if(!r.lokasi) r.lokasi=lokasi; });   // lokasi item kosong → ikut lokasi (site) SO
  const kat=document.getElementById("so-cat").value;
  const deptDiv=(document.getElementById("so-deptdiv")&&document.getElementById("so-deptdiv").value.trim())||"GENERAL AFFAIR";
  const budget=document.getElementById("so-budget").value;
  const nilai=parseFloat(document.getElementById("so-nilai").value)||0;
  const req=gUser?gUser.name:"—";
- const itemStr=rows.map(r=>r.item+(r.qty?` (${r.qty})`:"")).join(", ");
+ const itemStr=rows.map(r=>r.item+(r.qty?` (${r.qty}${r.satuan?' '+r.satuan:''})`:"")).join(", ");
  let att=await soReadAttachments();   // {images, pdfs} — foto utk grid Lampiran, PDF dijahit ke Dokumen SO
  // Create in-app, then trigger the Power Automate flow for Procurement
  const res=await triggerFlow("createSO",{items:rows,lokasi,kategori:kat,budget,nilai,requester:req})||{};
@@ -9813,7 +9997,8 @@ async function cpConfirmTicket(){
  let res={};
  try{ res=await triggerFlow("createTicket",{title:d.title,cat:d.cat,priority:d.prio,lokasi:d.loc,description:d.desc,requester:(gUser?gUser.name:""),requesterEmail:(gUser&&gUser.email)||"",created:TODAY_STR})||{}; }catch(e){}
  const no=res.ticketNo||nextTicketNo();
- TICKETS.unshift({no,judul:d.title,team:"BM",cat:d.cat,lokasi:d.loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:(gUser?gUser.name:""),ts:{0:nowStamp()}});
+ /* desc & prio ikut dibawa — operator harus membaca keluhan asli pemohon, bukan judul saja */
+ TICKETS.unshift({no,judul:d.title,team:"BM",cat:d.cat,lokasi:d.loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:(gUser?gUser.name:""),email:(gUser&&gUser.email)||"",prio:d.prio,desc:d.desc||"",ts:{0:nowStamp()},slaMs:{created:nowMs()}});
  try{ dbSaveTicket(TICKETS[0]); }catch(e){}
  try{ renderService(); renderOverview(); updateBell(); }catch(e){}
  const dbOn=(typeof AGDB!=="undefined"&&AGDB.on);
