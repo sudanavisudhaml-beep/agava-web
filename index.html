@@ -1579,6 +1579,27 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .pm-note{font-size:calc(11.5px*var(--fz));color:var(--muted);line-height:1.55;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 @media(max-width:900px){.pm-cols{grid-template-columns:1fr}.pm-colR{position:static}}
 @media(max-width:560px){.pm-grid{grid-template-columns:1fr}.pm-top{flex-direction:column}.pm-actions{width:100%}}
+/* ── Kelola Akun (owner) — panel terkunci, dibuka dengan password sendiri ── */
+.ka-lock{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:15px 16px;border:1px dashed var(--line);border-radius:12px;background:#fbfdff}
+.ka-lock input{flex:0 0 200px;max-width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:var(--ff);font-size:calc(13px*var(--fz));color:var(--ink);background:#fff}
+.ka-rows{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.ka-row{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff}
+.ka-row.mati{background:#fdf6f6;border-color:#f0d7d7}
+.ka-row.aku{background:linear-gradient(135deg,#f2f9ff,#fff);border-color:#bfe0ff}
+.ka-av{flex:0 0 34px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:calc(11.5px*var(--fz));background:linear-gradient(135deg,#d9f0ff,#bfe2ff);color:#0a4bb8}
+.ka-id{flex:1 1 210px;min-width:0}
+.ka-id b{display:block;font-size:calc(13px*var(--fz));color:var(--ink);line-height:1.3}
+.ka-id span{display:block;font-size:calc(11px*var(--fz));color:var(--muted);word-break:break-all}
+.ka-tag{flex:0 0 auto;font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.04em;padding:3px 8px;border-radius:6px;background:#eef4fb;color:#3d5673;text-transform:uppercase}
+.ka-tag.off{background:#fde8e8;color:#9b2c2c}
+.ka-tag.own{background:#0b2447;color:#fff}
+.ka-tag.yatim{background:#fff4e0;color:#8a5a00}
+.ka-when{flex:0 0 auto;font-size:calc(10.5px*var(--fz));color:var(--muted);text-align:right;line-height:1.4;min-width:112px}
+.ka-act{flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap}
+.ka-act button{border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-family:var(--ff);font-size:calc(11.5px*var(--fz));font-weight:700;padding:6px 10px;cursor:pointer}
+.ka-act button:hover{background:#f2f7fd}
+.ka-act button.bahaya{color:var(--red);border-color:#f0d7d7}
+@media(max-width:560px){.ka-when{display:none}.ka-act{width:100%}.ka-act button{flex:1}}
 /* Highlight HSE statis di kepala modul — pakai box glass .pi-hl, minis 4 kolom.
    Spesifisitas .pi-hl-minis.hse-hl-minis (0,2,0) agar menang atas .pi-hl-minis
    yang dideklarasi lebih bawah. */
@@ -3169,6 +3190,10 @@ html,body{max-width:100%}
      (batas 1 MB). Dokumen SO cukup menyimpan URL-nya, sehingga lampiran ikut
      tersinkron & bisa dilihat SEMUA approver, bukan hanya perangkat pembuatnya. -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<!-- Functions: panel "Kelola Akun" hanya MEMINTA; yang berhak mengganti password
+     orang lain adalah Admin SDK di server (agava-functions), bukan halaman ini.
+     Kunci admin tidak pernah ikut tersalin ke kode yang dibuka orang lain. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
 <script>
 /* ---------- icons ---------- */
 const IC={
@@ -3399,6 +3424,7 @@ function logout(){
     orang sebelumnya saat menulis ke database */
  try{ if(typeof firebase!=="undefined"&&firebase.auth&&firebase.auth().currentUser) firebase.auth().signOut(); }catch(e){}
  gUser=null; mStack.length=0; mHistDepth=0; window._curPage=null;
+ try{ KA.buka=false; KA.akun=[]; KA.pesan=""; }catch(e){}   /* panel Kelola Akun terkunci lagi */
  const m=document.getElementById("loginMsg"); if(m)m.textContent="";
  const i=document.getElementById("loginEmail"); if(i)i.value="";
  const p=document.getElementById("loginPass"); if(p)p.value="";
@@ -12167,7 +12193,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-120";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-121";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -13232,6 +13258,158 @@ function paramReset(){
  if(!confirm("Kembalikan semua koefisien ke nilai default?"))return;
  GA_PARAM=JSON.parse(JSON.stringify(GA_PARAM_DEFAULT)); renderParams();
 }
+/* ==========================================================================
+   KELOLA AKUN — panel Owner (modul Parameter & Biaya)
+   --------------------------------------------------------------------------
+   Halaman ini TIDAK pernah menyentuh password siapa pun. Ia hanya meminta
+   Cloud Function `kelolaAkun` (asia-southeast2), dan server yang memutuskan:
+   ia memeriksa UID + email Owner dari ID token, memeriksa token App Check,
+   lalu mencatat setiap tindakan ke `agava_audit_akun`.
+
+   Pengaman tambahan di sisi aplikasi: panel terkunci sampai Owner mengetik
+   ULANG passwordnya sendiri (re-auth). Jadi laptop yang ditinggal terbuka
+   tidak otomatis bisa mengganti password orang lain.
+   ========================================================================== */
+var KA={buka:false,akun:[],sibuk:false,pesan:""};
+
+function kaFungsi(){
+ if(!window.firebase||!firebase.apps.length||!firebase.functions) return null;
+ try{ return firebase.app().functions("asia-southeast2"); }catch(e){ return null; }
+}
+/* Menerjemahkan kegagalan teknis jadi kalimat yang bisa ditindaklanjuti. */
+function kaSalah(e){
+ var c=String((e&&e.code)||"").replace("functions/","");
+ if(c==="unauthenticated")    return "Sesi Anda tidak dikenali server. Keluar lalu masuk lagi.";
+ if(c==="permission-denied")  return "Server menolak: hanya akun Owner yang boleh mengelola akun.";
+ if(c==="unavailable"||c==="internal"||c==="not-found")
+   return "Server kelola akun belum bisa dihubungi. Bila baru saja di-deploy, tunggu semenit lalu coba lagi.";
+ if(/app-?check/i.test(String((e&&e.message)||"")+c))
+   return "Ditolak App Check — panel ini hanya jalan di situs AGAVA asli (s.astra.id/AGAVA), bukan salinan lokal.";
+ return (e&&e.message)||"Terjadi kesalahan yang tidak dikenal.";
+}
+function kaPanggil(payload){
+ var f=kaFungsi();
+ if(!f) return Promise.reject({message:"SDK Functions belum termuat — muat ulang halaman."});
+ return f.httpsCallable("kelolaAkun")(payload).then(function(r){ return r.data||{}; });
+}
+
+/* Membuka kunci: Firebase yang memverifikasi password, bukan kode ini. */
+function kaBuka(){
+ var inp=document.getElementById("kaPw"); if(!inp)return;
+ var pw=inp.value; if(!pw){ inp.focus(); return; }
+ var u=firebase&&firebase.auth&&firebase.auth().currentUser;
+ if(!u){ KA.pesan="Anda belum terverifikasi Firebase Auth pada sesi ini. Keluar lalu masuk kembali."; kaRender(); return; }
+ KA.sibuk=true; KA.pesan=""; kaRender();
+ var cred=firebase.auth.EmailAuthProvider.credential(u.email,pw);
+ u.reauthenticateWithCredential(cred).then(function(){
+   inp.value=""; KA.buka=true; return kaMuat();
+ }).catch(function(e){
+   KA.sibuk=false;
+   KA.pesan=(String(e&&e.code).indexOf("wrong-password")>=0||String(e&&e.code).indexOf("invalid-credential")>=0)
+     ? "Password salah." : kaSalah(e);
+   kaRender();
+ });
+}
+function kaKunci(){ KA.buka=false; KA.akun=[]; KA.pesan=""; kaRender(); }
+
+function kaMuat(){
+ KA.sibuk=true; kaRender();
+ return kaPanggil({aksi:"daftar"}).then(function(d){
+   KA.akun=d.akun||[]; KA.sibuk=false; KA.pesan=""; kaRender();
+ }).catch(function(e){
+   KA.sibuk=false; KA.akun=[]; KA.pesan=kaSalah(e); kaRender();
+ });
+}
+/* Semua tindakan lewat satu pintu supaya penanganan galat & muat-ulang seragam. */
+function kaAksi(payload,tanya){
+ if(tanya && !confirm(tanya)) return;
+ KA.sibuk=true; kaRender();
+ kaPanggil(payload).then(function(d){
+   try{ auditLog("kelola-akun",payload.aksi+" · "+(payload.email||"")); }catch(e){}
+   alert("✓ "+(d.pesan||"Selesai."));
+   kaMuat();
+ }).catch(function(e){
+   KA.sibuk=false; kaRender(); alert("⛔ "+kaSalah(e));
+ });
+}
+function kaPassword(email){
+ var pw=prompt("Password baru untuk:\n"+email+"\n\nMinimal 6 karakter. Semua sesi lama akun ini akan dicabut — perangkatnya wajib login ulang.");
+ if(pw===null) return;
+ pw=String(pw).trim();
+ if(pw.length<6){ alert("⛔ Password minimal 6 karakter."); return; }
+ kaAksi({aksi:"password",email:email,password:pw},null);
+}
+function kaToggle(email,mati){
+ kaAksi({aksi:mati?"nonaktif":"aktif",email:email},
+   mati ? "Nonaktifkan "+email+"?\n\nAkun tidak bisa login sampai diaktifkan lagi. Datanya tidak dihapus."
+        : "Aktifkan kembali "+email+"?");
+}
+function kaHapus(email){
+ var k=prompt("⚠️ MENGHAPUS AKUN — tidak bisa dibatalkan.\n\nKetik ulang emailnya untuk mengonfirmasi:\n"+email);
+ if(k===null) return;
+ if(String(k).trim().toLowerCase()!==String(email).toLowerCase()){ alert("⛔ Email tidak cocok — penghapusan dibatalkan."); return; }
+ kaAksi({aksi:"hapus",email:email,konfirmasi:String(k).trim()},null);
+}
+
+function kaInisial(t){
+ return String(t||"?").split(/[\s.@]+/).filter(Boolean).map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();
+}
+function kaTanggal(s){
+ if(!s) return "—";
+ var d=new Date(s); if(isNaN(d)) return "—";
+ return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
+}
+function kaBarisHTML(a){
+ var kelas="ka-row"+(a.nonaktif?" mati":"")+(a.owner?" aku":"");
+ var tag = a.owner ? '<span class="ka-tag own">OWNER</span>'
+   : (a.nonaktif ? '<span class="ka-tag off">NONAKTIF</span>'
+   : '<span class="ka-tag">'+((a.role||"tanpa peran").toUpperCase())+'</span>');
+ var yatim = (!a.adaDiPetaPeran && !a.owner)
+   ? '<span class="ka-tag yatim" title="Ada di Firebase Auth tapi tidak ada di agava_users — kemungkinan akun lama">TANPA PETA PERAN</span>' : '';
+ var aksi = a.owner
+   ? '<span class="muted small">akun Anda — diubah lewat Firebase Console</span>'
+   : '<button onclick="kaPassword(\''+a.email+'\')">🔑 Password baru</button>'+
+     '<button onclick="kaToggle(\''+a.email+'\','+(a.nonaktif?'false':'true')+')">'+(a.nonaktif?'✔ Aktifkan':'⏸ Nonaktifkan')+'</button>'+
+     '<button class="bahaya" onclick="kaHapus(\''+a.email+'\')">🗑 Hapus</button>';
+ return '<div class="'+kelas+'">'+
+   '<span class="ka-av">'+kaInisial(a.nama||a.email)+'</span>'+
+   '<span class="ka-id"><b>'+(a.nama||a.email.split("@")[0])+'</b><span>'+a.email+'</span></span>'+
+   tag+yatim+
+   '<span class="ka-when">dibuat '+kaTanggal(a.terdaftarDi)+'<br>login '+(a.loginTerakhir?kaTanggal(a.loginTerakhir):'belum pernah')+'</span>'+
+   '<span class="ka-act">'+aksi+'</span></div>';
+}
+function kaIsiHTML(){
+ if(!KA.buka){
+   return '<div class="ka-lock"><span style="font-size:calc(20px*var(--fz))">🔒</span>'+
+     '<div style="flex:1 1 220px;min-width:0"><b style="font-size:calc(13px*var(--fz))">Ketik ulang password Anda untuk membuka</b>'+
+     '<div class="muted small">Lapis terakhir bila perangkat ini ditinggal dalam keadaan terbuka.</div></div>'+
+     '<input id="kaPw" type="password" placeholder="Password Owner" onkeydown="if(event.key===\'Enter\')kaBuka()">'+
+     '<button class="btn-act" onclick="kaBuka()"'+(KA.sibuk?' disabled':'')+'>'+(KA.sibuk?'Memeriksa…':'Buka panel')+'</button>'+
+     (KA.pesan?'<div class="small" style="flex:1 1 100%;color:var(--red)">⛔ '+KA.pesan+'</div>':'')+'</div>';
+ }
+ if(KA.sibuk && !KA.akun.length) return '<div class="muted small" style="padding:16px 2px">Menghubungi server…</div>';
+ if(KA.pesan) return '<div class="ka-lock" style="border-color:#f0d7d7;background:#fdf6f6">'+
+   '<span style="font-size:calc(20px*var(--fz))">⛔</span><div style="flex:1"><b>'+KA.pesan+'</b></div>'+
+   '<button class="btn-out" onclick="kaMuat()">Coba lagi</button></div>';
+ var mati=KA.akun.filter(function(a){return a.nonaktif;}).length;
+ return '<div class="muted small">'+KA.akun.length+' akun terdaftar di Firebase Auth'+
+   (mati?' · <b style="color:var(--red)">'+mati+' nonaktif</b>':'')+
+   ' · <a href="#" onclick="kaMuat();return false;">muat ulang</a> · <a href="#" onclick="kaKunci();return false;">kunci lagi</a>'+
+   (KA.sibuk?' · <b>memproses…</b>':'')+'</div>'+
+   '<div class="ka-rows">'+KA.akun.map(kaBarisHTML).join("")+'</div>';
+}
+function kaRender(){
+ var el=document.getElementById("kaBody"); if(el) el.innerHTML=kaIsiHTML();
+}
+function kaPanelHTML(){
+ return '<div class="card pm-card" style="margin-top:22px">'+
+   '<div class="pm-h"><span class="pm-ic">👥</span><div>'+
+     '<div class="panel-t" style="margin:0">Kelola Akun <span class="pm-owner">OWNER</span></div>'+
+     '<div class="muted small">Atur ulang password, nonaktifkan, atau hapus akun AGAVA — tanpa membuka Firebase Console. '+
+     'Password diproses di server; halaman ini tidak pernah menyimpannya. Setiap tindakan tercatat di <b>agava_audit_akun</b>.</div>'+
+   '</div></div><div id="kaBody">'+kaIsiHTML()+'</div></div>';
+}
+
 function renderParams(){
  var el=document.getElementById("page-params"); if(!el)return;
  if(!isOwner()){ el.innerHTML='<div class="card" style="padding:48px;text-align:center;color:var(--muted)">⛔ Halaman <b>Parameter &amp; Biaya</b> hanya dapat diakses pemilik sistem AGAVA.</div>'; return; }
@@ -13281,7 +13459,8 @@ function renderParams(){
     '<div class="db-zone-h"><span class="db-zone-badge">🗄️ MASTER DATA · INPUT LANGSUNG DI AGAVA</span>'+
       '<span class="muted small">AGAVA adalah sumber datanya. Excel/SharePoint hanya bayangan untuk menjalankan flow — bukan tempat mengetik data. STNK &amp; PBB menyusul saat datanya siap.</span></div>'+
     dbPanel("izin","reminder jatuh tempo tampil di CODEC → Permit &amp; modul Notifikasi")+
-  '</div>';
+  '</div>'+
+  kaPanelHTML();
  el.innerHTML=html;
  paramPreview();
 }
