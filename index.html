@@ -3251,6 +3251,9 @@ const USERS=[
  /* Yessy: SATU akun, dua gerbang. Peran utamanya Section Head; wewenang PIC
     Budget menempel lewat tiers[] — tidak lagi dipecah jadi dua email. */
  {email:"yessy@ai.astra.co.id",name:"Yessy",role:"section",tiers:["Budget"]},
+ /* PIC Procurement SENGAJA tetap akun terpisah (keputusan Sudana, 28 Jul 2026):
+    berguna untuk melihat AGAVA dari sudut pandang pemegang gerbang biasa,
+    sesuatu yang tidak bisa dilakukan dari akun Owner yang melihat segalanya. */
  {email:"sudana.proc@ai.astra.co.id",name:"Sudana Visudha",role:"proc"},
  /* super:true → masuk kelompok SUPER per AKUN, bukan per role. Sugiyanto sesama
     Analyst sengaja TIDAK diikutkan, jadi menaikkan role tidak dipakai di sini. */
@@ -10177,7 +10180,11 @@ function soPendingAll(){ return SO.filter(s=>soGateTier(s)).map(s=>({approval:tr
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 function userTiers(u,role){
  var out=[], rt=(ROLES[role]&&ROLES[role].tier)||null;
- if(rt&&rt!=="*") out.push(rt);
+ /* Administrator bertier "*": ia boleh mengintip tier mana pun lewat pemilih di
+    layar Approvals, jadi tier yang SEDANG dipilih ikut dihitung — pemilih itu
+    tetap berfungsi. Tier tetap dari tiers[] selalu ikut, apa pun pilihannya. */
+ if(rt==="*"){ if(gTier) out.push(gTier); }
+ else if(rt) out.push(rt);
  if(u&&Array.isArray(u.tiers)) u.tiers.forEach(function(t){ if(out.indexOf(t)<0) out.push(t); });
  return out;
 }
@@ -10419,8 +10426,10 @@ function renderApprovals(){
  const soList=soApprovalsForMe();
  const others=APPROVALS.filter(a=>myT.indexOf(a.tier)>=0);
  const oPend=others.filter(a=>a.status==="Pending");
+ /* Administrator: pemilih tier + lencana tier tetap yang selalu menempel padanya */
+ const tetap=((gUser&&gUser.tiers)||[]).map(t=>`<span class="badge bd-proc" style="font-size:calc(12.5px*var(--fz));padding:7px 12px;margin-left:6px" title="gerbang tetap milik akun ini">${t}</span>`).join("");
  const tierCtrl=(ROLES[gRole]&&ROLES[gRole].tier==="*")
-   ? `<select onchange="setTier(this.value)" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:calc(14px*var(--fz));font-weight:700;color:var(--ink);font-family:var(--ff)">${TIERS.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("")}</select>`
+   ? `<select onchange="setTier(this.value)" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:calc(14px*var(--fz));font-weight:700;color:var(--ink);font-family:var(--ff)">${TIERS.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("")}</select>`+tetap
    : (myT.length?myT:['—']).map(t=>`<span class="badge bd-proc" style="font-size:calc(13px*var(--fz));padding:7px 14px;margin-right:6px">${t}</span>`).join("");
  const soGate=(soList.length>0)||myT.some(t=>["Budget","Procurement","Dept Head","Section Head"].indexOf(t)>=0);
  const DESC={"Section Head":"Approve SO kategori Anda (TTD Pemohon terbubuh)",
@@ -12083,7 +12092,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-117";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-118";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
