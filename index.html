@@ -11844,7 +11844,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-104";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-105";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -12665,10 +12665,11 @@ function gaCostList(scope){
  function push(kind,label,detail,c){ rows.push({kind:kind,label:label||GA_KLBL[kind],detail:detail||"",nav:GA_COST_NAV[kind],rp:c.rp||0,co2:c.co2||0,rinci:c.rinci||""}); }
  var wantC=(scope==="complaint"||scope==="all"||scope==="GA-01");
  var want2=(scope==="all"||scope==="GA-02");
- if(wantC||scope==="GA-01")(typeof TICKETS!=="undefined"?TICKETS:[]).forEach(function(t){ push("complaint",t.judul||t.title||"Tiket layanan",(t.cat||t.location||""),gaActivityCost({kind:"complaint",ref:t})); });
- if(want2||scope==="room")(typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){ push("room",b.title||"Reservasi ruang",(b.room||"")+" · "+(b.start||"")+"–"+(b.end||""),gaActivityCost({kind:"room",ref:b})); });
- if(want2||scope==="transport")(typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(x){ push("transport",x.detail||"Transport",(x.dari?x.dari+(x.ke?" → "+x.ke:""):transportLabel(x.type)),gaActivityCost({kind:"transport",ref:x})); });
- if(want2||scope==="overtime")(typeof OVERTIME_REQ!=="undefined"?OVERTIME_REQ:[]).forEach(function(o){ push("overtime",o.jenis||"Overtime",(o.alasan||o.lokasi||""),gaActivityCost({kind:"overtime",ref:o})); });
+ /* rincian biaya ikut menyebut PEMOHONNYA — biaya layanan selalu melekat pada orang */
+ if(wantC||scope==="GA-01")(typeof TICKETS!=="undefined"?TICKETS:[]).forEach(function(t){ push("complaint",t.judul||t.title||"Tiket layanan",(t.cat||t.location||"")+" · 🙋 "+pemohonNama(t),gaActivityCost({kind:"complaint",ref:t})); });
+ if(want2||scope==="room")(typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){ push("room",b.title||"Reservasi ruang",(b.room||"")+" · "+(b.start||"")+"–"+(b.end||"")+" · 🙋 "+pemohonNama(b),gaActivityCost({kind:"room",ref:b})); });
+ if(want2||scope==="transport")(typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(x){ push("transport",x.detail||"Transport",(x.dari?x.dari+(x.ke?" → "+x.ke:""):transportLabel(x.type))+" · 🙋 "+pemohonNama(x),gaActivityCost({kind:"transport",ref:x})); });
+ if(want2||scope==="overtime")(typeof OVERTIME_REQ!=="undefined"?OVERTIME_REQ:[]).forEach(function(o){ push("overtime",o.jenis||"Overtime",(o.alasan||o.lokasi||"")+" · 🙋 "+pemohonNama(o),gaActivityCost({kind:"overtime",ref:o})); });
  return rows;
 }
 /* Box Highlight OPEX — reusable. scope: "all" (CODEC) atau satu jenis (per modul).
