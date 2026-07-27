@@ -3248,10 +3248,9 @@ const USERS=[
  {email:"matilda.esther@ai.astra.co.id",name:"Matilda Esther Rotinsulu",role:"chief"},
  {email:"leonardus.ariyantosatriawan@ai.astra.co.id",name:"Leonardus Ariyanto Satriawan",role:"dept"},
  {email:"elok.normarosediana@ai.astra.co.id",name:"Elok Norma Rosediana",role:"section"},
- {email:"yessy@ai.astra.co.id",name:"Yessy",role:"budget"},
- /* Yessy memegang DUA peran → dua akun. Masuk sebagai Section Head: melihat semua
-    (kategori miliknya + akumulasi biaya). Masuk sebagai PIC Budget: hanya dirinya. */
- {email:"yessy.section@ai.astra.co.id",name:"Yessy",role:"section"},
+ /* Yessy: SATU akun, dua gerbang. Peran utamanya Section Head; wewenang PIC
+    Budget menempel lewat tiers[] — tidak lagi dipecah jadi dua email. */
+ {email:"yessy@ai.astra.co.id",name:"Yessy",role:"section",tiers:["Budget"]},
  {email:"sudana.proc@ai.astra.co.id",name:"Sudana Visudha",role:"proc"},
  /* super:true → masuk kelompok SUPER per AKUN, bukan per role. Sugiyanto sesama
     Analyst sengaja TIDAK diikutkan, jadi menaikkan role tidak dipakai di sini. */
@@ -9963,9 +9962,9 @@ function ticketSectionOwner(t){
 function ticketNotifFor(t){
  if(!gUser||!t) return false;
  if(gRole==="admin"||gRole==="dept") return true;                 // lihat semua kategori
- /* Pemilik kategori (SECTION_MAP) HANYA saat masuk sebagai Section Head. Yessy
-    punya dua akun: sebagai Section Head ia menerima kategorinya; sebagai PIC
-    Budget ia hanya melihat permintaannya sendiri. */
+ /* Pemilik kategori (SECTION_MAP) menerima tiket kategorinya saat role-nya
+    Section Head. Yessy kini satu akun (Section Head + tier Budget), jadi ia
+    tetap menerima kategori miliknya lewat jalur ini. */
  if(gRole==="section" && ticketSectionOwner(t)===gUser.name) return true;
  return ticketMine(t);                                            // pemohon: tiketnya sendiri
 }
@@ -10007,13 +10006,13 @@ function approvalsUntukSaya(){
     Approvals — kotak notifikasi tidak boleh ikut berubah saat seseorang
     mengintip antrean tier lain. Tier "*" (Administrator) atau null berarti
     akun itu bukan pemegang gate approval mana pun → tidak ada notifikasi. */
- var tier=(ROLES[gRole]&&ROLES[gRole].tier)||null;
- if(!tier||tier==="*") return [];
- var so=soApprovalsForTier(tier).map(function(s){
+ var tier=myTiers();                                   // bisa lebih dari satu (Yessy: Section + Budget)
+ if(!tier.length) return [];
+ var so=soApprovalsForMe().map(function(s){
    var g=soGateTier(s);
    return {approval:true, tier:g, item:s.no+" — "+s.item, source:"SO", status:g};
  });
- return APPROVALS.filter(function(a){ return a.status==="Pending" && a.tier===tier; }).concat(so);
+ return APPROVALS.filter(function(a){ return a.status==="Pending" && tier.indexOf(a.tier)>=0; }).concat(so);
 }
 /* Alamat notifikasi bebas (NOTIFS): boleh ditujukan ke daftar role, ke satu nama,
    atau ke satu email. Tanpa alamat → hanya kelompok Super, jangan disiarkan. */
@@ -10022,9 +10021,8 @@ function notifAudienceOK(n){
  if(notifSemua()) return true;
  var punyaAlamat=!!(n.nama||n.email||(n.roles&&n.roles.length));
  if(!punyaAlamat) return isSuper();
- /* Yessy punya DUA akun (Section Head & PIC Budget). Notifikasi yang ditujukan
-    kepadanya sebagai Section Head tidak boleh ikut muncul di akun Budget-nya,
-    jadi alamat berbasis nama boleh dikunci ke satu peran lewat namaRole. */
+ /* namaRole mengunci alamat-berbasis-nama ke satu peran. Dipakai saat seseorang
+    bisa muncul dengan lebih dari satu peran, supaya notifikasi tidak nyasar. */
  if(n.nama && gUser && gUser.name===n.nama && (!n.namaRole || n.namaRole===gRole)) return true;
  if(n.email && gUser && String(gUser.email).toLowerCase()===String(n.email).toLowerCase()) return true;
  if(n.roles && n.roles.indexOf(gRole)>=0) return true;
@@ -10169,7 +10167,32 @@ function soGateTier(s){
 /* SO yang dieskalasi & masih di Dept Head juga muncul di Inbox PIC Procurement (read-only "waiting"). */
 function soApprovalsForTier(t){ const me=gUser?gUser.name:""; return SO.filter(s=>{ const g=soGateTier(s); if(!g)return false; if(g==="Section Head")return soSectionApprover(s)===me; if(g===t)return true; if(t==="Procurement"&&s.escalated&&g==="Dept Head")return true; return false; }); }
 function soPendingAll(){ return SO.filter(s=>soGateTier(s)).map(s=>({approval:true,tier:soGateTier(s),item:s.no+" — "+s.item,source:"SO",status:soGateTier(s)})); }
-function approvalsForTier(){ return soApprovalsForTier(gTier).length + APPROVALS.filter(a=>a.tier===gTier && a.status==="Pending").length; }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SATU ORANG BISA MEMEGANG LEBIH DARI SATU GERBANG APPROVAL               ║
+   ║  Yessy adalah Section Head SEKALIGUS PIC Budget. Dulu itu dipecah jadi   ║
+   ║  dua akun dengan dua email — merepotkan (harus logout-login untuk        ║
+   ║  berpindah peran) dan membingungkan notifikasinya. Sekarang satu akun    ║
+   ║  boleh membawa tier tambahan lewat `tiers:[...]` di USERS, dan seluruh   ║
+   ║  antrean approval-nya digabung.                                          ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function userTiers(u,role){
+ var out=[], rt=(ROLES[role]&&ROLES[role].tier)||null;
+ if(rt&&rt!=="*") out.push(rt);
+ if(u&&Array.isArray(u.tiers)) u.tiers.forEach(function(t){ if(out.indexOf(t)<0) out.push(t); });
+ return out;
+}
+function myTiers(){ return userTiers(gUser,gRole); }
+/* SO yang menunggu akun ini — gabungan dari SEMUA tier yang ia pegang */
+function soApprovalsForMe(){
+ var t=myTiers(); if(!t.length) return [];
+ var seen={}, out=[];
+ t.forEach(function(x){ soApprovalsForTier(x).forEach(function(s){ if(!seen[s.no]){ seen[s.no]=1; out.push(s); } }); });
+ return out;
+}
+function approvalsForTier(){
+ var t=myTiers();
+ return soApprovalsForMe().length + APPROVALS.filter(function(a){ return t.indexOf(a.tier)>=0 && a.status==="Pending"; }).length;
+}
 function pendingApprovals(){ return APPROVALS.filter(a=>a.status==="Pending").concat(soPendingAll()); }
 function activeNotifs(){ return NOTIFS.filter(n=>!n.done); }
 function navBadge(id){ let c=0; if(id==="service")c=serviceBadgeCount(); else if(id==="approvals")c=approvalsForTier(); else if(id==="assigned"){ const me=gUser?gUser.name:""; c=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprProc==="Approved" && s.apprDept==="Approved" && s.wstep<4).length; } else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):notifUnseenCount())+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
@@ -10390,12 +10413,23 @@ function escDismiss(no){
 function renderApprovals(){
  const escList=isSuper()?escalatedTickets():[];
  const otList=isSuper()?OVERTIME_REQ.filter(o=>(o.status||"Diajukan")==="Diajukan"):[];
- const soList=soApprovalsForTier(gTier);
- const others=APPROVALS.filter(a=>a.tier===gTier);
+ /* antrean digabung dari SEMUA tier yang dipegang akun ini (mis. Yessy:
+    Section Head + PIC Budget) — tidak perlu berganti akun untuk berpindah peran */
+ const myT=myTiers();
+ const soList=soApprovalsForMe();
+ const others=APPROVALS.filter(a=>myT.indexOf(a.tier)>=0);
  const oPend=others.filter(a=>a.status==="Pending");
- const tierCtrl=(ROLES[gRole]&&ROLES[gRole].tier==="*")?`<select onchange="setTier(this.value)" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:calc(14px*var(--fz));font-weight:700;color:var(--ink);font-family:var(--ff)">${TIERS.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("")}</select>`:`<span class="badge bd-proc" style="font-size:calc(13px*var(--fz));padding:7px 14px">${gTier||'—'}</span>`;
- const soGate=(soList.length>0)||gTier==="Budget"||gTier==="Procurement"||gTier==="Dept Head"||gTier==="Section Head";
- const gateDesc=gTier==="Section Head"?"Approve SO (Building/Utility/Project — TTD Pemohon terbubuh)":gTier==="Budget"?"Approve budget SO — atau approve Section (consumable) bila SO Anda":gTier==="Procurement"?"Approve & assign Staff Procurement (FUP by)":"Final approval — TTD Disetujui Oleh terbubuh, dokumen jadi sah";
+ const tierCtrl=(ROLES[gRole]&&ROLES[gRole].tier==="*")
+   ? `<select onchange="setTier(this.value)" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:calc(14px*var(--fz));font-weight:700;color:var(--ink);font-family:var(--ff)">${TIERS.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("")}</select>`
+   : (myT.length?myT:['—']).map(t=>`<span class="badge bd-proc" style="font-size:calc(13px*var(--fz));padding:7px 14px;margin-right:6px">${t}</span>`).join("");
+ const soGate=(soList.length>0)||myT.some(t=>["Budget","Procurement","Dept Head","Section Head"].indexOf(t)>=0);
+ const DESC={"Section Head":"Approve SO kategori Anda (TTD Pemohon terbubuh)",
+             "Budget":"Approve budget SO — atau approve Section (consumable) bila SO Anda",
+             "Procurement":"Approve & assign Staff Procurement (FUP by)",
+             "Dept Head":"Final approval — TTD Disetujui Oleh terbubuh, dokumen jadi sah"};
+ const gateDesc=(myT.length>1)
+   ? "Anda memegang "+myT.length+" gerbang: "+myT.join(" + ")+" — semuanya tampil di satu daftar"
+   : (DESC[myT[0]]||DESC[gTier]||"Menunggu tindakan Anda");
  document.getElementById("page-approvals").innerHTML=`
   <div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="font-size:calc(13px*var(--fz));color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
@@ -12049,7 +12083,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-116";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-117";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
