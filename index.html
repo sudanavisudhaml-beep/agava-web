@@ -863,7 +863,12 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .nlog-row.unseen .nalert{font-weight:800;color:var(--ink)}
 .nlog-row.unseen .nmod{color:var(--red)}
 .ndot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:6px;vertical-align:middle}
-/* ── Tarik-untuk-segarkan (HP) ── */
+/* ── Tarik-untuk-segarkan (HP) ──
+   overscroll-behavior-y:contain MEMATIKAN pull-to-refresh bawaan browser. Tanpa
+   ini, browser memuat ulang halaman sendiri — dan karena sesi hanya di memori,
+   user terlempar ke halaman Login. Penyegaran ditangani mSoftRefresh(). */
+html,body{overscroll-behavior-y:contain}
+.app{overscroll-behavior-y:contain}
 .m-pull{position:fixed;top:8px;left:50%;transform:translateX(-50%) translateY(-60px);z-index:95;
   width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 4px 16px rgba(20,40,80,.18);
   display:grid;place-items:center;opacity:0;pointer-events:none}
@@ -3235,6 +3240,24 @@ function doLogin(){
  if(pw!==AGAVA_DEMO_PW){ if(m)m.textContent="Password salah."; return; }
  if(m)m.textContent=""; applyLogin(u);
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   SESI LOGIN — disimpan di perangkat supaya memuat ulang halaman (refresh,
+   tarik-untuk-segarkan, buka ulang PWA) TIDAK melempar user ke halaman Login.
+   Dihapus saat user menekan Keluar, jadi logout tetap benar-benar keluar.
+   ══════════════════════════════════════════════════════════════════════════ */
+const SESSION_KEY="agava_session_v1";
+function sessionSave(u){ try{ if(u&&u.email) localStorage.setItem(SESSION_KEY,JSON.stringify({email:u.email,at:Date.now()})); }catch(e){} }
+function sessionClear(){ try{ localStorage.removeItem(SESSION_KEY); }catch(e){} }
+function sessionRestore(){
+ try{
+   var s=JSON.parse(localStorage.getItem(SESSION_KEY)||"null");
+   if(!s||!s.email) return false;
+   var u=USERS.find(function(x){ return String(x.email).toLowerCase()===String(s.email).toLowerCase(); });
+   if(!u) return false;
+   applyLogin(u);
+   return true;
+ }catch(e){ return false; }
+}
 function applyLogin(u){
  gUser=u; gRole=u.role; var tt=ROLES[gRole].tier; if(tt&&tt!=="*")gTier=tt;
  const sn=document.getElementById("suName"); if(sn)sn.textContent=u.name;
@@ -3248,6 +3271,7 @@ function applyLogin(u){
  mBotSync();
  document.getElementById("login").classList.add("hide");
  var cb=document.getElementById("cloudBtn"); if(cb)cb.classList.toggle("hide",!isOwner());   // Cloud & Backup: KHUSUS OWNER
+ sessionSave(u);   // ingat sesi → muat ulang/refresh tidak melempar ke halaman Login
  notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
  try{ notifSeenSync(); }catch(e){}   // tarik status "sudah dilihat" milik user ini dari cloud
  try{ chatBadge(); }catch(e){}       // segarkan angka chat belum dibaca utk user ini
@@ -3255,11 +3279,12 @@ function applyLogin(u){
  setTimeout(rateGateCheck,800);     // ada tiket selesai yang menunggu dinilai?
  if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
 }
-function logout(){ gUser=null; mStack.length=0; mHistDepth=0; window._curPage=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
+function logout(){ sessionClear(); gUser=null; mStack.length=0; mHistDepth=0; window._curPage=null; const m=document.getElementById("loginMsg"); if(m)m.textContent=""; const i=document.getElementById("loginEmail"); if(i)i.value=""; document.getElementById("login").classList.remove("hide"); }
 /* Keluar aplikasi → kembali ke halaman login (dengan konfirmasi) */
 function agavaLogout(){
  if(!confirm("Keluar dari AGAVA dan kembali ke halaman login?"))return;
  try{ auditLog("logout",""); }catch(e){}
+ try{ sessionClear(); }catch(e){}
  var p=document.getElementById("loginPass"); if(p)p.value="";
  closeDrawer();
  document.body.classList.remove("on-mhome","side-open");
@@ -7799,7 +7824,6 @@ function renderMobileHome(){
   ikon+
   mJejakCard()+
   mSecBlock("🗂️ Pengajuan Saya",ord.length+" pengajuan",(ord.length?"all":null),listOrder)+
-  mCostCardHTML()+
   soBlok+wipBlok+remBlok+kal;
  /* titik geser untuk grid modul & banner */
  mDotSync("mhModWrap",".mh-dots i",el);
@@ -9005,6 +9029,33 @@ function notifSeenSync(){ if(!AGDB.db)return; notifSeenEnsure();
     if(changed){ notifSeenSaveLocal(); try{ if(active==="reminder")renderReminder(); if(active==="notif")renderNotif(); }catch(x){} updateBell(); }
   },function(err){ console.warn("notifseen:",err&&err.code); });
 }
+/* ── ROUTING NOTIFIKASI TIKET ──
+   Siapa yang perlu MENINDAK sebuah tiket: Administrator & GA Dept Head (semua
+   kategori), lalu Section Head pemilik kategori itu (peta SECTION_MAP yang sama
+   dipakai untuk approval SO, jadi satu sumber kebenaran). Pemohon tetap melihat
+   tiketnya sendiri agar tahu perkembangannya. */
+function ticketSectionOwner(t){
+ var kat=(typeof foNormCat==="function")?foNormCat(t&&t.cat):((t&&t.cat)||"");
+ return SECTION_MAP[kat]||"";
+}
+function ticketNotifFor(t){
+ if(!gUser||!t) return false;
+ if(gRole==="admin"||gRole==="dept") return true;                 // lihat semua kategori
+ /* Dicocokkan lewat NAMA di SECTION_MAP, bukan role — karena pemilik kategori
+    tidak selalu ber-role "section" (mis. Yessy ber-role PIC Budget tapi memegang
+    Tenant, Asset, Hospitality, Room & Event, dan Transport). */
+ if(ticketSectionOwner(t)===gUser.name) return true;
+ return ticketMine(t);                                            // pemohon: tiketnya sendiri
+}
+/* Angka gelembung di ikon modul Services */
+function serviceBadgeCount(){
+ if(typeof TICKETS==="undefined") return 0;
+ return TICKETS.filter(function(t){
+   if(!t||(t.stg||0)>=3) return false;                            // hanya yang belum selesai
+   if(gRole==="fieldops"||gRole==="fieldsup") return true;        // antrian kerja lapangan
+   return ticketNotifFor(t);
+ }).length;
+}
 /* Daftar tunggal item notifikasi (approval · payment · notif sistem) — dipakai
    modul Notifikasi (web+mobile) DAN penghitung gelembung, supaya selalu konsisten. */
 function notifItems(){
@@ -9016,6 +9067,19 @@ function notifItems(){
      alert: wait? x.s.no+" — "+(x.s.vendor||'vendor')+" · Menunggu Invoice "+invWaitHK(x.s)+" HK" : x.s.no+" — "+(x.s.vendor||'vendor')+" (Rp "+invNom(x.s)+" jt)",
      status: wait? "Vendor belum kirim invoice (≥5 HK)" : "Lewat estimasi rilis "+fmtDay(invRelEst(x.s)),
      cls: wait?'bd-warn':'bd-crit', action: wait?"Tagih invoice":"F-up treasury", open:"payment"}); });
+ /* ── TIKET LAYANAN → kotak Notifikasi ──
+    Administrator & GA Dept Head menerima semua; Section Head hanya kategori yang
+    menjadi tanggung jawabnya (Building/Project → Elok · Tenant/Asset/Hospitality/
+    Room/Transport → Yessy · HSE → Sudana), sesuai SECTION_MAP. */
+ (typeof TICKETS!=="undefined"?TICKETS:[]).forEach(function(t){
+   if(!t||(t.stg||0)>=3) return;                 // sudah selesai → tak perlu ditindak
+   if(!ticketNotifFor(t)) return;
+   var kat=(typeof foNormCat==="function")?foNormCat(t.cat):(t.cat||"");
+   items.push({key:"tiket:"+t.no, module:"Tiket · "+kat,
+     alert:(t.no||"")+" — "+(t.judul||""),
+     status:t.status||"Submitted", cls:((t.stg||0)===0?"bd-crit":"bd-warn"),
+     action:((t.stg||0)===0?"Perlu ditugaskan":"Sedang dikerjakan"), open:"service"});
+ });
  NOTIFS.filter(function(n){return !n.done;}).forEach(function(n){
    items.push({key:"notif:"+n.id, module:n.module, alert:n.alert, status:n.status, cls:n.cls, action:n.action, followId:n.id}); });
  return items;
@@ -9091,7 +9155,7 @@ function soPendingAll(){ return SO.filter(s=>soGateTier(s)).map(s=>({approval:tr
 function approvalsForTier(){ return soApprovalsForTier(gTier).length + APPROVALS.filter(a=>a.tier===gTier && a.status==="Pending").length; }
 function pendingApprovals(){ return APPROVALS.filter(a=>a.status==="Pending").concat(soPendingAll()); }
 function activeNotifs(){ return NOTIFS.filter(n=>!n.done); }
-function navBadge(id){ let c=0; if(id==="approvals")c=approvalsForTier(); else if(id==="assigned"){ const me=gUser?gUser.name:""; c=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprProc==="Approved" && s.apprDept==="Approved" && s.wstep<4).length; } else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):notifUnseenCount())+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
+function navBadge(id){ let c=0; if(id==="service")c=serviceBadgeCount(); else if(id==="approvals")c=approvalsForTier(); else if(id==="assigned"){ const me=gUser?gUser.name:""; c=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprProc==="Approved" && s.apprDept==="Approved" && s.wstep<4).length; } else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):notifUnseenCount())+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
 function approveSO(no,gate,decision){
  var s=SO.find(x=>x.no===no); if(!s)return;
  s.ts=s.ts||{}; s.tsf=s.tsf||{};
@@ -10918,7 +10982,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-89";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-91";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -11530,12 +11594,26 @@ function gaActivityCost(o){
  return {rp:0,co2:0,rinci:""};
 }
 /* ── Agregat biaya sumber daya organisasi (untuk Highlight OPEX di CODEC & modul) ── */
+/* ── CAKUPAN JEJAK BIAYA & KARBON ──
+   Super Admin, GA Dept Head, Division Head, Chief, dan Section Head melihat
+   AKUMULASI seluruh permintaan layanan dari semua pengguna AGAVA. Akun lain
+   hanya melihat jejak biaya dari permintaannya sendiri. */
+const COST_SEE_ALL=["admin","dept","division","chief","section"];
+function costSeeAll(){ return COST_SEE_ALL.indexOf(gRole)>=0; }
+function costMine(r){
+ if(!gUser||!r) return false;
+ var me=String(gUser.name||"").toLowerCase(), mail=String(gUser.email||"").toLowerCase();
+ return [r.requester,r.req,r.by,r.pemohon,r.createdBy].some(function(v){ return v&&String(v).toLowerCase()===me; })
+     || [r.email,r.createdByEmail].some(function(v){ return v&&String(v).toLowerCase()===mail; });
+}
+function costCounts(r){ return costSeeAll()||costMine(r); }
 function gaCostScope(kind){
  var rp=0,co2=0,n=0; function add(c){ rp+=c.rp||0; co2+=c.co2||0; n++; }
- if(kind==="complaint") (typeof TICKETS!=="undefined"?TICKETS:[]).forEach(function(t){ add(gaActivityCost({kind:"complaint",ref:t})); });
- else if(kind==="room") (typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){ add(gaActivityCost({kind:"room",ref:b})); });
- else if(kind==="transport") (typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(x){ add(gaActivityCost({kind:"transport",ref:x})); });
- else if(kind==="overtime") (typeof OVERTIME_REQ!=="undefined"?OVERTIME_REQ:[]).forEach(function(o){ add(gaActivityCost({kind:"overtime",ref:o})); });
+ /* costCounts: pimpinan → semua pengguna; selain itu → hanya miliknya sendiri */
+ if(kind==="complaint") (typeof TICKETS!=="undefined"?TICKETS:[]).forEach(function(t){ if(costCounts(t)) add(gaActivityCost({kind:"complaint",ref:t})); });
+ else if(kind==="room") (typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){ if(costCounts(b)) add(gaActivityCost({kind:"room",ref:b})); });
+ else if(kind==="transport") (typeof TRANSPORT_REQ!=="undefined"?TRANSPORT_REQ:[]).forEach(function(x){ if(costCounts(x)) add(gaActivityCost({kind:"transport",ref:x})); });
+ else if(kind==="overtime") (typeof OVERTIME_REQ!=="undefined"?OVERTIME_REQ:[]).forEach(function(o){ if(costCounts(o)) add(gaActivityCost({kind:"overtime",ref:o})); });
  return {rp:rp, co2:+co2.toFixed(1), n:n};
 }
 function gaCostAll(){
@@ -11588,8 +11666,9 @@ function mCostCardHTML(){
    return '<div class="mcost-mini"><span>'+(GA_KIC[k]||"")+'</span>'+
      '<b>'+costRp(b.rp||0)+'</b><i>'+esc(GA_KLBL[k]||k)+' · '+(b.n||0)+'</i></div>';
  }).join("");
+ var lingkup=costSeeAll()?"seluruh pengguna AGAVA":"permintaan saya";
  return '<div class="mh-sec"><div class="mh-sh"><b>💡 Jejak Biaya &amp; Karbon</b>'+
-     '<span>'+esc(per)+'</span></div>'+
+     '<span>'+esc(lingkup)+(per?" · "+esc(per):"")+'</span></div>'+
    '<div class="mcost" onclick="try{codecCostTally(\'total\')}catch(e){}">'+
      '<div class="mcost-top">'+
        '<div class="mcost-b"><div class="mcost-l">Biaya sumber daya</div>'+
@@ -11599,8 +11678,8 @@ function mCostCardHTML(){
      '</div>'+
      '<div class="mcost-minis">'+mini+'</div>'+
      '<div class="mcost-note">'+(kosong
-       ? 'Belum ada aktivitas tercatat — angka akan terisi sendiri begitu tiket, ruang, transport, atau lembur masuk.'
-       : 'Diturunkan dari '+a.n+' aktivitas nyata × koefisien Parameter &amp; Biaya · ketuk untuk rincian')+'</div>'+
+       ? 'Belum ada aktivitas tercatat'+(costSeeAll()?'':' atas nama Anda')+' — angka akan terisi sendiri begitu tiket, ruang, transport, atau lembur masuk.'
+       : 'Diturunkan dari '+a.n+' aktivitas nyata ('+esc(lingkup)+') × koefisien Parameter &amp; Biaya · ketuk untuk rincian')+'</div>'+
    '</div></div>';
 }
 const GA_KLBL={complaint:"Layanan",room:"Ruang & Event",transport:"Transport",overtime:"Overtime"};
@@ -11629,10 +11708,14 @@ function gaOpexHTML(scope){
  '</div>';
 }
 /* Agregat jejak biaya pesanan milik user sendiri + potensi terbuang organisasi (super). */
+/* Angka diambil dari mesin biaya bersama (gaCostAll) yang sudah sadar cakupan:
+   Super Admin, Dept Head, Division Head, Chief & Section Head → akumulasi SEMUA
+   pengguna AGAVA; akun lain → hanya permintaannya sendiri. */
 function mJejakBiaya(){
- var ord=(typeof myOrders==="function"?myOrders():[]), tot=0,co2=0,byKind={};
- ord.forEach(function(o){ var c=gaActivityCost(o); tot+=c.rp||0; co2+=c.co2||0; byKind[o.kind]=(byKind[o.kind]||0)+(c.rp||0); });
- return {tot:tot, co2:+co2.toFixed(1), n:ord.length, byKind:byKind};
+ var a; try{ a=gaCostAll(); }catch(e){ return {tot:0,co2:0,n:0,byKind:{}}; }
+ return {tot:a.rp||0, co2:a.co2||0, n:a.n||0,
+   byKind:{complaint:(a.by.complaint||{}).rp||0, room:(a.by.room||{}).rp||0,
+           transport:(a.by.transport||{}).rp||0, overtime:(a.by.overtime||{}).rp||0}};
 }
 function mRoomIdle(){
  if(!isSuper()||typeof RB_BOOKINGS==="undefined")return {rp:0,n:0};
@@ -11641,19 +11724,24 @@ function mRoomIdle(){
    var c=costRuangMeeting(rbRoomCap(b.room)||8, hhmmJam(b.start,b.end)); tot+=c.rp; n++; } });
  return {rp:tot,n:n};
 }
+/* Kartu SELALU tampil (default), termasuk saat masih Rp 0 — angka nyata, bukan contoh. */
 function mJejakCard(){
- var j=mJejakBiaya(); if(!j.n)return "";
+ var j=mJejakBiaya();
  var idle=mRoomIdle();
+ var semua=(typeof costSeeAll==="function")&&costSeeAll();
+ var judul=semua?"💡 Jejak Biaya Seluruh Pengguna":"💡 Jejak Biaya Pesanan Saya";
  var lbl={complaint:"Layanan",room:"Ruang",transport:"Transport",overtime:"Overtime"};
  var chips=Object.keys(j.byKind).filter(function(k){return j.byKind[k]>0;})
    .map(function(k){ return '<span class="mj-chip">'+lbl[k]+' '+costRp(j.byKind[k])+'</span>'; }).join("");
  return '<div class="mj-card">'+
-   '<div class="mj-h"><span>💡 Jejak Biaya Pesanan Saya</span><i>'+j.n+' aktivitas</i></div>'+
+   '<div class="mj-h"><span>'+judul+'</span><i>'+j.n+' aktivitas</i></div>'+
    '<div class="mj-main"><div class="mj-v">'+costRp(j.tot)+'</div>'+
-     (j.co2>0?'<div class="mj-co2">'+j.co2+' kg CO₂</div>':'')+'</div>'+
+     '<div class="mj-co2">'+(j.co2||0)+' kg CO₂</div></div>'+
    (chips?'<div class="mj-chips">'+chips+'</div>':'')+
    (idle.rp>0?'<div class="mj-idle">⚠ Potensi terbuang organisasi: <b>'+costRp(idle.rp)+'</b> · '+idle.n+' ruang lewat tanpa ditandai terpakai</div>':'')+
-   '<div class="mj-note">Setiap pesanan memakai sumber daya perusahaan. Sadari biayanya — hemat yang bisa dihemat.</div></div>';
+   '<div class="mj-note">'+(j.n
+     ? 'Setiap pesanan memakai sumber daya perusahaan. Sadari biayanya — hemat yang bisa dihemat.'
+     : 'Belum ada aktivitas tercatat'+(semua?'':' atas nama Anda')+' — angka terisi sendiri begitu permintaan layanan masuk.')+'</div></div>';
 }
 
 /* ── HALAMAN PARAMETER & BIAYA (owner-only) ── */
@@ -11787,7 +11875,7 @@ function renderParams(){
  paramPreview();
 }
 
-loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();
+loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();try{ sessionRestore(); }catch(e){}
 </script>
 </body>
 </html>
