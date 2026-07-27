@@ -710,6 +710,16 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 /* Dokumen SELALU dirender pada lebar asli 820px lalu DISKALAKAN proporsional agar utuh
    di layar HP (dulu di-squash max-width:100% sehingga tabel & kolom kanan terpotong). */
 .sodoc-page{background:#fff;width:820px;padding:48px 56px 40px;color:#111;font-family:Arial,Helvetica,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.4);font-size:calc(13px*var(--fz));line-height:1.5;transform-origin:top left}
+/* Halaman 2 dst = lampiran PDF yang dirender jadi gambar, digulir menerus di
+   bawah halaman SO. Placeholder dibuat lebih dulu dengan tinggi sesuai rasio
+   halaman aslinya, lalu isinya baru digambar saat mendekati layar — sepuluh
+   halaman sekaligus akan memberatkan HP kalau digambar semua di muka. */
+#soDocStack{transform-origin:top left}
+.sodoc-pdfpage{background:#fff;width:820px;margin-top:30px;box-shadow:0 20px 60px rgba(0,0,0,.4);position:relative}
+.sodoc-pdfpage canvas{display:block;width:100%;height:auto}
+.sodoc-pglbl{position:absolute;top:-21px;left:2px;font-size:11px;font-weight:700;letter-spacing:.3px;color:#bcd3f5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.sodoc-pgwait{position:absolute;inset:0;display:grid;place-items:center;color:#9aa7b8;font-size:13px;font-family:var(--ff)}
+.sodoc-pdfinfo{color:#bcd3f5;font-size:12.5px;text-align:center;margin-top:22px;font-family:var(--ff);line-height:1.6}
 .sod-hd{display:grid;grid-template-columns:1fr auto 58px;align-items:start;gap:10px}
 .sod-company{font-weight:700;font-size:calc(13px*var(--fz))}
 .sod-titlewrap{text-align:center;padding-top:2px}
@@ -765,6 +775,10 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   .sodoc-bar{display:none!important}
   .sodoc-scroll{overflow:visible!important;padding:0!important;display:block!important}
   .sodoc-page{box-shadow:none!important;width:auto!important;max-width:100%!important;margin:0!important;padding:20px 24px!important}
+  /* halaman lampiran ikut tercetak, masing-masing di lembar sendiri */
+  #soDocStack{transform:none!important}
+  .sodoc-pdfpage{box-shadow:none!important;width:auto!important;max-width:100%!important;margin:0!important;page-break-before:always;break-before:page;height:auto!important}
+  .sodoc-pglbl,.sodoc-pgwait,.sodoc-pdfinfo{display:none!important}
 }
 /* ===== Project Development — timeline app (iframe) ===== */
 .pj-frame-wrap{border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.72);
@@ -3137,7 +3151,10 @@ html,body{max-width:100%}
     <div class="sodoc-title">Dokumen Supply Order</div>
     <button class="sodoc-btn" id="soDocSaveBtn" onclick="soDocSave()">💾 Simpan PDF</button>
   </div>
-  <div class="sodoc-scroll"><div class="sodoc-hold" id="soDocHold"><div class="sodoc-page" id="soDocPage"></div></div></div>
+  <!-- soDocStack = halaman SO (hlm 1) + halaman lampiran PDF (hlm 2 dst). Yang
+       diskalakan untuk layar HP adalah STACK-nya, supaya halaman lampiran ikut
+       mengecil proporsional dan bisa digulir menerus di bawah halaman SO. -->
+  <div class="sodoc-scroll"><div class="sodoc-hold" id="soDocHold"><div id="soDocStack"><div class="sodoc-page" id="soDocPage"></div><div id="soDocExtra"></div></div></div></div>
 </div>
 
 <!-- Sound notifikasi — flow masuk ke Approval / Assigned SO -->
@@ -5750,7 +5767,7 @@ function soDocHTML(s){
    '<div class="sod-sigcol"><div class="sod-siglbl">PEMOHON</div><div class="sod-sigimg">'+(secOk?soSigMark(sec,s.tsf&&s.tsf.section):'<span class="sod-pending">menunggu approval Section</span>')+'</div><div class="sod-signame">'+sec.label+'</div><div class="sod-sigrole">'+sec.role+'</div></div>'+
  '</div>'+
  '<div class="sod-marks"><div>'+budgetMark+'</div><div>'+procMark+'</div></div>'+
- (((s.attachments&&s.attachments.length)||(s.pdfAttachments&&s.pdfAttachments.length))?('<div class="sod-attach"><div class="sod-attach-h">LAMPIRAN'+((s.attachments&&s.attachments.length)?' — '+s.attachments.length+' foto':'')+'</div>'+((s.attachments&&s.attachments.length)?('<div class="sod-attach-grid">'+s.attachments.map(function(a){return '<img class="sod-attach-img" src="'+a.url+'"/>';}).join('')+'</div>'):'')+((s.pdfAttachments&&s.pdfAttachments.length)?('<div class="sod-attach-pdf">📎 Dokumen PDF pendukung dijahit di halaman berikutnya: <b>'+s.pdfAttachments.map(function(p){return esc(p.name);}).join(' · ')+'</b></div>'):'')+'</div>'):'')+
+ (((s.attachments&&s.attachments.length)||(s.pdfAttachments&&s.pdfAttachments.length))?('<div class="sod-attach"><div class="sod-attach-h">LAMPIRAN'+((s.attachments&&s.attachments.length)?' — '+s.attachments.length+' foto':'')+'</div>'+((s.attachments&&s.attachments.length)?('<div class="sod-attach-grid">'+s.attachments.map(function(a){return '<img class="sod-attach-img" src="'+a.url+'"/>';}).join('')+'</div>'):'')+((s.pdfAttachments&&s.pdfAttachments.length)?('<div class="sod-attach-pdf">📎 Dokumen PDF pendukung — tampil di halaman 2 dst (gulir ke bawah) dan ikut terjahit saat Simpan PDF: <b>'+s.pdfAttachments.map(function(p){return esc(p.name);}).join(' · ')+'</b></div>'):'')+'</div>'):'')+
  /* Dokumen kini bisa dibuka SEJAK DIBUAT (sebelum tanda tangan). Beri cap jelas
     supaya draft tidak pernah disalahartikan sebagai dokumen yang sudah sah. */
  /* Catatan penolakan tampil jelas di dokumen, supaya pemohon langsung tahu
@@ -5767,14 +5784,136 @@ function soDocHTML(s){
    ' · lampiran sudah terjahit</div>')+
  '<div class="sod-watermark">'+(logoSrc?'<img class="sod-wm-logo" src="'+logoSrc+'"/>':'')+'<div class="sod-wm-txt">generated by AGAVA · Astra General Affairs Virtual Assistant</div></div>';
 }
+/* ── Tombol buka Dokumen SO — dipakai SEMUA role ──
+   Dokumen SO adalah hak baca semua orang yang sudah boleh melihat SO-nya:
+   pemohon ingin memastikan permintaannya benar, approver membacanya sebelum
+   tanda tangan. Dulu tombolnya hanya ada di tabel Procurement, panel Approval,
+   dan Assigned SO — pemohon yang membuka SO dari Beranda mobile (drawer detail)
+   tidak punya jalan sama sekali ke pratinjaunya. */
+function soDocBtnHTML(s){
+ var foto=(s&&s.attachments&&s.attachments.length)||0;
+ var pdf =(s&&s.pdfAttachments&&s.pdfAttachments.length)||0;
+ var ket = (foto||pdf)
+   ? ('lampiran: '+(foto?foto+' foto':'')+(foto&&pdf?' · ':'')+(pdf?pdf+' dokumen PDF':'')+' — tampil sebagai halaman 2 dst')
+   : 'halaman 1 · belum ada lampiran';
+ return '<button class="so-pdf" style="width:100%;text-align:center;padding:10px;margin-bottom:12px;font-size:calc(12.5px*var(--fz))" '+
+   'onclick="soDocShow(\''+esc(s.no)+'\')" title="Buka Dokumen Supply Order beserta lampirannya">📄 Buka Dokumen SO + Lampiran</button>'+
+   '<div class="muted small" style="text-align:center;margin:-6px 0 14px">'+esc(ket)+'</div>';
+}
 let soDocCur=null;
-function soDocShow(no){ var s=SO.find(x=>x.no===no); if(!s)return; soDocCur=no; var pg=document.getElementById('soDocPage'); if(pg)pg.innerHTML=soDocHTML(s); document.getElementById('soDoc').classList.remove('hide'); soDocFit(); }
-function soDocClose(){ var d=document.getElementById('soDoc'); if(d)d.classList.add('hide'); }
+function soDocShow(no){ var s=SO.find(x=>x.no===no); if(!s)return; soDocCur=no; var pg=document.getElementById('soDocPage'); if(pg)pg.innerHTML=soDocHTML(s); document.getElementById('soDoc').classList.remove('hide'); soDocFit(); soDocExtraRender(s); }
+/* ══════════════════════════════════════════════════════════════════════════
+   PRATINJAU HALAMAN 2 DST — lampiran PDF ikut terlihat di layar
+   Sebelumnya lampiran PDF hanya muncul setelah berkasnya diunduh; di layar
+   hanya ada satu halaman SO. Sekarang halaman lampiran dirender di bawahnya
+   sehingga bisa digulir menerus, persis seperti hasil PDF yang tersimpan.
+   pdf.js dimuat SAAT DIBUTUHKAN saja (berkasnya 1,3 MB) dan disimpan lokal,
+   bukan dari CDN, supaya tetap jalan di jaringan kantor yang membatasi akses.
+   ══════════════════════════════════════════════════════════════════════════ */
+let PDFJS_MUAT=null, SODOC_OBS=null;
+function pdfjsLoad(){
+ if(PDFJS_MUAT) return PDFJS_MUAT;
+ PDFJS_MUAT=new Promise(function(res,rej){
+   if(window.pdfjsLib){ res(window.pdfjsLib); return; }
+   var s=document.createElement('script'); s.src='pdf.min.js';
+   s.onload=function(){
+     if(!window.pdfjsLib){ rej(new Error('pdfjsLib tidak tersedia')); return; }
+     try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc='pdf.worker.min.js'; }catch(e){}
+     res(window.pdfjsLib);
+   };
+   s.onerror=function(){ PDFJS_MUAT=null; rej(new Error('pdf.min.js gagal dimuat')); };
+   document.head.appendChild(s);
+ });
+ return PDFJS_MUAT;
+}
+async function soDocExtraRender(s){
+ var box=document.getElementById('soDocExtra'); if(!box)return;
+ if(SODOC_OBS){ try{ SODOC_OBS.disconnect(); }catch(e){} SODOC_OBS=null; }
+ box.innerHTML='';
+ var lamp=((s&&s.pdfAttachments)||[]).filter(function(p){ return p&&p.url; });
+ if(!lamp.length) return;
+ var total=lamp.length;
+ box.innerHTML='<div class="sodoc-pdfinfo">⏳ memuat '+total+' lampiran PDF…</div>';
+ var pdfjs;
+ try{ pdfjs=await pdfjsLoad(); }
+ catch(e){ box.innerHTML='<div class="sodoc-pdfinfo">⚠️ Pratinjau lampiran tidak tersedia ('+esc(e.message)+').<br>Lampiran tetap ikut terjahit saat <b>Simpan PDF</b>.</div>'; return; }
+ box.innerHTML='';
+ var nomor=2, gagal=0;
+ for(var i=0;i<lamp.length;i++){
+   try{
+     var doc=await pdfjs.getDocument({url:lamp[i].url}).promise;
+     for(var p=1;p<=doc.numPages;p++){
+       var pg=await doc.getPage(p);
+       var vp=pg.getViewport({scale:1});
+       var wrap=document.createElement('div');
+       wrap.className='sodoc-pdfpage';
+       wrap.style.height=Math.round(820*vp.height/vp.width)+'px';   // jaga tinggi sebelum digambar
+       wrap.innerHTML='<div class="sodoc-pglbl">Halaman '+nomor+' · '+esc(lamp[i].name||'lampiran')+' — hlm '+p+'/'+doc.numPages+'</div>'+
+                      '<div class="sodoc-pgwait">memuat…</div>';
+       wrap._pg=pg; wrap._siap=false;
+       box.appendChild(wrap);
+       nomor++;
+     }
+   }catch(e){ gagal++; console.warn('pratinjau lampiran:',lamp[i].name,e&&e.message); }
+ }
+ if(gagal) box.insertAdjacentHTML('beforeend','<div class="sodoc-pdfinfo">⚠️ '+gagal+' lampiran tidak bisa dibaca untuk pratinjau.</div>');
+ box.insertAdjacentHTML('beforeend','<div class="sodoc-pdfinfo">— akhir dokumen · '+(nomor-1)+' halaman total —</div>');
+ soDocFit();
+ /* gambar halaman hanya saat mendekati layar → HP tidak kehabisan memori */
+ var render=function(wrap){
+   if(!wrap||wrap._siap)return; wrap._siap=true;
+   var pgObj=wrap._pg; if(!pgObj)return;
+   var vp0=pgObj.getViewport({scale:1});
+   var mutu=Math.min(2,Math.max(1.25,(window.devicePixelRatio||1)));
+   var vp=pgObj.getViewport({scale:(820/vp0.width)*mutu});
+   var cv=document.createElement('canvas'); cv.width=Math.round(vp.width); cv.height=Math.round(vp.height);
+   pgObj.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise.then(function(){
+     var w=wrap.querySelector('.sodoc-pgwait'); if(w)w.remove();
+     wrap.appendChild(cv); wrap.style.height='';
+     soDocFit();
+   }).catch(function(e){
+     var w=wrap.querySelector('.sodoc-pgwait'); if(w)w.textContent='gagal menggambar halaman';
+   });
+ };
+ var semua=[].slice.call(box.querySelectorAll('.sodoc-pdfpage'));
+ /* Dua halaman pertama SELALU digambar duluan — jangan menunggu pengamat gulir.
+    Di sebagian keadaan (tab latar, panel tersembunyi, browser lawas)
+    IntersectionObserver tidak pernah memicu, dan pratinjau akan diam kosong. */
+ semua.slice(0,2).forEach(render);
+ if(window.IntersectionObserver){
+   SODOC_OBS=new IntersectionObserver(function(ent){
+     ent.forEach(function(x){ if(x.isIntersecting){ render(x.target); SODOC_OBS.unobserve(x.target); } });
+   },{root:document.querySelector('.sodoc-scroll'), rootMargin:'800px 0px'});
+   semua.slice(2).forEach(function(w){ SODOC_OBS.observe(w); });
+ } else {
+   semua.forEach(render);
+ }
+}
+function soDocClose(){
+ var d=document.getElementById('soDoc'); if(d)d.classList.add('hide');
+ /* lepaskan canvas halaman lampiran — 10 halaman render bisa puluhan MB di HP */
+ if(SODOC_OBS){ try{ SODOC_OBS.disconnect(); }catch(e){} SODOC_OBS=null; }
+ var ex=document.getElementById('soDocExtra'); if(ex)ex.innerHTML='';
+}
 /* Skalakan dokumen agar UTUH di lebar layar (HP/tablet) tanpa merusak tata letak A4.
    Dipanggil saat dibuka, saat layar diputar, dan sebelum/sesudah render ulang. */
 function soDocFit(){
- var wrap=document.querySelector('.sodoc-scroll'), hold=document.getElementById('soDocHold'), pg=document.getElementById('soDocPage');
+ var wrap=document.querySelector('.sodoc-scroll'), hold=document.getElementById('soDocHold'),
+     stack=document.getElementById('soDocStack'), pg=document.getElementById('soDocPage');
  if(!wrap||!hold||!pg)return;
+ if(stack){
+   /* skalakan SELURUH tumpukan (halaman SO + lampiran), bukan halaman SO saja */
+   pg.style.transform='none'; stack.style.transform='none'; hold.style.width=''; hold.style.height='';
+   var natural0=pg.offsetWidth||820;
+   var avail0=wrap.clientWidth-(parseFloat(getComputedStyle(wrap).paddingLeft)+parseFloat(getComputedStyle(wrap).paddingRight));
+   if(avail0>0&&avail0<natural0){
+     var sc0=avail0/natural0;
+     stack.style.transform='scale('+sc0+')';
+     hold.style.width=avail0+'px';
+     hold.style.height=(stack.offsetHeight*sc0)+'px';
+   }
+   return;
+ }
  pg.style.transform='none'; hold.style.width=''; hold.style.height='';
  var natural=pg.offsetWidth||820;
  var avail=wrap.clientWidth-(parseFloat(getComputedStyle(wrap).paddingLeft)+parseFloat(getComputedStyle(wrap).paddingRight));
@@ -5802,8 +5941,11 @@ async function soDocSave(){
      "Lanjut simpan PDF tanpa lampiran?")) return;
  var btn=document.getElementById('soDocSaveBtn'); var lbl=btn?btn.textContent:''; if(btn){ btn.textContent='⏳ Menyimpan…'; btn.disabled=true; }
  var fname=(soDocCur?String(soDocCur).replace(/[^\w-]+/g,'_'):'Supply_Order')+'.pdf';
- /* lepas dulu skala tampilan HP — PDF harus ditangkap pada ukuran asli 820px, bukan versi mengecil */
+ /* lepas dulu skala tampilan HP — PDF harus ditangkap pada ukuran asli 820px, bukan versi mengecil.
+    Yang diskalakan sekarang tumpukan (#soDocStack), jadi transform-nya juga dilepas. */
+ var stack=document.getElementById('soDocStack');
  var prevTf=page.style.transform; page.style.transform='none';
+ var prevSt=stack?stack.style.transform:''; if(stack)stack.style.transform='none';
  try{
    var canvas=await html2canvas(page,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:page.scrollWidth,windowHeight:page.scrollHeight});
    var imgUrl=canvas.toDataURL('image/png');
@@ -5836,7 +5978,7 @@ async function soDocSave(){
      if(pdfs.length) alert("Dokumen SO tersimpan.\n(Lampiran PDF belum bisa dijahit — pdf-lib belum termuat, coba refresh.)");
    } else { alert("Library PDF belum termuat — coba refresh (Ctrl+Shift+R)."); }
  }catch(e){ console.warn('soDocSave',e); alert("Gagal membuat PDF: "+e.message); }
- page.style.transform=prevTf; soDocFit();      // kembalikan skala tampilan layar
+ page.style.transform=prevTf; if(stack)stack.style.transform=prevSt; soDocFit();   // kembalikan skala tampilan layar
  if(btn){ btn.textContent=lbl; btn.disabled=false; }
 }
 const WSTEP_BTN=["Sourcing & Verifikasi","Sudah UPR","Kirim SPK","Kirim BAST"];   // button shown at wstep 0..3
@@ -6065,6 +6207,7 @@ function openDrawer(no){
         return `<span class="stg"><span class="pip" style="background:${gst[gi]==='rejected'?'var(--red)':SO_GROUPS[gi].col}"></span>${gi+1}/${SO_GROUPS.length} · ${SO_GROUPS[gi].n}</span>`;})()}
         <div class="muted small" style="font-weight:400;margin-top:2px">langkah ${Math.min(pr.p+1,LIFECYCLE.length)} dari ${LIFECYCLE.length} · status bar: ${esc(soStatusLabel(s).t)}</div></span>
     </div>
+    ${soDocBtnHTML(s)}
     <div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>
     <div class="muted small" style="margin-bottom:12px">${SO_GROUPS.length} checkpoint besar · ${LIFECYCLE.length} perjalanan kecil di antaranya — sama dengan status bar di daftar SO</div>
     ${soGroupBarHTML(s,gst)}
@@ -11594,7 +11737,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-101";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-102";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */

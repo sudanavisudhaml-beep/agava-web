@@ -1,11 +1,13 @@
 /* AGAVA Service Worker — installable PWA + offline shell + notification.
    Network-first: selalu ambil versi terbaru saat online (hindari "kok belum berubah"),
    pakai cache hanya saat offline. */
-const CACHE = 'agava-v2';
+const CACHE = 'agava-v3';
 const ASSETS = [
   './', './index.html',
   './icon-192.png', './icon-512.png', './icon-180.png',
-  './glass.mp3', './xlsx.full.min.js', './html2canvas.min.js', './jspdf.umd.min.js'
+  './glass.mp3', './xlsx.full.min.js', './html2canvas.min.js', './jspdf.umd.min.js',
+  /* pdf.js — dipakai pratinjau halaman lampiran PDF di Dokumen SO (dimuat saat dibutuhkan) */
+  './pdf.min.js', './pdf.worker.min.js'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(() => {})));
