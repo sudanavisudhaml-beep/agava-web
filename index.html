@@ -5966,12 +5966,9 @@ function soDocHTML(s){
     supaya draft tidak pernah disalahartikan sebagai dokumen yang sudah sah. */
  /* Catatan penolakan tampil jelas di dokumen, supaya pemohon langsung tahu
     apa yang salah dan apa yang harus diperbaiki. */
- /* Pengambilalihan wewenang HARUS terbaca di dokumennya sendiri, bukan hanya di
-    jejak audit — supaya siapa pun yang memegang cetakannya tahu apa yang terjadi. */
- ((s.override&&s.override.length) ? '<div class="sod-marks" style="margin-top:10px;color:#b45309">'+
-    s.override.map(function(o){ return '⚠️ Gerbang '+esc(o.gate)+' diambil alih oleh <b>'+esc(o.oleh)+
-      '</b> (seharusnya '+esc(o.seharusnya)+') · '+esc(o.keputusan||'')+' · '+esc(o.at||''); }).join('<br>')+
-    '</div>' : '')+
+ /* Pengambilalihan TIDAK dicetak di dokumen (keputusan Sudana, 28 Jul 2026):
+    yang tampil cukup tanda tangan & nama orang yang benar-benar menyetujui.
+    Jejaknya tetap tersimpan di data SO (s.override) dan jejak audit. */
  (s.reject ? '<div class="sod-reject"><b>⛔ DITOLAK oleh '+esc(s.reject.by||'-')+
     ' ('+esc(s.reject.gate||'')+') · '+esc(s.reject.at||'')+'</b>'+
     '<div><u>Alasan</u>: '+esc(s.reject.alasan||'')+'</div>'+
@@ -10211,8 +10208,9 @@ function myTiers(){ return userTiers(gUser,gRole); }
    cuti, sakit, SO mendesak). DUA gerbang sengaja TIDAK pernah muncul di
    layarnya: Chief CHCD & Division Head. Otorisasi di atas Dept Head tetap
    dijaga — Owner tidak boleh menandatangani atas nama pejabat di atasnya. */
-const OWNER_GATES=["Section Head","Budget","Procurement","Dept Head"];
-const GATES_DIJAGA=["Chief CHCD","Division Head"];
+const OWNER_GATES=["Section Head","Budget","Procurement","Dept Head","Division Head","Chief CHCD"];  // yang BOLEH DILIHAT
+const OWNER_OVERRIDE=["Section Head"];                                                              // yang BOLEH DIAMBIL ALIH
+const GATES_DIJAGA=["Budget","Procurement","Dept Head","Division Head","Chief CHCD"];                // pantau saja
 /* SO yang menunggu akun ini — gabungan dari SEMUA tier yang ia pegang */
 function soApprovalsForMe(){
  if(isOwner()){
@@ -10228,15 +10226,13 @@ function soApprovalsForMe(){
  t.forEach(function(x){ soApprovalsForTier(x).forEach(function(s){ if(!seen[s.no]){ seen[s.no]=1; out.push(s); } }); });
  return out;
 }
-/* Gerbang ini menunggu orang lain, dan Owner sedang mengambil alih? */
+/* Gerbang Section ini menunggu Section Head lain, dan Owner sedang mengambil
+   alih? (dipakai saat Section Head berhalangan — cuti, sakit, SO mendesak).
+   HANYA gerbang Section; gerbang lain tidak pernah bisa diambil alih Owner. */
 function soOverrideOleh(s,gate){
- if(!isOwner()||!gUser) return null;
- if(gate==="section"){
-   var pemilik=soSectionApprover(s);
-   if(pemilik && pemilik!==gUser.name) return pemilik;
- }
- if(gate==="dept" && gUser.name!=="Leonardus Ariyanto Satriawan") return "Leonardus Ariyanto Satriawan";
- return null;
+ if(!isOwner()||!gUser||gate!=="section") return null;
+ var pemilik=soSectionApprover(s);
+ return (pemilik&&pemilik!==gUser.name)?pemilik:null;
 }
 function approvalsForTier(){
  var t=myTiers();
@@ -10297,9 +10293,9 @@ function approveSO(no,gate,decision,beralasan){
     terjadi tanpa sengaja dan tidak boleh menyamar sebagai orang itu. */
  var diambilAlihDari=soOverrideOleh(s,gate);
  if(diambilAlihDari){
-   if(!confirm("⚠️ Gerbang ini menunggu "+diambilAlihDari+", bukan Anda.\n\n"+
-     "Sebagai Owner Anda boleh mengambil alih — keputusan akan tercatat atas NAMA ANDA "+
-     "di dokumen SO dan di jejak audit, bukan atas nama "+diambilAlihDari+".\n\nLanjutkan?")) return;
+   if(!confirm("Gerbang Section ini menunggu "+diambilAlihDari+".\n\n"+
+     "Ambil alih? Tanda tangan & nama ANDA yang akan terbubuh di dokumen SO "+
+     "(dipakai saat Section Head berhalangan, mis. cuti).")) return;
    s.override=s.override||[];
    s.override.push({gate:gate, oleh:(gUser&&gUser.name)||"", seharusnya:diambilAlihDari, keputusan:decision, at:nowStampDoc()});
    try{ auditLog("override-approval", no+" · gerbang "+gate+" · diambil alih dari "+diambilAlihDari+" · "+decision); }catch(e){}
@@ -10313,8 +10309,8 @@ function approveSO(no,gate,decision,beralasan){
      /* yang membubuhkan tanda tangan = yang BENAR-BENAR menyetujui */
      s.sectionBy=(gUser&&gUser.name)||soSectionApprover(s);
      s.ts.section=nowStamp(); s.tsf.section=nowStampDoc();
-     alert("✅ Section Head ("+s.sectionBy+") approve."+(diambilAlihDari?"\n⚠️ Diambil alih dari "+diambilAlihDari+" — tercatat di dokumen & audit.":"")+
-       "\nTTD Pemohon otomatis terbubuh di dokumen SO.\nSO "+no+" diteruskan ke PIC Budget."); }
+     alert("✅ Section Head ("+s.sectionBy+") approve."+(diambilAlihDari?"\n(diambil alih dari "+diambilAlihDari+")":"")+
+       "\nTTD & nama Anda terbubuh di dokumen SO.\nSO "+no+" diteruskan ke PIC Budget."); }
  } else if(gate==="budget"){
    if(decision==="Escalate"){ s.apprBudget="Escalated"; s.escalated=true; s.ts.budget=nowStamp(); s.tsf.budget=nowStampDoc(); alert("⏫ SO "+no+" diekskalasi ke GA Dept Head (budget tidak ada).\nJuga tampil di Inbox PIC Procurement — status Waiting Approval Dept Head."); }
    else { s.apprBudget="Approved"; s.escalated=false; s.ts.budget=nowStamp(); s.tsf.budget=nowStampDoc(); alert("✅ Budget di-approve. Marking 'PIC Budget : OK' terbubuh di dokumen.\nSO "+no+" diteruskan ke PIC Procurement."); }
@@ -10396,11 +10392,21 @@ function actApproval(id,decision){
 }
 function soApprovalCard(s){
  const g=soGateTier(s), tier=gTier, esc=!!s.escalated;
+ /* ── BATAS WEWENANG OWNER ──
+    Owner MELIHAT SO di semua gerbang, tetapi hanya boleh bertindak di gerbang
+    Section Head (mengambil alih saat Section Head berhalangan — mis. cuti).
+    Gerbang Budget, Procurement, Dept Head, Division Head, dan Chief CHCD
+    tampil sebagai pantauan saja: tidak ada tombol aksi. */
+ const pantauSaja = isOwner() && g!=="Section Head";
  const head=`<div><b class="sono">${s.no}</b> · <span style="font-weight:600;color:var(--ink)">${s.item}</span></div>
    <div class="muted small" style="margin-top:4px">Requester: ${s.requester||s.req} · ${s.jenis||"—"} · Est. <b style="color:var(--ink)">Rp ${s.nilai} M</b>${s.budgetFlag?` · Budget: ${s.budgetFlag}`:""}${esc?` · <span class="badge bd-warn">Eskalasi (budget tdk ada)</span>`:""}${s.spec?`<br>Spec: ${s.spec}${s.qty?` · Qty: ${s.qty}`:""}`:""}</div>`;
  const clarBox = s.clarify ? `<div class="card pad" style="background:#f8fafd;margin-top:8px;font-size:calc(12.5px*var(--fz))"><b>📝 Klarifikasi (${s.clarify.by}):</b> ${s.clarify.note}${s.clarify.answered?`<br><b style="color:var(--green)">Jawaban ${s.requester||s.req}:</b> ${s.clarify.answer}`:` <span class="badge bd-info" style="margin-left:4px">menunggu jawaban requester</span>`}</div>` : "";
  let right="";
- if(g==="Section Head"){
+ if(pantauSaja){
+   /* Owner melihat, tidak bertindak: gerbang ini bukan wewenangnya */
+   right=`<span class="badge bd-info" style="text-align:center;padding:9px 12px">👀 Menunggu ${g}</span>
+          <div class="muted small" style="text-align:center">Mode pantau — wewenang ini bukan milik Owner</div>`;
+ } else if(g==="Section Head"){
    right=`<div class="muted small" style="text-align:center;margin-bottom:2px">Section: <b>${soSectionApprover(s)}</b><br><span style="font-size:calc(11px*var(--fz))">${s.kategori||''}</span></div>
           <button class="btn-act" onclick="approveSO('${s.no}','section','Approved')">Approve (Section)</button>
           <button class="btn-out" onclick="approveSO('${s.no}','section','Rejected')">Reject</button>`;
@@ -10491,11 +10497,11 @@ function renderApprovals(){
  /* Owner: penyaring gerbang, bukan pemilih peran. Bawaannya "Semua gerbang"
     supaya ia melihat seluruh antrean operasional sekaligus dan bisa mengambil
     alih. Chief CHCD & Division Head sengaja TIDAK ada di daftar. */
- const opsiOwner=`<option value="" ${!gTier?'selected':''}>Semua gerbang (override)</option>`+
+ const opsiOwner=`<option value="" ${!gTier?'selected':''}>Semua gerbang</option>`+
    OWNER_GATES.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("");
  const tierCtrl=(ROLES[gRole]&&ROLES[gRole].tier==="*")
    ? `<select onchange="setTier(this.value)" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:calc(14px*var(--fz));font-weight:700;color:var(--ink);font-family:var(--ff)">${isOwner()?opsiOwner:TIERS.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("")}</select>`+tetap+
-     (isOwner()?`<span class="muted small" style="margin-left:10px">🔒 ${GATES_DIJAGA.join(" & ")} tetap dijaga — tidak muncul di sini</span>`:"")
+     (isOwner()?`<span class="muted small" style="margin-left:10px">✍️ hanya gerbang <b>Section Head</b> yang bisa Anda ambil alih — sisanya mode pantau</span>`:"")
    : (myT.length?myT:['—']).map(t=>`<span class="badge bd-proc" style="font-size:calc(13px*var(--fz));padding:7px 14px;margin-right:6px">${t}</span>`).join("");
  const soGate=isOwner()||(soList.length>0)||myT.some(t=>["Budget","Procurement","Dept Head","Section Head"].indexOf(t)>=0);
  const DESC={"Section Head":"Approve SO kategori Anda (TTD Pemohon terbubuh)",
@@ -10503,8 +10509,8 @@ function renderApprovals(){
              "Procurement":"Approve & assign Staff Procurement (FUP by)",
              "Dept Head":"Final approval — TTD Disetujui Oleh terbubuh, dokumen jadi sah"};
  const gateDesc=isOwner()
-   ? (gTier ? ("Menyaring gerbang "+gTier+" · Anda boleh mengambil alih bila pemegangnya berhalangan")
-            : "Seluruh gerbang operasional (Section Head · Budget · Procurement · Dept Head). Pengambilalihan tercatat atas nama Anda di dokumen & audit.")
+   ? (gTier ? ("Menyaring gerbang "+gTier+(gTier==="Section Head"?" · bisa Anda ambil alih bila Section Head berhalangan":" · mode pantau, bukan wewenang Owner"))
+            : "Seluruh gerbang terlihat. Yang bisa Anda ambil alih hanya Section Head — TTD & nama Anda yang terbubuh. Gerbang lain hanya dipantau.")
    : (myT.length>1)
      ? "Anda memegang "+myT.length+" gerbang: "+myT.join(" + ")+" — semuanya tampil di satu daftar"
      : (DESC[myT[0]]||DESC[gTier]||"Menunggu tindakan Anda");
@@ -12161,7 +12167,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-119";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-120";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
