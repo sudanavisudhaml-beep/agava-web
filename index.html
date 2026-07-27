@@ -3196,7 +3196,15 @@ const IC={
  payment:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
  energy:'<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/>',
  hse:'<path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5l8-3z"/>',
+ /* ══ BAHASA IKON AGAVA (dikunci) ══
+    🔔 lonceng  = NOTIFIKASI — segala kejadian di modul yang harus disadari
+                  pengguna: tiket/SO masuk, perubahan status, data diubah,
+                  jadwal bentrok, ambang energi, eskalasi, peringatan.
+    🕐 jam      = REMINDER — semata soal JATUH TEMPO tanggal di modul.
+    📋 dokumen  = APPROVAL — aksi alur kerja yang menunggu persetujuan.
+    Pakai ikon yang sesuai maknanya, jangan pukul rata lonceng. */
  reminder:'<path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>',
+ jatuhtempo:'<circle cx="12" cy="12" r="9"/><path d="M12 6.5V12l3.6 2.2"/>',
  landbank:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
  today:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>',
  upcoming:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -5432,7 +5440,7 @@ function renderOverview(){
  </div>
 
  <div class="card sec">
-   <div class="sec-h">${secIc('#eef4ff','#2563eb','reminder')}<div><h2>Reminder</h2><div class="d">Document & permit compliance</div></div></div>
+   <div class="sec-h">${secIc('#eef4ff','#2563eb','jatuhtempo')}<div><h2>Reminder</h2><div class="d">Document & permit compliance</div></div></div>
    <div class="sec-body"><div class="two">
      <div><div class="panel-t">🚗 Vehicle Registration (STNK)</div><div class="boxes" style="grid-template-columns:repeat(3,1fr)">
        <div class="box amber"><div class="v">4</div><div class="l">≤30 days</div></div>
@@ -6659,8 +6667,8 @@ function rmdPanelHTML(){
  }).join("");
  var brs=RMD_BREACH.length?'<div class="rmd-breach"><b>⛔ '+RMD_BREACH.length+' pelanggaran tercatat</b> — tercatat di log operator Field Ops'+
    RMD_BREACH.slice(-3).map(function(x){ return '<div>· '+esc(x.nama)+' — jatuh tempo '+esc(x.due)+' ('+esc(x.at)+')</div>'; }).join("")+'</div>':'';
- return '<div class="card sec"><div class="sec-h">'+secIc('#fdf3e3','#c2740a','reminder')+
-   '<div><h2>🔔 Reminder Jatuh Tempo — STNK &amp; PBB</h2>'+
+ return '<div class="card sec"><div class="sec-h">'+secIc('#fdf3e3','#c2740a','jatuhtempo')+
+   '<div><h2>🕐 Reminder Jatuh Tempo — STNK &amp; PBB</h2>'+
    '<div class="d">'+RMD.length+' data · Tier 1 H-30 pengingat · Tier 2 H-14 wajib "Mengetahui" · Tier 3 H-3 wajib "Sudah Diperpanjang" · lewat tempo = breach &amp; eskalasi ke Dept Head</div></div>'+
    (rmdIsPIC()?'<button class="btn-act" style="margin-left:auto" onclick="rmdAdd()">＋ Tambah Data</button>':'')+'</div>'+
    '<div class="sec-body">'+brs+(baris||'<div class="muted small" style="padding:30px;text-align:center">Belum ada data jatuh tempo. Klik <b>＋ Tambah Data</b> untuk memasukkan STNK kendaraan atau PBB lahan.</div>')+'</div></div>';
@@ -9916,14 +9924,14 @@ function renderReminder(){
    let picInbox="";
    if(isPicTransport()){
      const pend=TRANSPORT_REQ.filter(r=>(r.status||'Diajukan')==='Diajukan');
-     picInbox=`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','reminder')}<div><h2>🚦 Inbox Approval Transport</h2><div class="d">${pend.length} permintaan menunggu persetujuan Anda (PIC Transport)</div></div></div>
+     picInbox=`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','approvals')}<div><h2>🚦 Inbox Approval Transport</h2><div class="d">${pend.length} permintaan menunggu persetujuan Anda (PIC Transport)</div></div></div>
        <div class="sec-body">${pend.length?pend.map(r=>`<div class="due-row"><div><div class="dj">${transportLabel(r.type)} — ${r.detail}</div><div class="dm">Pemohon: ${r.by||'—'} · ${r.date}${r.time?' '+r.time:''}</div></div><div style="display:flex;gap:6px"><button class="btn-mini ok" onclick="transportAction('${r.id}','Diproses')">Setujui & Dispatch</button><button class="btn-mini no" onclick="transportAction('${r.id}','Ditolak')">Tolak</button></div></div>`).join(""):'<div style="text-align:center;padding:30px;color:var(--green);font-weight:600">✅ Tidak ada permintaan menunggu.</div>'}</div>
      </div>`;
    }
    document.getElementById("page-reminder").innerHTML=`
     ${picInbox}
     ${clarifyReminderHTML()}
-    <div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','reminder')}<div><h2>📅 Booking Ruang Saya</h2><div class="d">${mine.length} booking yang Anda buat</div></div></div>
+    <div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','jatuhtempo')}<div><h2>📅 Booking Ruang Saya</h2><div class="d">${mine.length} booking yang Anda buat</div></div></div>
       <div class="sec-body">${mine.length?mine.map(b=>`<div class="due-row"><div><div class="dj">${b.title}</div><div class="dm">${rbRoomName(b.room)} · ${b.date} · ${b.start}–${b.end}</div></div><span class="badge bd-ok">Booked</span></div>`).join(""):'<div class="muted small" style="padding:34px;text-align:center">Belum ada booking. Buat lewat <b>Service → Room Booking</b>.</div>'}</div>
     </div>`;
    return;
@@ -9940,7 +9948,7 @@ function renderReminder(){
     </div>
   </div>
 
-  ${IZIN.length?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','reminder')}<div><h2>📄 Reminder Perizinan</h2><div class="d">${IZIN.length} dokumen · jatuh tempo dihitung otomatis</div></div></div>
+  ${IZIN.length?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','jatuhtempo')}<div><h2>📄 Reminder Perizinan</h2><div class="d">${IZIN.length} dokumen · jatuh tempo dihitung otomatis</div></div></div>
       <div class="sec-body">${IZIN.map(z=>dueRow(z.name,z.site,z.due)).join("")}</div></div>`:''}`;
 }
 
@@ -10085,7 +10093,7 @@ function myClarifySO(){ const me=gUser?gUser.name:""; return SO.filter(s=>s.clar
 function myClarifyCount(){ return myClarifySO().length; }
 function clarifyReminderHTML(){
  const list=myClarifySO(); if(!list.length)return '';
- return `<div class="card sec" style="margin-bottom:18px"><div class="sec-h">${secIc('#fff7e6','#c2740a','reminder')}<div><h2>📝 Klarifikasi SO — perlu jawaban Anda</h2><div class="d">${list.length} SO menunggu jawaban Anda dari PIC Procurement</div></div></div>
+ return `<div class="card sec" style="margin-bottom:18px"><div class="sec-h">${secIc('#fff7e6','#c2740a','approvals')}<div><h2>📝 Klarifikasi SO — perlu jawaban Anda</h2><div class="d">${list.length} SO menunggu jawaban Anda dari PIC Procurement</div></div></div>
    <div class="sec-body">${list.map(s=>`<div class="due-row"><div><div class="dj">${s.no} · ${s.item}</div><div class="dm">📝 ${s.clarify.by}: ${s.clarify.note}</div></div><button class="btn-act" style="padding:6px 12px;font-size:calc(12px*var(--fz))" onclick="openClarifyAnswer('${s.no}')">Jawab &amp; Submit</button></div>`).join("")}</div>
  </div>`;
 }
@@ -10200,7 +10208,7 @@ function renderApprovals(){
     <div style="font-size:calc(13px*var(--fz));color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
     <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+oPend.length+escList.length+otList.length} pending</span></div>
   </div>
-  ${escList.length?`<div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>⏫ Eskalasi Tiket dari Lapangan</h2><div class="d">${escList.length} tiket — operator tidak dapat menyelesaikan sendiri. Tindak lanjut: buat SO ke Procurement.</div></div></div>
+  ${escList.length?`<div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','approvals')}<div><h2>⏫ Eskalasi Tiket dari Lapangan</h2><div class="d">${escList.length} tiket — operator tidak dapat menyelesaikan sendiri. Tindak lanjut: buat SO ke Procurement.</div></div></div>
     <div class="sec-body">${escList.map(escTicketRow).join("")}</div>
   </div>`:''}
   ${otList.length?`<div class="card sec"><div class="sec-h">${secIc('#f3eefe','#7a4fd0','approvals')}<div><h2>⏱️ Pengajuan Overtime</h2><div class="d">${otList.length} menunggu persetujuan — fasilitas gedung disiapkan sesuai jam yang disetujui.</div></div></div>
@@ -10213,7 +10221,7 @@ function renderApprovals(){
         <button class="btn-out" onclick="overtimeAct('${esc(o.no)}','Ditolak')">✕ Tolak</button></div>
     </div>`).join("")}</div>
   </div>`:''}
-  ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','procurement')}<div><h2>SO Approvals</h2><div class="d">${gateDesc}</div></div></div>
+  ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','approvals')}<div><h2>SO Approvals</h2><div class="d">${gateDesc}</div></div></div>
     <div class="sec-body">${soList.length?soList.map(soApprovalCard).join(""):'<div class="muted small" style="padding:24px;text-align:center">No SO waiting at your gate right now.</div>'}</div>
   </div>`:''}
   ${others.length?`<div class="card sec"><div class="sec-h">${secIc('#ede9fe','#7a4fd0','approvals')}<div><h2>Other approvals</h2><div class="d">UPR · SPK/PKS · BAST · Ticket→SO</div></div></div>
@@ -11848,7 +11856,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-106";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-107";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
