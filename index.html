@@ -891,12 +891,24 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .chat-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
 .chat-send{flex:0 0 auto;width:40px;height:40px;border:none;border-radius:50%;background:linear-gradient(135deg,#2563eb,#3a8fff);display:grid;place-items:center;cursor:pointer}
 .chat-send svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-/* HP: isi ruang antara top bar (±65px) & bottom nav (±69px) — kolom tulis menempel
-   di bawah, pesan bergulir di dalam. Tidak lagi "melayang" dgn sisa ruang kosong. */
+/* ══ HP: MODE CHAT PENUH LAYAR ══
+   Bottom icon bar disembunyikan; kolom tulis mengambil posisinya (diam di bawah,
+   tidak ikut bergulir). Yang bergulir HANYA daftar pesan. */
 @media(max-width:900px){
   .chat-wrap{height:calc(100dvh - 160px);min-height:260px;border-radius:14px}
   .chat-scroll{padding:12px}
   .chat-msg{max-width:86%}
+
+  body.chat-mode .mbot{display:none}              /* bottom icon bar diganti kolom tulis */
+  body.chat-mode .app{overflow:hidden}            /* halaman tidak ikut bergulir */
+  body.chat-mode #page-chat{position:fixed;left:0;right:0;top:var(--mtop-h,64px);bottom:0;
+    z-index:66;margin:0;padding:0}
+  body.chat-mode .chat-wrap{height:100%;min-height:0;border:none;border-radius:0;box-shadow:none}
+  body.chat-mode .chat-head{border-radius:0}
+  /* kolom tulis persis di posisi bottom bar — ikut aman dari area gestur iPhone */
+  body.chat-mode .chat-inbar{padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
+    background:rgba(249,250,252,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-top:1px solid var(--m-line)}
 }
 .nlog-row .naction{color:var(--muted);font-size:calc(12px*var(--fz))}
 .due-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
@@ -3294,6 +3306,8 @@ window.addEventListener("resize",function(){
   if(window.innerWidth===_navW)return;   // tinggi berubah tapi lebar tetap → lewati
   _navW=window.innerWidth;
   try{ navFit(); }catch(e){}
+  /* rotasi layar → tinggi top bar bisa berubah; segarkan patokan mode chat */
+  try{ if(document.body.classList.contains("chat-mode")) chatModeSync(active==="chat"&&isMobile()); }catch(e){}
 });
 function toggleSidebar(){ document.getElementById("side").classList.toggle("collapsed"); }
 function toggleMobSidebar(){ document.body.classList.toggle("side-open"); }
@@ -3309,6 +3323,7 @@ function go(id){
   active=(id==="ersus")?"energy":id; navSetActive();
   try{ mBackSync(id); }catch(e){}
   try{ mBotActive(id); }catch(e){}
+  try{ chatModeSync(id==="chat"&&isMobile()); }catch(e){}   // chat: kolom tulis menggantikan bottom bar
   if(id!=="discover"){ try{ clearInterval(mpsTimer); }catch(e){} }
   if(id!=="mhome"){ try{ clearInterval(mBanTimer); }catch(e){} }
   ["page-mhome","page-notif","page-chat","page-layanan","page-discover","page-overtime","page-overview","page-kpiyear","page-procurement","page-building","page-landbank","page-project","page-gacal","page-service","page-fieldops","page-myticket","page-createticket","page-roombook","page-transport","page-createso","page-approvals","page-assigned","page-payment","page-vendor","page-sla","page-reminder","page-energy","page-ersus","page-hse","page-params","page-stub"].forEach(p=>document.getElementById(p).classList.add("hide"));
@@ -6842,6 +6857,9 @@ function mInterceptBack(rearm){
    dan oleh mBack saat tak ada entri history untuk dikonsumsi. */
 function mNavConsumeBack(){
  mNavBack=true;
+ /* Dari Chat: SELALU pulang ke Beranda (chat dibuka dari ikon top bar, bukan alur
+    modul) — berlaku juga utk swipe & tombol back HP, bukan cuma tombol di layar. */
+ if(active==="chat"){ mStack.length=0; go(mHomeId()); mNavBack=false; return; }
  var prev=mStack.pop();
  go(prev||mHomeId());
  mNavBack=false;
@@ -6851,6 +6869,9 @@ function mNavConsumeBack(){
    pushState ganda / pemakaian `active` (id modul) yang dulu melempar ke modul lain. */
 function mBack(){
  if(mInterceptBack(false)) return;          // overlay/sub-state → cukup ditutup
+ /* Chat: langsung pulang ke Beranda, tanpa lewat riwayat — supaya tidak pernah
+    tersangkut kembali ke Chat bila "chat" sempat masuk mStack. */
+ if(active==="chat"){ mGoHome(); return; }
  if(mHistDepth>0){ try{ history.back(); return; }catch(e){} }
  mNavConsumeBack();                          // fallback bila tak ada entri history
 }
@@ -6869,7 +6890,7 @@ function mBackSync(id){
    var m=MENU.find(function(x){return x.id===id;});
    var nama=m?m.label:({createticket:"Complaint Handling",roombook:"Room Reservation",
      transport:"Transport Booking",overtime:"Overtime",createso:"Create SO",
-     kpiyear:"KPI Tahunan",sla:"SLA Assessment",ersus:"ERSUS",reminder:"Pengingat"}[id]||"Kembali");
+     kpiyear:"KPI Tahunan",sla:"SLA Assessment",ersus:"ERSUS",reminder:"Notifikasi",chat:"Chat GA Team"}[id]||"Kembali");
    txt.textContent=nama;
  }
 }
@@ -7266,6 +7287,20 @@ function chatGrow(el){ if(!el)return;
   el.style.height=Math.min(Math.max(h,40),112)+"px";
   el.style.overflowY=(h>112)?"auto":"hidden"; }
 function chatScrollBottom(){ var sc=document.getElementById("chatScroll"); if(sc)sc.scrollTop=sc.scrollHeight; }
+/* ── MODE CHAT (khusus HP) ──
+   Halaman chat dipatok penuh ke layar: bottom icon bar DISEMBUNYIKAN dan kolom
+   tulis mengambil posisinya (diam di bawah). Hanya daftar pesan yang bergulir.
+   Tekan tombol kembali → keluar mode ini & pulang ke Beranda. */
+function chatModeSync(on){
+ on=!!on;
+ document.body.classList.toggle("chat-mode",on);
+ if(on){
+   var mt=document.getElementById("mTop");
+   var h=mt?Math.round(mt.getBoundingClientRect().height):64;
+   document.documentElement.style.setProperty("--mtop-h",h+"px");
+   setTimeout(chatScrollBottom,40);
+ }
+}
 function chatSend(){
  var inp=document.getElementById("chatInput"); if(!inp)return;
  var txt=(inp.value||"").trim(); if(!txt)return;
@@ -10667,7 +10702,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-84";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-85";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
