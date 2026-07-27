@@ -6992,9 +6992,11 @@ function foWatchdog(){ try{ ticketSoSync(); }catch(e){}
      if(s.respMin!=null && s.respMin>SLA_PICK_MAX){
        t.slaAlert=nowMs();
        naik.push(t);
+       /* alamat: Section Head (semua kategori), Dept Head, supervisor lapangan */
        NOTIFS.unshift({ic:"⏰",t:"Tiket belum diambil >"+SLA_PICK_MAX+" menit",
          d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · "+(t.lokasi||""),
-         at:nowStamp(), sev:"crit", nav:"fieldops", done:false});
+         at:nowStamp(), sev:"crit", nav:"fieldops", done:false,
+         roles:["section","dept","fieldsup"]});
        dbSaveTicket(t);
        try{ auditLog("sla-pickup-breach", t.no+" · "+foNormCat(t.cat)+" · "+s.respMin+" mnt"); }catch(e){}
      }
@@ -7059,9 +7061,12 @@ function myTicketEscalate(no){
  t.esc=true; t.escBy=fieldOpName(); t.escNote=note||""; t.escAt=nowMs(); t.escDone=false;
  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,esc:true,escBy:t.escBy,escNote:t.escNote});
  /* masuk inbox Approval admin AGAVA + bunyi/notif tray */
+ /* alamat: Section Head pemilik kategori tiket ini + Dept Head + supervisor
+    lapangan — merekalah yang membuatkan SO-nya. Operator lain tidak perlu tahu. */
  NOTIFS.unshift({ic:"⏫",t:"Eskalasi tiket — perlu SO",
    d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · oleh "+t.escBy+(t.escNote?" — "+t.escNote:""),
-   at:nowStamp(), sev:"crit", nav:"approvals", done:false});
+   at:nowStamp(), sev:"crit", nav:"approvals", done:false,
+   nama:ticketSectionOwner(t), namaRole:"section", roles:["dept","fieldsup"]});
  agavaNotify("⏫ Eskalasi tiket — perlu SO", t.no+" · "+(t.judul||"")+" · oleh "+t.escBy);
  try{ auditLog("escalation", t.no+" · "+foNormCat(t.cat)+" · "+t.escNote); }catch(e){}
  renderMyTickets(); renderFieldOps(); renderService(); renderApprovals(); renderReminder(); renderOverview(); updateBell();
@@ -9318,9 +9323,11 @@ function submitOvertime(){
    by:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"",
    status:"Diajukan", approver:OT_APPROVER, created:TODAY_STR, createdAt:nowStamp()};
  OVERTIME_REQ.unshift(rec);
+ /* alamat: penyetuju lembur (Section Head Tenant & General Services) + Dept Head */
  NOTIFS.unshift({ic:"⏱️",t:"Pengajuan Overtime — "+otJenis(jen).nama,
    d:no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai+" · "+rec.lokasi,
-   at:nowStamp(), sev:"warn", nav:"approvals", done:false});
+   at:nowStamp(), sev:"warn", nav:"approvals", done:false,
+   nama:OT_APPROVER, namaRole:"section", roles:["dept"]});
  try{ agavaNotify("⏱️ Overtime — "+otJenis(jen).nama, no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai); }catch(e){}
  try{ auditLog("overtime-create", no+" · "+jen+" · "+rec.lokasi); }catch(e){}
  triggerFlow("overtime",{mode:"create",record:rec});
@@ -9754,16 +9761,57 @@ function serviceBadgeCount(){
 }
 /* Daftar tunggal item notifikasi (approval · payment · notif sistem) — dipakai
    modul Notifikasi (web+mobile) DAN penghitung gelembung, supaya selalu konsisten. */
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  NOTIFIKASI HANYA UNTUK YANG BERKEPENTINGAN                              ║
+   ║  Dulu satu daftar yang sama disiarkan ke SEMUA akun: approval milik orang ║
+   ║  lain, eskalasi tiket, pengajuan lembur — bahkan ke akun yang modulnya    ║
+   ║  tidak ada di menunya. Sekarang tiap sumber punya alamat yang jelas:      ║
+   ║    · Approval  → hanya gate yang benar-benar menunggu akun ini            ║
+   ║    · Payment   → hanya role Budget/Finance yang memegang modulnya         ║
+   ║    · Tiket     → ticketNotifFor (admin/dept, Section Head pemilik         ║
+   ║                  kategori, atau pemohonnya sendiri)                       ║
+   ║    · NOTIFS    → sesuai roles/nama/email yang ditulis saat dibuat         ║
+   ║  Administrator & Owner tetap melihat semuanya (aturan "Admin sees all").  ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function notifSemua(){ return gRole==="admin"||isOwner(); }
+/* modul yang tidak ada di menu akun ini tidak boleh mengirim notifikasi ke sana */
+function notifModulBoleh(id){ if(!id)return true; if(notifSemua())return true; return mMenus().indexOf(id)>=0; }
+/* Approval yang BENAR-BENAR menunggu akun ini (bukan seluruh antrean approval).
+   soApprovalsForTier sudah paham Section Head per kategori & jalur eskalasi. */
+function approvalsUntukSaya(){
+ if(notifSemua()) return pendingApprovals();
+ if(!notifModulBoleh("approvals")) return [];
+ var so=soApprovalsForTier(gTier).map(function(s){
+   var g=soGateTier(s);
+   return {approval:true, tier:g, item:s.no+" — "+s.item, source:"SO", status:g};
+ });
+ return APPROVALS.filter(function(a){ return a.status==="Pending" && a.tier===gTier; }).concat(so);
+}
+/* Alamat notifikasi bebas (NOTIFS): boleh ditujukan ke daftar role, ke satu nama,
+   atau ke satu email. Tanpa alamat → hanya kelompok Super, jangan disiarkan. */
+function notifAudienceOK(n){
+ if(!n) return false;
+ if(notifSemua()) return true;
+ var punyaAlamat=!!(n.nama||n.email||(n.roles&&n.roles.length));
+ if(!punyaAlamat) return isSuper();
+ /* Yessy punya DUA akun (Section Head & PIC Budget). Notifikasi yang ditujukan
+    kepadanya sebagai Section Head tidak boleh ikut muncul di akun Budget-nya,
+    jadi alamat berbasis nama boleh dikunci ke satu peran lewat namaRole. */
+ if(n.nama && gUser && gUser.name===n.nama && (!n.namaRole || n.namaRole===gRole)) return true;
+ if(n.email && gUser && String(gUser.email).toLowerCase()===String(n.email).toLowerCase()) return true;
+ if(n.roles && n.roles.indexOf(gRole)>=0) return true;
+ return false;
+}
 function notifItems(){
  var items=[];
- pendingApprovals().forEach(function(a){ var no=(a.item||"").split(" — ")[0];
+ approvalsUntukSaya().forEach(function(a){ var no=(a.item||"").split(" — ")[0];
    /* SO → notifikasi diklik langsung MEMBUKA Dokumen SO + lampirannya, supaya
       approver bisa membaca isinya sebelum memutuskan (doc: nomor SO-nya). */
    var isSO=/^SO-/.test(no);
    items.push({key:"appr:"+(a.tier||"")+":"+no, module:"Approval · "+a.tier, alert:a.item,
      status:a.source||a.status, cls:"bd-proc", action:"Menunggu "+a.tier,
      open:"approvals", doc:(isSO?no:null)}); });
- if(payRemRole()) paymentReminders().forEach(function(x){ var wait=x.kind==='wait';
+ if(payRemRole()&&notifModulBoleh("payment")) paymentReminders().forEach(function(x){ var wait=x.kind==='wait';
    items.push({key:"pay:"+x.s.no+":"+(x.kind||""), module:"Payment · Budget",
      alert: wait? x.s.no+" — "+(x.s.vendor||'vendor')+" · Menunggu Invoice "+invWaitHK(x.s)+" HK" : x.s.no+" — "+(x.s.vendor||'vendor')+" (Rp "+invNom(x.s)+" jt)",
      status: wait? "Vendor belum kirim invoice (≥5 HK)" : "Lewat estimasi rilis "+fmtDay(invRelEst(x.s)),
@@ -9781,8 +9829,17 @@ function notifItems(){
      status:t.status||"Submitted", cls:((t.stg||0)===0?"bd-crit":"bd-warn"),
      action:((t.stg||0)===0?"Perlu ditugaskan":"Sedang dikerjakan"), open:"service"});
  });
- NOTIFS.filter(function(n){return !n.done;}).forEach(function(n){
-   items.push({key:"notif:"+n.id, module:n.module, alert:n.alert, status:n.status, cls:n.cls, action:n.action, followId:n.id}); });
+ /* NOTIFS dibuat dengan bentuk {ic,t,d,at,sev,nav} — dulu dibaca sebagai
+    {module,alert,status,cls,action} sehingga barisnya tampil KOSONG di layar.
+    Di sini bentuknya diterjemahkan, dan alamatnya dihormati. */
+ NOTIFS.filter(function(n){ return !n.done && notifAudienceOK(n); }).forEach(function(n,idx){
+   var sev=n.sev||"info";
+   items.push({key:"notif:"+(n.id||n.at||idx)+":"+((n.t||"").slice(0,24)),
+     module:(n.ic?n.ic+" ":"")+(n.module||n.t||"Notifikasi"),
+     alert:n.alert||n.d||n.t||"",
+     status:n.status||(sev==="crit"?"Perlu tindakan":sev==="warn"?"Perlu perhatian":"Informasi"),
+     cls:n.cls||(sev==="crit"?"bd-crit":sev==="warn"?"bd-warn":"bd-info"),
+     action:n.action||"Buka", open:n.nav||null, followId:n.id}); });
  return items;
 }
 function notifUnseenCount(){ notifSeenEnsure(); return notifItems().filter(function(i){ return !NOTIF_SEEN[i.key]; }).length; }
@@ -11737,7 +11794,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-102";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-103";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
