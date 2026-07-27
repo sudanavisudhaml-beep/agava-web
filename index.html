@@ -7869,14 +7869,9 @@ const RB_ROOMS={
 const RB_SPACES={};
 /* RB_ROTS kosong — LT1A dirender oleh rbFloorPlanL1() (denah asli), bukan boomerang generik. */
 const RB_ROTS={};
+/* GO-LIVE 27 Juli 2026 11:00 — booking ruang dimulai KOSONG.
+   Contoh demo lama tersimpan di git & Record Log. */
 let RB_BOOKINGS=[
- {room:"l3-conf1",date:TODAY_STR,start:"08:00",end:"10:00",title:"Diversity for Leaders",by:"HCD",email:"hcd.event@ai.astra.co.id"},
- {room:"l3-conf1",date:TODAY_STR,start:"13:00",end:"15:00",title:"Vendor Review",by:"GA Procurement",email:"sudana.visudha@ai.astra.co.id"},
- {room:"l3-tc1",date:TODAY_STR,start:"09:00",end:"12:00",title:"IR Talk Batch II",by:"Investor Relations",email:"ir.team@ai.astra.co.id"},
- {room:"l3-311",date:TODAY_STR,start:"10:00",end:"11:00",title:"Sync Procurement",by:"GA",email:"elok.normarosediana@ai.astra.co.id"},
- {room:"l6-bundar",date:TODAY_STR,start:"14:00",end:"16:00",title:"Leadership Forum",by:"BOD",email:"matilda.esther@ai.astra.co.id"},
- {room:"l1-sustainability",date:TODAY_STR,start:"09:00",end:"11:30",title:"Town Hall GA",by:"GA",email:"leonardus.ariyantosatriawan@ai.astra.co.id",occupied:true},
- {room:"l1-strive",date:TODAY_STR,start:"13:00",end:"14:00",title:"1-on-1 Coaching",by:"HCD",email:"hcd.coach@ai.astra.co.id"}
 ];
 let rbSite="AMDI", rbFloor="Lantai 1", rbHideT=null;
 function rbRoomBookings(id,date){ return RB_BOOKINGS.filter(b=>b.room===id&&b.date===date).sort((a,b)=>a.start.localeCompare(b.start)); }
@@ -8097,10 +8092,9 @@ function rbSaveBooking(){
 
 /* ===================== TRANSPORTATION (Service) ===================== */
 let TRANSPORT_SEQ=2;
-const TRANSPORT_REQ=[
- {id:"tr1",type:"pool",detail:"AMDI → Bandara Soetta · 2 pax",date:TODAY_STR,time:"06:30",by:"Elok Norma Rosediana",status:"Diproses"},
- {id:"tr2",type:"bluebird",detail:"Meeting klien Sudirman · 2 voucher",date:TODAY_STR,time:"",by:"Yessy",status:"Diajukan"}
-];
+/* GO-LIVE 27 Juli 2026 11:00 — daftar order transport dimulai KOSONG.
+   Contoh demo lama tersimpan di git & Record Log. */
+const TRANSPORT_REQ=[];
 function transportLabel(t){ return t==='pool'?'Kendaraan Pool':t==='bluebird'?'Voucher Blue Bird':t==='gocorp'?'Voucher GoCorp':t; }
 function transportBadge(s){ return s==='Selesai'?'bd-ok':s==='Diproses'?'bd-info':s==='Ditolak'?'bd-bad':'bd-warn'; }
 function transportPending(){ return TRANSPORT_REQ.filter(r=>(r.status||'Diajukan')==='Diajukan').length; }
@@ -10637,7 +10631,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.24-82";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-83";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10911,13 +10905,115 @@ function agavaCloudPanel(){
    '<label class="btn-out" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:8px">'+
      '⬆️ Pulihkan dari File Backup<input type="file" accept="application/json,.json" style="display:none" onchange="agavaRestoreFile(this)"/></label>'+
    '<button class="btn-out" style="width:100%" onclick="agavaAuditView()">📜 Lihat Jejak Login &amp; Aktivitas</button>'+
-   '<div class="panel-t" style="margin:18px 0 6px;color:#b42318">Persiapan Go-Live</div>'+
-   '<div class="muted small" style="margin-bottom:8px;line-height:1.6">Hapus semua tiket, SO, & Work Permit <b>tes</b> agar mulai bersih. KPI, master data, konfigurasi flow, dan akun <b>tetap utuh</b>. Backup otomatis diunduh dulu.</div>'+
-   '<button class="btn-out" style="width:100%;border-color:#f3b4ad;color:#b42318;font-weight:800" onclick="agavaClearTestData()">🧹 Kosongkan Data Tes (Go-Live)</button>'+
+   '<div class="panel-t" style="margin:18px 0 6px;color:#b42318">Go-Live — Sesi Baru AGAVA</div>'+
+   '<div class="muted small" style="margin-bottom:8px;line-height:1.6">Semua tiket, SO, Work Permit, order transport, lembur &amp; booking yang dibuat <b>sebelum '+AGAVA_GOLIVE_LABEL+'</b> dipindahkan ke <b>Record Log</b> (tersimpan, tidak ditampilkan lagi). Data setelah jam itu = data live. KPI, master data, flow, dan akun <b>tetap utuh</b>.</div>'+
+   '<button class="btn-out" style="width:100%;border-color:#f3b4ad;color:#b42318;font-weight:800" onclick="agavaGoLiveCutoff()">🚀 Mulai Sesi Live (arsipkan data sebelum '+AGAVA_GOLIVE_LABEL+')</button>'+
+   '<button class="btn-out" style="width:100%;margin-top:8px" onclick="agavaRecordLogView()">🗄️ Lihat Record Log (data pra-live)</button>'+
   '</div>';
  document.getElementById("ovl").classList.add("show");
 }
-/* ── GO-LIVE: kosongkan data transaksi tes (tiket + SO + Work Permit), lokal + cloud ──
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  GO-LIVE AGAVA — 27 Juli 2026, 11:00 WIB                                 ║
+   ║  Semua transaksi yang dibuat SEBELUM jam ini = data uji coba: dipindah    ║
+   ║  ke RECORD LOG (koleksi agava_recordlog + file JSON), lalu tidak lagi     ║
+   ║  ditampilkan di AGAVA. Yang masuk SETELAH jam ini = data live & valid.    ║
+   ║  KPI, master data, konfigurasi flow, dan akun TIDAK disentuh.             ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const AGAVA_GOLIVE_MS=new Date(2026,6,27,11,0,0).getTime();   // bulan 6 = Juli
+const AGAVA_GOLIVE_LABEL="27 Juli 2026 11:00";
+/* Perkiraan waktu dibuat (epoch ms) — pakai sumber paling presisi yang tersedia.
+   Tidak diketahui → 0 (dianggap data lama → diarsipkan). */
+function goLiveMs(r){
+ if(!r) return 0;
+ if(r.slaMs&&r.slaMs.created) return +r.slaMs.created||0;       // tiket: epoch presisi
+ if(typeof r.ts==="number") return r.ts;                        // chat
+ var t=r.ts&&(r.ts.created||r.ts[0]);                           // "DD/MM HH:MM"
+ var m=t&&String(t).match(/^(\d{1,2})\/(\d{1,2})\s+(\d{1,2}):(\d{2})/);
+ if(m) return new Date(new Date().getFullYear(),+m[2]-1,+m[1],+m[3],+m[4]).getTime();
+ var d=r.created&&String(r.created).match(/^(\d{4})-(\d{2})-(\d{2})/);
+ if(d) return new Date(+d[1],+d[2]-1,+d[3],0,0,0).getTime();    // tanggal saja → awal hari
+ return 0;
+}
+function goLivePre(r){ return goLiveMs(r)<AGAVA_GOLIVE_MS; }    // true = data pra-live
+function agavaGoLiveCutoff(){
+ if(!isOwner()){ alert("⛔ Hanya pemilik sistem AGAVA yang dapat memulai sesi live."); return; }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — arsip & penghapusan cloud diblokir.\nJalankan dari situs live AGAVA."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung. Sambungkan dulu agar arsip tersimpan & tersinkron ke semua perangkat."); return; }
+ var preT=TICKETS.filter(goLivePre), preS=SO.filter(goLivePre);
+ var preW=(typeof WORK_PERMITS!=="undefined"?WORK_PERMITS:[]).filter(goLivePre);
+ var keepT=TICKETS.length-preT.length, keepS=SO.length-preS.length;
+ var total=preT.length+preS.length+preW.length;
+ if(!total){ alert("✅ Tidak ada data sebelum "+AGAVA_GOLIVE_LABEL+" — AGAVA sudah bersih & live."); return; }
+ if(!confirm("🚀 MULAI SESI LIVE AGAVA\n\nDipindahkan ke Record Log (tersimpan, tidak ditampilkan lagi):\n• "+preT.length+" tiket layanan\n• "+preS.length+" Supply Order\n• "+preW.length+" Work Permit\n\nTETAP TAMPIL (dibuat setelah "+AGAVA_GOLIVE_LABEL+"):\n• "+keepT+" tiket · "+keepS+" SO\n\nTETAP UTUH: KPI, master data, flow, akun.\nFile Record Log akan otomatis diunduh.\n\nLanjutkan?")) return;
+ if(!confirm("Konfirmasi TERAKHIR.\n\nArsipkan "+total+" data pra-live dan mulai sesi baru AGAVA?")) return;
+ /* 1) unduh Record Log sebagai file (jaring pengaman di luar cloud) */
+ try{
+   var log={_app:"AGAVA",_kind:"record-log-pra-live",_cutoff:AGAVA_GOLIVE_LABEL,_at:new Date().toISOString(),
+     _by:(gUser&&gUser.name)||"",tickets:preT,so:preS.map(dbStripSO),workPermits:preW};
+   var bl=new Blob([JSON.stringify(log,null,1)],{type:"application/json"});
+   var a=document.createElement("a"); a.href=URL.createObjectURL(bl);
+   a.download="AGAVA-RecordLog-PraLive-2026-07-27.json";
+   document.body.appendChild(a); a.click();
+   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },1500);
+ }catch(e){ console.warn("record log file:",e); }
+ /* 2) salin ke koleksi arsip, lalu hapus dari koleksi aktif */
+ var jobs=[
+   {col:"agava_tickets",pre:"tk",arr:preT},
+   {col:"agava_so",pre:"so",arr:preS.map(dbStripSO)},
+   {col:"agava_workpermits",pre:"wp",arr:preW}
+ ];
+ Promise.all(jobs.map(function(j){
+   if(!j.arr.length) return Promise.resolve(0);
+   var b=AGDB.db.batch();
+   j.arr.forEach(function(r){
+     var id=j.pre+"_"+String(r.no||Math.random().toString(36).slice(2));
+     var rec=JSON.parse(JSON.stringify(r));
+     rec._archivedAt=new Date().toISOString(); rec._cutoff=AGAVA_GOLIVE_LABEL; rec._src=j.col;
+     b.set(AGDB.db.collection("agava_recordlog").doc(id),rec,{merge:true});
+     b.delete(AGDB.db.collection(j.col).doc(String(r.no)));
+   });
+   return b.commit().then(function(){ return j.arr.length; });
+ })).then(function(){
+   /* 3) bersihkan dari memori & cache perangkat ini */
+   for(var i=TICKETS.length-1;i>=0;i--) if(goLivePre(TICKETS[i])) TICKETS.splice(i,1);
+   for(var k=SO.length-1;k>=0;k--) if(goLivePre(SO[k])) SO.splice(k,1);
+   if(typeof WORK_PERMITS!=="undefined") for(var w=WORK_PERMITS.length-1;w>=0;w--) if(goLivePre(WORK_PERMITS[w])) WORK_PERMITS.splice(w,1);
+   AGDB.soEcho={};
+   try{ soPersist(); }catch(e){}
+   try{ if(typeof wpPersist==="function") wpPersist(); }catch(e){}
+   try{ if(typeof TRANSPORT_REQ!=="undefined") TRANSPORT_REQ.length=0; }catch(e){}
+   try{ if(typeof RB_BOOKINGS!=="undefined") RB_BOOKINGS.length=0; }catch(e){}
+   try{ if(typeof NOTIFS!=="undefined") NOTIFS.length=0; }catch(e){}
+   try{ if(typeof APPROVALS!=="undefined") APPROVALS.length=0; }catch(e){}
+   auditLog("go-live-cutoff",total+" data pra-live diarsipkan · cutoff "+AGAVA_GOLIVE_LABEL);
+   try{ renderService();renderProc();renderApprovals();renderAssigned();renderPayment();renderFieldOps();renderMyTickets();renderHSE();renderOverview();renderRoomBook();renderTransport();updateBell(); }catch(e){}
+   try{ renderMobileHome(); }catch(e){}
+   closeDrawer();
+   alert("🎉 SELAMAT — AGAVA resmi LIVE!\n\n"+total+" data pra-live dipindahkan ke Record Log.\nMulai sekarang setiap tiket, SO, dan permintaan yang masuk adalah data live & valid.\n\nSesi baru AGAVA dimulai. 🚀");
+ }).catch(function(e){
+   alert("⚠️ Sebagian gagal diarsipkan: "+((e&&(e.code||e.message))||e)+"\nCoba lagi saat koneksi stabil — data yang belum terproses masih utuh.");
+ });
+}
+/* Lihat isi Record Log (data pra-live) — hanya baca, tidak mengubah apa pun. */
+function agavaRecordLogView(){
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung — Record Log tidak bisa dibaca."); return; }
+ AGDB.db.collection("agava_recordlog").limit(400).get().then(function(snap){
+   var rows=snap.docs.map(function(d){ return d.data()||{}; });
+   var grp={tk:[],so:[],wp:[]};
+   rows.forEach(function(r){ var s=r._src||""; if(/tickets/.test(s))grp.tk.push(r); else if(/_so/.test(s))grp.so.push(r); else grp.wp.push(r); });
+   var sec=function(t,arr){ return '<div class="panel-t" style="margin:14px 0 6px">'+t+' · '+arr.length+'</div>'+
+     (arr.length?arr.map(function(r){ return '<div class="cl-aud"><div class="cl-aud-h"><b>'+esc(r.no||"—")+'</b><span>'+esc((r._archivedAt||"").slice(0,10))+'</span></div>'+
+       '<div class="muted small">'+esc(String(r.judul||r.item||"").slice(0,70))+'</div></div>'; }).join("")
+      :'<div class="muted small" style="padding:10px">—</div>'); };
+   document.getElementById("drawer").innerHTML=
+    '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+     '<div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">🗄️ Record Log — Data Pra-Live</div>'+
+     '<div class="muted small" style="margin-top:4px">'+rows.length+' data sebelum '+AGAVA_GOLIVE_LABEL+' · tersimpan di cloud, tidak ditampilkan di modul</div></div>'+
+    '<div class="db">'+sec("🎫 Tiket",grp.tk)+sec("📋 Supply Order",grp.so)+sec("🦺 Work Permit",grp.wp)+'</div>';
+   document.getElementById("ovl").classList.add("show");
+ }).catch(function(e){ alert("⚠️ Gagal membaca Record Log: "+((e&&(e.code||e.message))||e)); });
+}
+/* ── (lama) kosongkan data transaksi tes tanpa filter waktu — disimpan sbg cadangan ──
    KPI, master data, flow, dan akun TIDAK disentuh. Backup diunduh dulu.
    Respek AGDB.ro: dari localhost (uji) penghapusan cloud DITOLAK demi keamanan data live. */
 function agavaClearTestData(){
