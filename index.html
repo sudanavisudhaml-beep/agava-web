@@ -878,6 +878,11 @@ html,body{overscroll-behavior-y:contain}
 @keyframes mPullSpin{to{transform:rotate(360deg)}}
 /* ── Kartu draft ── */
 .draft-card{border:1px solid #f6ddb4;background:linear-gradient(180deg,#fffdf8,#fff)}
+/* Catatan penolakan pada Dokumen SO */
+.sod-reject{margin-top:10px;padding:9px 12px;border:1px solid #f3b4ad;border-left:4px solid #b42318;
+  border-radius:8px;background:#fdecec;color:#7a1a12;font-size:11px;line-height:1.6}
+.sod-reject b{display:block;margin-bottom:3px;color:#b42318}
+.sod-reject u{text-decoration:none;font-weight:700}
 /* Cap draft pada Dokumen SO yang belum disahkan */
 .sod-draft{margin-top:10px;padding:7px 12px;border:1px dashed #d9822b;border-radius:8px;
   background:#fff8ef;color:#b45309;font-size:11px;font-weight:700;text-align:center;letter-spacing:.02em}
@@ -5724,6 +5729,12 @@ function soDocHTML(s){
  (((s.attachments&&s.attachments.length)||(s.pdfAttachments&&s.pdfAttachments.length))?('<div class="sod-attach"><div class="sod-attach-h">LAMPIRAN'+((s.attachments&&s.attachments.length)?' — '+s.attachments.length+' foto':'')+'</div>'+((s.attachments&&s.attachments.length)?('<div class="sod-attach-grid">'+s.attachments.map(function(a){return '<img class="sod-attach-img" src="'+a.url+'"/>';}).join('')+'</div>'):'')+((s.pdfAttachments&&s.pdfAttachments.length)?('<div class="sod-attach-pdf">📎 Dokumen PDF pendukung dijahit di halaman berikutnya: <b>'+s.pdfAttachments.map(function(p){return esc(p.name);}).join(' · ')+'</b></div>'):'')+'</div>'):'')+
  /* Dokumen kini bisa dibuka SEJAK DIBUAT (sebelum tanda tangan). Beri cap jelas
     supaya draft tidak pernah disalahartikan sebagai dokumen yang sudah sah. */
+ /* Catatan penolakan tampil jelas di dokumen, supaya pemohon langsung tahu
+    apa yang salah dan apa yang harus diperbaiki. */
+ (s.reject ? '<div class="sod-reject"><b>⛔ DITOLAK oleh '+esc(s.reject.by||'-')+
+    ' ('+esc(s.reject.gate||'')+') · '+esc(s.reject.at||'')+'</b>'+
+    '<div><u>Alasan</u>: '+esc(s.reject.alasan||'')+'</div>'+
+    '<div><u>Perbaikan diminta</u>: '+esc(s.reject.perbaikan||'')+'</div></div>' : '')+
  (s.apprDept==="Approved" ? '' :
    '<div class="sod-draft">BELUM DISAHKAN — menunggu '+
    (s.apprSection!=="Approved" ? 'persetujuan Section Head'
@@ -9386,8 +9397,53 @@ function approvalsForTier(){ return soApprovalsForTier(gTier).length + APPROVALS
 function pendingApprovals(){ return APPROVALS.filter(a=>a.status==="Pending").concat(soPendingAll()); }
 function activeNotifs(){ return NOTIFS.filter(n=>!n.done); }
 function navBadge(id){ let c=0; if(id==="service")c=serviceBadgeCount(); else if(id==="approvals")c=approvalsForTier(); else if(id==="assigned"){ const me=gUser?gUser.name:""; c=SO.filter(s=>(s.staffPIC||s.pic)===me && s.apprProc==="Approved" && s.apprDept==="Approved" && s.wstep<4).length; } else if(id==="reminder")c=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):notifUnseenCount())+myClarifyCount(); return c>0?`<span class="nav-badge">${c}</span>`:""; }
-function approveSO(no,gate,decision){
+/* ══ TOLAK SO WAJIB BERALASAN ══
+   Penolakan tanpa penjelasan membuat pemohon menebak-nebak. Tombol Reject kini
+   membuka formulir: ALASAN penolakan + PERBAIKAN yang diminta. Reject baru bisa
+   ditekan setelah keduanya diisi, lalu catatannya menempel di SO & dokumennya. */
+function soRejectAsk(no,gate){
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">⛔ Tolak SO '+esc(no)+'</div>'+
+   '<div class="muted small" style="margin-top:4px">'+esc(s.item||"")+' · pemohon <b>'+esc(s.requester||s.req||"—")+'</b></div></div>'+
+  '<div class="db">'+
+   '<div class="muted small" style="margin-bottom:10px;line-height:1.6">Jelaskan agar pemohon tahu persis apa yang harus dibenahi. Keduanya wajib diisi.</div>'+
+   '<label class="pm-fld" style="display:block;margin-bottom:12px"><span class="pm-l">Alasan penolakan <b style="color:#b42318">*</b></span>'+
+     '<textarea id="rjAlasan" rows="3" placeholder="mis. Estimasi biaya tidak sesuai pagu kategori ini" '+
+     'style="width:100%;border:1px solid #d8e0ea;border-radius:10px;padding:10px;font-family:inherit;font-size:calc(13px*var(--fz))" oninput="soRejectCheck()"></textarea></label>'+
+   '<label class="pm-fld" style="display:block;margin-bottom:12px"><span class="pm-l">Perbaikan yang diminta <b style="color:#b42318">*</b></span>'+
+     '<textarea id="rjPerbaikan" rows="3" placeholder="mis. Lampirkan 2 pembanding harga & turunkan qty menjadi 5" '+
+     'style="width:100%;border:1px solid #d8e0ea;border-radius:10px;padding:10px;font-family:inherit;font-size:calc(13px*var(--fz))" oninput="soRejectCheck()"></textarea></label>'+
+   '<div id="rjHint" class="muted small" style="margin-bottom:10px;color:#b45309">Isi kedua kolom untuk mengaktifkan tombol Tolak.</div>'+
+   '<button id="rjBtn" class="btn-act" style="width:100%;background:#b42318;opacity:.5" disabled onclick="soRejectSubmit(\''+no+'\',\''+gate+'\')">⛔ Tolak &amp; Kirim ke Pemohon</button>'+
+   '<button class="btn-out" style="width:100%;margin-top:8px" onclick="closeDrawer()">Batal</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+ setTimeout(soRejectCheck,30);
+}
+function soRejectCheck(){
+ var a=(document.getElementById("rjAlasan")||{}).value||"";
+ var p=(document.getElementById("rjPerbaikan")||{}).value||"";
+ var ok=a.trim().length>=10 && p.trim().length>=5;
+ var b=document.getElementById("rjBtn"), h=document.getElementById("rjHint");
+ if(b){ b.disabled=!ok; b.style.opacity=ok?1:.5; }
+ if(h) h.textContent=ok?"Siap dikirim — pemohon akan melihat catatan ini di SO-nya."
+   :"Alasan minimal 10 karakter dan perbaikan minimal 5 karakter.";
+}
+function soRejectSubmit(no,gate){
+ var a=((document.getElementById("rjAlasan")||{}).value||"").trim();
+ var p=((document.getElementById("rjPerbaikan")||{}).value||"").trim();
+ if(a.length<10||p.length<5){ soRejectCheck(); return; }
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ s.reject={by:(gUser&&gUser.name)||"", gate:gate, alasan:a, perbaikan:p, at:nowStamp()};
+ closeDrawer();
+ approveSO(no,gate,"Rejected",true);
+}
+function approveSO(no,gate,decision,beralasan){
  var s=SO.find(x=>x.no===no); if(!s)return;
+ /* Reject harus lewat formulir alasan dulu. */
+ if(decision==="Rejected" && !beralasan){ soRejectAsk(no,gate); return; }
  s.ts=s.ts||{}; s.tsf=s.tsf||{};
  if(gate==="section"){
    if(decision==="Rejected"){ s.apprSection="Rejected"; s.ts.section=nowStamp(); s.tsf.section=nowStampDoc(); alert("⛔ SO "+no+" ditolak Section Head."); }
@@ -11214,7 +11270,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-94";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-95";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
