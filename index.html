@@ -5720,7 +5720,10 @@ function normalizeSO(){SO.forEach(s=>{
 /* Persistensi SO — SO yang dibuat/di-approve di aplikasi tersimpan agar tidak hilang saat refresh */
 const SO_STORE="agava_so_v1";
 function soPersist(){ try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){ console.warn("SO persist:",e.message); } try{ dbSaveSOAll(); }catch(e){} }
-function soLoad(){ try{ var r=localStorage.getItem(SO_STORE); if(r){ var a=JSON.parse(r); if(Array.isArray(a)&&a.length){ SO.length=0; a.forEach(function(x){SO.push(x);}); return true; } } }catch(e){ console.warn("SO load:",e.message); } return false; }
+/* Cache perangkat ini bisa saja masih menyimpan SO pra-live (mis. perangkat yang
+   belum ikut saat cutoff dijalankan). Saring di sini supaya TIDAK pernah tampil
+   lagi — dan, lewat dbSaveSOAll, tidak terunggah balik ke cloud. */
+function soLoad(){ try{ var r=localStorage.getItem(SO_STORE); if(r){ var a=JSON.parse(r); if(Array.isArray(a)&&a.length){ SO.length=0; a.forEach(function(x){ if(!goLivePre(x)) SO.push(x); }); return true; } } }catch(e){ console.warn("SO load:",e.message); } return false; }
 function soResetDemo(){ try{ localStorage.removeItem(SO_STORE); }catch(e){} location.reload(); }
 function soPhase(s){if(s.apprDept==="Rejected"||s.apprSection==="Rejected")return"rejected";if(s.apprSection!=="Approved")return"section";if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"budget";if(s.escalated){if(s.apprDept!=="Approved")return"dept";if(s.apprProc!=="Approved")return"proc";}else{if(s.apprProc!=="Approved")return"proc";if(s.apprDept!=="Approved")return"dept";}if(s.wstep<4)return"work";return"pay";}
 function soStatusLabel(s){var p=soPhase(s);
@@ -10445,7 +10448,7 @@ function wpActNo(no,st){ var i=WORK_PERMITS.findIndex(function(x){return x.no===
 function wpSeq(){ return "WP-"+new Date().toISOString().slice(0,7).replace("-","")+"-"+String(1+WORK_PERMITS.length).padStart(4,"0"); }
 function wpBadge(s){ return s==="Disetujui"?'<span class="badge bd-ok">Disetujui</span>':s==="Ditolak"?'<span class="badge bd-crit">Ditolak</span>':'<span class="badge bd-warn">Menunggu Review</span>'; }
 function wpPersist(){ try{ localStorage.setItem("agava_wp_v1",JSON.stringify(WORK_PERMITS)); }catch(e){} }
-function wpLoad(){ try{ const r=localStorage.getItem("agava_wp_v1"); if(r){ const a=JSON.parse(r); if(Array.isArray(a)&&a.length){ WORK_PERMITS.length=0; a.forEach(x=>WORK_PERMITS.push(x)); } } }catch(e){} }
+function wpLoad(){ try{ const r=localStorage.getItem("agava_wp_v1"); if(r){ const a=JSON.parse(r); if(Array.isArray(a)&&a.length){ WORK_PERMITS.length=0; a.forEach(x=>{ if(!goLivePre(x)) WORK_PERMITS.push(x); }); } } }catch(e){} }
 function wpUrl(){ return location.href.replace(/[^/]*$/,"") + "wp.html"; }
 function wpPanelHTML(){
   const pend=WORK_PERMITS.filter(w=>w.status==="Menunggu Review").length;
@@ -10702,7 +10705,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-85";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-86";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10731,6 +10734,7 @@ function dbInit(){
       const i=TICKETS.findIndex(t=>t.no===d.no);
       if(ch.type==="removed"){ if(i>=0){TICKETS.splice(i,1);changed=true;} }
       else if(i>=0){ Object.assign(TICKETS[i],d); syncTicketStage(TICKETS[i],d); rateHeal(TICKETS[i]); changed=true; }
+      else if(goLivePre(d)){ /* pra-live → milik Record Log, jangan tampilkan */ }
       else { TICKETS.unshift(d); syncTicketStage(d,null); rateHeal(d); changed=true; if(AGDB.ticketsInit) arrivals.push(d); }
     });
     if(changed){
@@ -10762,6 +10766,7 @@ function dbInit(){
       const i=SO.findIndex(s=>s.no===d.no);
       if(ch.type==="removed"){ if(i>=0){SO.splice(i,1);} delete AGDB.soEcho[d.no]; ch3=true; }
       else if(i>=0){ Object.assign(SO[i],d); AGDB.soEcho[d.no]=JSON.stringify(dbStripSO(SO[i])); ch3=true; }
+      else if(goLivePre(d)){ /* pra-live → milik Record Log, jangan tampilkan */ }
       else { SO.unshift(d); AGDB.soEcho[d.no]=JSON.stringify(dbStripSO(d)); ch3=true; if(AGDB.soInit) soNew.push(d); }
     });
     if(ch3){
@@ -10826,6 +10831,7 @@ function dbInit(){
       const i=WORK_PERMITS.findIndex(w=>w.no===d.no);
       if(ch.type==="removed"){ if(i>=0){WORK_PERMITS.splice(i,1);ch2=true;} }
       else if(i>=0){ Object.assign(WORK_PERMITS[i],d); ch2=true; }
+      else if(goLivePre(d)){ /* pra-live → milik Record Log, jangan tampilkan */ }
       else { WORK_PERMITS.unshift(d); ch2=true; if(AGDB.wpInit) wpNew.push(d); }
     });
     if(ch2){ wpPersist(); try{ renderHSE(); renderOverview(); updateBell(); }catch(e){} }
@@ -10846,6 +10852,7 @@ function dbSaveSOAll(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  AGDB.soEcho=AGDB.soEcho||{};
  SO.forEach(function(s){ if(!s||!s.no)return;
+   if(goLivePre(s))return;                       // pra-live → sudah di Record Log, JANGAN unggah balik
    var c=dbStripSO(s), j=JSON.stringify(c);
    if(AGDB.soEcho[s.no]===j)return;              // tidak berubah → jangan tulis ulang
    AGDB.soEcho[s.no]=j;
