@@ -3285,22 +3285,24 @@ const USERS=[
    yang diperiksa Firebase Auth.
    ══════════════════════════════════════════════════════════════════════════ */
 function loginTogglePass(){ const i=document.getElementById("loginPass"); if(i)i.type=(i.type==="password")?"text":"password"; }
-/* "Lupa password?" — dulu tulisan mati. Sekarang Firebase mengirim tautan atur
-   ulang ke email akun itu sendiri. Berlaku untuk email Astra yang sungguhan;
-   akun operator lapangan (email dummy, tanpa kotak masuk) tetap harus diatur
-   ulang oleh Administrator lewat Firebase Console. */
+/* ── "Lupa password?" — jujur soal keterbatasannya ──
+   Diuji 28 Jul 2026: Firebase MENERIMA permintaan reset (bahkan untuk email
+   yang tidak terdaftar — perlindungan enumerasi aktif), tetapi emailnya TIDAK
+   PERNAH sampai ke mailbox Astra. Tidak di Inbox, tidak di Junk: ditahan
+   karantina gateway Microsoft milik Astra, karena pengirimnya
+   noreply@agava-astra.firebaseapp.com — domain luar tanpa reputasi.
+   Tautannya tetap dikirim (siapa tahu untuk sebagian orang lolos), tetapi
+   pesan di layar TIDAK menjanjikan email itu pasti datang, dan langsung
+   menunjukkan jalan keluar yang benar-benar bekerja: hubungi Administrator. */
 async function lupaPassword(){
  var e=((document.getElementById("loginEmail")||{}).value||"").trim().toLowerCase();
  if(!e){ loginPesan("Isi dulu email Anda, lalu klik Lupa password."); return; }
  var u=USERS.find(function(x){ return x.email.toLowerCase()===e; });
  if(!u){ loginPesan("Email akun tidak terdaftar."); return; }
  if(/^fieldops/.test(e)){ loginPesan("Akun operator lapangan diatur ulang oleh Administrator AGAVA."); return; }
- try{
-   await firebase.auth().sendPasswordResetEmail(e);
-   loginPesan("Tautan atur ulang password dikirim ke "+e+" — cek kotak masuk Anda.");
- }catch(err){
-   loginPesan("Gagal mengirim tautan ("+((err&&err.code)||"?")+"). Hubungi Administrator AGAVA.");
- }
+ try{ await firebase.auth().sendPasswordResetEmail(e); }catch(err){ console.warn("reset:",err&&err.code); }
+ loginPesan("Permintaan atur ulang dikirim ke "+e+". Email sistem sering tertahan filter Astra — "+
+   "kalau dalam 10 menit belum masuk (cek juga Junk), hubungi Administrator AGAVA.");
 }
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  LOGIN DIPERIKSA FIREBASE AUTH — bukan lagi oleh kode ini                ║
@@ -12047,7 +12049,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-115";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-116";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
