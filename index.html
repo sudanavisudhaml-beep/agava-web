@@ -3248,6 +3248,10 @@ const ROLES={
  proc:{label:"PIC Procurement",tier:"Procurement",menus:ALLMENUS},
  analyst:{label:"Analyst",tier:null,menus:["overview","procurement","service"]},
  staff:{label:"Staff Procurement",tier:null,menus:["overview","procurement","service","assigned"]},
+ /* Staff GA — kelompok staff biasa, akses DIBATASI tepat 2 modul: Services &
+    Procurement. Dibuat terpisah dari "staff" (Staff Procurement) supaya PIC
+    Assigned SO tidak ikut kehilangan modul Assigned SO & CODEC-nya. */
+ staffga:{label:"Staff GA",tier:null,menus:["service","procurement"]},
  general:{label:"Staff (Non-GA)",tier:null,menus:["overview","service","energy"]},
  finance:{label:"Staff Finance",tier:null,menus:["overview","payment","landbank"]},
  fieldops:{label:"Field Operator",tier:null,menus:["service","fieldops","myticket"]},   // persona MOBILE — Services + Field Ops + My Tickets
@@ -3255,8 +3259,8 @@ const ROLES={
 };
 const USERS=[
  {email:"sudana.visudha@ai.astra.co.id",name:"Sudana Visudha",role:"admin"},
- {email:"dedi@ai.astra.co.id",name:"Dedi Kusnodihardjo",role:"admin"},
- {email:"susi.hariyanti@ai.astra.co.id",name:"Susi Hariyanti Kusuma",role:"admin"},
+ {email:"dedi@ai.astra.co.id",name:"Dedi Kusnodihardjo",role:"staffga"},
+ {email:"susi.hariyanti@ai.astra.co.id",name:"Susi Hariyanti Kusuma",role:"staffga"},
  {email:"matilda.esther@ai.astra.co.id",name:"Matilda Esther Rotinsulu",role:"chief"},
  {email:"leonardus.ariyantosatriawan@ai.astra.co.id",name:"Leonardus Ariyanto Satriawan",role:"dept"},
  {email:"elok.normarosediana@ai.astra.co.id",name:"Elok Norma Rosediana",role:"section"},
@@ -3265,8 +3269,10 @@ const USERS=[
     (kategori miliknya + akumulasi biaya). Masuk sebagai PIC Budget: hanya dirinya. */
  {email:"yessy.section@ai.astra.co.id",name:"Yessy",role:"section"},
  {email:"sudana.proc@ai.astra.co.id",name:"Sudana Visudha",role:"proc"},
- {email:"alma.tasyafiandara@ai.astra.co.id",name:"Alma Tasya",role:"analyst"},
- {email:"stevano.wicaksana@ai.astra.co.id",name:"Stevano",role:"analyst"},
+ /* super:true → masuk kelompok SUPER per AKUN, bukan per role. Sugianto sesama
+    Analyst sengaja TIDAK diikutkan, jadi menaikkan role tidak dipakai di sini. */
+ {email:"alma.tasyafiandara@ai.astra.co.id",name:"Alma Tasya",role:"analyst",super:true},
+ {email:"stevano.wicaksana@ai.astra.co.id",name:"Stevano",role:"analyst",super:true},
  {email:"sugianto@ai.astra.co.id",name:"Sugianto",role:"analyst"},
  {email:"didi.sutama@ai.astra.co.id",name:"Didi Sutama",role:"staff"},
  {email:"endang.maulana@ai.astra.co.id",name:"Endang Maulana",role:"staff"},
@@ -3291,11 +3297,15 @@ function loginAs(email){ const u=USERS.find(x=>x.email===email); if(u)applyLogin
    Dikelompokkan: kelompok Super · pengguna · operator Field Ops per kategori. ── */
 function buildLoginQuick(){
  const el=document.getElementById("lfQuick"); if(!el)return;
- const pick=function(role){ return USERS.filter(function(u){return u.role===role;}); };
+ /* Kelompok ditentukan dari keanggotaan SUPER yang sebenarnya (role ATAU tanda
+    super:true per akun), bukan dari daftar role yang ditulis ulang di sini —
+    dulu akun yang dinaikkan/diturunkan bisa hilang dari daftar ini. */
+ const superU=function(u){ return SUPER_ROLES.indexOf(u.role)>=0 || !!u.super; };
+ const lapangan=function(u){ return u.role==="fieldops"||u.role==="fieldsup"; };
  const grup=[
-   {t:"Kelompok Super", u:[].concat(pick("admin"),pick("section"),pick("dept"),pick("chief"),pick("proc"),pick("budget"))},
-   {t:"Pengguna & Staff", u:[].concat(pick("general"),pick("staff"),pick("analyst"),pick("finance"),pick("division"))},
-   {t:"Field Ops (operator per kategori)", u:[].concat(pick("fieldsup"),pick("fieldops"))}
+   {t:"Kelompok Super", u:USERS.filter(function(u){ return superU(u)&&!lapangan(u); })},
+   {t:"Pengguna & Staff", u:USERS.filter(function(u){ return !superU(u)&&!lapangan(u); })},
+   {t:"Field Ops (operator per kategori)", u:USERS.filter(lapangan)}
  ];
  el.innerHTML='<div class="lf-quick-h" onclick="document.getElementById(\'lfQuick\').classList.toggle(\'open\')">'+
    '<b>⚡ Quick Access Akun Demo</b><span>'+USERS.length+' akun · untuk UAT &amp; review</span><i>▾</i></div>'+
@@ -3706,7 +3716,10 @@ function isEndUser(){ return gRole==="general"; }
    Super = Superadmin, Section Head, Dept Head, Chief, PIC Procurement, PIC Budget.
    Di luar ini = kelompok user/viewer: hanya melihat tiket yang DIA buat sendiri. */
 const SUPER_ROLES=["admin","section","dept","chief","proc","budget"];
-function isSuper(){ return SUPER_ROLES.indexOf(gRole)>=0; }
+/* Keanggotaan SUPER bisa lewat ROLE (daftar di atas) atau ditandai PER AKUN
+   (super:true di USERS) — supaya satu-dua orang bisa dinaikkan tanpa ikut
+   menaikkan semua rekan se-role. */
+function isSuper(){ return SUPER_ROLES.indexOf(gRole)>=0 || !!(gUser&&gUser.super); }
 /* OWNER — satu-satunya akun yang boleh membuka panel Cloud & Backup
    (dorong data, unduh backup, restore, jejak login). Bukan sekadar admin. */
 const AGAVA_OWNER="sudana.visudha@ai.astra.co.id";
@@ -7500,7 +7513,7 @@ function isMobile(){ return window.matchMedia("(max-width:820px)").matches; }
    Reminder / Approvals / Assigned SO TIDAK ikut ke ikon modul — sudah di top bar.
    ══════════════════════════════════════════════════════════════════════════ */
 const MOBILE_HIDE_MODS=["reminder","approvals","assigned","myticket"];
-const GA_STAFF_ROLES=["analyst","staff","proc","fieldsup"];   // karyawan GA non-super
+const GA_STAFF_ROLES=["analyst","staff","proc","fieldsup","staffga"];   // karyawan GA non-super
 function mobileGroup(){
  if(gRole==="fieldops") return "fieldops";
  if(isSuper()) return "ga-super";
@@ -7514,6 +7527,10 @@ function mobileMods(){
  if(grp==="umum"||grp==="fieldops") return [];
  var boleh;
  if(grp==="ga-super"){
+   boleh=menus.filter(function(id){ return MOBILE_HIDE_MODS.indexOf(id)<0; });
+ } else if(gRole==="staffga"){
+   /* Staff GA dibatasi TEPAT pada modul yang diizinkan (Services & Procurement),
+      di HP maupun desktop — jangan pakai daftar tetap karyawan GA di bawah. */
    boleh=menus.filter(function(id){ return MOBILE_HIDE_MODS.indexOf(id)<0; });
  } else {
    /* daftar tetap untuk karyawan GA — TIDAK disaring hak akses desktop,
@@ -11856,7 +11873,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-107";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-108";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
