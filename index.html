@@ -6557,6 +6557,8 @@ function tkBriefHTML(t,full){
  var h='<div class="tk-brief"><div class="tk-brief-l">🗒 Deskripsi pemohon</div>'+
    '<div class="tk-brief-d'+(full?'':' clamp')+'">'+(d?esc(d):'<i>tidak diisi pemohon</i>')+'</div>';
  if(n) h+='<div class="tk-brief-n"><b>📝 Catatan tambahan:</b> '+esc(n)+'</div>';
+ /* sebagian foto bisa tertinggal di perangkat pemohon selama Storage belum aktif */
+ if(t.photosLokal>0) h+='<div class="tk-noatt">⚠️ '+t.photosLokal+' foto lain hanya tersimpan di perangkat pemohon (belum tersinkron)</div>';
  if(ph.length) h+='<div class="tk-att"><span class="tk-att-lb">📷 '+ph.length+' foto pemohon</span>'+
      ph.slice(0,lim).map(function(im,i){ return '<img src="'+im.url+'" onclick="event.stopPropagation();tkPhotoView(\''+t.no+'\','+i+')" title="lihat foto '+(i+1)+'"/>'; }).join('')+
      (ph.length>lim?'<span class="tk-att-more">+'+(ph.length-lim)+' lagi</span>':'')+'</div>';
@@ -8491,20 +8493,24 @@ function ctPhotoDel(i){ if(!window._ctPhoto)return; window._ctPhoto.imgs.splice(
    Gagal / localhost (AGDB.ro) → tetap pakai data URL supaya tiket tidak kehilangan foto. */
 async function tkUploadPhotos(imgs,no){
  var out=imgs||[];
+ if(!out.length) return out;
+ AGAVA_UPLOAD.cloud=null; AGAVA_UPLOAD.err=""; AGAVA_UPLOAD.at=Date.now();
  try{
-   if(!out.length) return out;
-   if(AGDB.ro) return out;                                        // localhost: jangan sentuh cloud
-   if(typeof firebase==="undefined"||!firebase.storage) return out;
-   var st=firebase.storage();
+   if(AGDB.ro) return out;                                        // localhost/file://: jangan sentuh cloud
+   var st=agavaStorage();
+   if(!st){ AGAVA_UPLOAD.cloud=false; AGAVA_UPLOAD.err="library Storage tidak termuat"; return out; }
+   var gagal=0, sukses=0, pesan="";
    out=await Promise.all(out.map(async function(im,i){
      if(!im||!im.url||im.url.indexOf("data:")!==0) return im;
      try{
        var ref=st.ref("tiket/"+no+"/foto-"+i+"-"+Date.now()+".jpg");
        var snap=await ref.putString(im.url,"data_url");
+       sukses++;
        return Object.assign({},im,{url:await snap.ref.getDownloadURL()});
-     }catch(e){ console.warn("upload foto tiket:",e&&e.message); return im; }
+     }catch(e){ gagal++; pesan=pesan||((e&&e.code)||(e&&e.message)||"gagal"); console.warn("upload foto tiket:",e&&e.message); return im; }
    }));
- }catch(e){ console.warn("tkUploadPhotos:",e&&e.message); }
+   AGAVA_UPLOAD.cloud=(gagal===0&&sukses>0); AGAVA_UPLOAD.err=pesan;
+ }catch(e){ AGAVA_UPLOAD.cloud=false; AGAVA_UPLOAD.err=(e&&e.message)||"gagal"; console.warn("tkUploadPhotos:",e&&e.message); }
  return out;
 }
 async function submitTicket(){
@@ -8529,7 +8535,8 @@ async function submitTicket(){
  window._ctPhoto={imgs:[]};
  notifySound();   // tiket baru masuk ke inbox layanan / tim lapangan
  svcFilter="all"; renderService(); renderOverview(); renderBuilding(); go("service");
- if(res.ticketNo && !res._sim){ alert("✅ Tiket dibuat & flow Power Automate dijalankan.\nNomor dari flow: "+no+"\nStatus: "+(res.status||"Submitted")); }
+ if(res.ticketNo && !res._sim){ alert("✅ Tiket dibuat & flow Power Automate dijalankan.\nNomor dari flow: "+no+"\nStatus: "+(res.status||"Submitted")+(fotos.length?uploadNote():"")); }
+ else if(fotos.length){ alert("✅ Tiket "+no+" dibuat dengan "+fotos.length+" foto."+uploadNote()); }
 }
 
 /* ===================== ROOM BOOKING (Service · denah interaktif) =====================
@@ -9198,7 +9205,7 @@ async function submitSO(){
  procFilter="all"; renderProc(); renderApprovals(); renderReminder(); navSetActive(); updateBell();
  notifySound();   // SO baru masuk ke inbox approval Section/Budget
  go("procurement");
- alert("✅ SO "+no+" dibuat."+(isSec?"\nAnda Section Head → langsung ke PIC Budget.":"\nMasuk approval Section: "+soSectionApprover(so)+" (kategori "+kat+").")+((att.images.length||att.pdfs.length)?"\n"+att.images.length+" foto + "+att.pdfs.length+" PDF terlampir"+(att.pdfs.length?" (dijahit ke SO PDF)":"")+".":""));
+ alert("✅ SO "+no+" dibuat."+(isSec?"\nAnda Section Head → langsung ke PIC Budget.":"\nMasuk approval Section: "+soSectionApprover(so)+" (kategori "+kat+").")+((att.images.length||att.pdfs.length)?"\n"+att.images.length+" foto + "+att.pdfs.length+" PDF terlampir"+(att.pdfs.length?" (dijahit ke SO PDF)":"")+"."+uploadNote():""));
 }
 /* Baca lampiran dari form Create SO → foto (untuk grid Lampiran) + PDF (untuk dijahit ke Dokumen SO) */
 async function soReadAttachments(){
@@ -11460,7 +11467,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-97";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-98";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -11601,7 +11608,31 @@ function dbInit(){
   },err=>{ console.warn("WP rules/err:",err&&err.code); });
  }catch(e){ dbPill("Database: offline — mode lokal",false); console.warn("AGDB init:",e); }
 }
-function dbSaveTicket(t){ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(JSON.parse(JSON.stringify(t)),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
+/* ── Batas 1 MB per dokumen Firestore ──
+   Selama Storage belum aktif, foto tersimpan sebagai data URL (base64) di dalam
+   dokumen tiket: 5 foto pemohon + 4 foto bukti operator bisa melewati 1 MB →
+   Firestore MENOLAK seluruh tulisan, sehingga perubahan status tiket berhenti
+   tersinkron tanpa pesan apa pun. Di sini foto base64 dilepas satu per satu
+   (yang terbaru dulu) sampai dokumen kembali aman, dan jumlah yang dilepas
+   dicatat supaya UI bisa berkata jujur "sebagian foto hanya ada di perangkat".
+   Foto yang sudah berupa URL Storage tidak pernah dilepas — ukurannya kecil. */
+const TK_DOC_LIMIT=800*1024;
+function dbStripTicket(t){
+ var c=JSON.parse(JSON.stringify(t));
+ var isData=function(x){ return x&&typeof x.url==="string"&&x.url.indexOf("data:")===0; };
+ var buang=function(field){
+   while(JSON.stringify(c).length>TK_DOC_LIMIT&&Array.isArray(c[field])&&c[field].length){
+     var idx=-1;
+     for(var i=c[field].length-1;i>=0;i--){ if(isData(c[field][i])){ idx=i; break; } }
+     if(idx<0) return;
+     c[field].splice(idx,1);
+     c[field+"Lokal"]=(c[field+"Lokal"]||0)+1;
+   }
+ };
+ buang("photos"); buang("proof");
+ return c;
+}
+function dbSaveTicket(t){ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(dbStripTicket(t),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
 /* ── SO & KPI ikut sinkron Firestore ──
    SO: koleksi agava_so, 1 dokumen per SO. Lampiran foto/PDF TIDAK ikut ke cloud
    (bisa >1MB, limit Firestore) — lampiran tetap tersimpan lokal di perangkat pembuat.
@@ -11616,26 +11647,77 @@ function dbStripSO(s){
  c.pdfAttachments=(c.pdfAttachments||[]).map(function(p){ return {name:p.name, url:(p.url&&p.url.indexOf("data:")!==0)?p.url:""}; });
  return c;
 }
+/* ══ FIREBASE STORAGE — wadah lampiran (foto & PDF SO, foto tiket) ══
+   Batas coba-ulang dipendekkan jadi 15 detik. Bawaan SDK 2 MENIT: kalau Storage
+   belum aktif di project (atau jaringan memblokirnya), tombol Submit SO/Tiket
+   terasa macet lama sebelum akhirnya jatuh ke penyimpanan lokal. Lebih baik
+   gagal cepat lalu memberi tahu user dengan jujur bahwa lampiran belum ke cloud.
+   Status hasil unggahan terakhir dicatat di AGAVA_UPLOAD supaya pesan ke user
+   (dan panel Cloud & Backup) tidak mengarang "sudah tersimpan di cloud". */
+const AGAVA_UPLOAD={cloud:null, err:"", at:0};
+function agavaStorage(){
+ try{
+  if(typeof firebase==="undefined"||!firebase.storage) return null;
+  var st=firebase.storage();
+  if(st.setMaxUploadRetryTime) st.setMaxUploadRetryTime(15000);
+  if(st.setMaxOperationRetryTime) st.setMaxOperationRetryTime(15000);
+  return st;
+ }catch(e){ return null; }
+}
+function uploadNote(){
+ if(AGAVA_UPLOAD.cloud===true)  return "\n☁️ Lampiran tersimpan di cloud — semua approver bisa melihatnya.";
+ if(AGAVA_UPLOAD.cloud===false) return "\n⚠️ Lampiran GAGAL diunggah ke cloud ("+(AGAVA_UPLOAD.err||"Storage tidak merespons")+").\nUntuk sekarang lampiran hanya ada di perangkat ini — aktifkan Firebase Storage agar tersinkron.";
+ return "";
+}
 /* Unggah lampiran foto/PDF ke Firebase Storage → kembalikan daftar {url,name}. */
 async function soUploadAttachments(att,no){
  var hasil={images:(att&&att.images)||[], pdfs:(att&&att.pdfs)||[]};
+ var perlu=hasil.images.concat(hasil.pdfs).some(function(x){ return x&&typeof x.url==="string"&&x.url.indexOf("data:")===0; });
+ if(!perlu) return hasil;
+ AGAVA_UPLOAD.cloud=null; AGAVA_UPLOAD.err=""; AGAVA_UPLOAD.at=Date.now();
  try{
-   if(AGDB.ro) return hasil;                                   // localhost: jangan sentuh cloud
-   if(typeof firebase==="undefined"||!firebase.storage) return hasil;
-   var st=firebase.storage();
+   if(AGDB.ro) return hasil;                                   // localhost/file://: jangan sentuh cloud
+   var st=agavaStorage();
+   if(!st){ AGAVA_UPLOAD.cloud=false; AGAVA_UPLOAD.err="library Storage tidak termuat"; return hasil; }
+   var gagal=0, sukses=0, pesan="";
    async function up(item,i,jenis){
      if(!item||!item.url||item.url.indexOf("data:")!==0) return item;   // sudah URL
      try{
        var ref=st.ref("so/"+no+"/"+jenis+"-"+i+"-"+Date.now()+(jenis==="pdf"?".pdf":".jpg"));
        var snap=await ref.putString(item.url,"data_url");
        var url=await snap.ref.getDownloadURL();
+       sukses++;
        return Object.assign({},item,{url:url});
-     }catch(e){ console.warn("upload lampiran:",e&&e.message); return item; }
+     }catch(e){ gagal++; pesan=pesan||((e&&e.code)||(e&&e.message)||"gagal"); console.warn("upload lampiran:",e&&e.message); return item; }
    }
    hasil.images=await Promise.all(hasil.images.map(function(x,i){ return up(x,i,"foto"); }));
    hasil.pdfs  =await Promise.all(hasil.pdfs.map(function(x,i){ return up(x,i,"pdf"); }));
- }catch(e){ console.warn("soUploadAttachments:",e&&e.message); }
+   AGAVA_UPLOAD.cloud=(gagal===0&&sukses>0); AGAVA_UPLOAD.err=pesan;
+ }catch(e){ AGAVA_UPLOAD.cloud=false; AGAVA_UPLOAD.err=(e&&e.message)||"gagal"; console.warn("soUploadAttachments:",e&&e.message); }
  return hasil;
+}
+/* Uji Firebase Storage dari dalam aplikasi (owner) — unggah berkas uji kecil,
+   baca kembali, lalu hapus. Menjawab satu pertanyaan: lampiran benar-benar
+   sampai ke cloud atau tidak. */
+async function agavaStorageTest(){
+ if(!isOwner()){ alert("⛔ Uji Storage hanya untuk pemilik sistem AGAVA."); return; }
+ if(AGDB.ro){ alert("🔒 Mode uji coba (localhost/file://) — tulis ke cloud diblokir.\nBuka AGAVA dari alamat produksi untuk menguji Storage."); return; }
+ var st=agavaStorage();
+ if(!st){ alert("⛔ Library Firebase Storage tidak termuat di halaman ini."); return; }
+ var path="uji/storage-"+Date.now()+".jpg";
+ var cv=document.createElement("canvas"); cv.width=120; cv.height=80;
+ var c=cv.getContext("2d"); c.fillStyle="#0a7cff"; c.fillRect(0,0,120,80);
+ c.fillStyle="#fff"; c.font="bold 12px sans-serif"; c.fillText("UJI AGAVA",14,45);
+ var t0=Date.now(), langkah="unggah";
+ try{
+   var snap=await st.ref(path).putString(cv.toDataURL("image/jpeg",0.7),"data_url");
+   langkah="ambil URL"; var url=await snap.ref.getDownloadURL();
+   langkah="baca kembali"; var r=await fetch(url); var byte=(await r.blob()).size;
+   langkah="hapus berkas uji"; await st.refFromURL(url).delete();
+   alert("✅ Firebase Storage BERFUNGSI ("+(Date.now()-t0)+" ms).\n\nBerkas uji "+byte+" byte berhasil diunggah, dibaca, lalu dihapus.\nLampiran foto/PDF SO & foto tiket akan tersinkron ke semua approver.");
+ }catch(e){
+   alert("⛔ Firebase Storage BELUM BERFUNGSI — gagal saat "+langkah+".\n\nKode: "+((e&&e.code)||"-")+"\nPesan: "+((e&&e.message)||"-")+"\nBucket: "+((st.app&&st.app.options&&st.app.options.storageBucket)||"-")+"\n\nPaling sering: Storage belum diaktifkan di Firebase Console (Build → Storage → Get started) atau rules-nya menutup akses.\nSelama belum aktif, lampiran hanya tersimpan di perangkat pembuat.");
+ }
 }
 function dbSaveSOAll(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
@@ -11765,8 +11847,9 @@ function agavaCloudPanel(){
    row("Master data",Object.keys(snap.master||{}).length+" set","agava_config/master")+
    row("Konfigurasi flow",Object.keys(snap.flow||{}).length+" endpoint","agava_config/flow")+
    row("Akun & login",USERS.length+" akun","agava_audit — jejak login")+
-   '<div class="muted small" style="margin:12px 0 6px;line-height:1.6">Lampiran foto tiket ikut tersimpan di cloud. Lampiran dokumen SO (foto/PDF besar) tetap di perangkat pembuat karena batas ukuran dokumen Firestore — tercakup dalam file backup.</div>'+
+   '<div class="muted small" style="margin:12px 0 6px;line-height:1.6">Lampiran (foto tiket, foto &amp; PDF SO) seharusnya diunggah ke <b>Firebase Storage</b> lalu dokumennya hanya menyimpan URL-nya. Selama Storage <b>belum aktif</b> di project, lampiran <b>hanya tersimpan di perangkat pembuat</b> dan tidak terlihat oleh approver lain — uji dengan tombol di bawah.</div>'+
    '<div class="panel-t" style="margin:16px 0 6px">Tindakan</div>'+
+   '<button class="btn-out" style="width:100%;margin-bottom:8px" onclick="agavaStorageTest()">🧪 Uji Firebase Storage (lampiran)</button>'+
    '<button class="btn-act" style="width:100%;margin-bottom:8px" onclick="agavaPushAll()">☁️ Dorong Semua Data ke Cloud</button>'+
    '<button class="btn-out" style="width:100%;margin-bottom:8px" onclick="agavaBackupDownload()">⬇️ Unduh Backup (JSON)</button>'+
    '<label class="btn-out" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:8px">'+
