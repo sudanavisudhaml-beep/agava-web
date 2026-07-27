@@ -3906,7 +3906,9 @@ function pjSummary(){
    Dimuat sekali saja — navigasi bolak-balik tidak me-reset state/scroll timeline. */
 function renderProject(){
  const el=document.getElementById('page-project'); if(!el)return;
- if(el.querySelector('#pjFrame'))return;
+ /* frame sudah ada → jangan dibuat ulang (state & scroll timeline terjaga),
+    tapi tetap selaraskan: data terbaru + tombol Owner sesuai akun yang masuk */
+ if(el.querySelector('#pjFrame')){ pjPushToFrame(); return; }
  el.innerHTML=`<div class="pj-frame-wrap"><iframe id="pjFrame" src="pj-timeline.html" title="Project Timeline — AGAVA"></iframe></div>`;
  var f=document.getElementById('pjFrame');
  if(f) f.addEventListener('load',function(){ pjPushToFrame(); });   // frame siap → kirim data cloud
@@ -3924,10 +3926,12 @@ function renderProject(){
 let PJ_CLOUD=null;               // daftar proyek versi cloud (array) — null = belum termuat
 function pjPushToFrame(){
  try{
-   if(!PJ_CLOUD||!PJ_CLOUD.length)return;
    var f=document.getElementById('pjFrame');
-   if(f&&f.contentWindow&&typeof f.contentWindow.agavaProjectsFromCloud==="function")
-     f.contentWindow.agavaProjectsFromCloud(PJ_CLOUD);
+   var w=f&&f.contentWindow; if(!w)return;
+   /* tombol Impor / Ekspor / Muat contoh menyesuaikan siapa yang sedang masuk */
+   if(typeof w.agavaApplyOwnerUI==="function") w.agavaApplyOwnerUI();
+   if(!PJ_CLOUD||!PJ_CLOUD.length)return;
+   if(typeof w.agavaProjectsFromCloud==="function") w.agavaProjectsFromCloud(PJ_CLOUD);
  }catch(e){ console.warn("kirim proyek ke frame:",e&&e.message); }
 }
 /* dipanggil DARI dalam iframe setiap kali penggunanya menyimpan perubahan */
@@ -11927,7 +11931,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-110";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-111";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */

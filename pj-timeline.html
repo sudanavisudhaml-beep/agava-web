@@ -1120,10 +1120,15 @@ select { appearance: none; background-image: url("data:image/svg+xml;utf8,<svg x
         <div class="pp-val" id="ppVal">0.0%</div>
       </div>
     </div>
+    <!-- Impor / Ekspor / Muat contoh = KHUSUS OWNER. Disembunyikan sejak awal
+         (style display:none) lalu baru dibuka oleh applyOwnerUI() bila AGAVA
+         memastikan yang masuk adalah pemilik sistem — supaya tombolnya tidak
+         sempat berkedip di layar akun lain, termasuk saat halaman timeline ini
+         dibuka langsung tanpa lewat AGAVA. -->
     <div class="actions">
-      <button class="btn btn-sm btn-ghost" id="loadSampleBtn">Muat contoh</button>
-      <button class="btn btn-sm" id="importBtn">Impor</button>
-      <button class="btn btn-primary btn-sm" id="exportBtn">Ekspor JSON</button>
+      <button class="btn btn-sm btn-ghost" id="loadSampleBtn" style="display:none">Muat contoh</button>
+      <button class="btn btn-sm" id="importBtn" style="display:none">Impor</button>
+      <button class="btn btn-primary btn-sm" id="exportBtn" style="display:none">Ekspor JSON</button>
       <input type="file" id="importFile" accept="application/json" style="display: none;">
     </div>
   </nav>
@@ -3273,6 +3278,26 @@ function wireEvents() {
    localStorage tetap dipakai sebagai cache supaya app ini utuh saat offline
    atau dibuka sendiri (standalone).
    ═════════════════════════════════════════════════════ */
+/* ── Tombol berisiko HANYA untuk pemilik sistem ──
+   Impor & Muat contoh MENIMPA seluruh data proyek, dan sejak data pindah ke
+   cloud satu klik keliru akan menghapus pekerjaan semua orang, bukan hanya
+   miliknya sendiri. Ekspor JSON ikut dikunci karena membawa keluar seluruh isi
+   portofolio proyek. Bila halaman ini dibuka langsung (tanpa AGAVA) atau yang
+   masuk bukan Owner, ketiganya tetap tersembunyi. */
+function agavaOwner(){
+  try{
+    return !!(window.parent && window.parent !== window
+      && typeof window.parent.isOwner === "function" && window.parent.isOwner());
+  }catch(e){ return false; }   // beda origin / berdiri sendiri → bukan Owner
+}
+function applyOwnerUI(){
+  var boleh = agavaOwner();
+  ["loadSampleBtn","importBtn","exportBtn"].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.style.display = boleh ? "" : "none";
+  });
+}
+window.agavaApplyOwnerUI = applyOwnerUI;
 function cloudSave(list){
   try{
     if(window.parent && window.parent !== window && typeof window.parent.pjCloudSave === "function")
@@ -3296,6 +3321,7 @@ window.agavaProjectsFromCloud = function(list){
 function init() {
   state.projects = loadProjects() || buildSample();
   wireEvents();
+  applyOwnerUI();          // tentukan tombol Owner sebelum layar pertama tampil
   navigate("dashboard");
   pushToParent();
 }
