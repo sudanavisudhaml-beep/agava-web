@@ -12047,7 +12047,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-114";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-115";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -12078,13 +12078,22 @@ function dbPill(txt,ok){
    ║      semua permintaan "verified", baru ubah ke "Enforce".                ║
    ║  Selama key kosong, App Check dilewati — operasional tidak terganggu.    ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
-const AGAVA_APPCHECK_KEY="";     // ← isi dengan reCAPTCHA v3 site key dari Firebase Console
+const AGAVA_APPCHECK_KEY="6LdIUmgtAAAAAFlekdEACGFs4Egn_s6KUprXK9r2";   // reCAPTCHA v3 site key (publik — aman terlihat)
 function appCheckInit(){
  try{
   if(!AGAVA_APPCHECK_KEY) return;                                  // belum diaktifkan
   if(typeof firebase==="undefined"||!firebase.appCheck) return;    // SDK tidak termuat
-  firebase.appCheck().activate(AGAVA_APPCHECK_KEY,true);           // true = token diperbarui otomatis
-  console.info("App Check aktif — backend hanya melayani AGAVA asli.");
+  /* Lingkungan uji (file:// & localhost) dilewati: reCAPTCHA hanya mengenali
+     domain terdaftar, jadi token di sana pasti gagal dan hanya menghasilkan
+     peringatan berisik. Untuk menguji dengan App Check menyala, pakai debug
+     token dari Firebase Console → App Check → Apps → ⋮ → Manage debug tokens. */
+  if(agavaReadOnlyEnv()){ console.info("App Check dilewati di lingkungan uji."); return; }
+  var ac=firebase.appCheck();
+  if(firebase.appCheck.ReCaptchaV3Provider)
+    ac.activate(new firebase.appCheck.ReCaptchaV3Provider(AGAVA_APPCHECK_KEY), true);
+  else
+    ac.activate(AGAVA_APPCHECK_KEY, true);                         // SDK lama: terima site key langsung
+  console.info("App Check aktif — backend hanya melayani AGAVA asli dari domain terdaftar.");
  }catch(e){ console.warn("App Check:",e&&e.message); }
 }
 function dbInit(){
