@@ -863,6 +863,16 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .nlog-row.unseen .nalert{font-weight:800;color:var(--ink)}
 .nlog-row.unseen .nmod{color:var(--red)}
 .ndot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);margin-right:6px;vertical-align:middle}
+/* ── Tarik-untuk-segarkan (HP) ── */
+.m-pull{position:fixed;top:8px;left:50%;transform:translateX(-50%) translateY(-60px);z-index:95;
+  width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 4px 16px rgba(20,40,80,.18);
+  display:grid;place-items:center;opacity:0;pointer-events:none}
+.m-pull-ic{font-size:19px;color:#2563eb;line-height:1;display:block;transition:transform .2s}
+.m-pull.ready .m-pull-ic{transform:rotate(180deg);color:#15a34a}
+.m-pull.spin .m-pull-ic{animation:mPullSpin .7s linear infinite}
+@keyframes mPullSpin{to{transform:rotate(360deg)}}
+/* ── Kartu draft ── */
+.draft-card{border:1px solid #f6ddb4;background:linear-gradient(180deg,#fffdf8,#fff)}
 /* ── CHAT GA Team ── */
 /* Tinggi DIPATOK ke layar (bukan mengikuti isi) supaya kolom tulis selalu menempel
    di bawah & daftar pesan yang bergulir di dalamnya — seperti WhatsApp. */
@@ -3583,10 +3593,18 @@ function ticketMine(t){
      || [t.email,t.createdByEmail].some(function(v){ return v&&String(v).toLowerCase()===mail; });
 }
 /* daftar tiket yang boleh dilihat akun ini */
+/* ── ATURAN VISIBILITAS TIKET (dikunci 27 Jul 2026) ──
+   Tiap akun HANYA melihat tiket yang dibuatnya sendiri. Yang boleh melihat
+   keseluruhan hanya Administrator (super admin) dan GA Dept Head.
+   Pengecualian kerja: operator & supervisor Field Ops tetap melihat antrian
+   tiket — tanpa itu mereka tidak bisa mengambil & mengerjakan pekerjaan. */
+const TICKET_SEE_ALL=["admin","dept"];
+function canSeeAllTickets(){ return TICKET_SEE_ALL.indexOf(gRole)>=0; }
+function isFieldCrew(){ return gRole==="fieldops"||gRole==="fieldsup"; }
 function visibleTickets(){
- if(isSuper()||gRole==="fieldsup") return TICKETS;
- if(gRole==="fieldops") return TICKETS;            // operator lapangan: lihat antrian kategorinya
- return TICKETS.filter(ticketMine);                // user/viewer: hanya tiket sendiri
+ if(canSeeAllTickets()) return TICKETS;            // Administrator & Dept Head: semua
+ if(isFieldCrew()) return TICKETS;                 // antrian kerja lapangan
+ return TICKETS.filter(ticketMine);                // sisanya: hanya tiket sendiri
 }
 function isPicTransport(){ return !!(gUser&&gUser.pic==="transport"); }
 const ERSUS_URL="https://sudanavisudhaml-beep.github.io/ersus-astra/";
@@ -6851,6 +6869,143 @@ function mGoHome(){ mNavBack=true; go(mHomeId()); mNavBack=false; mStack.length=
    (mGoHome menolkan penghitung padahal entri browser masih ada) → sisa entri itu
    memicu satu langkah mundur TAMBAHAN, sehingga terasa "mundur 2 halaman". */
 function mArm(){ try{ history.pushState({agava:window._curPage||"home"},""); }catch(e){} }
+/* ══════════════════════════════════════════════════════════════════════════
+   TARIK-UNTUK-SEGARKAN (HP) — di posisi paling atas, tarik ke bawah → muat ulang.
+   Muat ulang penuh dipakai supaya versi build terbaru & data terbaru ikut terambil.
+   Draft pengajuan aman karena tersimpan di perangkat, bukan di memori halaman.
+   ══════════════════════════════════════════════════════════════════════════ */
+function mPullInit(){
+ var app=document.querySelector("div.app"); if(!app)return;
+ var ind=document.getElementById("mPull");
+ if(!ind){ ind=document.createElement("div"); ind.id="mPull"; ind.className="m-pull";
+   ind.innerHTML='<span class="m-pull-ic">↻</span>'; document.body.appendChild(ind); }
+ var y0=null, dist=0, pulling=false, TRIG=68;
+ function reset(){ ind.classList.remove("ready","spin"); ind.style.transform=""; ind.style.opacity=""; }
+ app.addEventListener("touchstart",function(e){
+   if(!isMobile()||app.scrollTop>0||document.body.classList.contains("chat-mode")){ y0=null; return; }
+   y0=e.touches[0].clientY; dist=0; pulling=false; ind.style.transition="";
+ },{passive:true});
+ app.addEventListener("touchmove",function(e){
+   if(y0==null||app.scrollTop>0)return;
+   dist=e.touches[0].clientY-y0;
+   if(dist<=0){ if(pulling){ pulling=false; reset(); } return; }
+   pulling=true;
+   var d=Math.min(dist*0.5,96);
+   ind.style.transform="translateX(-50%) translateY("+d+"px)";
+   ind.style.opacity=String(Math.min(d/TRIG,1));
+   ind.classList.toggle("ready",d>=TRIG);
+ },{passive:true});
+ app.addEventListener("touchend",function(){
+   if(!pulling){ y0=null; return; }
+   var d=Math.min(dist*0.5,96);
+   ind.style.transition="transform .25s ease,opacity .25s ease";
+   if(d>=TRIG){ ind.classList.add("spin"); setTimeout(function(){ location.reload(); },260); }
+   else { reset(); setTimeout(function(){ ind.style.transition=""; },300); }
+   y0=null; dist=0; pulling=false;
+ },{passive:true});
+}
+/* ══════════════════════════════════════════════════════════════════════════
+   DRAFT PENGAJUAN — simpan isian yang belum tuntas (mis. menunggu foto/video),
+   lanjutkan kapan saja. Disimpan per akun di perangkat: agava_drafts_<email>.
+   Isian form direkam generik dari elemen ber-id di halaman formnya, jadi satu
+   mesin ini melayani Tiket, SO, Transport, dan Overtime sekaligus.
+   ══════════════════════════════════════════════════════════════════════════ */
+const DRAFT_META={
+ createticket:{page:"page-createticket",label:"Tiket / Keluhan",ic:"🎫",cls:"k-complaint",titleId:"ct-title"},
+ createso:{page:"page-createso",label:"Supply Order",ic:"🛒",cls:"k-so",titleId:"so-item"},
+ /* Transport tampil sebagai drawer, bukan halaman → wadahnya #drawer dan jenis
+    layanannya (pool/bluebird/gocorp) ikut disimpan agar bisa dibuka ulang. */
+ transport:{page:"drawer",label:"Transport",ic:"🚗",cls:"k-transport",titleId:"tr-to",drawer:true},
+ overtime:{page:"page-overtime",label:"Overtime",ic:"⏱️",cls:"k-overtime",titleId:null}
+};
+function draftKey(){ return "agava_drafts_"+(((gUser&&gUser.email)||"anon")+"").toLowerCase(); }
+function draftsLoad(){ try{ return JSON.parse(localStorage.getItem(draftKey()))||[]; }catch(e){ return []; } }
+function draftsSave(a){ try{ localStorage.setItem(draftKey(),JSON.stringify(a)); }catch(e){} }
+function draftCount(){ return draftsLoad().length; }
+function draftFields(kind){
+ var m=DRAFT_META[kind]; if(!m)return {};
+ var host=document.getElementById(m.page); if(!host)return {};
+ var out={};
+ [].forEach.call(host.querySelectorAll("input[id],select[id],textarea[id]"),function(el){
+   if(el.type==="file")return;                       // foto/berkas tidak ikut (batas ukuran)
+   out[el.id]=(el.type==="checkbox"||el.type==="radio")?!!el.checked:el.value;
+ });
+ return out;
+}
+function draftTitle(kind,f){
+ var m=DRAFT_META[kind];
+ if(m&&m.titleId&&f[m.titleId]) return String(f[m.titleId]).slice(0,60);
+ var k=Object.keys(f).find(function(x){ return typeof f[x]==="string"&&f[x].trim().length>2; });
+ return k?String(f[k]).slice(0,60):(m?m.label:"Draft");
+}
+function draftSave(kind){
+ var m=DRAFT_META[kind]; if(!m){ alert("Form ini belum mendukung draft."); return; }
+ var f=draftFields(kind);
+ var adaIsi=Object.keys(f).some(function(k){ return f[k]!==""&&f[k]!==false&&f[k]!=null; });
+ if(!adaIsi){ alert("📝 Belum ada isian yang bisa disimpan."); return; }
+ var arr=draftsLoad(), id=window._draftEditId||("D"+Date.now());
+ var rec={id:id,kind:kind,judul:draftTitle(kind,f),data:f,at:Date.now(),
+          by:(gUser&&gUser.name)||"",email:(gUser&&gUser.email)||"",
+          trType:(kind==="transport"?(window._trType||"pool"):null)};
+ var i=arr.findIndex(function(d){ return d.id===id; });
+ if(i>=0)arr[i]=rec; else arr.unshift(rec);
+ draftsSave(arr); window._draftEditId=null;
+ try{ renderService(); renderMobileHome(); }catch(e){}
+ alert("📝 Draft tersimpan.\n\nLanjutkan kapan saja lewat \"Pengajuan Saya\" (HP) atau daftar tiket di modul Services — klik \"Lanjutkan Draft\".");
+ go(isMobile()?mHomeId():"service");
+}
+function draftResume(id){
+ var d=draftsLoad().find(function(x){ return x.id===id; });
+ if(!d){ alert("Draft tidak ditemukan."); return; }
+ window._draftEditId=id;
+ if(d.kind==="transport"){ go("transport"); try{ openTransport(d.trType||"pool"); }catch(e){} }
+ else go(d.kind);
+ setTimeout(function(){
+   Object.keys(d.data||{}).forEach(function(k){
+     var el=document.getElementById(k); if(!el)return;
+     if(el.type==="checkbox"||el.type==="radio") el.checked=!!d.data[k]; else el.value=d.data[k];
+     try{ el.dispatchEvent(new Event("change",{bubbles:true})); }catch(e){}
+   });
+ },140);
+}
+function draftDelete(id,diam){
+ if(!diam&&!confirm("Hapus draft ini?"))return;
+ draftsSave(draftsLoad().filter(function(d){ return d.id!==id; }));
+ if(window._draftEditId===id) window._draftEditId=null;
+ try{ renderService(); renderMobileHome(); }catch(e){}
+}
+/* dipanggil setelah pengajuan benar-benar terkirim → draftnya tidak perlu lagi */
+function draftClearAfterSubmit(){ if(window._draftEditId){ draftDelete(window._draftEditId,true); } }
+function draftBtn(kind){ return '<button class="btn-out" onclick="draftSave(\''+kind+'\')">📝 Simpan Draft</button>'; }
+function draftWhen(ms){ try{ var d=new Date(ms);
+  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+
+         ' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }catch(e){ return ""; } }
+/* Kartu draft di modul Services (desktop & tablet) */
+function draftListHTML(){
+ var ds=draftsLoad(); if(!ds.length) return "";
+ return '<div class="card sec draft-card"><div class="sec-h">'+secIc('#fff4e5','#b45309','reminder')+
+   '<div><h2>📝 Draft Pengajuan Saya</h2><div class="d">'+ds.length+' draft belum dikirim — lanjutkan kapan saja</div></div></div>'+
+   '<div class="sec-body">'+ds.map(function(d){
+     var m=DRAFT_META[d.kind]||{label:d.kind,ic:"📝"};
+     return '<div class="due-row"><div><div class="dj">'+(m.ic||"📝")+' '+esc(d.judul||m.label)+'</div>'+
+       '<div class="dm">'+esc(m.label)+' · disimpan '+draftWhen(d.at)+'</div></div>'+
+       '<div style="display:flex;gap:6px;flex-shrink:0">'+
+         '<button class="btn-mini ok" onclick="draftResume(\''+d.id+'\')">Lanjutkan Draft</button>'+
+         '<button class="btn-mini no" onclick="draftDelete(\''+d.id+'\')">Hapus</button></div></div>';
+   }).join("")+'</div></div>';
+}
+/* Baris draft di "Pengajuan Saya" (HP) */
+function draftRowsMobile(){
+ var ds=draftsLoad(); if(!ds.length) return "";
+ return ds.map(function(d){
+   var m=DRAFT_META[d.kind]||{label:d.kind,cls:"k-so"};
+   return '<div class="mh-row" onclick="draftResume(\''+d.id+'\')">'+
+     '<div class="mh-rhead"><b>📝 DRAFT</b><i>'+esc(draftWhen(d.at))+'</i></div>'+
+     '<div class="mh-rj">'+esc(d.judul||m.label)+'</div>'+
+     '<div class="mh-rfoot"><span class="mh-okind '+(m.cls||"k-so")+'">'+esc(m.label)+'</span>'+
+       '<span class="mh-rd" style="color:#b45309;font-weight:700">Lanjutkan Draft</span>'+mhChev()+'</div></div>';
+ }).join("");
+}
 let mStack=[];            // riwayat halaman (ancestor; halaman aktif TIDAK disimpan)
 let mNavBack=false;       // penanda supaya go() tidak menumpuk saat kembali
 let mHistDepth=0;         // jumlah entri history yang kita push di mobile — jaga back konsisten
@@ -7529,7 +7684,8 @@ function renderMobileHome(){
    return '<i class="'+(i===0?'on':'')+'" data-p="'+i+'"></i>';}).join("")+'</div>':'')):'';
  /* ── ORDER SAYA — daftar seperti desktop, klik untuk lihat perjalanan ── */
  var ord=myOrders();
- var listOrder=ord.length?'<div class="mh-list">'+ord.map(function(o){
+ var dRows=draftRowsMobile();
+ var listOrder=(ord.length||dRows)?'<div class="mh-list">'+dRows+ord.map(function(o){
    var cc=gaActivityCost(o);
    return '<div class="mh-row" onclick="orderOpen(\''+o.kind+'\',\''+esc(o.no)+'\')">'+
      '<div class="mh-rhead"><b>'+esc(o.no)+'</b><i>'+esc(o.tgl||"")+'</i></div>'+
@@ -7631,7 +7787,7 @@ function renderService(){
  /* Kelompok user/viewer (di luar SUPER) → hanya tiket buatan sendiri, tanpa Rating & Vendor Performance.
     Operator Field Ops: boleh melihat Rating & Room/Event (pantau), tapi tidak bisa create. */
  const sup=isSuper()||gRole==="fieldops";
- const base=isSuper()?TICKETS:(gRole==="fieldops"?TICKETS:TICKETS.filter(ticketMine));
+ const base=visibleTickets();   // hanya admin & Dept Head lihat semua; sisanya tiket sendiri
  const total=base.length, ongoing=base.filter(t=>t.status!=="Resolved").length, resolved=base.filter(t=>t.status==="Resolved").length, esc=base.filter(t=>t.esc&&t.status!=="Resolved").length;
  const list=base.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?(t.esc&&t.status!=="Resolved"): svcFilter==="resolved"?t.status==="Resolved":true);
  const pills=[["all","All",total],["open","Ongoing",ongoing],["esc","Escalated",esc],["resolved","Resolved",resolved]];
@@ -7659,6 +7815,7 @@ function renderService(){
  }
  el.innerHTML=`
   ${gaServiceButtons()}
+  ${draftListHTML()}
   ${gaOpexHTML("all")}
   ${head}
   <div class="card svc-card">
@@ -7886,7 +8043,7 @@ function renderCreateTicket(){
     <div class="two" style="gap:0 16px"><div class="field"><label>Location</label><input id="ct-loc" placeholder="Building / floor / room"/></div>
     <div class="field"><label>Requester</label><input id="ct-req" value="${gUser?gUser.name:''}" disabled style="background:#f1f4f8;color:var(--muted)"/></div></div>
     <div class="field"><label>Description</label><textarea id="ct-desc" placeholder="Describe the issue…"></textarea></div>
-    <div style="display:flex;gap:10px"><button class="btn-act" onclick="submitTicket()">Submit Ticket</button><button class="btn-out" onclick="go('service')">Cancel</button></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-act" onclick="submitTicket()">Submit Ticket</button>${draftBtn('createticket')}<button class="btn-out" onclick="go('service')">Cancel</button></div>
   </div>`;
 }
 async function submitTicket(){
@@ -7902,7 +8059,7 @@ async function submitTicket(){
  const res=await triggerFlow("createTicket",{title, cat, priority:prio, lokasi:loc, description:desc, requester:req, requesterEmail:reqEmail, created:TODAY_STR})||{};
  if(res.ok===false){ alert("⚠️ Flow 'Create Ticket' gagal dipanggil ("+(res.error||('HTTP '+(res.httpStatus||'?')))+").\nTiket tetap dibuat lokal di AGAVA.\nCek URL/CORS flow di Vendor Management → Power Automate Bridge."); }
  const no=res.ticketNo||nextTicketNo();
- TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,email:reqEmail,prio:prio,desc:desc,ts:{0:nowStamp()},slaMs:{created:nowMs()}});
+ draftClearAfterSubmit(); TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,email:reqEmail,prio:prio,desc:desc,ts:{0:nowStamp()},slaMs:{created:nowMs()}});
  dbSaveTicket(TICKETS[0]);
  notifySound();   // tiket baru masuk ke inbox layanan / tim lapangan
  svcFilter="all"; renderService(); renderOverview(); renderBuilding(); go("service");
@@ -8217,6 +8374,7 @@ function renderTransport(){
   </div>`;
 }
 function openTransport(type){
+ window._trType=type;                     // diingat untuk Simpan Draft
  const T=transportLabel(type), isPool=(type==='pool');
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">${T}</div><div class="muted small" style="margin-top:4px">Layanan transportasi GA</div></div>
@@ -8229,6 +8387,7 @@ function openTransport(type){
     ${isPool?`<div class="rbf-row"><span class="rbf-ic">⏰</span><input id="tr-time" type="time" value="08:00"/></div><div class="rbf-row"><span class="rbf-ic">👥</span><input id="tr-pax" type="number" value="1" min="1"/></div>`:`<div class="rbf-row"><span class="rbf-ic">🎟️</span><input id="tr-qty" type="number" value="1" min="1" placeholder="Jumlah voucher" oninput="transportEstimate()"/></div>`}
     <div class="rbf-row" style="align-items:flex-start"><span class="rbf-ic">📝</span><textarea id="tr-note" placeholder="Keperluan / catatan…" rows="2"></textarea></div>
     <button class="btn-act" style="width:100%;margin-top:12px" onclick="saveTransport('${type}')">Ajukan</button>
+    <button class="btn-out" style="width:100%;margin-top:8px" onclick="draftSave('transport')">📝 Simpan Draft</button>
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
@@ -8257,7 +8416,7 @@ function saveTransport(type){
  if(type==='pool'){ time=document.getElementById("tr-time").value||""; const pax=document.getElementById("tr-pax").value||"1"; detail=route+" · "+pax+" pax"; }
  else { const qty=document.getElementById("tr-qty").value||"1"; detail=route+" · "+qty+" voucher"; }
  const trNo=orderNo("transport");   // setiap permintaan transport punya nomor tiket
- TRANSPORT_REQ.unshift({no:trNo,id:"tr"+(++TRANSPORT_SEQ),type,detail,dari:from,ke:to,km:km,date,time,by:(gUser?gUser.name:""),email:(gUser?gUser.email:""),status:"Diajukan"});
+ draftClearAfterSubmit(); TRANSPORT_REQ.unshift({no:trNo,id:"tr"+(++TRANSPORT_SEQ),type,detail,dari:from,ke:to,km:km,date,time,by:(gUser?gUser.name:""),email:(gUser?gUser.email:""),status:"Diajukan"});
  var cc=gaActivityCost({kind:"transport",ref:{detail:detail,dari:from,ke:to,km:km}});
  closeDrawer(); renderTransport(); if(typeof updateBell==="function")updateBell(); try{ renderMobileHome(); }catch(e){}
  alert("✅ Permintaan "+transportLabel(type)+" diajukan.\nNo. tiket: "+trNo+"\nRute: "+route+(km?" · ~"+km+" km":"")+"\nEstimasi biaya: "+costTag(cc)+"\nNotifikasi terkirim ke PIC Transport untuk persetujuan.");
@@ -8349,6 +8508,7 @@ function renderOvertime(){
       '<textarea id="ot-desc" rows="3" placeholder="jelaskan tujuan permintaan lembur ini"></textarea></div>'+
     '<div class="muted small">Permintaan masuk ke persetujuan <b>Section Head Tenant &amp; General Services ('+esc(OT_APPROVER)+')</b>. Setelah disetujui, jadwalnya tampil di <b>Room &amp; Event Usage</b>.</div>'+
     '<button class="btn-act" style="width:100%;margin-top:14px" onclick="submitOvertime()">💾 Ajukan Overtime</button>'+
+    '<button class="btn-out" style="width:100%;margin-top:8px" onclick="draftSave(\'overtime\')">📝 Simpan Draft</button>'+
   '</div>'+
   otRiwayatHTML(mine);
  otSyncSelesai();
@@ -8517,7 +8677,7 @@ function renderCreateSO(){
       <input type="file" id="so-cam" accept="image/*" capture="environment" style="display:none" onchange="soAttName(this)"/>
       <div class="hint" style="font-size:calc(11px*var(--fz));color:#9aa7b8;margin-top:6px">📎 Foto (spek, kondisi) & <b>dokumen PDF</b> (mis. Working Request / data stok) — file PDF pendukung akan otomatis <b>dijahit ke dalam Dokumen SO PDF</b> yang diunduh.</div>
     </div>
-    <div style="display:flex;gap:10px;margin-top:6px"><button class="btn-act" onclick="submitSO()">Submit SO</button><button class="btn-out" onclick="go('procurement')">Cancel</button></div>
+    <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap"><button class="btn-act" onclick="submitSO()">Submit SO</button>${draftBtn('createso')}<button class="btn-out" onclick="go('procurement')">Cancel</button></div>
   </div>`;
 }
 function soAttName(inp){ const n=inp.files.length; const el=document.getElementById('so-att-name'); if(el) el.textContent = n? (n+" file: "+Array.from(inp.files).map(f=>f.name).join(", ")) : "Belum ada file"; }
@@ -8539,7 +8699,7 @@ async function submitSO(){
  const so={no,item:itemStr,items:rows,lokasi:lokasi,req:req,requester:req,deptDiv:deptDiv,pic:"",staffPIC:"",nilai:nilai,jenis:"Goods",kategori:kat,budgetFlag:budget,vendor:"",fup:"",attachments:att.images,pdfAttachments:att.pdfs,
    apprSection:isSec?"Approved":"Pending",sectionBy:"",apprBudget:isSec?"Pending":"—",apprProc:"—",apprDept:"—",wstep:0,ts:{created:nowStamp()},tsf:{},invStatus:"",spkNo:"",stage:0,aging:"On Track"};
  so.sectionBy=soSectionApprover(so); if(isSec){ so.sectionBy=req; so.tsf.section=nowStampDoc(); so.ts.section=nowStamp(); }
- SO.unshift(so); soPersist();
+ draftClearAfterSubmit(); SO.unshift(so); soPersist();
  /* SO ini lahir dari tiket eskalasi → tautkan balik supaya eskalasinya tertutup
     dan pemohon bisa melihat tiketnya berlanjut ke Procurement. */
  var _fromTk=window._soFromTicket; window._soFromTicket=null;
@@ -10719,7 +10879,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-87";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-88";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -11558,7 +11718,7 @@ function renderParams(){
  paramPreview();
 }
 
-loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();
+loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();
 </script>
 </body>
 </html>
