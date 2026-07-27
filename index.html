@@ -3185,6 +3185,10 @@ html,body{max-width:100%}
      hash-nya ada di server Google — kode yang tersalin tidak membawa password
      siapa pun. Peran per akun ada di Firestore agava_users/{uid}. -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<!-- App Check: memastikan yang memanggil Firestore/Storage adalah aplikasi AGAVA
+     ASLI dari domain kita — kode yang disalin lalu dijalankan di tempat lain
+     akan ditolak backend. Aktif hanya bila AGAVA_APPCHECK_KEY diisi. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
 <!-- Storage: lampiran foto SO diunggah ke sini, bukan disimpan di dokumen Firestore
      (batas 1 MB). Dokumen SO cukup menyimpan URL-nya, sehingga lampiran ikut
      tersinkron & bisa dilihat SEMUA approver, bukan hanya perangkat pembuatnya. -->
@@ -3273,11 +3277,11 @@ const USERS=[
     (kategori miliknya + akumulasi biaya). Masuk sebagai PIC Budget: hanya dirinya. */
  {email:"yessy.section@ai.astra.co.id",name:"Yessy",role:"section"},
  {email:"sudana.proc@ai.astra.co.id",name:"Sudana Visudha",role:"proc"},
- /* super:true → masuk kelompok SUPER per AKUN, bukan per role. Sugianto sesama
+ /* super:true → masuk kelompok SUPER per AKUN, bukan per role. Sugiyanto sesama
     Analyst sengaja TIDAK diikutkan, jadi menaikkan role tidak dipakai di sini. */
  {email:"alma.tasyafiandara@ai.astra.co.id",name:"Alma Tasya",role:"analyst",super:true},
  {email:"stevano.wicaksana@ai.astra.co.id",name:"Stevano",role:"analyst",super:true},
- {email:"sugianto@ai.astra.co.id",name:"Sugianto",role:"analyst"},
+ {email:"sugiyanto@ai.astra.co.id",name:"Sugiyanto",role:"analyst"},
  {email:"didi.sutama@ai.astra.co.id",name:"Didi Sutama",role:"staff"},
  {email:"endang.maulana@ai.astra.co.id",name:"Endang Maulana",role:"staff"},
  {email:"khalilul.rahman@ai.astra.co.id",name:"Khalilul Rahman",role:"staff"},
@@ -3888,7 +3892,7 @@ const CODEC_PROJECTS=[
  {name:"Modernisasi Lift Gedung A",sec:"BU",pic:"Endang M.",prog:62,plan:60,due:"Okt 2026",st:"ok",need:null,note:""},
  {name:"PLTS Rooftop fase 2",sec:"EN",pic:"Stevano",prog:55,plan:65,due:"Nov 2026",st:"warn",need:"HSE",note:"Izin kerja ketinggian — dokumen di HSE"},
  {name:"Kontrak payung housekeeping 2027",sec:"PROC",pic:"Alma T.",prog:20,plan:25,due:"Des 2026",st:"ok",need:"GS",note:"Butuh data beban kerja per site dari GS"},
- {name:"TPS Limbah B3 — perpanjangan izin",sec:"HSE",pic:"Sugianto",prog:80,plan:75,due:"Jul 2026",st:"ok",need:null,note:""},
+ {name:"TPS Limbah B3 — perpanjangan izin",sec:"HSE",pic:"Sugiyanto",prog:80,plan:75,due:"Jul 2026",st:"ok",need:null,note:""},
  {name:"Relayout Presdir Room",sec:"PD",pic:"Khalilul R.",prog:15,plan:40,due:"Sep 2026",st:"blocked",need:"PROC",note:"SPK furniture belum terbit"},
  {name:"Smart meter air — 3 gedung",sec:"EN",pic:"Stevano",prog:70,plan:70,due:"Agu 2026",st:"ok",need:"BU",note:"Jadwal shutdown instalasi dikoordinasikan BU"}
 ];
@@ -3975,6 +3979,58 @@ function renderProject(){
    ║  data lewat agavaProjectsFromCloud().                                    ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 let PJ_CLOUD=null;               // daftar proyek versi cloud (array) — null = belum termuat
+/* ══════════════════════════════════════════════════════════════════════════
+   PROYEK → SELURUH AGAVA
+   Satu sumber (agava_config/projects) dibaca ulang oleh CODEC, GA Calendar,
+   Reminder, dan Notifikasi. Rumusnya SAMA dengan aplikasi timeline: plan &
+   actual ditimbang bobot pekerjaan, bukan rata-rata polos — supaya angka di
+   CODEC selalu sama dengan yang dilihat di modul Project Development.
+   ══════════════════════════════════════════════════════════════════════════ */
+const PJ_CAT_ORDER={persiapan:0,tender:1,konstruksi:2,serahterima:3};
+const PJ_CAT_FASE={persiapan:"Getting Requirement",tender:"Tender",konstruksi:"Construction",serahterima:"Serah Terima"};
+function pjNum(v){ var n=parseFloat(v); return isNaN(n)?0:n; }
+function pjTimbang(items,field){
+ var tw=0, acc=0;
+ (items||[]).forEach(function(it){ var w=pjNum(it.weight); tw+=w; acc+=w*pjNum(it[field]); });
+ return tw>0?(acc/tw):0;
+}
+function pjFase(p){
+ var it=(p&&p.items)||[]; if(!it.length) return "Getting Requirement";
+ if(it.every(function(x){ return pjNum(x.actualPercent)>=100; })) return "Serah Terima";
+ var jalan=it.filter(function(x){ var a=pjNum(x.actualPercent); return a>0&&a<100; });
+ var pakai=jalan.length?jalan:it;
+ var top=pakai.reduce(function(b,x){
+   var o=PJ_CAT_ORDER[x.category]; if(o===undefined)o=2;
+   return (!b||o>b.o)?{o:o,k:x.category}:b; },null);
+ return (top&&PJ_CAT_FASE[top.k])||"Construction";
+}
+function pjAkhir(p){
+ try{ var d=new Date(p.startDate+"T00:00:00"); d.setDate(d.getDate()+(pjNum(p.duration)||0));
+      return d.toISOString().slice(0,10); }catch(e){ return ""; }
+}
+/* Ringkasan 1 proyek — bentuk yang dipakai CODEC (n/plan/actual/phase) */
+function pjRingkas(p){
+ var plan=pjTimbang(p.items,"planPercent"), akt=pjTimbang(p.items,"actualPercent");
+ return {n:p.name, plan:Math.round(plan), actual:Math.round(akt), phase:pjFase(p),
+   loc:p.location||"", start:p.startDate||"", end:pjAkhir(p), dev:Math.round(akt-plan),
+   items:(p.items||[]).length, id:p.id};
+}
+function pjSemua(){ return (PJ_CLOUD&&PJ_CLOUD.length)?PJ_CLOUD:[]; }
+/* Pekerjaan proyek yang jatuh tempo — bahan modul Reminder (murni soal tanggal) */
+function pjJatuhTempo(hari){
+ hari=hari||45; var out=[];
+ pjSemua().forEach(function(p){
+   (p.items||[]).forEach(function(it){
+     if(!it.planEnd) return;
+     if(pjNum(it.actualPercent)>=100) return;              // sudah selesai → bukan urusan Reminder
+     var sisa=Math.round((new Date(it.planEnd+"T00:00:00")-new Date(TODAY_STR+"T00:00:00"))/86400000);
+     if(sisa>hari) return;
+     out.push({proyek:p.name, lokasi:p.location||"", item:it.name, due:it.planEnd, sisa:sisa,
+       plan:pjNum(it.planPercent), aktual:pjNum(it.actualPercent), kontraktor:it.contractor||""});
+   });
+ });
+ return out.sort(function(a,b){ return a.due.localeCompare(b.due); });
+}
 function pjPushToFrame(){
  try{
    var f=document.getElementById('pjFrame');
@@ -4126,8 +4182,21 @@ function gacalEvents(){
  /* Service — Event & Reservasi (kalender event + booking ruang) */
  (typeof PJ_E!=='undefined'?PJ_E:[]).forEach((e,i)=>{ if(e.s)evs.push({date:e.s,type:'event',loc:e.l,title:e.n&&e.n!=='-'?e.n:'(acara)',sub:'Event · '+e.l+(e.pic?' · '+e.pic:''),src:'PJ_E',idx:i}); });
  (typeof ROOM_BOOKINGS!=='undefined'?ROOM_BOOKINGS:[]).forEach((b,i)=>{ if(b.date)evs.push({date:b.date,type:'event',loc:b.room,title:b.event,sub:'Booking ruang · '+b.room+' · '+b.start+'–'+b.end,status:b.status,src:'ROOM',idx:i}); });
- /* Project Development — milestone mulai & selesai fase */
- (typeof PJ_P!=='undefined'?PJ_P:[]).forEach((a,i)=>{ if(a.s)evs.push({date:a.s,type:'project',loc:a.p,title:pjShort(a.p)+' — '+a.a,sub:'Mulai fase · '+pjShort(a.p),src:'PJ_P',idx:i}); if(a.e)evs.push({date:a.e,type:'project',loc:a.p,title:pjShort(a.p)+' — '+a.a,sub:'Selesai fase · '+pjShort(a.p),src:'PJ_P',idx:i}); });
+ /* Project Development — milestone mulai & selesai tiap pekerjaan.
+    Sumbernya data proyek NYATA dari cloud; seed PJ_P (contoh lama) hanya
+    dipakai bila cloud belum termuat, supaya kalender tidak pernah kosong
+    sekaligus tidak pernah menampilkan dua versi proyek sekaligus. */
+ if(pjSemua().length){
+   pjSemua().forEach((p,pi)=>{ (p.items||[]).forEach((it,ii)=>{
+     const nm=pjShort(p.name)+' — '+it.name;
+     if(it.planStart) evs.push({date:it.planStart,type:'project',loc:p.location||'',title:nm,
+       sub:'Mulai pekerjaan · '+(it.contractor||'')+' · plan '+pjNum(it.planPercent)+'%',src:'PJC',idx:pi});
+     if(it.planEnd) evs.push({date:it.planEnd,type:'project',loc:p.location||'',title:nm,
+       sub:'Target selesai · aktual '+pjNum(it.actualPercent)+'% dari plan '+pjNum(it.planPercent)+'%',
+       status:(pjNum(it.actualPercent)>=100?'Selesai':(it.planEnd<TODAY_STR?'Lewat target':'Terjadwal')),src:'PJC',idx:pi}); }); });
+ } else {
+   (typeof PJ_P!=='undefined'?PJ_P:[]).forEach((a,i)=>{ if(a.s)evs.push({date:a.s,type:'project',loc:a.p,title:pjShort(a.p)+' — '+a.a,sub:'Mulai fase · '+pjShort(a.p),src:'PJ_P',idx:i}); if(a.e)evs.push({date:a.e,type:'project',loc:a.p,title:pjShort(a.p)+' — '+a.a,sub:'Selesai fase · '+pjShort(a.p),src:'PJ_P',idx:i}); });
+ }
  /* Payment Tracker — estimasi (atau tanggal aktual) pembayaran ke vendor */
  (typeof SO!=='undefined'?SO:[]).forEach((s,i)=>{ const d=s.invReleased?s.invReleaseDate:(typeof invRelEst==='function'?invRelEst(s):null); if(d)evs.push({date:d,type:'payment',loc:s.vendor||'',title:'Bayar: '+(s.item||s.no),sub:(s.invReleased?'Sudah dibayar':'Estimasi bayar')+' · '+(s.vendor||'-')+' · Rp'+(s.invNominal||s.nilai||0)+' jt',status:s.invReleased?'Released':((typeof invReleaseOverdue==='function'&&invReleaseOverdue(s))?'Overdue':'Estimasi'),src:'SO',idx:i}); });
  /* Building & Utility — jadwal maintenance (bulan → hari representatif per baris) */
@@ -4327,7 +4396,14 @@ const CODEC_PROJ=[
 /* Timeline modul Project Development (iframe pj-timeline.html) → sumber tunggal bila terisi.
    Diisi lewat window.agavaTimelineSync(); kalau kosong, pakai seed CODEC_PROJ di atas. */
 let PJ_TIMELINE=null;
-function codecProjects(){ return (PJ_TIMELINE&&PJ_TIMELINE.length)?PJ_TIMELINE:CODEC_PROJ; }
+/* Urutan sumber: data CLOUD (selalu tersedia sejak boot) → dorongan langsung
+   dari iframe timeline → seed di kode. Dulu hanya dua yang terakhir, sehingga
+   angka proyek di CODEC baru benar SETELAH modul Project Development dibuka. */
+function codecProjects(){
+ if(PJ_CLOUD&&PJ_CLOUD.length) return PJ_CLOUD.map(pjRingkas);
+ return (PJ_TIMELINE&&PJ_TIMELINE.length)?PJ_TIMELINE:CODEC_PROJ;
+}
+function codecProjectSumber(){ return (PJ_CLOUD&&PJ_CLOUD.length)?"cloud":(PJ_TIMELINE?"timeline":"seed"); }
 function agavaTimelineSync(list){
   PJ_TIMELINE=(Array.isArray(list)&&list.length)?list:null;
   try{ renderOverview(); }catch(e){ console.warn("timeline sync:",e); }
@@ -10075,7 +10151,32 @@ function renderReminder(){
   </div>
 
   ${IZIN.length?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','jatuhtempo')}<div><h2>📄 Reminder Perizinan</h2><div class="d">${IZIN.length} dokumen · jatuh tempo dihitung otomatis</div></div></div>
-      <div class="sec-body">${IZIN.map(z=>dueRow(z.name,z.site,z.due)).join("")}</div></div>`:''}`;
+      <div class="sec-body">${IZIN.map(z=>dueRow(z.name,z.site,z.due)).join("")}</div></div>`:''}
+  ${pjReminderHTML()}`;
+}
+/* ══ REMINDER: TARGET SELESAI PEKERJAAN PROYEK ══
+   Reminder hanya soal JATUH TEMPO TANGGAL (lihat definisi Approval/Reminder/
+   Notifikasi). Yang masuk ke sini: pekerjaan proyek yang target selesainya
+   sudah lewat atau tinggal ≤45 hari, dan aktualnya belum 100%. */
+function pjReminderHTML(){
+ var list=pjJatuhTempo(45);
+ if(!list.length) return '';
+ var lewat=list.filter(function(x){ return x.sisa<0; }).length;
+ return '<div class="card sec"><div class="sec-h">'+secIc('#eef4ff','#2563eb','jatuhtempo')+
+   '<div><h2>📐 Reminder Target Pekerjaan Proyek</h2>'+
+   '<div class="d">'+list.length+' pekerjaan jatuh tempo ≤45 hari'+(lewat?' · <b style="color:var(--red)">'+lewat+' sudah lewat target</b>':'')+
+   ' · sumber: modul Project Development</div></div></div>'+
+   '<div class="sec-body">'+list.slice(0,12).map(function(x){
+     var w=x.sisa<0?'var(--red)':(x.sisa<=14?'#c2740a':'var(--muted)');
+     var ket=x.sisa<0?('lewat '+Math.abs(x.sisa)+' hari'):(x.sisa===0?'jatuh tempo hari ini':'sisa '+x.sisa+' hari');
+     return '<div class="due-row"><div><div class="dj">'+esc(x.item)+' — '+esc(pjShort(x.proyek))+'</div>'+
+       '<div class="dm">'+esc(x.lokasi)+(x.kontraktor?' · '+esc(x.kontraktor):'')+
+       ' · aktual <b>'+x.aktual+'%</b> dari plan '+x.plan+'%</div></div>'+
+       '<div style="text-align:right;white-space:nowrap"><div style="font-weight:800;color:'+w+'">'+esc(ket)+'</div>'+
+       '<div class="muted small">'+esc(x.due)+'</div></div></div>';
+   }).join('')+
+   (list.length>12?'<div class="muted small" style="padding:10px 16px">+'+(list.length-12)+' pekerjaan lain — buka modul Project Development</div>':'')+
+   '</div></div>';
 }
 
 /* ============ APPROVALS PAGE (tier-aware) ============ */
@@ -11982,7 +12083,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-112";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-113";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -11997,6 +12098,31 @@ function dbPill(txt,ok){
    document.body.appendChild(AGDB.pill); }
  AGDB.pill.innerHTML=(ok?'<span style="color:#15a34a">●</span> ':'<span style="color:#9aa7b8">●</span> ')+txt+' <span style="opacity:.55">· '+AGAVA_BUILD+'</span>';
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  FIREBASE APP CHECK — penangkal AGAVA tiruan                             ║
+   ║  Kode aplikasi web SELALU bisa disalin (browser wajib mengunduhnya).     ║
+   ║  Yang bisa dicegah: salinan itu ikut memakai data kita. App Check        ║
+   ║  membuat backend hanya melayani panggilan dari aplikasi AGAVA asli di    ║
+   ║  domain terdaftar; salinan yang dijalankan di tempat lain ditolak.       ║
+   ║                                                                          ║
+   ║  CARA MENGAKTIFKAN (sekali saja, oleh Owner):                            ║
+   ║   1. Firebase Console → Build → App Check → Apps → Web app → Register    ║
+   ║      → pilih reCAPTCHA v3 → salin SITE KEY-nya                           ║
+   ║   2. Tempel site key itu ke AGAVA_APPCHECK_KEY di bawah, lalu deploy     ║
+   ║   3. Console → App Check → Firestore & Storage: mulai dari mode          ║
+   ║      "Monitor" (memantau saja). Setelah grafiknya menunjukkan hampir     ║
+   ║      semua permintaan "verified", baru ubah ke "Enforce".                ║
+   ║  Selama key kosong, App Check dilewati — operasional tidak terganggu.    ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const AGAVA_APPCHECK_KEY="";     // ← isi dengan reCAPTCHA v3 site key dari Firebase Console
+function appCheckInit(){
+ try{
+  if(!AGAVA_APPCHECK_KEY) return;                                  // belum diaktifkan
+  if(typeof firebase==="undefined"||!firebase.appCheck) return;    // SDK tidak termuat
+  firebase.appCheck().activate(AGAVA_APPCHECK_KEY,true);           // true = token diperbarui otomatis
+  console.info("App Check aktif — backend hanya melayani AGAVA asli.");
+ }catch(e){ console.warn("App Check:",e&&e.message); }
+}
 function dbInit(){
  try{
   /* SAFEGUARD: di localhost & file:// (uji coba) JANGAN pernah menulis ke Firestore
@@ -12005,6 +12131,7 @@ function dbInit(){
   if(AGDB.ro) console.warn("🔒 AGAVA "+(location.protocol==="file:"?"file://":"localhost")+" = READ-ONLY. Semua tulisan ke Firestore/Storage produksi (KPI/tiket/SO/master/flow/param/audit/push) DIBLOKIR. Data live aman dari pengujian.");
   if(typeof firebase==="undefined"||!firebase.initializeApp){ dbPill("Database: offline — mode lokal",false); return; }
   firebase.initializeApp({apiKey:"AIzaSyCS8QGySkAcjd-49CdjElhgeMJqBtBcY48",authDomain:"agava-astra.firebaseapp.com",projectId:"agava-astra",storageBucket:"agava-astra.firebasestorage.app",messagingSenderId:"157492176112",appId:"1:157492176112:web:00f66a9aa9d4e7df650e35"});
+  appCheckInit();                      // pastikan yang memanggil backend = AGAVA asli
   AGDB.db=firebase.firestore();
   dbPill("Database: menghubungkan…",false);
   AGDB.db.collection("agava_tickets").orderBy("created","desc").limit(300).onSnapshot(snap=>{
@@ -12083,6 +12210,22 @@ function dbInit(){
     if(j===AGDB.pjEcho)return;                  // gema dari simpanan kita sendiri
     AGDB.pjEcho=j; PJ_CLOUD=list;
     try{ pjPushToFrame(); }catch(e){}
+    /* proyek menyentuh banyak layar: CODEC (plan vs actual), GA Calendar
+       (milestone), Reminder (target selesai). Semuanya digambar ulang. */
+    try{ renderOverview(); }catch(e){}
+    try{ if(!document.getElementById("page-gacal").classList.contains("hide")) renderGACal(); }catch(e){}
+    try{ renderReminder(); updateBell(); }catch(e){}
+    /* PEMBARUAN DARI PERANGKAT LAIN → notifikasi (kejadian di modul, sesuai
+       definisi Notifikasi). Muat pertama tidak dihitung sebagai kejadian. */
+    if(AGDB.pjInit && !(gUser&&d.email&&String(d.email).toLowerCase()===String(gUser.email).toLowerCase())){
+      NOTIFS.unshift({ic:"📐",t:"Project Development diperbarui",
+        d:list.length+" proyek · terakhir disimpan "+(d.by||"—")+(d.up?" · "+String(d.up).slice(0,16).replace("T"," "):""),
+        at:nowStamp(), sev:"info", nav:"project", done:false,
+        roles:["admin","dept","section","proc","analyst"]});
+      try{ agavaNotify("📐 Project Development diperbarui",(d.by||"Seseorang")+" memperbarui timeline proyek"); }catch(e){}
+      try{ updateBell(); }catch(e){}
+    }
+    AGDB.pjInit=true;
     console.info("Project Development dimuat dari cloud:",list.length,"proyek · terakhir disimpan oleh",d.by||"—");
   },err=>{ console.warn("Projects rules/err:",err&&err.code); });
   /* Master data (STNK/PBB/Izin/Kontrak/Maintenance) — satu dokumen bersama */
