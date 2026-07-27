@@ -3113,6 +3113,7 @@ const ROLES={
 const USERS=[
  {email:"sudana.visudha@ai.astra.co.id",name:"Sudana Visudha",role:"admin"},
  {email:"dedi@ai.astra.co.id",name:"Dedi Kusnodihardjo",role:"admin"},
+ {email:"susi.hariyantikusuma@ai.astra.co.id",name:"Susi Hariyanti Kusuma",role:"admin"},
  {email:"matilda.esther@ai.astra.co.id",name:"Matilda Esther Rotinsulu",role:"chief"},
  {email:"leonardus.ariyantosatriawan@ai.astra.co.id",name:"Leonardus Ariyanto Satriawan",role:"dept"},
  {email:"elok.normarosediana@ai.astra.co.id",name:"Elok Norma Rosediana",role:"section"},
@@ -3194,6 +3195,8 @@ function applyLogin(u){
  document.getElementById("login").classList.add("hide");
  var cb=document.getElementById("cloudBtn"); if(cb)cb.classList.toggle("hide",!isOwner());   // Cloud & Backup: KHUSUS OWNER
  notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
+ try{ notifSeenSync(); }catch(e){}   // tarik status "sudah dilihat" milik user ini dari cloud
+ try{ chatBadge(); }catch(e){}       // segarkan angka chat belum dibaca utk user ini
  auditLog("login", roleTitle(u));   // jejak login tersimpan di Firebase
  setTimeout(rateGateCheck,800);     // ada tiket selesai yang menunggu dinilai?
  if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
@@ -8699,12 +8702,28 @@ function myBookingCount(){ return (typeof RB_BOOKINGS!=="undefined"&&gUser)?RB_B
    ditandai dilihat: angka gelembung berkurang (bisa jadi 0) & teks tidak lagi tebal.
    Tujuan: user tahu apa yang perlu di-follow up vs apa yang sudah di-follow up.
    ══════════════════════════════════════════════════════════════════════════ */
-let NOTIF_SEEN={}, NOTIF_SEEN_EMAIL=null;
+let NOTIF_SEEN={}, NOTIF_SEEN_EMAIL=null, NOTIF_SEEN_UNSUB=null;
 function notifSeenEnsure(){ var e=(((gUser&&gUser.email)||"anon")+"").toLowerCase();
   if(e!==NOTIF_SEEN_EMAIL){ NOTIF_SEEN_EMAIL=e; try{ NOTIF_SEEN=JSON.parse(localStorage.getItem("agava_notifseen_"+e))||{}; }catch(x){ NOTIF_SEEN={}; } } }
+function notifSeenSaveLocal(){ try{ localStorage.setItem("agava_notifseen_"+NOTIF_SEEN_EMAIL,JSON.stringify(NOTIF_SEEN)); }catch(e){} }
 function notifSeen(k){ notifSeenEnsure(); return !!NOTIF_SEEN[k]; }
-function notifMarkSeen(k){ if(!k)return; notifSeenEnsure(); if(NOTIF_SEEN[k])return; NOTIF_SEEN[k]=1;
-  try{ localStorage.setItem("agava_notifseen_"+NOTIF_SEEN_EMAIL,JSON.stringify(NOTIF_SEEN)); }catch(e){} }
+/* Dorong status "sudah dilihat" ke cloud (agava_notifseen/<email>) → ikut sinkron
+   ke perangkat lain: klik di HP, di web pun tidak lagi tebal/terhitung. */
+function notifSeenPush(keys){ if(!keys||!keys.length)return; if(AGDB.ro||!AGDB.on||!AGDB.db||!NOTIF_SEEN_EMAIL||NOTIF_SEEN_EMAIL==="anon")return;
+  try{ AGDB.db.collection("agava_notifseen").doc(NOTIF_SEEN_EMAIL).set({
+      keys: firebase.firestore.FieldValue.arrayUnion.apply(null,keys), up:Date.now()
+    },{merge:true}).catch(function(){}); }catch(x){} }
+function notifMarkSeen(k){ if(!k)return; notifSeenEnsure(); if(NOTIF_SEEN[k])return; NOTIF_SEEN[k]=1; notifSeenSaveLocal(); notifSeenPush([k]); }
+/* Tarik status "sudah dilihat" dari cloud (union dgn lokal) & pantau realtime. */
+function notifSeenSync(){ if(!AGDB.db)return; notifSeenEnsure();
+  if(NOTIF_SEEN_UNSUB){ try{NOTIF_SEEN_UNSUB();}catch(e){} NOTIF_SEEN_UNSUB=null; }
+  if(!NOTIF_SEEN_EMAIL||NOTIF_SEEN_EMAIL==="anon")return;
+  NOTIF_SEEN_UNSUB=AGDB.db.collection("agava_notifseen").doc(NOTIF_SEEN_EMAIL).onSnapshot(function(doc){
+    if(!doc.exists)return; var arr=(doc.data()||{}).keys||[], changed=false;
+    arr.forEach(function(k){ if(!NOTIF_SEEN[k]){ NOTIF_SEEN[k]=1; changed=true; } });
+    if(changed){ notifSeenSaveLocal(); try{ if(active==="reminder")renderReminder(); if(active==="notif")renderNotif(); }catch(x){} updateBell(); }
+  },function(err){ console.warn("notifseen:",err&&err.code); });
+}
 /* Daftar tunggal item notifikasi (approval · payment · notif sistem) — dipakai
    modul Notifikasi (web+mobile) DAN penghitung gelembung, supaya selalu konsisten. */
 function notifItems(){
@@ -8724,8 +8743,8 @@ function notifUnseenCount(){ notifSeenEnsure(); return notifItems().filter(funct
 /* klik item → tandai dilihat, lalu buka modulnya / tuntaskan notif */
 function notifOpen(key,target){ notifMarkSeen(key); if(target){ go(target); } else { try{renderReminder();}catch(e){} try{renderNotif();}catch(e){} updateBell(); } }
 function notifFollowUp(key,id){ notifMarkSeen(key); const x=NOTIFS.find(n=>n.id===id); if(x)x.done=true; renderReminder(); updateBell(); }
-function notifMarkAllSeen(){ notifSeenEnsure(); notifItems().forEach(function(i){ NOTIF_SEEN[i.key]=1; });
-  try{ localStorage.setItem("agava_notifseen_"+NOTIF_SEEN_EMAIL,JSON.stringify(NOTIF_SEEN)); }catch(e){}
+function notifMarkAllSeen(){ notifSeenEnsure(); var ks=[]; notifItems().forEach(function(i){ if(!NOTIF_SEEN[i.key]){ NOTIF_SEEN[i.key]=1; ks.push(i.key); } });
+  notifSeenSaveLocal(); notifSeenPush(ks);
   renderReminder(); try{ renderNotif(); }catch(e){} updateBell(); }
 function updateBell(){ const n=(isEndUser()?(myBookingCount()+(isPicTransport()?transportPending():0)):notifUnseenCount())+myClarifyCount(); appBadge(n); const b=document.getElementById("bellBadge"); if(!b)return; b.textContent=n; b.classList.toggle("hide",n===0); }
 function followUp(id){ const x=NOTIFS.find(n=>n.id===id); if(x)x.done=true; renderReminder(); updateBell(); }
@@ -10618,7 +10637,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.24-80";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.24-81";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -10733,6 +10752,7 @@ function dbInit(){
     try{ if(active==="params")renderParams(); renderOverview(); renderMobileHome(); }catch(e){}
   },err=>{ console.warn("Param rules/err:",err&&err.code); });
   try{ chatInit(); }catch(e){ console.warn("chatInit:",e); }   // Chat GA Team real-time
+  try{ notifSeenSync(); }catch(e){ console.warn("notifSeenSync:",e); }   // status "sudah dilihat" sinkron lintas-perangkat
   /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
   AGDB.db.collection("agava_workpermits").limit(300).onSnapshot(snap=>{
     let ch2=false, wpNew=[];
