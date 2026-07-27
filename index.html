@@ -3317,7 +3317,7 @@ function go(id){
   /* catat riwayat untuk tombol back mobile (tidak saat sedang kembali) */
   if(isMobile()&&!mNavBack&&window._curPage&&window._curPage!==id){
     if(window._curPage!==mHomeId()) mStack.push(window._curPage);
-    try{ history.pushState({agava:id},""); mHistDepth++; }catch(e){}
+    mArm();                                   // sediakan 1 "perangkap" tombol back HP
   }
   window._curPage=id;
   active=(id==="ersus")?"energy":id; navSetActive();
@@ -5772,7 +5772,7 @@ function renderProc(){
      <th>Item</th><th>PIC</th><th>Value</th><th>Approver</th><th>Stage</th><th>Status</th>
    </tr></thead><tbody>
    ${list.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;return `<tr onclick="openDrawer('${s.no}')">
-     <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0"><div class="so-no-sm">${s.no}</div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span>
+     <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0"><div class="so-no-sm">${s.no}</div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span><span style="color:#9aa7b8">🕒 dibuat ${recCreatedLabel(s)}</span>
         ${soMiniPips(s)}</div></div></td>
      <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
      <td class="nilai">Rp ${s.nilai} M</td>
@@ -6267,7 +6267,7 @@ function ticketRow(t){
  const sla=ticketSLA(t);
  return `<div class="svc-row" onclick="openTicket('${t.no}')" style="cursor:pointer">
    <span class="svc-pip" style="background:${svcPip(t.status)}"></span>
-   <div><div class="svc-no">${t.no}${t.esc?` <span class="badge bd-crit">Escalated${t.escBy?' · '+t.escBy:''}</span>`:''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${foNormCat(t.cat)} · ${t.lokasi} · ${sla.pr}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div>
+   <div><div class="svc-no">${t.no}${t.esc?` <span class="badge bd-crit">Escalated${t.escBy?' · '+t.escBy:''}</span>`:''}${t.toProc?' <span class="muted small">· perlu masuk Procurement</span>':''}</div><div class="svc-title">${t.judul}</div><div class="svc-meta">${foNormCat(t.cat)} · ${t.lokasi} · ${sla.pr}</div><div class="svc-meta">🕒 dibuat ${recCreatedLabel(t)}</div><div class="tbar" title="${TSTAGES.join(' → ')}">${bar}</div>
      <div class="svc-req">🙋 Pemohon: <b>${esc(ticketReqName(t))}</b></div>
      <div class="svc-m2">${t.pic?`<span><span class="avt">${ini(t.pic)}</span> <b>${t.pic}</b></span>`:'<span>Belum ada PIC</span>'}<span class="m2-sep">·</span><span>⏱ <b class="${sla.respBreach?'m2-br':''}">${fmtDur(sla.respMin)}</b> / <b class="${sla.resBreach?'m2-br':''}">${fmtDur(sla.resMin)}</b></span>${sla.breach?'<span class="m2-br">⚠ SLA breach</span>':''}</div>${svcProofStrip(t)}</div>
    <div class="svc-resp"><div class="svc-lbl">Response · Resolution</div><b style="${sla.respBreach?'color:var(--red)':''}">${fmtDur(sla.respMin)}</b> <span class="muted">·</span> <b style="${sla.resBreach?'color:var(--red)':''}">${fmtDur(sla.resMin)}</b>${sla.breach?'<div class="svc-breach">⚠ SLA breach</div>':''}</div>
@@ -6834,11 +6834,23 @@ function mRoleTarget(){
 }
 function mRoleGo(){ go(mInbox().id); }
 function mHomeId(){ return gRole==="fieldops"?"fieldops":"mhome"; }
-function mGoHome(){ mStack.length=0; mHistDepth=0; go(mHomeId()); }
+/* Pulang ke Beranda & KOSONGKAN riwayat. mNavBack dinyalakan supaya go() tidak
+   mendorong balik halaman yang baru saja ditinggalkan ke dalam mStack (dulu:
+   stack dikosongkan lalu langsung terisi lagi → tombol back terasa lompat). */
+function mGoHome(){ mNavBack=true; go(mHomeId()); mNavBack=false; mStack.length=0; mHistDepth=0; mArm(); }
 /* ══════════════════════════════════════════════════════════════════════════
    NAVIGASI BACK DI MOBILE — tombol di top bar, geser dari tepi kiri, dan
    tombol back bawaan HP. Semuanya bermuara ke halaman sebelumnya, lalu Home.
    ══════════════════════════════════════════════════════════════════════════ */
+/* ── NAVIGASI MUNDUR (HP) — aturan sederhana & tidak bisa melenceng ──
+   1. Tombol back HP / swipe  → mundur TEPAT 1 halaman, lalu perangkap dipasang lagi.
+   2. Tombol back di AGAVA    → langsung ke halaman induk (yang namanya tertulis di
+                                tombol), tanpa menyentuh riwayat browser.
+   3. Sudah di Beranda        → tetap di Beranda (tidak keluar aplikasi tanpa sengaja).
+   Dulu memakai penghitung mHistDepth yang gampang melenceng dari riwayat asli
+   (mGoHome menolkan penghitung padahal entri browser masih ada) → sisa entri itu
+   memicu satu langkah mundur TAMBAHAN, sehingga terasa "mundur 2 halaman". */
+function mArm(){ try{ history.pushState({agava:window._curPage||"home"},""); }catch(e){} }
 let mStack=[];            // riwayat halaman (ancestor; halaman aktif TIDAK disimpan)
 let mNavBack=false;       // penanda supaya go() tidak menumpuk saat kembali
 let mHistDepth=0;         // jumlah entri history yang kita push di mobile — jaga back konsisten
@@ -6875,8 +6887,9 @@ function mBack(){
  /* Chat: langsung pulang ke Beranda, tanpa lewat riwayat — supaya tidak pernah
     tersangkut kembali ke Chat bila "chat" sempat masuk mStack. */
  if(active==="chat"){ mGoHome(); return; }
- if(mHistDepth>0){ try{ history.back(); return; }catch(e){} }
- mNavConsumeBack();                          // fallback bila tak ada entri history
+ /* Langsung ke halaman induk. TIDAK memakai history.back() supaya tidak ada
+    entri riwayat yang tertinggal / terpakai ganda di kemudian hari. */
+ mNavConsumeBack();
 }
 /* perbarui tampilan tombol back: sembunyi di Home, tampil + judul modul di halaman lain */
 function mBackSync(id){
@@ -6927,8 +6940,8 @@ function mHistoryInit(){
  window.addEventListener("popstate",function(){
    if(!isMobile())return;
    if(mInterceptBack(true))return;           // overlay terbuka → tutup, history sudah di-rearm
-   if(mHistDepth>0) mHistDepth--;
-   mNavConsumeBack();                         // mundur satu layar (halaman sebelumnya → Home)
+   mNavConsumeBack();                         // mundur TEPAT satu layar
+   mArm();                                    // pasang perangkap lagi → back berikutnya juga tertangkap
  });
 }
 /* Bottom bar berbeda untuk operator lapangan: Home · Complaint (pantau) · My Tickets */
@@ -7543,7 +7556,8 @@ function renderMobileHome(){
          '<div class="mh-rhead"><b>'+esc(s.no)+'</b><i>Rp '+esc(String(s.nilai))+' M</i></div>'+
          '<div class="mh-rj">'+esc(s.item||"")+'</div>'+soMiniPips(s)+
          '<div class="mh-rfoot"><span class="mh-okind k-so">'+esc(st.t)+'</span>'+
-           '<span class="mh-rd">'+esc(s.lokasi||"")+(s.jenis?' · '+esc(s.jenis):"")+'</span>'+mhChev()+'</div></div>';
+           '<span class="mh-rd">🕒 '+esc(recCreatedLabel(s))+'</span>'+mhChev()+'</div>'+
+         '<div class="mh-rd" style="margin-top:2px">'+esc(s.lokasi||"")+(s.jenis?' · '+esc(s.jenis):"")+'</div></div>';
      }).join("")+'</div>':'<div class="mh-empty">Belum ada permintaan pembelian.</div>';
    soBlok=mSecBlock("🛒 Permintaan Pembelian",soArr.length+" SO",(soShown.length?"so":null),soRows);
  }
@@ -7782,7 +7796,7 @@ function myOrders(){
  TICKETS.forEach(function(t){
    if(!punyaSaya(t.requester,t.email))return;
    out.push({kind:"complaint",no:t.no,judul:t.judul,detail:foNormCat(t.cat)+" · "+(t.lokasi||""),
-     tgl:t.created,status:ticketAging(t).t,warna:ticketAging(t).c,ref:t,nav:"service"});
+     tgl:recCreatedLabel(t),status:ticketAging(t).t,warna:ticketAging(t).c,ref:t,nav:"service"});
  });
  (typeof RB_BOOKINGS!=="undefined"?RB_BOOKINGS:[]).forEach(function(b){
    if(!punyaSaya(b.by,b.email))return;
@@ -10705,7 +10719,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-86";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-87";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
@@ -11013,6 +11027,15 @@ function goLiveMs(r){
  return 0;
 }
 function goLivePre(r){ return goLiveMs(r)<AGAVA_GOLIVE_MS; }    // true = data pra-live
+/* Label "dibuat" untuk kartu SO & tiket — tanggal + jam, sumbernya sama dengan
+   penentu live/arsip (goLiveMs), jadi yang tampil selalu konsisten dgn datanya. */
+function recCreatedLabel(r){
+ var ms=goLiveMs(r);
+ if(ms>0){ var d=new Date(ms);
+   return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear()+
+          ' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2); }
+ return (r&&r.created)?String(r.created):"";
+}
 function agavaGoLiveCutoff(){
  if(!isOwner()){ alert("⛔ Hanya pemilik sistem AGAVA yang dapat memulai sesi live."); return; }
  if(AGDB.ro){ alert("🔒 Mode uji (localhost) — arsip & penghapusan cloud diblokir.\nJalankan dari situs live AGAVA."); return; }
