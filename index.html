@@ -5874,6 +5874,121 @@ function soStatusLabel(s){var p=soPhase(s);
  return{t: s.invReleased?"Payment released":(s.invReceived?(s.invProcessed?"Invoice di Proses (BPH)":"Invoice Diterima"):"BAST done · Menunggu Invoice"),c:"bd-proc"};}
 function soPip(s){var p=soPhase(s);return (p==="rejected")?"#dc2626":(p==="work")?"#2563eb":(p==="pay")?"#7a4fd0":(p==="section"||p==="budget"||p==="proc"||p==="dept")?"#c2740a":"#15a34a";}
 
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  IMPOR LAMPIRAN SO — tempelkan foto & PDF ke SO yang SUDAH ADA           ║
+   ║  Untuk berkas yang lahir di luar AGAVA: SO yang dibuat manual admin GA,  ║
+   ║  hasil scan, foto kondisi lapangan yang tersimpan di Excel/HP.           ║
+   ║  Nomor SO ditebak dari NAMA BERKAS ("SO no 08 SUSI.pdf" → SO-...-0008)   ║
+   ║  dan SELALU bisa dikoreksi lewat dropdown sebelum diterapkan — tidak ada ║
+   ║  berkas yang menempel tanpa dilihat dulu.                                ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+let SO_IMPOR=[];
+function soImportBoleh(){ return isOwner()||gRole==="proc"||gRole==="admin"; }
+/* Cocokkan angka di nama berkas dengan akhiran nomor SO yang benar-benar ada.
+   "SO 11 - SUSI.pdf" → 11 → SO-202606-0011. Angka yang tidak cocok dilewati,
+   jadi "SO-202606-0009.pdf" tetap terbaca sebagai SO nomor 9. */
+function soImportTebakNo(nama){
+ var digit=String(nama||"").replace(/\.[a-z0-9]+$/i,"").match(/\d+/g)||[];
+ for(var i=0;i<digit.length;i++){
+   var n=parseInt(digit[i],10);
+   var ada=SO.find(function(s){ var m=String(s.no).match(/(\d+)$/); return m&&parseInt(m[1],10)===n; });
+   if(ada) return ada.no;
+ }
+ return "";
+}
+function soImportPanel(){
+ if(!soImportBoleh()){ alert("⛔ Impor lampiran hanya untuk Procurement, Admin, atau pemilik sistem."); return; }
+ SO_IMPOR=[];
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">📎 Impor Lampiran SO</div>'+
+   '<div class="muted small" style="margin-top:4px">Tempelkan foto &amp; dokumen PDF ke SO yang sudah ada — nomor SO dibaca dari nama berkas</div></div>'+
+  '<div class="db">'+
+   '<label class="fo-cam"><input type="file" accept="image/*,.pdf,application/pdf" multiple onchange="soImportPick(this)"/>'+
+     '<span class="fo-cam-ic">📎</span><b>Pilih Berkas (Foto / PDF)</b>'+
+     '<small>bisa banyak sekaligus · beri nama yang memuat nomor SO, mis. "SO 09 Susi.pdf"</small></label>'+
+   '<div id="soImporList" style="margin-top:12px"></div>'+
+   '<div id="soImporAct"></div>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+ soImportRender();
+}
+function soImportPick(input){
+ var files=[].slice.call(input.files||[]); input.value=""; if(!files.length)return;
+ files.forEach(function(f){
+  var pdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name);
+  var rd=new FileReader();
+  rd.onload=function(e){
+    if(pdf){ SO_IMPOR.push({nama:f.name, jenis:"pdf", url:e.target.result, kb:Math.round(f.size/1024), no:soImportTebakNo(f.name)}); soImportRender(); return; }
+    /* foto dikompres dulu — lampiran SO dibaca di layar & dijahit ke PDF, 1400px sudah lebih dari cukup */
+    var img=new Image();
+    img.onload=function(){
+      var mx=1400, w=img.width, h=img.height;
+      if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;} else {w=Math.round(w*mx/h);h=mx;} }
+      var cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+      cv.getContext("2d").drawImage(img,0,0,w,h);
+      var url=cv.toDataURL("image/jpeg",0.75);
+      SO_IMPOR.push({nama:f.name, jenis:"foto", url:url, kb:Math.round(url.length*0.75/1024), no:soImportTebakNo(f.name)});
+      soImportRender();
+    };
+    img.onerror=function(){ SO_IMPOR.push({nama:f.name, jenis:"foto", url:e.target.result, kb:Math.round(f.size/1024), no:soImportTebakNo(f.name)}); soImportRender(); };
+    img.src=e.target.result;
+  };
+  rd.readAsDataURL(f);
+ });
+}
+function soImportSetNo(i,no){ if(SO_IMPOR[i]) SO_IMPOR[i].no=no; soImportRender(); }
+function soImportDel(i){ SO_IMPOR.splice(i,1); soImportRender(); }
+function soImportRender(){
+ var box=document.getElementById("soImporList"), act=document.getElementById("soImporAct");
+ if(!box)return;
+ if(!SO_IMPOR.length){ box.innerHTML='<div class="muted small" style="text-align:center;padding:20px">Belum ada berkas dipilih.</div>'; if(act)act.innerHTML=""; return; }
+ var opts=SO.slice().sort(function(a,b){ return String(a.no).localeCompare(String(b.no)); });
+ box.innerHTML='<div class="panel-t" style="margin-bottom:6px">'+SO_IMPOR.length+' berkas — periksa nomor SO-nya</div>'+
+  SO_IMPOR.map(function(f,i){
+    var pilih='<select onchange="soImportSetNo('+i+',this.value)" style="width:100%;border:1px solid var(--line);border-radius:8px;padding:7px;font-family:var(--ff);font-size:calc(12px*var(--fz))">'+
+      '<option value=""'+(f.no?'':' selected')+'>— pilih nomor SO —</option>'+
+      opts.map(function(s){ return '<option value="'+esc(s.no)+'"'+(s.no===f.no?' selected':'')+'>'+esc(s.no)+' · '+esc(String(s.item||"").slice(0,42))+'</option>'; }).join('')+'</select>';
+    return '<div class="cl-row" style="display:block;padding:9px 0;border-bottom:1px solid var(--line)">'+
+      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">'+
+        (f.jenis==="foto"?'<img src="'+f.url+'" style="width:38px;height:38px;object-fit:cover;border-radius:7px;border:1px solid var(--line)"/>':'<span style="font-size:22px">📄</span>')+
+        '<div style="flex:1;min-width:0"><b style="font-size:calc(12px*var(--fz));word-break:break-all">'+esc(f.nama)+'</b>'+
+          '<div class="muted small">'+(f.jenis==="foto"?"foto":"dokumen PDF")+' · '+f.kb+' KB'+(f.no?'':' · <span style="color:var(--red)">nomor SO belum dikenali</span>')+'</div></div>'+
+        '<button class="so-rm" onclick="soImportDel('+i+')" title="buang">✕</button></div>'+
+      pilih+'</div>';
+  }).join('');
+ var siap=SO_IMPOR.filter(function(f){ return f.no; }).length;
+ if(act) act.innerHTML='<button class="btn-act" style="width:100%;margin-top:12px'+(siap?'':';opacity:.5')+'" '+(siap?'':'disabled ')+
+   'onclick="soImportApply()">📎 Tempelkan '+siap+' berkas ke SO</button>'+
+   (siap<SO_IMPOR.length?'<div class="muted small" style="margin-top:6px;text-align:center">'+(SO_IMPOR.length-siap)+' berkas dilewati karena nomor SO belum dipilih</div>':'');
+}
+async function soImportApply(){
+ var siap=SO_IMPOR.filter(function(f){ return f.no; });
+ if(!siap.length)return;
+ var per={}; siap.forEach(function(f){ (per[f.no]=per[f.no]||[]).push(f); });
+ var daftar=Object.keys(per).sort();
+ if(!confirm("Tempelkan "+siap.length+" berkas ke "+daftar.length+" SO?\n\n"+
+   daftar.map(function(no){ return "• "+no+" ← "+per[no].length+" berkas"; }).join("\n"))) return;
+ var btn=document.querySelector("#soImporAct .btn-act"); if(btn){ btn.textContent="⏳ Mengunggah…"; btn.disabled=true; }
+ var ok=0, cloudGagal=false, laporan=[];
+ for(var i=0;i<daftar.length;i++){
+   var no=daftar[i], s=SO.find(function(x){ return x.no===no; });
+   if(!s){ laporan.push("⛔ "+no+" tidak ditemukan"); continue; }
+   var imgs=per[no].filter(function(f){ return f.jenis==="foto"; }).map(function(f){ return {name:f.nama,url:f.url}; });
+   var pdfs=per[no].filter(function(f){ return f.jenis==="pdf";  }).map(function(f){ return {name:f.nama,url:f.url}; });
+   var hasil=await soUploadAttachments({images:imgs,pdfs:pdfs},no);
+   if(AGAVA_UPLOAD.cloud===false) cloudGagal=true;
+   s.attachments=(s.attachments||[]).concat(hasil.images);
+   s.pdfAttachments=(s.pdfAttachments||[]).concat(hasil.pdfs);
+   ok+=imgs.length+pdfs.length;
+   laporan.push("✓ "+no+" — "+imgs.length+" foto, "+pdfs.length+" PDF");
+   try{ auditLog("import-lampiran", no+" · "+imgs.length+" foto · "+pdfs.length+" pdf"); }catch(e){}
+ }
+ soPersist(); renderProc(); closeDrawer(); SO_IMPOR=[];
+ alert("✅ "+ok+" lampiran ditempelkan.\n\n"+laporan.join("\n")+
+   (cloudGagal?"\n\n⚠️ Sebagian gagal diunggah ke cloud — lampiran itu hanya ada di perangkat ini. Cek tombol Uji Firebase Storage di panel Cloud & Backup."
+             :"\n\nBuka SO-nya → Dokumen SO → lampiran sudah terjahit di PDF."));
+}
 function renderProc(){
  const el=document.getElementById("page-procurement");
  const ap=s=>s.apprDept==="Approved";
@@ -5889,7 +6004,7 @@ function renderProc(){
    if(procFilter==="bast")return ap(s)&&s.wstep>=4;
  });
  el.innerHTML=`
- <div style="display:flex;justify-content:flex-end;margin-bottom:14px">${viewerOnly()?'':'<button class="btn-act" onclick="go(\'createso\')">+ Create SO</button>'}</div>
+ <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px">${soImportBoleh()?'<button class="btn-out" onclick="soImportPanel()" title="Tempelkan foto / dokumen PDF ke SO yang sudah ada">📎 Impor Lampiran</button>':''}${viewerOnly()?'':'<button class="btn-act" onclick="go(\'createso\')">+ Create SO</button>'}</div>
  <div class="funnel">
    <div class="fstep c1"><div class="accent"></div><div class="v">${berjalan}</div><div class="l">SO Ongoing</div><div class="s">active in pipeline</div></div>
    <div class="fstep c2"><div class="accent"></div><div class="v">${upr}</div><div class="l">UPR Done</div><div class="s">vendor proposal issued</div></div>
@@ -11477,7 +11592,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-99";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-100";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
