@@ -603,6 +603,15 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .fo-st{margin-left:auto;font-size:calc(10px*var(--fz));font-weight:700;color:var(--blue)}
 .fo-tik-t{font-size:calc(13px*var(--fz));font-weight:700;color:var(--ink);margin:5px 0 2px;line-height:1.3}
 .fo-tik-m{font-size:calc(11px*var(--fz));color:var(--muted)}
+/* identitas ringkas tiket di kartu Field Ops — prioritas, kategori, lokasi,
+   pemohon, umur tiket, target selesai. Terbaca sekali lihat sebelum diambil. */
+.fo-chips{margin:6px 0 5px}
+.fo-chip{display:inline-block;font-size:calc(8.5px*var(--fz));font-weight:800;padding:2px 8px;border-radius:20px;
+  text-transform:uppercase;letter-spacing:.4px;margin-right:5px}
+.fo-chip-cat{background:#eef2f7;color:#5b6b80}
+.fo-meta{font-size:calc(11px*var(--fz));color:var(--muted);line-height:1.65}
+.fo-meta b{color:var(--ink);font-weight:700}
+.fo-mail{color:#9aa7b8;font-size:calc(10px*var(--fz))}
 .fo-btn{width:100%;padding:8px;font-size:calc(12.5px*var(--fz));margin-top:2px}
 /* ── Deskripsi · catatan · lampiran foto PEMOHON (tampil di Field Ops & My Tickets) ──
    Operator harus paham persis masalahnya SEBELUM menekan Ambil Tiket. */
@@ -7313,7 +7322,15 @@ function foTicketCard(t){
   return '<div class="fo-tik'+(neu?' fo-tik-new':'')+(fresh?' fo-fresh':'')+(t.esc?' fo-tik-esc':'')+(sla.respBreach&&neu?' fo-late':'')+'" data-no="'+esc(t.no)+'">'+
     '<div class="fo-tik-h"><span class="so-dot" style="background:'+(t.esc?'#dc2626':pip)+'"></span><span class="fo-no">'+t.no+'</span>'+(fresh?'<span class="fo-newtag">BARU</span>':'')+(t.esc?'<span class="badge bd-crit" style="font-size:calc(9px*var(--fz))">Esc: '+esc(t.escBy||'')+'</span>':'')+'<span class="fo-st">'+st+'</span></div>'+
     '<div class="fo-tik-t">'+esc(t.judul||'')+'</div>'+
-    '<div class="fo-tik-m">'+esc(t.lokasi||'')+(t.pic?' · 👷 '+esc(t.pic):'')+'</div>'+
+    /* ── Kartu harus menjawab pertanyaan operator SEJAK TIKET MUNCUL: seberapa
+       mendesak, di mana, siapa yang melapor, sejak kapan, dan sampai kapan
+       harus selesai. Dulu hanya lokasi + nama PIC yang tampil. ── */
+    '<div class="fo-chips"><span class="fo-chip prio-'+String(sla.pr).toLowerCase()+'">'+esc(sla.pr)+'</span>'+
+      '<span class="fo-chip fo-chip-cat">'+esc(foNormCat(t.cat))+'</span></div>'+
+    '<div class="fo-meta">📍 <b>'+esc(t.lokasi||'—')+'</b>'+(t.pic?' · 👷 '+esc(t.pic):'')+'<br>'+
+      '🙋 Pemohon <b>'+esc(ticketReqName(t))+'</b>'+(t.email?' <span class="fo-mail">'+esc(t.email)+'</span>':'')+'<br>'+
+      '🕐 Masuk '+esc(recCreatedLabel(t))+(sla.respMin!=null?' · <b>'+fmtDur(sla.respMin)+' lalu</b>':'')+
+      ' · 🎯 target selesai <b>'+fmtDur(sla.tg.res)+'</b></div>'+
     /* Perjalanan eskalasi terlihat jelas: tiket TIDAK hilang dari daftar operator,
        justru menampilkan sedang di tangan Section Head / Procurement. */
     (function(){ var e=ticketEscState(t); return e?'<div class="fo-esc"><span class="badge '+e.cls+'">'+e.ic+' '+esc(e.t)+'</span>'+
@@ -9771,9 +9788,12 @@ function serviceBadgeCount(){
    ║    · Tiket     → ticketNotifFor (admin/dept, Section Head pemilik         ║
    ║                  kategori, atau pemohonnya sendiri)                       ║
    ║    · NOTIFS    → sesuai roles/nama/email yang ditulis saat dibuat         ║
-   ║  Administrator & Owner tetap melihat semuanya (aturan "Admin sees all").  ║
+   ║  HANYA OWNER yang melihat semua notifikasi. Administrator lain (Susi,     ║
+   ║  Dedi) tetap punya akses penuh ke seluruh MODUL — aturan "Admin sees all" ║
+   ║  tidak berubah — tetapi kotak notifikasinya disaring sesuai domainnya,    ║
+   ║  supaya tidak tenggelam oleh approval & eskalasi milik orang lain.        ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
-function notifSemua(){ return gRole==="admin"||isOwner(); }
+function notifSemua(){ return isOwner(); }
 /* modul yang tidak ada di menu akun ini tidak boleh mengirim notifikasi ke sana */
 function notifModulBoleh(id){ if(!id)return true; if(notifSemua())return true; return mMenus().indexOf(id)>=0; }
 /* Approval yang BENAR-BENAR menunggu akun ini (bukan seluruh antrean approval).
@@ -9781,11 +9801,17 @@ function notifModulBoleh(id){ if(!id)return true; if(notifSemua())return true; r
 function approvalsUntukSaya(){
  if(notifSemua()) return pendingApprovals();
  if(!notifModulBoleh("approvals")) return [];
- var so=soApprovalsForTier(gTier).map(function(s){
+ /* Pakai tier BAWAAN ROLE, bukan gTier yang bisa diubah tombol di layar
+    Approvals — kotak notifikasi tidak boleh ikut berubah saat seseorang
+    mengintip antrean tier lain. Tier "*" (Administrator) atau null berarti
+    akun itu bukan pemegang gate approval mana pun → tidak ada notifikasi. */
+ var tier=(ROLES[gRole]&&ROLES[gRole].tier)||null;
+ if(!tier||tier==="*") return [];
+ var so=soApprovalsForTier(tier).map(function(s){
    var g=soGateTier(s);
    return {approval:true, tier:g, item:s.no+" — "+s.item, source:"SO", status:g};
  });
- return APPROVALS.filter(function(a){ return a.status==="Pending" && a.tier===gTier; }).concat(so);
+ return APPROVALS.filter(function(a){ return a.status==="Pending" && a.tier===tier; }).concat(so);
 }
 /* Alamat notifikasi bebas (NOTIFS): boleh ditujukan ke daftar role, ke satu nama,
    atau ke satu email. Tanpa alamat → hanya kelompok Super, jangan disiarkan. */
@@ -11794,7 +11820,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-103";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-104";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
