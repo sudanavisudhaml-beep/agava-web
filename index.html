@@ -2417,7 +2417,8 @@ body.rg-open{overflow:hidden}
 .pik-note textarea{width:100%;resize:vertical;min-height:38px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;font-family:var(--ff);font-size:calc(11.5px*var(--fz));line-height:1.45;color:var(--ink);background:rgba(255,255,255,.75)}
 .pik-note textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,124,255,.12)}
 .pik-notetx{font-size:calc(11.5px*var(--fz));color:var(--ink);line-height:1.45;white-space:pre-wrap}
-.pik-monwrap{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:calc(12px*var(--fz))}
+/* judul baris ini dihapus (pindah ke kepala kartu) → kendali rata kiri, bukan didorong ke kanan */
+.pik-monwrap{display:flex;align-items:center;gap:5px;font-size:calc(12px*var(--fz))}
 .pik-mon{border:1px solid rgba(10,124,255,.32);border-radius:8px;padding:5px 8px;font-family:var(--ff);font-size:calc(11.5px*var(--fz));font-weight:700;color:#0a4bb8;background:rgba(255,255,255,.85);cursor:pointer}
 .pik-saved{font-size:calc(10.5px*var(--fz));font-weight:800;color:var(--green);opacity:0;transition:.4s;white-space:nowrap}
 /* kunci PIN tabel KPI: tombol Ubah / Simpan + jejak perubahan terakhir */
@@ -4494,11 +4495,14 @@ function codecPerfIndicatorHTML(){
    : (ed ? '<button class="pi-save" onclick="kpiEditSave()">💾 Simpan</button>'
          : '<button class="pi-lock" onclick="kpiEditUnlock()">🔒 Ubah</button>');
  return '<div class="card mt16 pi-card">'+
-   '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Performance Indikator GA</div></div></div>'+
+   /* judul section memakai tahun KPI berjalan, jadi tidak basi saat ganti tahun */
+   '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Key Performance Indikator '+KPI_YEAR_META.year+'</div></div></div>'+
    '<div class="pi-stack">'+
      '<div class="pi-panel pi-panel-key2">'+
        codecHlKey(total)+
-       '<div class="pi-h pi-h-key">🏆 Key Performance Indicator <span>KPI '+KPI_YEAR_META.year+'</span>'+
+       /* judulnya sudah ada di kepala kartu — di sini cukup kendalinya saja
+          (pemilih bulan, penanda tersimpan, tambah KPI, kunci ubah) */
+       '<div class="pi-h pi-h-key">'+
          '<span class="pik-monwrap" title="Review PDCA bulanan — pilih bulan">📆 <select class="pik-mon" onchange="kpiSetMonth(this.value)">'+monOpts+'</select></span>'+
          '<span id="pik-saved" class="pik-saved">✓ tersimpan</span>'+
          (ed?'<button class="pi-addnew" onclick="codecAddKpi()">+ Tambah KPI Baru</button>':'')+lockBtn+'</div>'+
@@ -11844,7 +11848,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-105";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.27-106";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
