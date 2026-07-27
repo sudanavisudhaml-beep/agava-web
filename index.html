@@ -3293,23 +3293,18 @@ function doLogin(){
  if(m)m.textContent=""; applyLogin(u);
 }
 /* ══════════════════════════════════════════════════════════════════════════
-   SESI LOGIN — disimpan di perangkat supaya memuat ulang halaman (refresh,
-   tarik-untuk-segarkan, buka ulang PWA) TIDAK melempar user ke halaman Login.
-   Dihapus saat user menekan Keluar, jadi logout tetap benar-benar keluar.
+   SESI LOGIN — TIDAK PERNAH DISIMPAN (dikunci 27 Jul 2026).
+   Sebelumnya sesi disimpan di perangkat supaya refresh tidak melempar user ke
+   halaman Login. Akibatnya membuka AGAVA langsung masuk ke Beranda dengan akun
+   terakhir — perangkat bersama (HP operator, iPad lobby) jadi bisa dipakai
+   orang lain tanpa login, dan jejak audit menunjuk orang yang salah.
+   Aturan sekarang: SETIAP kali AGAVA dibuka/dimuat ulang → halaman Login.
+   sessionClear() dipanggil saat boot untuk membuang sisa kunci sesi lama.
+   Tarik-untuk-segarkan TIDAK memuat ulang halaman (mSoftRefresh), jadi ia tetap
+   aman dipakai dan tidak menendang operator ke Login di tengah pekerjaan.
    ══════════════════════════════════════════════════════════════════════════ */
 const SESSION_KEY="agava_session_v1";
-function sessionSave(u){ try{ if(u&&u.email) localStorage.setItem(SESSION_KEY,JSON.stringify({email:u.email,at:Date.now()})); }catch(e){} }
 function sessionClear(){ try{ localStorage.removeItem(SESSION_KEY); }catch(e){} }
-function sessionRestore(){
- try{
-   var s=JSON.parse(localStorage.getItem(SESSION_KEY)||"null");
-   if(!s||!s.email) return false;
-   var u=USERS.find(function(x){ return String(x.email).toLowerCase()===String(s.email).toLowerCase(); });
-   if(!u) return false;
-   applyLogin(u);
-   return true;
- }catch(e){ return false; }
-}
 function applyLogin(u){
  gUser=u; gRole=u.role; var tt=ROLES[gRole].tier; if(tt&&tt!=="*")gTier=tt;
  const sn=document.getElementById("suName"); if(sn)sn.textContent=u.name;
@@ -3323,7 +3318,7 @@ function applyLogin(u){
  mBotSync();
  document.getElementById("login").classList.add("hide");
  var cb=document.getElementById("cloudBtn"); if(cb)cb.classList.toggle("hide",!isOwner());   // Cloud & Backup: KHUSUS OWNER
- sessionSave(u);   // ingat sesi → muat ulang/refresh tidak melempar ke halaman Login
+ sessionClear();   // sesi TIDAK diingat — buka/muat ulang AGAVA selalu lewat halaman Login
  notifPermAsk();   // minta izin push notification (sekali; klik login = user gesture)
  try{ notifSeenSync(); }catch(e){}   // tarik status "sudah dilihat" milik user ini dari cloud
  try{ chatBadge(); }catch(e){}       // segarkan angka chat belum dibaca utk user ini
@@ -7076,6 +7071,8 @@ function renderFieldOps(){
     '<div><div class="fo-title">📡 '+(myCat?'Field Ops · '+esc(myCat):'Field Ops')+'</div>'+
       '<div class="muted small">'+scope+' · '+active.length+' tiket aktif · <b style="color:var(--amber)">'+unassigned+'</b> belum diambil · '+mine+' milik Anda'+wip+' · realtime Firebase</div></div>'+
     (myCat?'':'<div class="fo-seg"><button class="'+(fieldOpsGroup==='cat'?'on':'')+'" onclick="fieldOpsSetGroup(\'cat\')">Per Kategori</button><button class="'+(fieldOpsGroup==='lokasi'?'on':'')+'" onclick="fieldOpsSetGroup(\'lokasi\')">Per Site</button></div>')+
+    /* operator lapangan harus bisa keluar dari akunnya di perangkat bersama */
+    (gRole==='fieldops'?'<button class="btn-out" onclick="agavaLogout()" title="Keluar dari AGAVA">⎋ Keluar</button>':'')+
   '</div>';
   /* Log record operator + unduh CSV — hanya kelompok Super (dasar penilaian akhir tahun) */
   var oplog='';
@@ -7158,7 +7155,8 @@ function renderMyTickets(){
  var head=notifBanner()+'<div class="card pad fo-head"><div><div class="fo-title">🎫 My Tickets — '+esc(me)+'</div>'+
    '<div class="muted small">'+(fieldOp?esc(fieldOp.role||'Operator')+' · '+esc(fieldOp.shift||''):'operator')+' · <b style="color:'+(open>=FO_WIP_MAX?'var(--red)':'var(--blue)')+'">slot '+open+'/'+FO_WIP_MAX+'</b> · '+active.length+' aktif · '+done.length+' selesai · <b style="color:var(--red)">'+breached+'</b> SLA breach · tercatat di Services</div></div>'+
    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="notifTest()">🔔 Tes Notif</button>'+
-   '<button class="btn-out" onclick="fieldOpReset()">Ganti Operator</button></div></div>';
+   '<button class="btn-out" onclick="fieldOpReset()">Ganti Operator</button>'+
+   '<button class="btn-out" onclick="agavaLogout()" title="Keluar dari AGAVA">⎋ Keluar</button></div></div>';
  var cards=mine.length?mine.slice().sort(function(a,b){return (a.stg||0)-(b.stg||0);}).map(myTicketCard).join(''):'<div class="card pad muted small" style="text-align:center;padding:44px;grid-column:1/-1">Belum ada tiket. Ambil tiket di modul <b>Field Ops</b> → langsung muncul di sini.</div>';
  el.innerHTML=head+'<div class="mt-grid">'+cards+'</div>';
 }
@@ -7507,7 +7505,10 @@ const MIC={
  bag:'<path d="M4 8h16v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
- inv:'<path d="M6 3h9l4 4v14H6z"/><path d="M9.5 8h3M9.5 12h6M9.5 16h4"/>'
+ inv:'<path d="M6 3h9l4 4v14H6z"/><path d="M9.5 8h3M9.5 12h6M9.5 16h4"/>',
+ /* Keluar aplikasi — operator Field Ops tidak pernah melihat Beranda mobile
+    (Beranda-nya = modul Field Ops), jadi tombol keluarnya harus ada di sini. */
+ exit:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>'
 };
 function micSvg(k){ return '<svg viewBox="0 0 24 24">'+(MIC[k]||MIC.ticket)+'</svg>'; }
 function mBotBtn(nav,ikon,label,id){
@@ -7524,12 +7525,16 @@ function mBotSync(){
  var inb=mInbox();
  var notifN=(typeof activeNotifs==="function"?activeNotifs().length:0);
  if(gRole==="fieldops"){
-   bar.style.gridTemplateColumns="repeat(4,1fr)";
+   /* 5 slot: Beranda · Notifikasi · Inbox · Discover · Keluar.
+      Slot Keluar wajib ada — Beranda operator adalah modul Field Ops, jadi ia
+      tidak pernah melewati Beranda mobile yang memuat tombol keluar. */
+   bar.style.gridTemplateColumns="repeat(5,1fr)";
    bar.innerHTML=
      mBotItem("home","mGoHome()","home","Beranda")+
      mBotItem("notif","go('notif')","bell","Notifikasi",notifN)+
      mBotItem(inb.id,"go('"+inb.id+"')",inb.sv,inb.label,inb.n)+
-     mBotItem("discover","go('discover')","compass","Discover");
+     mBotItem("discover","go('discover')","compass","Discover")+
+     mBotItem("keluar","agavaLogout()","exit","Keluar");
  } else {
    bar.style.gridTemplateColumns="repeat(5,1fr)";
    bar.innerHTML=
@@ -11455,8 +11460,12 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.27-95";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
-const AGDB={on:false,db:null,pill:null,ro:/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname)};
+const AGAVA_BUILD="v2026.07.27-97";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+/* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
+   langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
+   membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
+function agavaReadOnlyEnv(){ return location.protocol==="file:"||/^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname); }
+const AGDB={on:false,db:null,pill:null,ro:agavaReadOnlyEnv()};
 function dbPill(txt,ok){
  if(!AGDB.pill){ AGDB.pill=document.createElement("div"); AGDB.pill.id="dbPill";
    /* Info bar status database DISEMBUNYIKAN (permintaan user) — elemennya tetap
@@ -11468,10 +11477,10 @@ function dbPill(txt,ok){
 }
 function dbInit(){
  try{
-  /* SAFEGUARD: di localhost (uji coba) JANGAN pernah menulis ke Firestore produksi —
-     baca boleh, tulis diblokir. Mencegah pengujian merusak data live. */
-  AGDB.ro = /^(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)$/.test(location.hostname);
-  if(AGDB.ro) console.warn("🔒 AGAVA localhost = READ-ONLY. Semua tulisan ke Firestore produksi (KPI/tiket/SO/master/flow/param/audit/push) DIBLOKIR. Data live aman dari pengujian.");
+  /* SAFEGUARD: di localhost & file:// (uji coba) JANGAN pernah menulis ke Firestore
+     produksi — baca boleh, tulis diblokir. Mencegah pengujian merusak data live. */
+  AGDB.ro = agavaReadOnlyEnv();
+  if(AGDB.ro) console.warn("🔒 AGAVA "+(location.protocol==="file:"?"file://":"localhost")+" = READ-ONLY. Semua tulisan ke Firestore/Storage produksi (KPI/tiket/SO/master/flow/param/audit/push) DIBLOKIR. Data live aman dari pengujian.");
   if(typeof firebase==="undefined"||!firebase.initializeApp){ dbPill("Database: offline — mode lokal",false); return; }
   firebase.initializeApp({apiKey:"AIzaSyCS8QGySkAcjd-49CdjElhgeMJqBtBcY48",authDomain:"agava-astra.firebaseapp.com",projectId:"agava-astra",storageBucket:"agava-astra.firebasestorage.app",messagingSenderId:"157492176112",appId:"1:157492176112:web:00f66a9aa9d4e7df650e35"});
   AGDB.db=firebase.firestore();
@@ -12378,7 +12387,7 @@ function renderParams(){
  paramPreview();
 }
 
-loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();rmdLoad();try{ rmdSweep(); }catch(e){}try{ sessionRestore(); }catch(e){}
+loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildLoginAccounts();buildLoginQuick();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();rmdLoad();try{ rmdSweep(); }catch(e){}try{ sessionClear(); }catch(e){}   /* selalu mulai dari halaman Login — sesi tidak pernah dipulihkan */
 </script>
 </body>
 </html>
