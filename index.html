@@ -1118,6 +1118,42 @@ tr.bl-trsep:hover td{background:#f2f6fb}
 .so-perbaiki{background:#fff8e8;border:1px solid #f0dcb4;border-left:4px solid #d99b1c;border-radius:11px;
   padding:12px 14px;margin-bottom:14px;font-size:calc(12.5px*var(--fz));color:#6b5310;line-height:1.55}
 .so-perbaiki b{display:block;color:var(--ink);font-size:calc(13.5px*var(--fz));margin-bottom:5px}
+/* ── Kriteria "kapan layak jadi tiket" + cermin dampak (Create Ticket) ── */
+.ct-krit{background:#f7fafd;border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-bottom:16px}
+.ct-krit-h{font-size:calc(12.5px*var(--fz));font-weight:800;color:var(--ink);margin-bottom:9px}
+.ct-krit-i{display:flex;gap:10px;align-items:flex-start;padding:5px 0}
+.ct-krit-i span{flex:0 0 auto;font-size:calc(15px*var(--fz));line-height:1.3}
+.ct-krit-i b{display:block;font-size:calc(12.5px*var(--fz));color:var(--ink);font-weight:700;line-height:1.35}
+.ct-krit-i i{display:block;font-style:normal;font-size:calc(11.5px*var(--fz));color:var(--muted);line-height:1.45}
+.ct-krit-f{font-size:calc(11.5px*var(--fz));color:var(--muted);line-height:1.55;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
+.ct-cermin{background:linear-gradient(160deg,#f0f9f4,#fbfefc);border:1px solid #bfe3cd;border-radius:14px;
+  padding:14px 16px;margin:-4px 0 16px;animation:ctPop .22s ease-out}
+@keyframes ctPop{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.ct-cermin-h{font-size:calc(14px*var(--fz));font-weight:800;color:#0b5a35;margin-bottom:5px}
+.ct-cermin-b{font-size:calc(12.5px*var(--fz));color:#2d4a3a;line-height:1.55;margin-bottom:11px}
+.ct-cermin-g{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.ct-cermin-g>div{background:#fff;border:1px solid #d6ecdf;border-radius:11px;padding:9px 11px}
+.ct-cermin-g b{display:block;font-size:calc(14px*var(--fz));font-weight:800;color:#0b5a35;line-height:1.2}
+.ct-cermin-g span{display:block;font-size:calc(10.5px*var(--fz));color:var(--muted);line-height:1.4;margin-top:3px}
+.ct-cermin-act{display:flex;gap:9px;flex-wrap:wrap}
+.ct-cermin-act .btn-act{flex:1 1 220px}
+.ct-cermin-n{margin-top:10px;padding-top:9px;border-top:1px dashed #cfe6d8;font-size:calc(11.5px*var(--fz));color:#0b5a35;font-weight:600}
+@media(max-width:560px){.ct-cermin-g{grid-template-columns:1fr}}
+/* ── Kartu Aksi Mandiri di modul Services ── */
+.sc-card{background:linear-gradient(160deg,#f0f9f4,#fff);border:1px solid #bfe3cd}
+.sc-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:11px}
+.sc-big{font-size:calc(30px*var(--fz));font-weight:800;color:#0b5a35;line-height:1}
+.sc-rows{display:flex;flex-direction:column;gap:6px}
+.sc-row{display:flex;gap:10px;align-items:baseline;font-size:calc(12.5px*var(--fz));color:var(--ink);
+  background:#fff;border:1px solid #d6ecdf;border-radius:10px;padding:7px 11px}
+.sc-row b{flex:0 0 auto;font-weight:700}
+.sc-row span{flex:1;min-width:0;color:var(--muted)}
+.sc-row i{flex:0 0 auto;font-style:normal;font-size:calc(10.5px*var(--fz));color:#9aa7b8}
+.fo-swalayan{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:11px;
+  padding:10px 12px;margin:0 0 12px;cursor:pointer;background:#fbfdff}
+.fo-swalayan input{margin-top:2px;accent-color:var(--blue);flex:0 0 auto}
+.fo-swalayan b{display:block;font-size:calc(12.5px*var(--fz));color:var(--ink);font-weight:700}
+.fo-swalayan i{display:block;font-style:normal;font-size:calc(11px*var(--fz));color:var(--muted);line-height:1.45}
 
 table{width:100%;border-collapse:collapse;font-size:calc(13px*var(--fz))}
 thead th{text-align:left;padding:12px 14px;font-size:calc(11px*var(--fz));text-transform:uppercase;letter-spacing:.5px;
@@ -7854,6 +7890,12 @@ function foAskPhoto(no){
    '<div id="foPhotoPrev" class="fo-prev"></div>'+
    '<div class="field" style="margin-top:12px"><label>Catatan penyelesaian (opsional)</label>'+
      '<textarea id="fo-close-note" rows="2" placeholder="mis. ganti ballast lampu, unit sudah normal"></textarea></div>'+
+   /* Penanda ini MURNI untuk statistik perubahan budaya — tidak pernah
+      ditampilkan ke pemohon dan tidak memicu teguran apa pun. Gunanya satu:
+      mengukur apakah tiket sepele benar-benar berkurang dari bulan ke bulan. */
+   '<label class="fo-swalayan"><input type="checkbox" id="fo-swalayan">'+
+     '<span><b>Sebenarnya bisa ditangani sendiri</b>'+
+     '<i>hanya masuk statistik GA — pemohon tidak diberi tahu, tidak ada teguran</i></span></label>'+
    '<button id="foCloseBtn" class="btn-act" style="width:100%;margin-top:6px;opacity:.5" disabled onclick="foConfirmClose()">✓ Selesaikan Tiket</button>'+
   '</div>';
  document.getElementById("ovl").classList.add("show");
@@ -7893,6 +7935,8 @@ function foConfirmClose(){
  var t=TICKETS.find(x=>x.no===p.no); if(!t)return;
  var note=(document.getElementById('fo-close-note')||{}).value||"";
  t.proof=p.imgs; t.closeNote=note.trim(); t.closedBy=fieldOpName()||t.pic||"";
+ var sw=document.getElementById('fo-swalayan');
+ if(sw&&sw.checked){ t.swalayan=true; try{ auditLog("tiket-swalayan", t.no+" · "+(t.judul||"")); }catch(e){} }
  t.stg=3; t.status=TSTAGES[3]; t.ts=t.ts||{}; t.ts[3]=nowStamp();
  t.slaMs=t.slaMs||{}; if(!t.slaMs.pickup)t.slaMs.pickup=nowMs(); t.slaMs.resolved=nowMs(); t.closed=TODAY_STR;
  t.needRate=true;   // ← pemohon wajib memberi rating sebelum tiket benar-benar tuntas
@@ -9241,6 +9285,7 @@ function renderService(){
  }
  el.innerHTML=`
   ${gaServiceButtons()}
+  ${selfCarePanelHTML()}
   ${escPanelHTML(eskalasi)}
   ${draftListHTML()}
   ${gaOpexHTML("all")}
@@ -9458,6 +9503,194 @@ function roomEventCard(){
 }
 
 /* Create Ticket — full page */
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  AKSI MANDIRI — mengubah kebiasaan "apa-apa lapor GA"                    ║
+   ║                                                                          ║
+   ║  Masalahnya bukan orang malas, tapi STRUKTURnya: membuat tiket itu       ║
+   ║  gratis, instan, dan satu-satunya cara "berbuat sesuatu" yang AGAVA      ║
+   ║  sediakan. Tiap kali GA datang untuk hal sepele, rasa memiliki karyawan  ║
+   ║  atas ruangnya mengecil sedikit — lalu ia melapor lebih sering lagi.     ║
+   ║  (archetype Shifting the Burden: solusi cepat melemahkan solusi          ║
+   ║  fundamental.)                                                           ║
+   ║                                                                          ║
+   ║  Karena itu AGAVA TIDAK mempersulit pembuatan tiket — mempersulitnya     ║
+   ║  akan menekan laporan PENTING juga (orang diam saat ada kabel terbuka).  ║
+   ║  Yang kita ubah dua hal, keduanya tanpa paksaan:                         ║
+   ║    1. ARUS INFORMASI — tunjukkan biaya yang selama ini tak terlihat.     ║
+   ║    2. IDENTITAS — sediakan cara berkontribusi yang lebih memuaskan       ║
+   ║       daripada melapor: "sudah saya bantu rapikan", tercatat atas        ║
+   ║       namanya.                                                           ║
+   ║                                                                          ║
+   ║  Tombol Submit TIDAK PERNAH dikunci. Panel ini hanya cermin, bukan       ║
+   ║  penghalang — dan tidak pernah muncul untuk hal berisiko.                ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const SELFCARE_STORE="agava_selfcare_v1";
+let SELFCARE=[];
+function selfCareLoad(){ try{ var r=localStorage.getItem(SELFCARE_STORE); if(r){ var a=JSON.parse(r); if(Array.isArray(a)) SELFCARE=a; } }catch(e){} }
+function selfCarePersist(){ try{ localStorage.setItem(SELFCARE_STORE,JSON.stringify(SELFCARE.slice(-500))); }catch(e){} }
+function selfCareSave(x){
+ if(AGDB.ro||!AGDB.on||!AGDB.db||!x||!x.id)return;
+ try{ AGDB.db.collection("agava_selfcare").doc(String(x.id)).set(x,{merge:true}); }catch(e){ console.warn("selfcare save:",e); }
+}
+/* Kata yang menandakan RISIKO — begitu salah satunya muncul, panel "ringan"
+   TIDAK ditampilkan sama sekali, walau ada kata ringan juga. Salah menilai di
+   sisi ini jauh lebih mahal daripada satu tiket sepele yang lolos. */
+const KATA_RISIKO=["api","asap","kebakar","terbakar","gas","bocor","banjir","licin","tersandung","jatuh","luka",
+ "kesetrum","setrum","listrik","kabel","korslet","konslet","lift","macet total","sesak","pingsan","runtuh","retak",
+ "ambruk","tajam","pecah","panas sekali","mati total","tidak menyala","tidak dingin","rusak","patah","hilang","ular","tikus","serangga"];
+/* Kata yang biasanya bisa dibantu sendiri dalam 30 detik. Sengaja SEMPIT —
+   hanya hal yang jelas-jelas bisa dipungut/dirapikan sesama karyawan. */
+const KATA_RINGAN=["kotor","kotoran","sampah","berantakan","berserakan","remah","tisu","tissue","gelas","piring","cangkir",
+ "sisa makanan","kertas","debu","berdebu","daun","puntung","botol","kardus","belum dirapikan","belum dirapihkan",
+ "tidak rapi","kurang rapi","tidak pada tempatnya"];
+function ctTeksNiat(){
+ var g=function(id){ var el=document.getElementById(id); return el?String(el.value||""):""; };
+ return (g("ct-title")+" "+g("ct-desc")).toLowerCase();
+}
+/* Dicocokkan sebagai KATA UTUH, bukan potongan huruf. Uji 28 Jul 2026 menunjukkan
+   bahaya pencocokan substring dalam bahasa Indonesia berimbuhan: "dir-api-kan"
+   terbaca "api", "petu-gas" terbaca "gas", "kel-uar" terbaca "ular". Akibatnya
+   laporan ringan yang biasa justru dianggap berisiko dan panelnya tidak muncul. */
+function reKata(list){
+ return new RegExp("(^|[^a-z0-9])("+list.map(function(w){
+   return w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+ }).join("|")+")([^a-z0-9]|$)","i");
+}
+const RE_RISIKO=reKata(KATA_RISIKO), RE_RINGAN=reKata(KATA_RINGAN);
+function ctRingan(){
+ var t=ctTeksNiat().trim();
+ if(t.length<3) return false;
+ if(RE_RISIKO.test(t)) return false;      // risiko menang mutlak — salah menilai di sisi ini jauh lebih mahal
+ return RE_RINGAN.test(t);
+}
+/* Biaya nyata satu tiket — DITURUNKAN dari data AGAVA sendiri, bukan angka
+   karangan: rata-rata waktu penyelesaian tiket yang sudah tuntas × tarif OB/CS
+   di Parameter & Biaya. Kalau belum ada data, dipakai perkiraan wajar. */
+function ctBiayaTiket(){
+ var selesai=TICKETS.filter(function(t){ return (t.stg||0)>=3; })
+   .map(function(t){ return ticketSLA(t).resMin; }).filter(function(n){ return n!=null&&n>0&&n<8*60; });
+ var menit=selesai.length?Math.round(selesai.reduce(function(a,b){return a+b;},0)/selesai.length):30;
+ var tarif=(GA_PARAM&&GA_PARAM.tenaga&&GA_PARAM.tenaga.manpowerLembur)||25000;
+ return {menit:menit, rp:Math.round(menit/60*tarif), n:selesai.length};
+}
+function ctAntrean(){
+ return {belum:TICKETS.filter(function(t){ return (t.stg||0)<1; }).length,
+         jalan:TICKETS.filter(function(t){ return (t.stg||0)>=1&&(t.stg||0)<3; }).length};
+}
+function selfCareSaya(){
+ var me=((gUser&&gUser.email)||"").toLowerCase(), nm=(gUser&&gUser.name)||"";
+ return SELFCARE.filter(function(x){ return (x.email&&me&&String(x.email).toLowerCase()===me)||(nm&&x.by===nm); });
+}
+function ctCerminHTML(){
+ var b=ctBiayaTiket(), q=ctAntrean(), n=selfCareSaya().length;
+ return '<div class="ct-cermin" id="ctCermin">'+
+   '<div class="ct-cermin-h">🤝 Sebentar — mungkin ini bisa kita bantu sendiri?</div>'+
+   '<div class="ct-cermin-b">Sepertinya yang Anda laporkan tergolong ringan. Kalau memang bisa dijangkau, '+
+     'memungut atau merapikannya sendiri jauh lebih cepat daripada menunggu petugas datang — dan '+
+     '<b>tetap tercatat sebagai kontribusi Anda</b>.</div>'+
+   '<div class="ct-cermin-g">'+
+     '<div><b>≈ '+fmtDur(b.menit)+'</b><span>waktu petugas per tiket'+(b.n?' (rata-rata '+b.n+' tiket tuntas)':'')+'</span></div>'+
+     '<div><b>≈ Rp '+fmtN(b.rp)+'</b><span>biaya tenaga kerja per penanganan</span></div>'+
+     '<div><b>'+q.belum+' antre · '+q.jalan+' dikerjakan</b><span>1 operator maksimal '+FO_WIP_MAX+' tiket sekaligus</span></div>'+
+   '</div>'+
+   '<div class="ct-cermin-act">'+
+     '<button class="btn-act" onclick="selfCareAsk()">✋ Sudah saya bantu rapikan</button>'+
+     '<button class="btn-out" onclick="ctCerminTutup()">Tetap perlu petugas GA →</button>'+
+   '</div>'+
+   (n?'<div class="ct-cermin-n">✋ Anda sudah '+n+' kali membantu rapikan sendiri. Terima kasih 🙏</div>':'')+
+ '</div>';
+}
+function ctCerminTutup(){ window._ctCerminOff=true; ctCerminSync(); }
+/* Panel muncul & hilang mengikuti apa yang diketik — tanpa render ulang form,
+   supaya isian yang sudah diketik tidak hilang. */
+function ctCerminSync(){
+ var slot=document.getElementById("ctCerminSlot"); if(!slot)return;
+ var perlu=ctRingan()&&!window._ctCerminOff;
+ if(perlu&&!document.getElementById("ctCermin")) slot.innerHTML=ctCerminHTML();
+ else if(!perlu) slot.innerHTML="";
+}
+const CT_KRITERIA=[
+ {ic:"😣",t:"Mengganggu kenyamanan atau pekerjaan",c:"AC tidak dingin, bau menyengat, air bocor, lampu mati"},
+ {ic:"⚠️",t:"Berisiko bagi keselamatan",c:"lantai licin, kabel terbuka, asap, benda tajam — jangan ragu, langsung buat tiket"},
+ {ic:"🧰",t:"Di luar jangkauan Anda",c:"perlu tangga, alat, keahlian, atau akses khusus"}
+];
+function ctKriteriaHTML(){
+ return '<div class="ct-krit"><div class="ct-krit-h">Kapan sebuah kondisi layak jadi tiket?</div>'+
+   CT_KRITERIA.map(function(k){
+     return '<div class="ct-krit-i"><span>'+k.ic+'</span><div><b>'+esc(k.t)+'</b><i>'+esc(k.c)+'</i></div></div>';
+   }).join("")+
+   '<div class="ct-krit-f">Kalau ketiganya tidak terpenuhi — misalnya sekadar gelas tertinggal atau kertas jatuh — '+
+   'biasanya bisa kita bantu rapikan sendiri sebagai sesama penghuni gedung.</div></div>';
+}
+/* Aksi Mandiri: satu ketukan, bukan formulir. Semakin ringan mencatatnya,
+   semakin besar peluang kebiasaannya benar-benar berpindah. */
+function selfCareAsk(){
+ var judul=((document.getElementById("ct-title")||{}).value||"").trim();
+ var lok=((document.getElementById("ct-loc")||{}).value||"").trim();
+ var kat=((document.getElementById("ct-cat")||{}).value||"");
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div style="font-weight:800;color:var(--ink);font-size:calc(16px*var(--fz))">✋ Aksi Mandiri</div>'+
+   '<div class="muted small" style="margin-top:4px">Tercatat atas nama Anda — bukan tiket, tidak membebani antrean operator</div></div>'+
+  '<div class="db">'+
+   '<div class="field"><label>Apa yang Anda bantu rapikan?</label>'+
+     '<input id="sc-apa" value="'+esc(judul)+'" placeholder="mis. memungut gelas & tisu di pantry lt.3"/></div>'+
+   '<div class="field"><label>Lokasi</label><input id="sc-lok" value="'+esc(lok)+'" placeholder="Gedung / lantai / ruang"/></div>'+
+   '<input type="hidden" id="sc-kat" value="'+esc(kat)+'">'+
+   '<div class="ct-krit-f" style="margin:0 0 12px">Kalau ternyata di luar jangkauan Anda atau berisiko, tutup saja panel ini dan lanjutkan membuat tiket — itu memang haknya.</div>'+
+   '<button class="btn-act" style="width:100%" onclick="selfCareSubmit()">✓ Catat Aksi Mandiri Saya</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+ setTimeout(function(){ var x=document.getElementById("sc-apa"); if(x)x.focus(); },80);
+}
+function selfCareSubmit(){
+ var apa=((document.getElementById("sc-apa")||{}).value||"").trim();
+ if(apa.length<3){ alert("Tuliskan sebentar apa yang Anda rapikan."); return; }
+ var rec={id:"SC-"+nowMs()+"-"+Math.round(performance.now()%1000),
+   by:(gUser&&gUser.name)||"—", email:(gUser&&gUser.email)||"",
+   apa:apa, lokasi:((document.getElementById("sc-lok")||{}).value||"").trim(),
+   cat:((document.getElementById("sc-kat")||{}).value||""), at:nowStamp(), ms:nowMs()};
+ SELFCARE.push(rec); selfCarePersist(); selfCareSave(rec);
+ try{ auditLog("aksi-mandiri", rec.apa+(rec.lokasi?" · "+rec.lokasi:"")); }catch(e){}
+ closeDrawer();
+ var n=selfCareSaya().length;
+ try{ renderService(); renderMobileHome(); }catch(e){}
+ go("service");
+ alert("🙏 Terima kasih, "+((gUser&&gUser.name)||"")+".\n\n\""+apa+"\" tercatat sebagai Aksi Mandiri Anda"+
+   (n>1?" — yang ke-"+n:"")+".\n\nTidak ada tiket dibuat, jadi operator bisa fokus ke hal yang benar-benar mengganggu.");
+}
+/* Ukuran perubahan budaya — inilah angka yang dibawa ke pimpinan.
+   Bukan "berapa tiket ditolak", tapi "berapa yang selesai tanpa perlu tiket". */
+/* Kartu di modul Services. Pengguna biasa melihat kontribusinya sendiri;
+   kelompok Super melihat seluruh gedung + rasio budayanya. */
+function selfCarePanelHTML(){
+ var sup=isSuper(), daftar=sup?SELFCARE.slice():selfCareSaya();
+ if(!daftar.length && !sup) return "";
+ var r=selfCareRasio();
+ var akhir=daftar.slice().sort(function(a,b){ return (b.ms||0)-(a.ms||0); }).slice(0,5);
+ return '<div class="card pad sc-card" style="margin-bottom:18px">'+
+   '<div class="sc-top"><span class="sc-big">'+daftar.length+'</span>'+
+     '<div style="flex:1;min-width:180px"><div class="panel-t" style="margin:0">✋ Aksi Mandiri'+(sup?' — seluruh gedung':' Saya')+'</div>'+
+       '<div class="muted small">Hal ringan yang diselesaikan sendiri tanpa perlu tiket — operator jadi bisa fokus ke yang benar-benar mengganggu.</div></div>'+
+     (sup&&r.pct!=null?'<div style="text-align:right"><div style="font-size:calc(20px*var(--fz));font-weight:800;color:#0b5a35">'+r.pct+'%</div>'+
+       '<div class="muted small">rasio swalayan bulan ini<br>'+r.aksi+' mandiri · '+r.ringan+' tiket ringan</div></div>':'')+
+   '</div>'+
+   (akhir.length?'<div class="sc-rows">'+akhir.map(function(x){
+      return '<div class="sc-row"><b>'+esc(sup?(x.by||"—"):"✋")+'</b><span>'+esc(x.apa||"")+
+        (x.lokasi?' · '+esc(x.lokasi):'')+'</span><i>'+esc(x.at||"")+'</i></div>';
+    }).join("")+'</div>'
+   :'<div class="muted small">Belum ada yang tercatat bulan ini.</div>')+
+ '</div>';
+}
+function selfCareRasio(){
+ var bulan=new Date(); bulan.setDate(1); bulan.setHours(0,0,0,0);
+ var m=bulan.getTime();
+ var aksi=SELFCARE.filter(function(x){ return (x.ms||0)>=m; }).length;
+ var ringan=TICKETS.filter(function(t){ return t.swalayan && goLiveMs(t)>=m; }).length;
+ var total=aksi+ringan;
+ return {aksi:aksi, ringan:ringan, pct: total?Math.round(aksi/total*100):null};
+}
+
 function renderCreateTicket(){
  const cats=KATEGORI8;
  document.getElementById("page-createticket").innerHTML=`
@@ -9465,12 +9698,14 @@ function renderCreateTicket(){
   <div class="card pad" style="max-width:660px">
     <div class="panel-t" style="font-size:calc(15px*var(--fz))">New Service Ticket</div>
     <div class="vp-note">Fill the details below. After submit, the ticket is listed in the Service module.</div>
-    <div class="field"><label>Title</label><input id="ct-title" placeholder="e.g. AC not cooling — Meeting Room 6B"/></div>
+    ${ctKriteriaHTML()}
+    <div class="field"><label>Title</label><input id="ct-title" placeholder="e.g. AC not cooling — Meeting Room 6B" oninput="ctCerminSync()"/></div>
+    <div id="ctCerminSlot"></div>
     <div class="two" style="gap:0 16px"><div class="field"><label>Category</label><select id="ct-cat">${cats.map(c=>`<option>${c}</option>`).join("")}</select></div>
     <div class="field"><label>Priority</label><select id="ct-prio"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></div></div>
     <div class="two" style="gap:0 16px"><div class="field"><label>Location</label><input id="ct-loc" placeholder="Building / floor / room"/></div>
     <div class="field"><label>Requester</label><input id="ct-req" value="${gUser?gUser.name:''}" disabled style="background:#f1f4f8;color:var(--muted)"/></div></div>
-    <div class="field"><label>Description <span class="muted small">(dibaca operator sebelum mengambil tiket)</span></label><textarea id="ct-desc" rows="3" placeholder="Jelaskan masalahnya: apa yang rusak/dibutuhkan, sejak kapan, dampaknya…"></textarea></div>
+    <div class="field"><label>Description <span class="muted small">(dibaca operator sebelum mengambil tiket)</span></label><textarea id="ct-desc" rows="3" placeholder="Jelaskan masalahnya: apa yang rusak/dibutuhkan, sejak kapan, dampaknya…" oninput="ctCerminSync()"></textarea></div>
     <div class="field"><label>Catatan tambahan <span class="muted small">(opsional)</span></label><textarea id="ct-note" rows="2" placeholder="mis. akses lewat pintu belakang · hubungi Pak Budi 0812xxxx · hanya bisa dikerjakan setelah jam 17.00"></textarea></div>
     <div class="field"><label>Lampiran Foto <span class="muted small">(maks ${CT_PHOTO_MAX} foto — sangat membantu operator)</span></label>
       <label class="fo-cam"><input type="file" accept="image/*" multiple onchange="ctPhotoPick(this)"/>
@@ -9480,6 +9715,7 @@ function renderCreateTicket(){
     <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-act" onclick="submitTicket()">Submit Ticket</button>${draftBtn('createticket')}<button class="btn-out" onclick="go('service')">Cancel</button></div>
   </div>`;
  window._ctPhoto={imgs:[]}; ctPhotoRender();
+ window._ctCerminOff=false; ctCerminSync();
 }
 /* ── Lampiran foto dari PEMOHON saat membuat tiket ──
    Dikompres (maks 1000px, JPEG q0.7) lalu diunggah ke Firebase Storage supaya
@@ -12812,7 +13048,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-125";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-126";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -12903,6 +13139,18 @@ function dbInit(){
     }
     AGDB.ticketsInit=true;
   },err=>{ AGDB.on=false; dbPill("Database: rules tertutup — mode lokal",false); console.warn("AGDB rules/err:",err&&err.code); });
+  /* Aksi Mandiri — dikumpulkan lintas perangkat supaya rasio swalayannya utuh */
+  AGDB.db.collection("agava_selfcare").limit(500).onSnapshot(snap=>{
+    let ubah=false;
+    snap.docChanges().forEach(ch=>{
+      const d=ch.doc.data(); d.id=d.id||ch.doc.id;
+      const i=SELFCARE.findIndex(x=>x.id===d.id);
+      if(ch.type==="removed"){ if(i>=0){SELFCARE.splice(i,1);ubah=true;} }
+      else if(i>=0){ Object.assign(SELFCARE[i],d); ubah=true; }
+      else { SELFCARE.push(d); ubah=true; }
+    });
+    if(ubah){ selfCarePersist(); try{ renderService(); }catch(e){} }
+  },err=>{ console.warn("selfcare rules/err:",err&&err.code); });
   /* SO — sinkron antar perangkat (list, approval, PDCA review semua satu sumber) */
   AGDB.db.collection("agava_so").limit(400).onSnapshot(snap=>{
     AGDB.soEcho=AGDB.soEcho||{};
@@ -14102,7 +14350,7 @@ function renderParams(){
  paramPreview();
 }
 
-loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();rmdLoad();try{ rmdSweep(); }catch(e){}try{ sessionClear(); }catch(e){}   /* selalu mulai dari halaman Login — sesi tidak pernah dipulihkan */
+loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();selfCareLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();rmdLoad();try{ rmdSweep(); }catch(e){}try{ sessionClear(); }catch(e){}   /* selalu mulai dari halaman Login — sesi tidak pernah dipulihkan */
 </script>
 </body>
 </html>
