@@ -1099,6 +1099,25 @@ tr.bl-trsep td{background:#f2f6fb;padding:8px 16px;font-size:calc(11.5px*var(--f
   letter-spacing:.03em;text-transform:uppercase;border-bottom:1px solid var(--line)}
 tr.bl-trsep td span{font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
 tr.bl-trsep:hover td{background:#f2f6fb}
+/* ── SO ditolak: alasan, perbaikan yang diminta, riwayat revisi ── */
+.so-tolak{background:#fdf3f3;border:1px solid #f0d7d7;border-left:4px solid #dc2626;border-radius:11px;
+  padding:11px 13px;margin:12px 0;font-size:calc(12.5px*var(--fz));color:#7a2020;line-height:1.55}
+.so-tolak.batal{background:#f6f7f9;border-color:#e0e4ea;border-left-color:#7c8798;color:#3d4756}
+.so-tolak b{display:block;color:var(--ink);font-size:calc(13px*var(--fz));margin-bottom:5px}
+.so-tolak u{text-decoration:none;font-weight:700;color:#8c3030}
+.so-tolak.batal u{color:#4a5563}
+.so-tolak i{display:block;font-style:normal;font-size:calc(10.5px*var(--fz));color:#9aa7b8;margin-top:5px}
+.so-revlog{background:#f7fafd;border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin:12px 0;
+  font-size:calc(12px*var(--fz));color:var(--ink);line-height:1.5}
+.so-revlog b{display:block;font-size:calc(12.5px*var(--fz));margin-bottom:7px}
+.so-revrow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px dashed var(--line)}
+.so-revrow span{flex:0 0 auto;font-weight:800;color:#0a4bb8;background:#eef5ff;border-radius:6px;padding:2px 8px;font-size:calc(10.5px*var(--fz))}
+.so-revrow u{text-decoration:none;font-weight:700;color:var(--muted)}
+.so-rev-badge{font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.04em;background:#eef5ff;color:#0a4bb8;
+  border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:middle}
+.so-perbaiki{background:#fff8e8;border:1px solid #f0dcb4;border-left:4px solid #d99b1c;border-radius:11px;
+  padding:12px 14px;margin-bottom:14px;font-size:calc(12.5px*var(--fz));color:#6b5310;line-height:1.55}
+.so-perbaiki b{display:block;color:var(--ink);font-size:calc(13.5px*var(--fz));margin-bottom:5px}
 
 table{width:100%;border-collapse:collapse;font-size:calc(13px*var(--fz))}
 thead th{text-align:left;padding:12px 14px;font-size:calc(11px*var(--fz));text-transform:uppercase;letter-spacing:.5px;
@@ -6043,7 +6062,9 @@ function soDocHTML(s){
  '<div class="sod-kepada">KEPADA,<br><b>GENERAL AFFAIRS DEPT.</b></div>'+
  '<div class="sod-meta"><div class="sod-metaL">'+
      '<div>DEPT./DIV : '+esc(s.deptDiv||'GENERAL AFFAIR')+'</div><div>KATEGORI : <b>'+esc(s.kategori||'-')+'</b></div><div>COST CENTER : '+SO_COST_CENTER+'</div><div>FUP by : <span class="sod-fup">'+esc(fup)+'</span></div></div>'+
-   '<div class="sod-metaR"><div>NO : '+(s.no||'-')+'</div><div>TANGGAL : '+soDocDateStr()+'</div></div></div>'+
+   /* Nomor SO tidak berubah saat direvisi — REV-nya yang membedakan versi, jadi
+      dokumen tercetak selalu jelas versi keberapa yang disetujui. */
+   '<div class="sod-metaR"><div>NO : '+(s.no||'-')+(s.rev?' <b>REV.'+s.rev+'</b>':'')+'</div><div>TANGGAL : '+soDocDateStr()+'</div></div></div>'+
  '<table class="sod-tbl"><thead><tr><th>NO</th><th>URAIAN BARANG</th><th>SATUAN</th><th>DALAM<br>BUDGET</th><th>DILUAR<br>BUDGET</th><th>JUMLAH</th><th>REALISASI</th><th>KETERANGAN</th></tr></thead><tbody>'+rows+'</tbody></table>'+
  '<div class="sod-sign">'+
    '<div class="sod-sigcol"><div class="sod-siglbl">DISETUJUI OLEH</div><div class="sod-sigimg">'+(deptOk?soSigMark(dept,s.tsf&&s.tsf.dept):'<span class="sod-pending">menunggu approval Dept Head</span>')+'</div><div class="sod-signame">'+dept.label+'</div><div class="sod-sigrole">'+dept.role+'</div></div>'+
@@ -6303,6 +6324,84 @@ function soStatusLabel(s){var p=soPhase(s);
 function soPip(s){var p=soPhase(s);return (p==="rejected")?"#dc2626":(p==="work")?"#2563eb":(p==="pay")?"#7a4fd0":(p==="section"||p==="budget"||p==="proc"||p==="dept")?"#c2740a":"#15a34a";}
 
 /* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SO DITOLAK — DUA JALAN KELUAR, TIDAK BOLEH MENGGANTUNG                  ║
+   ║  Sebelumnya SO yang ditolak Section/Dept Head hanya berlabel "Rejected"  ║
+   ║  lalu diam selamanya di daftar: tidak bisa diapa-apakan, tidak bisa      ║
+   ║  ditutup, dan ikut mengotori hitungan SO berjalan.                       ║
+   ║                                                                          ║
+   ║  Keputusan (Sudana, 28 Jul 2026): pemohon TIDAK membuat SO baru.         ║
+   ║    1. REVISI  → nomor SO TETAP, naik Rev.1 → Rev.2 … Satu kebutuhan =    ║
+   ║       satu nomor, jadi riwayat "kenapa ditolak & apa yang diperbaiki"    ║
+   ║       tetap menempel pada dokumen yang sama. Membuat nomor baru akan     ║
+   ║       memutus jejak itu dan membuat daftar penuh SO kembar.              ║
+   ║    2. BATALKAN → kebutuhannya memang gugur; SO ditutup dengan alasan     ║
+   ║       dan keluar dari daftar aktif (tetap bisa dilihat di tab Ditolak).  ║
+   ║                                                                          ║
+   ║  Revisi mengulang rantai DARI GERBANG AWAL. Alasannya: Section & Budget  ║
+   ║  dulu menyetujui isi yang LAMA — versi barunya belum pernah mereka       ║
+   ║  lihat, jadi tanda tangannya tidak boleh diwariskan begitu saja.         ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function soDitolak(s){ return !!(s && (s.apprSection==="Rejected"||s.apprDept==="Rejected")); }
+function soAktif(s){ return !!s && !s.batal && !soDitolak(s); }
+function soPemohon(s){ return (s&&(s.requester||s.req))||""; }
+function soBolehRevisi(s){
+ if(!s||s.batal||!soDitolak(s)) return false;
+ if(isOwner()) return true;
+ var me=(gUser&&gUser.name)||"";
+ return !!me && soPemohon(s)===me;
+}
+/* Ringkasan penolakan + riwayat revisi — dipakai di drawer & form revisi */
+function soTolakHTML(s){
+ if(!s) return "";
+ var h="";
+ if(s.batal){
+   h+='<div class="so-tolak batal"><b>🗑 SO dibatalkan</b>'+
+     '<div>'+esc(s.batalAlasan||"tanpa alasan")+'</div>'+
+     '<i>oleh '+esc(s.batalOleh||"—")+' · '+esc(s.batalAt||"")+'</i></div>';
+ } else if(soDitolak(s)&&s.reject){
+   h+='<div class="so-tolak"><b>⛔ Ditolak '+esc(s.reject.gate==="dept"?"GA Dept Head":"Section Head")+
+     ' — '+esc(s.reject.by||"")+'</b>'+
+     '<div><u>Alasan</u>: '+esc(s.reject.alasan||"")+'</div>'+
+     '<div><u>Yang harus diperbaiki</u>: '+esc(s.reject.perbaikan||"")+'</div>'+
+     '<i>'+esc(s.reject.at||"")+'</i></div>';
+ }
+ var log=(s&&Array.isArray(s.revLog))?s.revLog:[];
+ if(log.length){
+   h+='<div class="so-revlog"><b>🔁 Riwayat revisi ('+log.length+')</b>'+
+     log.map(function(r){
+       return '<div class="so-revrow"><span>Rev.'+r.rev+'</span><div>'+
+         '<u>Ditolak</u> '+esc(r.ditolakOleh||"—")+': '+esc(r.alasan||"")+'<br>'+
+         '<u>Diperbaiki</u> '+esc(r.revisiOleh||"—")+' ('+esc(r.revisiAt||"")+'): '+esc(r.revisiCatatan||"")+
+         '</div></div>';
+     }).join("")+'</div>';
+ }
+ return h;
+}
+function soRevisiMulai(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ if(!soBolehRevisi(s)){ alert("⛔ Hanya pemohon SO ini ("+(soPemohon(s)||"—")+") atau Owner yang dapat merevisinya."); return; }
+ closeDrawer();
+ window._soRevisi=no;
+ go("createso");
+}
+function soBatal(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ if(!soBolehRevisi(s)){ alert("⛔ Hanya pemohon SO ini atau Owner yang dapat membatalkannya."); return; }
+ var a=prompt("Batalkan "+no+" — kebutuhannya tidak jadi diteruskan.\n\nAlasan pembatalan (tercatat di dokumen & jejak audit):","");
+ if(a===null) return;
+ a=String(a).trim();
+ if(a.length<5){ alert("Alasan pembatalan minimal 5 karakter."); return; }
+ closeDrawer();
+ s.batal=true; s.batalAlasan=a; s.batalOleh=(gUser&&gUser.name)||""; s.batalAt=nowStamp();
+ soPersist();
+ try{ auditLog("so-batal", no+" · "+a); }catch(e){}
+ NOTIFS.unshift({ic:"🗑",t:"SO dibatalkan — "+no,d:(s.item||"")+" · "+a,
+   at:nowStamp(), sev:"info", nav:"procurement", done:false, nama:soPemohon(s)});
+ renderProc(); renderApprovals(); renderReminder(); updateBell();
+ alert("🗑 "+no+" dibatalkan.\n\nIa keluar dari daftar SO aktif dan pindah ke tab \"Ditolak & Batal\" — datanya tetap tersimpan.");
+}
+
+/* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  IMPOR LAMPIRAN SO — tempelkan foto & PDF ke SO yang SUDAH ADA           ║
    ║  Untuk berkas yang lahir di luar AGAVA: SO yang dibuat manual admin GA,  ║
    ║  hasil scan, foto kondisi lapangan yang tersimpan di Excel/HP.           ║
@@ -6479,17 +6578,26 @@ function procSetBulan(k){ procBulan=k; renderProc(); }
 function renderProc(){
  const el=document.getElementById("page-procurement");
  const ap=s=>s.apprDept==="Approved";
- const berjalan=SO.length;
+ /* "SO Ongoing" = yang benar-benar berjalan. SO ditolak & dibatalkan tidak ikut
+    dihitung — dulu keduanya masuk sehingga angka pipeline selalu kelebihan. */
+ const berjalan=SO.filter(soAktif).length;
  const upr=SO.filter(s=>ap(s)&&s.wstep>=2).length;
  const spk=SO.filter(s=>ap(s)&&s.wstep>=3).length;
  const bast=SO.filter(s=>ap(s)&&s.wstep>=4).length;
+ /* SO ditolak & dibatalkan punya tabnya sendiri dan TIDAK ikut mengotori tab
+    kerja — dulu ia menetap di "All" tanpa bisa diapa-apakan. */
+ const macet=s=>soDitolak(s)||s.batal;
  let list=SO.filter(s=>{
+   if(procFilter==="tolak")return macet(s);
+   if(macet(s))return false;
    if(procFilter==="all")return true;
    if(procFilter==="pre")return !ap(s)||s.wstep<2;
    if(procFilter==="upr")return ap(s)&&s.wstep>=2&&s.wstep<3;
    if(procFilter==="spk")return ap(s)&&s.wstep===3;
    if(procFilter==="bast")return ap(s)&&s.wstep>=4;
  });
+ const nMacet=SO.filter(macet).length;
+ const perluRevisi=SO.filter(s=>soDitolak(s)&&!s.batal&&soBolehRevisi(s)).length;
  /* Dipilah per bulan agar tidak ada gulungan ratusan baris. */
  const grup=kelompokBulan(list);
  const selB=bulanTerpilih(grup,procBulan);
@@ -6504,12 +6612,16 @@ function renderProc(){
  </div>
 
  <div class="proc-tabs">
-   <div class="ptab ${procFilter==='all'?'on':''}" onclick="procFilter='all';renderProc()">All <b>${SO.length}</b></div>
+   <div class="ptab ${procFilter==='all'?'on':''}" onclick="procFilter='all';renderProc()">All <b>${SO.filter(x=>!macet(x)).length}</b></div>
    <div class="ptab ${procFilter==='pre'?'on':''}" onclick="procFilter='pre';renderProc()">SO & Sourcing</div>
    <div class="ptab ${procFilter==='upr'?'on':''}" onclick="procFilter='upr';renderProc()">UPR Stage</div>
    <div class="ptab ${procFilter==='spk'?'on':''}" onclick="procFilter='spk';renderProc()">SPK & Execution</div>
    <div class="ptab ${procFilter==='bast'?'on':''}" onclick="procFilter='bast';renderProc()">BAST & Invoice</div>
+   ${nMacet?`<div class="ptab ${procFilter==='tolak'?'on':''}" onclick="procFilter='tolak';renderProc()" title="SO yang ditolak (perlu revisi) & yang dibatalkan">⛔ Ditolak & Batal <b>${nMacet}</b></div>`:''}
  </div>
+ ${perluRevisi?`<div class="so-perbaiki" style="margin-bottom:14px"><b>✏️ ${perluRevisi} SO Anda ditolak dan menunggu perbaikan</b>
+   Buka SO-nya di tab <b>⛔ Ditolak &amp; Batal</b> → tekan <b>Revisi &amp; Kirim Ulang</b>. Nomornya tetap sama;
+   Anda tidak perlu membuat SO baru. Kalau kebutuhannya memang gugur, tekan <b>Batalkan</b> supaya tidak menggantung.</div>`:''}
 
  ${bulanStripHTML(grup,selB,"procSetBulan")}
  <div class="card" style="overflow-x:auto">
@@ -6517,12 +6629,12 @@ function renderProc(){
      <th>Item</th><th>PIC</th><th>Value</th><th>Approver</th><th>Stage</th><th>Status</th>
    </tr></thead><tbody>
    ${tampil.map(G=>`<tr class="bl-trsep"><td colspan="6">${bulanSepText(G,"SO")}</td></tr>`+G.rows.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;return `<tr onclick="openDrawer('${s.no}')">
-     <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0"><div class="so-no-sm">${s.no}</div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span><span style="color:#9aa7b8">🕒 dibuat ${recCreatedLabel(s)}</span>
+     <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0"><div class="so-no-sm">${s.no}${s.rev?`<span class="so-rev-badge">REV.${s.rev}</span>`:''}</div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span><span style="color:#9aa7b8">🕒 dibuat ${recCreatedLabel(s)}</span>
         ${soMiniPips(s)}</div></div></td>
      <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
      <td class="nilai">Rp ${s.nilai} M</td>
      <td><span class="badge bd-neu">${tier(s.nilai)}</span></td>
-     <td><div class="so-stage"><span class="badge ${st.c}">${st.t}</span>${`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>`}</div></td>
+     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span>${`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>`}${soBolehRevisi(s)?`<button class="so-pdf" style="border-color:#f0dcb4;background:#fff8e8;color:#8a5a00" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama">✏️ Revisi</button>`:''}</div></td>
      <td>${agingBadge(s.aging)}</td>
    </tr>`}).join("")).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'}</td></tr>`}
    </tbody></table>
@@ -6540,10 +6652,16 @@ function openDrawer(no){
  const steps=LIFECYCLE.map((L,i)=>({...L, cls: i===pr.rej?"rejected":(i<pr.p?"done":(i===pr.p?"active":"pending"))}));
  d.innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button>
-    <div class="sono" style="font-size:calc(16px*var(--fz))">${s.no}</div>
+    <div class="sono" style="font-size:calc(16px*var(--fz))">${s.no}${s.rev?`<span class="so-rev-badge">REV.${s.rev}</span>`:''}</div>
     <div style="font-size:calc(15px*var(--fz));color:var(--ink);font-weight:700;margin-top:6px;line-height:1.4">${s.item}</div>
   </div>
   <div class="db">
+    ${soTolakHTML(s)}
+    ${soBolehRevisi(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="btn-act" style="flex:1 1 200px" onclick="soRevisiMulai('${s.no}')">✏️ Revisi &amp; Kirim Ulang</button>
+      <button class="btn-out" style="flex:0 1 auto" onclick="soBatal('${s.no}')">🗑 Batalkan SO</button></div>
+      <div class="muted small" style="margin:-8px 0 14px;line-height:1.5">Nomor SO tidak berubah saat direvisi — Anda tidak perlu membuat SO baru.</div>`
+     :(soDitolak(s)&&!s.batal?`<div class="muted small" style="margin-bottom:14px;line-height:1.5">Menunggu <b>${esc(soPemohon(s)||"pemohon")}</b> memperbaiki dan mengirim ulang SO ini.</div>`:'')}
     <div class="kv">
       <span class="k">Requester</span><span class="v">${s.req}</span>
       <span class="k">Proc PIC</span><span class="v">${s.pic||'— unassigned'}</span>
@@ -10031,37 +10149,55 @@ function rbIdleNo(roomId){
 /* Create SO — full page */
 /* Satuan mengikuti kolom SATUAN pada formulir Supply Order Astra */
 const SO_SATUAN=["Pc","Unit","Set","Box","Pack","Roll","Lembar","Meter","Kg","Liter","Lot","Ls"];
-function soItemRow(h){ return `<tr>
-  <td><input data-k="item" placeholder="${h?'mis. Lampu LED 3000K':''}"/></td>
-  <td><input data-k="spec" placeholder="${h?'spesifikasi':''}"/></td>
-  <td><select data-k="satuan">${SO_SATUAN.map(u=>`<option>${u}</option>`).join("")}</select></td>
-  <td><input data-k="qty" placeholder="${h?'10':''}"/></td>
-  <td><input data-k="lokasi" placeholder="${h?'AMDI Lt.3 Pantry':''}"/></td>
-  <td><input data-k="ket" placeholder="${h?'mis. ganti unit rusak':''}"/></td>
+/* r = isi awal baris (dipakai mode revisi: baris terisi data SO lama) */
+function soItemRow(h,r){ r=r||{}; return `<tr>
+  <td><input data-k="item" value="${esc(r.item||'')}" placeholder="${h?'mis. Lampu LED 3000K':''}"/></td>
+  <td><input data-k="spec" value="${esc(r.spec||'')}" placeholder="${h?'spesifikasi':''}"/></td>
+  ${/* satuan lama yang tidak ada di daftar tetap ditawarkan, supaya revisi tidak
+       diam-diam mengubah satuan yang sudah disetujui sebelumnya */''}
+  <td><select data-k="satuan">${((r.satuan&&SO_SATUAN.indexOf(r.satuan)<0)?[r.satuan]:[]).concat(SO_SATUAN)
+      .map(u=>`<option${r.satuan===u?" selected":""}>${esc(u)}</option>`).join("")}</select></td>
+  <td><input data-k="qty" value="${esc(String(r.qty||''))}" placeholder="${h?'10':''}"/></td>
+  <td><input data-k="lokasi" value="${esc(r.lokasi||'')}" placeholder="${h?'AMDI Lt.3 Pantry':''}"/></td>
+  <td><input data-k="ket" value="${esc(r.ket||'')}" placeholder="${h?'mis. ganti unit rusak':''}"/></td>
   <td><button type="button" class="so-rm" onclick="this.closest('tr').remove()">✕</button></td></tr>`; }
 function addSOItem(){ document.getElementById('so-items').insertAdjacentHTML('beforeend', soItemRow(false)); }
 function renderCreateSO(){
  const who=gUser?gUser.name:"—";
+ /* Form ini berperan ganda: membuat SO baru, ATAU merevisi SO yang ditolak.
+    Mode revisi dipicu window._soRevisi — form yang sama, terisi data lama,
+    nomornya tidak berubah. Pemohon tidak perlu mengetik ulang dari nol. */
+ const rev=window._soRevisi?SO.find(x=>x.no===window._soRevisi):null;
+ if(window._soRevisi&&!rev) window._soRevisi=null;
+ const nRev=rev?((rev.rev||0)+1):0;
  document.getElementById("page-createso").innerHTML=`
-  <div class="pg-back" style="margin-bottom:16px"><button class="btn-out" onclick="go('procurement')">← Back to Procurement</button></div>
+  <div class="pg-back" style="margin-bottom:16px"><button class="btn-out" onclick="soRevisiBatal()">← Back to Procurement</button></div>
   <div class="card pad" style="max-width:680px">
-    <div class="panel-t" style="font-size:calc(15px*var(--fz))">New Supply Order</div>
-    <div class="vp-note">After submit, the SO is routed to <b>PIC Budget</b> → PIC Procurement → Dept Head for approval.</div>
+    <div class="panel-t" style="font-size:calc(15px*var(--fz))">${rev?`Revisi Supply Order — ${esc(rev.no)} <span class="so-rev-badge">REV.${nRev}</span>`:"New Supply Order"}</div>
+    ${rev?soTolakHTML(rev)+
+      `<div class="so-perbaiki"><b>✏️ Perbaiki lalu kirim ulang — nomornya tetap ${esc(rev.no)}</b>
+        Isian di bawah sudah terisi data SO lama; ubah yang perlu saja. Setelah dikirim, SO berjalan
+        <b>lagi dari gerbang Section Head</b> — karena isinya berubah, persetujuan atas versi lama tidak diwariskan.</div>
+       <div class="field"><label>Apa yang Anda perbaiki? <span style="color:var(--red)">*</span> <span class="muted small">— dibaca approver</span></label>
+        <textarea id="so-rev-note" rows="3" placeholder="mis. Qty diturunkan dari 10 → 4 unit sesuai catatan Dept Head, dan harga disesuaikan penawaran vendor"></textarea></div>`
+     :`<div class="vp-note">After submit, the SO is routed to <b>PIC Budget</b> → PIC Procurement → Dept Head for approval.</div>`}
     <div class="two" style="gap:0 16px">
-      <div class="field"><label>Requester</label><input value="${who}" disabled style="background:#f1f4f8;color:var(--muted)"/><div class="hint" style="font-size:calc(11px*var(--fz));color:var(--muted-2,#9aa7b8)">auto-filled from your login</div></div>
-      <div class="field"><label>Dept / Divisi <span class="muted small">(muncul di dokumen SO)</span></label><input id="so-deptdiv" placeholder="mis. GENERAL AFFAIR" value="GENERAL AFFAIR"/></div>
+      <div class="field"><label>Requester</label><input value="${esc(rev?soPemohon(rev):who)}" disabled style="background:#f1f4f8;color:var(--muted)"/><div class="hint" style="font-size:calc(11px*var(--fz));color:var(--muted-2,#9aa7b8)">${rev?"pemohon asli SO ini — tidak berubah saat revisi":"auto-filled from your login"}</div></div>
+      <div class="field"><label>Dept / Divisi <span class="muted small">(muncul di dokumen SO)</span></label><input id="so-deptdiv" placeholder="mis. GENERAL AFFAIR" value="${esc((rev&&rev.deptDiv)||"GENERAL AFFAIR")}"/></div>
     </div>
     <div class="two" style="gap:0 16px">
-      <div class="field"><label>Lokasi <span class="muted small">(site — jadi default lokasi item)</span></label><select id="so-lokasi"><option>AMDI</option><option>MA</option><option>ABC BSD</option><option>ABC BDG</option></select></div>
-      <div class="field"><label>Kategori</label><select id="so-cat">${KATEGORI8.map(c=>`<option>${c}</option>`).join("")}</select></div>
+      <div class="field"><label>Lokasi <span class="muted small">(site — jadi default lokasi item)</span></label><select id="so-lokasi">${["AMDI","MA","ABC BSD","ABC BDG"].map(x=>`<option${rev&&rev.lokasi===x?" selected":""}>${x}</option>`).join("")}</select></div>
+      <div class="field"><label>Kategori</label><select id="so-cat">${KATEGORI8.map(c=>`<option${rev&&rev.kategori===c?" selected":""}>${c}</option>`).join("")}</select></div>
     </div>
     <div class="field"><label>Daftar Item Permintaan <span class="muted small">(Satuan, Lokasi &amp; Keterangan ikut tercetak di Dokumen SO)</span></label>
-      <div class="so-itbl-wrap"><table class="so-itbl"><thead><tr><th class="c-item">Item</th><th class="c-spec">Spesifikasi</th><th class="c-sat">Satuan</th><th class="c-qty">Qty</th><th class="c-lok">Lokasi</th><th class="c-ket">Keterangan</th><th></th></tr></thead><tbody id="so-items">${Array.from({length:5},(_,i)=>soItemRow(i===0)).join("")}</tbody></table></div>
+      <div class="so-itbl-wrap"><table class="so-itbl"><thead><tr><th class="c-item">Item</th><th class="c-spec">Spesifikasi</th><th class="c-sat">Satuan</th><th class="c-qty">Qty</th><th class="c-lok">Lokasi</th><th class="c-ket">Keterangan</th><th></th></tr></thead><tbody id="so-items">${
+        rev ? ((rev.items||[]).map(r=>soItemRow(false,r)).join("")+soItemRow(false)+soItemRow(false))
+            : Array.from({length:5},(_,i)=>soItemRow(i===0)).join("")}</tbody></table></div>
       <button type="button" class="btn-out" style="margin-top:8px;padding:7px 13px;font-size:calc(12.5px*var(--fz))" onclick="addSOItem()">+ Tambah Item</button>
     </div>
     <div class="two" style="gap:0 16px">
-      <div class="field"><label>Budget tersedia?</label><select id="so-budget"><option>Yes</option><option>No</option></select></div>
-      <div class="field"><label>Estimasi (Rp juta)</label><input id="so-nilai" type="number" placeholder="e.g. 18"/></div>
+      <div class="field"><label>Budget tersedia?</label><select id="so-budget">${["Yes","No"].map(x=>`<option${rev&&rev.budgetFlag===x?" selected":""}>${x}</option>`).join("")}</select></div>
+      <div class="field"><label>Estimasi (Rp juta)</label><input id="so-nilai" type="number" placeholder="e.g. 18" value="${rev?esc(String(rev.nilai||"")):""}"/></div>
     </div>
     <div class="field"><label>Lampiran (foto & dokumen PDF pendukung)</label>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -10073,9 +10209,12 @@ function renderCreateSO(){
       <input type="file" id="so-cam" accept="image/*" capture="environment" style="display:none" onchange="soAttName(this)"/>
       <div class="hint" style="font-size:calc(11px*var(--fz));color:#9aa7b8;margin-top:6px">📎 Foto (spek, kondisi) & <b>dokumen PDF</b> (mis. Working Request / data stok) — file PDF pendukung akan otomatis <b>dijahit ke dalam Dokumen SO PDF</b> yang diunduh.</div>
     </div>
-    <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap"><button class="btn-act" onclick="submitSO()">Submit SO</button>${draftBtn('createso')}<button class="btn-out" onclick="go('procurement')">Cancel</button></div>
+    <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap"><button class="btn-act" onclick="submitSO()">${rev?`🔁 Kirim Ulang sebagai Rev.${nRev}`:"Submit SO"}</button>${rev?"":draftBtn('createso')}<button class="btn-out" onclick="soRevisiBatal()">Cancel</button></div>
   </div>`;
 }
+/* Keluar dari form — mode revisi harus dilepas, kalau tidak form berikutnya
+   ikut terbuka dalam mode revisi SO yang sama. */
+function soRevisiBatal(){ window._soRevisi=null; go('procurement'); }
 function soAttName(inp){ const n=inp.files.length; const el=document.getElementById('so-att-name'); if(el) el.textContent = n? (n+" file: "+Array.from(inp.files).map(f=>f.name).join(", ")) : "Belum ada file"; }
 async function submitSO(){
  const rows=Array.from(document.querySelectorAll('#so-items tr')).map(tr=>{
@@ -10091,6 +10230,8 @@ async function submitSO(){
  const nilai=parseFloat(document.getElementById("so-nilai").value)||0;
  const req=gUser?gUser.name:"—";
  const itemStr=rows.map(r=>r.item+(r.qty?` (${r.qty}${r.satuan?' '+r.satuan:''})`:"")).join(", ");
+ /* ── MODE REVISI: perbarui SO yang SAMA, jangan lahirkan nomor baru ── */
+ if(window._soRevisi){ await soRevisiSubmit(rows,{lokasi,kat,deptDiv,budget,nilai,itemStr}); return; }
  let att=await soReadAttachments();   // {images, pdfs} — foto utk grid Lampiran, PDF dijahit ke Dokumen SO
  // Create in-app, then trigger the Power Automate flow for Procurement
  const res=await triggerFlow("createSO",{items:rows,lokasi,kategori:kat,budget,nilai,requester:req})||{};
@@ -10120,6 +10261,61 @@ async function submitSO(){
  notifySound();   // SO baru masuk ke inbox approval Section/Budget
  go("procurement");
  alert("✅ SO "+no+" dibuat."+(isSec?"\nAnda Section Head → langsung ke PIC Budget.":"\nMasuk approval Section: "+soSectionApprover(so)+" (kategori "+kat+").")+((att.images.length||att.pdfs.length)?"\n"+att.images.length+" foto + "+att.pdfs.length+" PDF terlampir"+(att.pdfs.length?" (dijahit ke SO PDF)":"")+"."+uploadNote():""));
+}
+/* ── Kirim ulang SO yang ditolak ────────────────────────────────────────────
+   Nomor SO TIDAK berubah. Yang direset adalah seluruh rantai persetujuan, sebab
+   Section/Budget/Proc dulu menyetujui ISI YANG LAMA — tanda tangan atas versi
+   itu tidak boleh menempel pada versi baru. Riwayatnya disimpan di revLog agar
+   approver bisa melihat sendiri apa yang dulu ditolak dan apa yang diperbaiki. */
+async function soRevisiSubmit(rows,f){
+ var no=window._soRevisi;
+ var s=SO.find(function(x){return x.no===no;});
+ if(!s){ window._soRevisi=null; alert("SO tidak ditemukan."); go("procurement"); return; }
+ if(!soBolehRevisi(s)){ alert("⛔ Anda bukan pemohon SO ini."); return; }
+ var catatan=((document.getElementById("so-rev-note")||{}).value||"").trim();
+ if(catatan.length<5){ alert("Tuliskan dulu apa yang Anda perbaiki (minimal 5 karakter) — approver membacanya."); return; }
+
+ var att=await soReadAttachments();
+ att=await soUploadAttachments(att,no);
+
+ s.rev=(s.rev||0)+1;
+ s.revLog=Array.isArray(s.revLog)?s.revLog:[];
+ s.revLog.push({rev:s.rev,
+   ditolakOleh:(s.reject&&s.reject.by)||"", gate:(s.reject&&s.reject.gate)||"",
+   alasan:(s.reject&&s.reject.alasan)||"", perbaikan:(s.reject&&s.reject.perbaikan)||"",
+   ditolakAt:(s.reject&&s.reject.at)||"",
+   revisiOleh:(gUser&&gUser.name)||"", revisiCatatan:catatan, revisiAt:nowStamp()});
+
+ /* isi baru */
+ s.items=rows; s.item=f.itemStr; s.lokasi=f.lokasi; s.kategori=f.kat;
+ s.deptDiv=f.deptDiv; s.budgetFlag=f.budget; s.nilai=f.nilai;
+ if(att.images&&att.images.length) s.attachments=(s.attachments||[]).concat(att.images);
+ if(att.pdfs&&att.pdfs.length)     s.pdfAttachments=(s.pdfAttachments||[]).concat(att.pdfs);
+
+ /* rantai persetujuan diputar ulang dari awal */
+ var isSec=(gRole==="section");
+ s.reject=null; s.batal=false;
+ s.apprSection=isSec?"Approved":"Pending";
+ s.apprBudget=isSec?"Pending":"—"; s.apprProc="—"; s.apprDept="—";
+ s.escalated=false; s.wstep=0; s.stage=0; s.aging="On Track";
+ s.staffPIC=""; s.pic=""; s.fup=""; s.vendor="";
+ s.aktor={}; s.override=[];
+ ["section","budget","proc","dept"].forEach(function(g){ if(s.ts)delete s.ts[g]; if(s.tsf)delete s.tsf[g]; });
+ s.ts=s.ts||{}; s.ts.revisi=nowStamp();
+ s.sectionBy=soSectionApprover(s);
+ if(isSec){ s.sectionBy=soPemohon(s); s.ts.section=nowStamp(); s.tsf=s.tsf||{}; s.tsf.section=nowStampDoc(); }
+
+ window._soRevisi=null;
+ soPersist();
+ try{ auditLog("so-revisi", no+" · Rev."+s.rev+" · "+catatan); }catch(e){}
+ NOTIFS.unshift({ic:"🔁",t:"SO direvisi & dikirim ulang — "+no+" Rev."+s.rev,
+   d:(s.item||"")+" · "+catatan+" · menunggu "+(isSec?"PIC Budget":"Section Head "+s.sectionBy),
+   at:nowStamp(), sev:"warn", nav:"approvals", done:false,
+   nama:isSec?"":s.sectionBy, namaRole:isSec?"":"section", roles:isSec?["budget"]:[]});
+ procFilter="all"; renderProc(); renderApprovals(); renderReminder(); navSetActive(); updateBell();
+ notifySound(); go("procurement");
+ alert("🔁 "+no+" dikirim ulang sebagai Rev."+s.rev+".\n\nNomornya tetap sama — riwayat penolakan & perbaikannya menempel di SO ini.\n"+
+   (isSec?"Anda Section Head → langsung ke PIC Budget.":"Menunggu approval Section Head: "+s.sectionBy+"."));
 }
 /* Baca lampiran dari form Create SO → foto (untuk grid Lampiran) + PDF (untuk dijahit ke Dokumen SO) */
 async function soReadAttachments(){
@@ -10731,7 +10927,17 @@ function approveSO(no,gate,decision,beralasan){
    else { s.apprDept="Approved"; s.ts.dept=nowStamp(); s.tsf.dept=nowStampDoc(); s.stage=Math.max(s.stage||0,2); alert(s.escalated ? ("✅ GA Dept Head approve. SO "+no+" → tombol aksi PIC Procurement kini aktif.")
                      : ("✅ GA Dept Head approve. TTD 'Disetujui Oleh' (Dept Head) terbubuh — dokumen SO kini SAH & bisa diunduh.\nSO "+no+" masuk Assigned SO "+(s.staffPIC||"")+".")); }
  }
- if(decision!=="Rejected") notifySound();   // flow maju masuk ke gate/assigned berikutnya
+ if(decision==="Rejected"){
+   /* Penolakan HARUS sampai ke pemohonnya — dulu hanya muncul sebagai label
+      "Rejected" di daftar, jadi SO menggantung tanpa ada yang tahu harus apa. */
+   NOTIFS.unshift({ic:"⛔",t:"SO ditolak — "+no+" · perlu revisi",
+     d:(s.item||"")+" · "+((s.reject&&s.reject.alasan)||"")+
+       " · Perbaiki: "+((s.reject&&s.reject.perbaikan)||"")+" → buka SO ini lalu tekan Revisi & Kirim Ulang",
+     at:nowStamp(), sev:"crit", nav:"procurement", done:false,
+     nama:soPemohon(s), email:s.email||""});
+   try{ agavaNotify("⛔ SO "+no+" ditolak — perlu revisi",((s.reject&&s.reject.perbaikan)||"Buka AGAVA untuk memperbaiki.")); }catch(e){}
+   try{ auditLog("so-reject", no+" · gerbang "+gate+" · "+((s.reject&&s.reject.alasan)||"")); }catch(e){}
+ } else notifySound();   // flow maju masuk ke gate/assigned berikutnya
  soPersist();
  renderApprovals(); renderProc(); renderAssigned(); renderReminder(); navSetActive(); updateBell();
 }
@@ -12606,7 +12812,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-124";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-125";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
