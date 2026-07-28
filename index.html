@@ -606,6 +606,36 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .tk-det{width:100%;margin-top:8px;border:1px solid var(--line);background:#f7fafd;color:#0a4bb8;font-weight:700;
   border-radius:9px;padding:7px;font-size:calc(11.5px*var(--fz));cursor:pointer;font-family:var(--ff)}
 .tk-det:hover{border-color:#bcd3f5;background:#eef5ff}
+/* ── Utas catatan operator pada tiket ── */
+.tk-kom-box{margin-top:9px;padding-top:8px;border-top:1px dashed var(--line)}
+.tk-kom-h{font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.5px;color:#9aa7b8;text-transform:uppercase;margin-bottom:5px}
+.tk-kom-h span{font-weight:700;letter-spacing:0;text-transform:none;color:#b6c0cd}
+.tk-kom{background:#f4f8fd;border-left:3px solid #bcd3f5;border-radius:0 9px 9px 0;padding:6px 10px;margin-bottom:5px}
+.tk-kom.j-eskalasi{background:#fdf3f3;border-left-color:#e9a7a7}
+.tk-kom.j-so{background:#fff7e8;border-left-color:#efc888}
+.tk-kom.j-tutup{background:#f0f9f3;border-left-color:#a5d8b8}
+.tk-kom-w{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;font-size:calc(10.5px*var(--fz));margin-bottom:1px}
+.tk-kom-w b{color:var(--ink);font-weight:700}
+.tk-kom-w i{font-style:normal;color:var(--muted)}
+.tk-kom-w span{margin-left:auto;color:#9aa7b8;font-variant-numeric:tabular-nums}
+.tk-kom-t{font-size:calc(12px*var(--fz));color:var(--ink);line-height:1.45;white-space:pre-wrap;word-break:break-word}
+/* ── Form ambil tiket & eskalasi (drawer operator) ── */
+.fo-chips{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 9px}
+.fo-chips button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 11px;cursor:pointer;
+  font-family:var(--ff);font-size:calc(11.5px*var(--fz));font-weight:600;color:var(--muted)}
+.fo-chips button:hover{border-color:#bcd3f5;color:var(--blue);background:#f7fafd}
+.fo-pilih{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.fo-opt{display:flex;gap:11px;align-items:flex-start;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;cursor:pointer;background:#fff}
+.fo-opt.on{border-color:var(--blue);background:#f4f9ff;box-shadow:0 0 0 3px rgba(10,124,255,.09)}
+.fo-opt input{margin-top:3px;accent-color:var(--blue);flex:0 0 auto}
+.fo-opt b{display:block;font-size:calc(13px*var(--fz));color:var(--ink);line-height:1.3}
+.fo-opt span{display:block;font-size:calc(11.5px*var(--fz));color:var(--muted);line-height:1.45;margin-top:2px}
+/* ── Tiket selesai tapi belum dirating — belum benar-benar tutup ── */
+.mt-nunggu{margin-top:9px;background:#fff7e8;border:1px solid #f0dcb4;border-radius:11px;padding:9px 12px;
+  font-size:calc(11.5px*var(--fz));color:#7a5a12;line-height:1.5}
+.mt-esk-st{margin-top:9px;background:#f4f8fd;border:1px solid #cfe0f5;border-radius:11px;padding:9px 12px;
+  font-size:calc(11.5px*var(--fz));color:#24486f;line-height:1.5}
+.mt-esk-st b{color:var(--ink)}
 @media(max-width:820px){.fo-grid{grid-template-columns:1fr}.fo-chan-body{max-height:none}}
 .fo-tik-esc{border-color:rgba(220,38,38,.4)!important}
 /* My Tickets — operator lapangan */
@@ -7194,7 +7224,38 @@ function tkBriefHTML(t,full){
      ph.slice(0,lim).map(function(im,i){ return '<img src="'+im.url+'" onclick="event.stopPropagation();tkPhotoView(\''+t.no+'\','+i+')" title="lihat foto '+(i+1)+'"/>'; }).join('')+
      (ph.length>lim?'<span class="tk-att-more">+'+(ph.length-lim)+' lagi</span>':'')+'</div>';
  else h+='<div class="tk-noatt">tanpa lampiran foto dari pemohon</div>';
- return h+'</div>';
+ return h+'</div>'+tkKomenHTML(t,!full);
+}
+/* ══ CATATAN OPERATOR — utas komentar pada tiket ══════════════════════════
+   Ditulis saat mengambil tiket, saat eskalasi, dan saat eskalasi ditindaklanjuti.
+   Gunanya menutup jarak informasi yang selama ini hanya ada di kepala operator:
+   "baru bisa dikerjakan setelah jam kantor", "menunggu material", dsb. Pemohon
+   membacanya di detail tiket, jadi ia tahu kenapa tiketnya belum bergerak.
+   Sekali tulis — tidak pernah diubah atau dihapus, seperti pickBy. */
+function tkKomen(t,teks,jenis){
+ teks=String(teks==null?"":teks).trim();
+ if(!t||!teks) return null;
+ t.komen=Array.isArray(t.komen)?t.komen:[];
+ var k={by:(fieldOpName()||(gUser&&gUser.name)||"—"),
+        peran:((fieldOp&&fieldOp.role)||((ROLES[gRole]&&ROLES[gRole].label)||"")),
+        at:nowStamp(), ms:nowMs(), teks:teks, jenis:jenis||"catatan"};
+ t.komen.push(k);
+ return k;
+}
+const KOMEN_IC={catatan:"💬", eskalasi:"⏫", so:"📋", tutup:"✅"};
+function tkKomenHTML(t,ringkas){
+ var k=(t&&Array.isArray(t.komen))?t.komen:[];
+ if(!k.length) return "";
+ var tampil=ringkas?k.slice(-2):k;
+ return '<div class="tk-kom-box"><div class="tk-kom-h">💬 Catatan operator'+
+   (k.length>tampil.length?' <span>'+tampil.length+' terbaru dari '+k.length+'</span>':
+    (k.length>1?' <span>'+k.length+' catatan</span>':''))+'</div>'+
+   tampil.map(function(x){
+     return '<div class="tk-kom'+(x.jenis&&x.jenis!=="catatan"?" j-"+x.jenis:"")+'">'+
+       '<div class="tk-kom-w"><b>'+esc(x.by||"—")+'</b>'+(x.peran?'<i>'+esc(x.peran)+'</i>':'')+
+         '<span>'+esc(x.at||"")+'</span></div>'+
+       '<div class="tk-kom-t">'+(KOMEN_IC[x.jenis]||"💬")+' '+esc(x.teks||"")+'</div></div>';
+   }).join("")+'</div>';
 }
 /* Detail lengkap tiket untuk operator — dibuka dari kartu Field Ops sebelum diambil */
 function tkDetail(no){
@@ -7418,23 +7479,88 @@ function fieldOpSubmitReg(){
  closeDrawer(); buildNav(); renderFieldOps(); renderMyTickets(); updateBell();
  alert("✅ Selamat bertugas, "+name+"!\nTiket yang Anda ambil akan muncul di modul My Tickets.");
 }
-/* Eskalasi: operator tak sanggup → naik ke Supervisor kategori, yg lalu buat SO di Procurement */
+/* ══ ESKALASI TIKET ═══════════════════════════════════════════════════════
+   Dua anak tangga, bukan satu (keputusan Sudana, 28 Jul 2026):
+     1. ke STAFF GA  → tangga pertama. Staff GA (Dedi/Susi) yang membuatkan SO
+        pengadaan barang, atau menaikkannya lagi kalau di luar wewenangnya.
+     2. ke SECTION HEAD → tangga kedua, untuk keputusan/anggaran yang lebih besar.
+   Yang berubah HANYA status tiket. Kepemilikan (`pic`) tidak dilepas: tiket
+   tetap ada di My Tickets operator, karena perjalanan tiket baru benar-benar
+   tutup setelah PEMOHON memberi rating — bukan saat dieskalasi. */
+const ESC_TUJUAN={
+ ga:      {label:"Staff GA", ket:"Dedi / Susi — membuatkan SO pengadaan barang atau menaikkan ke Section Head",
+           roles:["staffga","fieldsup"], nav:"service"},
+ section: {label:"Section Head", ket:"keputusan atau anggaran di atas wewenang Staff GA",
+           roles:["dept","fieldsup"], nav:"approvals"}
+};
+function escTujuan(t){ return ESC_TUJUAN[(t&&t.escTo)||"ga"]||ESC_TUJUAN.ga; }
 function myTicketEscalate(no){
  var t=TICKETS.find(x=>x.no===no); if(!t)return;
- var note=prompt("Alasan eskalasi ke Supervisor (mis. butuh pengadaan barang / vendor):",""); if(note===null)return;
- t.esc=true; t.escBy=fieldOpName(); t.escNote=note||""; t.escAt=nowMs(); t.escDone=false;
- dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,esc:true,escBy:t.escBy,escNote:t.escNote});
- /* masuk inbox Approval admin AGAVA + bunyi/notif tray */
- /* alamat: Section Head pemilik kategori tiket ini + Dept Head + supervisor
-    lapangan — merekalah yang membuatkan SO-nya. Operator lain tidak perlu tahu. */
- NOTIFS.unshift({ic:"⏫",t:"Eskalasi tiket — perlu SO",
-   d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · oleh "+t.escBy+(t.escNote?" — "+t.escNote:""),
-   at:nowStamp(), sev:"crit", nav:"approvals", done:false,
-   nama:ticketSectionOwner(t), namaRole:"section", roles:["dept","fieldsup"]});
- agavaNotify("⏫ Eskalasi tiket — perlu SO", t.no+" · "+(t.judul||"")+" · oleh "+t.escBy);
- try{ auditLog("escalation", t.no+" · "+foNormCat(t.cat)+" · "+t.escNote); }catch(e){}
+ var pilih=function(k,on){
+   var d=ESC_TUJUAN[k];
+   return '<label class="fo-opt'+(on?' on':'')+'" onclick="foOptPilih(this)">'+
+     '<input type="radio" name="esc-to" value="'+k+'"'+(on?' checked':'')+'>'+
+     '<span style="flex:1;min-width:0"><b>⏫ Ke '+esc(d.label)+'</b><span>'+esc(d.ket)+'</span></span></label>';
+ };
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div class="sono" style="font-size:calc(15px*var(--fz))">'+esc(t.no)+'</div>'+
+   '<div style="font-size:calc(14.5px*var(--fz));color:var(--ink);font-weight:700;margin-top:5px">'+esc(t.judul||'')+'</div>'+
+   '<div class="muted small" style="margin-top:3px">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div></div>'+
+  '<div class="db">'+
+   '<div class="mt-esk-st" style="margin-top:0">Tiket <b>tetap milik Anda</b> di My Tickets selama dieskalasi. '+
+     'Yang berubah hanya statusnya — tiket baru benar-benar selesai setelah pemohon memberi rating.</div>'+
+   '<div class="field" style="margin-top:14px"><label>Dinaikkan ke siapa?</label></div>'+
+   '<div class="fo-pilih">'+pilih("ga",true)+pilih("section",false)+'</div>'+
+   '<div class="field"><label>Alasan eskalasi <span style="color:var(--red)">*</span></label>'+
+     '<textarea id="fo-esc-note" rows="3" placeholder="mis. Lampu perlu diganti — butuh pengadaan 3 unit LED 18W"></textarea></div>'+
+   '<button class="btn-act" style="width:100%" onclick="myTicketEscalateSubmit(\''+esc(no)+'\')">⏫ Kirim Eskalasi</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+ setTimeout(function(){ var x=document.getElementById("fo-esc-note"); if(x)x.focus(); },80);
+}
+function foOptPilih(el){
+ var box=el.parentNode; if(!box)return;
+ [].forEach.call(box.querySelectorAll(".fo-opt"),function(o){ o.classList.toggle("on",o===el); });
+ var r=el.querySelector("input"); if(r)r.checked=true;
+}
+function myTicketEscalateSubmit(no){
+ var t=TICKETS.find(x=>x.no===no); if(!t)return;
+ var note=((document.getElementById("fo-esc-note")||{}).value||"").trim();
+ if(!note){ alert("Alasan eskalasi wajib diisi — inilah yang dibaca orang yang menindaklanjuti."); return; }
+ var r=document.querySelector('input[name="esc-to"]:checked');
+ var to=(r&&r.value)||"ga", d=ESC_TUJUAN[to]||ESC_TUJUAN.ga;
+ closeDrawer();
+ t.esc=true; t.escTo=to; t.escBy=fieldOpName(); t.escNote=note; t.escAt=nowMs(); t.escDone=false;
+ tkKomen(t,"Dieskalasi ke "+d.label+": "+note,"eskalasi");
+ dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,esc:true,escTo:to,escBy:t.escBy,escNote:t.escNote});
+ var pesan=t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · oleh "+t.escBy+" — "+note;
+ var n={ic:"⏫",t:"Eskalasi tiket → "+d.label,d:pesan,at:nowStamp(),sev:"crit",nav:d.nav,done:false,roles:d.roles};
+ if(to==="section"){ n.nama=ticketSectionOwner(t); n.namaRole="section"; }
+ NOTIFS.unshift(n);
+ agavaNotify("⏫ Eskalasi tiket → "+d.label, t.no+" · "+(t.judul||"")+" · oleh "+t.escBy);
+ try{ auditLog("escalation", t.no+" → "+d.label+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
  renderMyTickets(); renderFieldOps(); renderService(); renderApprovals(); renderReminder(); renderOverview(); updateBell();
- alert("⏫ Tiket "+no+" dieskalasi.\nMasuk ke inbox Approval admin AGAVA — di sana akan dibuatkan SO ke Procurement.");
+ alert("⏫ Tiket "+no+" dinaikkan ke "+d.label+".\n\nTiket TETAP ada di My Tickets Anda — yang berubah hanya statusnya.\nAnda menutupnya nanti setelah tindak lanjutnya selesai.");
+}
+/* Staff GA menaikkan lagi ke Section Head — anak tangga kedua */
+function escNaikkan(no){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ var alasan=prompt("Naikkan "+no+" ke Section Head.\nAlasan (mis. nilainya di atas wewenang Staff GA):","");
+ if(alasan===null)return;
+ alasan=String(alasan).trim();
+ if(!alasan){ alert("Alasan wajib diisi."); return; }
+ t.escTo="section"; t.escUpBy=(gUser&&gUser.name)||""; t.escUpAt=nowMs();
+ tkKomen(t,"Dinaikkan ke Section Head oleh "+t.escUpBy+": "+alasan,"eskalasi");
+ dbSaveTicket(t);
+ NOTIFS.unshift({ic:"⏫",t:"Eskalasi tiket → Section Head",
+   d:t.no+" · "+(t.judul||"")+" · dinaikkan "+t.escUpBy+" — "+alasan,
+   at:nowStamp(), sev:"crit", nav:"approvals", done:false,
+   nama:ticketSectionOwner(t), namaRole:"section", roles:["dept"]});
+ agavaNotify("⏫ Eskalasi → Section Head", t.no+" · "+(t.judul||""));
+ try{ auditLog("escalation-up", no+" → Section Head · "+alasan); }catch(e){}
+ renderApprovals(); renderService(); renderMyTickets(); renderFieldOps(); updateBell();
+ alert("⏫ "+no+" dinaikkan ke Section Head ("+(ticketSectionOwner(t)||"pemilik kategori")+").");
 }
 /* Selesaikan dari My Tickets — sama seperti Field Ops: WAJIB foto bukti dari kamera */
 function myTicketResolve(no){ foAskPhoto(no); }
@@ -7476,10 +7602,11 @@ function ticketParked(t){ return !!(t && t.esc && (t.stg||0)<3 && !t.soDone); }
 /* Status perjalanan eskalasi untuk ditampilkan di kartu operator */
 function ticketEscState(t){
  if(!t||!t.esc) return null;
+ var d=escTujuan(t);
  if(t.soDone) return {t:"SO selesai — silakan tutup tiket", cls:"bd-ok", ic:"✅"};
  if(t.soNo)   return {t:"SO "+t.soNo+" berjalan di Procurement", cls:"bd-proc", ic:"🛒"};
- if(t.escDone)return {t:"Ditangani Section Head", cls:"bd-proc", ic:"⏫"};
- return {t:"Diekskalasi — Section Head sedang membuat SO", cls:"bd-warn", ic:"⏫"};
+ if(t.escDone)return {t:"Sudah ditangani "+d.label, cls:"bd-proc", ic:"⏫"};
+ return {t:"Dieskalasi — menunggu tindak lanjut "+d.label, cls:"bd-warn", ic:"⏫"};
 }
 /* Slot WIP: tiket terparkir tidak dihitung */
 function foOpenBy(name){ return TICKETS.filter(function(t){ return t.pic===name && (t.stg||0)>=1 && (t.stg||0)<3 && !ticketParked(t); }); }
@@ -7501,6 +7628,10 @@ function ticketSoSync(){
  });
  if(ubah){ try{ renderFieldOps(); renderMyTickets(); renderService(); updateBell(); }catch(e){} }
 }
+/* Ambil tiket = dua langkah. Langkah 1 di sini: syaratnya diperiksa DULU (registrasi,
+   slot WIP) supaya operator tidak sempat mengetik lalu ditolak, lalu formnya dibuka. */
+const FO_CATATAN_CEPAT=["Baru bisa dikerjakan setelah jam kantor","Menunggu material / sparepart",
+  "Perlu akses / izin ruangan dulu","Dikerjakan bersama vendor","Butuh koordinasi dengan pemohon"];
 function fieldOpsPickup(no){
   var t=TICKETS.find(x=>x.no===no); if(!t)return;
   if(gRole==='fieldops' && !(fieldOp&&fieldOp.name)){ fieldOpRegister(); return; }   // wajib registrasi dulu
@@ -7512,6 +7643,38 @@ function fieldOpsPickup(no){
       "\n\nSelesaikan salah satu dulu, baru bisa mengambil tiket baru.");
     return;
   }
+  document.getElementById("drawer").innerHTML=
+   '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+    '<div class="sono" style="font-size:calc(15px*var(--fz))">'+esc(t.no)+'</div>'+
+    '<div style="font-size:calc(14.5px*var(--fz));color:var(--ink);font-weight:700;margin-top:5px">'+esc(t.judul||'')+'</div>'+
+    '<div class="muted small" style="margin-top:3px">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+' · pemohon '+esc(ticketReqName(t))+'</div></div>'+
+   '<div class="db">'+
+    tkBriefHTML(t,true)+
+    '<div class="field" style="margin-top:14px"><label>Catatan Anda untuk tiket ini <span class="muted" style="font-weight:400">— opsional, dibaca pemohon</span></label>'+
+      '<textarea id="fo-pick-note" rows="3" placeholder="mis. Baru bisa dikerjakan setelah jam kantor"></textarea></div>'+
+    '<div class="fo-chips">'+FO_CATATAN_CEPAT.map(function(s,i){
+      return '<button onclick="foIsiCatatan(\'fo-pick-note\','+i+')">'+esc(s)+'</button>'; }).join('')+'</div>'+
+    '<div class="muted small" style="margin-bottom:11px;line-height:1.5">Slot Anda akan terpakai '+(open.length+1)+'/'+FO_WIP_MAX+
+      ' · batas mulai kerjakan '+SLA_START_MAX+' menit setelah diambil.</div>'+
+    '<button class="btn-act" style="width:100%" onclick="fieldOpsPickupSubmit(\''+esc(no)+'\')">🙋 Ambil Tiket</button>'+
+   '</div>';
+  document.getElementById("ovl").classList.add("show");
+  setTimeout(function(){ var x=document.getElementById("fo-pick-note"); if(x)x.focus(); },80);
+}
+function foIsiCatatan(id,i){
+  var el=document.getElementById(id); if(!el)return;
+  var s=FO_CATATAN_CEPAT[i]||"";
+  el.value=el.value.trim()?(el.value.trim()+". "+s):s;
+  el.focus();
+}
+function fieldOpsPickupSubmit(no){
+  var t=TICKETS.find(x=>x.no===no); if(!t)return;
+  var me=fieldOpName()||'Operator';
+  var open=foOpenBy(me);
+  if(t.pic&&t.pic!==me){ closeDrawer(); alert("⛔ Tiket "+no+" sudah diambil "+t.pic+" barusan."); renderFieldOps(); return; }
+  if(open.length>=FO_WIP_MAX){ closeDrawer(); alert("🚧 Slot Anda sudah penuh ("+FO_WIP_MAX+" tiket)."); return; }
+  var catatan=((document.getElementById("fo-pick-note")||{}).value||"").trim();
+  closeDrawer();
   t.pic=me; t.stg=Math.max(t.stg||0,1); t.status=TSTAGES[t.stg]; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp();
   t.slaMs=t.slaMs||{}; if(!t.slaMs.created)t.slaMs.created=nowMs(); if(!t.slaMs.pickup)t.slaMs.pickup=nowMs();
   if(fieldOp){ t.opRole=fieldOp.role||""; t.opShift=fieldOp.shift||""; }   // untuk log record CSV
@@ -7521,7 +7684,16 @@ function fieldOpsPickup(no){
      yang jadi dasar Log Record Operator, supaya catatan kerja seseorang tidak
      ikut hilang kalau kepemilikan tiket berubah atau tertimpa. */
   if(!t.pickBy){ t.pickBy=me; t.pickAt=nowMs(); }
-  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,pic:me});
+  if(catatan) tkKomen(t,catatan,"catatan");
+  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,pic:me,catatan:catatan||""});
+  /* Catatan operator dikirimkan ke PEMOHONNYA — itulah gunanya ditulis. */
+  if(catatan){
+    NOTIFS.unshift({ic:"💬",t:"Catatan operator — "+t.no,
+      d:(t.judul||"")+" · "+me+": "+catatan,
+      at:nowStamp(), sev:"info", nav:"service", done:false,
+      nama:ticketReqName(t), email:t.email||""});
+    try{ agavaNotify("💬 "+me+" — "+t.no, catatan); }catch(e){}
+  }
   renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
   /* briefing singkat saat tiket diambil: apa masalahnya, catatan pemohon, ada berapa foto */
   var ph=tkPhotos(t), dsc=String(t.desc||"").trim();
@@ -7529,7 +7701,9 @@ function fieldOpsPickup(no){
     "\n🗒 "+((dsc&&dsc!=="—")?dsc:"(pemohon tidak mengisi deskripsi)")+
     (t.note?"\n📝 Catatan: "+t.note:"")+
     (ph.length?"\n📷 "+ph.length+" foto pemohon terlampir — buka di My Tickets":"");
-  alert("✅ Tiket "+no+" diambil oleh "+me+"."+brief+"\n\nMuncul di modul My Tickets Anda.\nSlot terpakai: "+(open.length+1)+"/"+FO_WIP_MAX+".");
+  alert("✅ Tiket "+no+" diambil oleh "+me+"."+brief+
+    (catatan?"\n\n💬 Catatan Anda terkirim ke pemohon:\n\""+catatan+"\"":"")+
+    "\n\nMuncul di modul My Tickets Anda.\nSlot terpakai: "+(open.length+1)+"/"+FO_WIP_MAX+".");
 }
 /* Mulai kerjakan — HANYA dari My Tickets, oleh operator yang mengambil tiket */
 function foAdvance(no){
@@ -7795,8 +7969,18 @@ function myTicketCard(t){
    act='<div class="mt-acts"><button class="btn-act mt-btn" onclick="myTicketResolve(\''+t.no+'\')">✓ Selesaikan (wajib foto)</button>'+
        (t.esc?'<span class="badge bd-crit">Sudah dieskalasi</span>':'<button class="btn-out mt-btn" onclick="myTicketEscalate(\''+t.no+'\')">⏫ Eskalasi</button>')+'</div>';
  } else if(stg>=3){
-   act='<span class="badge '+(sla.resBreach?'bd-crit':'bd-ok')+'">Selesai · Resolution SLA '+(sla.resBreach?'BREACH':'OK')+'</span>';
+   act='<span class="badge '+(sla.resBreach?'bd-crit':'bd-ok')+'">Pekerjaan selesai · Resolution SLA '+(sla.resBreach?'BREACH':'OK')+'</span>';
  }
+ /* Tiket yang sedang dieskalasi TIDAK hilang dari sini — hanya statusnya yang
+    berubah. Perjalanannya baru tutup setelah pemohon memberi rating. */
+ var eskSt=ticketEscState(t);
+ var eskBar=eskSt?'<div class="mt-esk-st">'+eskSt.ic+' <b>'+esc(eskSt.t)+'</b>'+
+   (t.escNote?' · alasan: '+esc(t.escNote):'')+
+   '<br>Tiket tetap milik Anda; lanjutkan setelah tindak lanjutnya turun.</div>':'';
+ var nunggu=(stg>=3&&!t.rating)
+   ? '<div class="mt-nunggu">⏳ <b>Menunggu rating pemohon</b> — '+esc(ticketReqName(t))+
+     ' belum menilai. Tiket baru benar-benar tutup setelah ratingnya masuk, jadi ia sengaja tetap di sini.</div>'
+   : (stg>=3&&t.rating?'<div class="mt-esk-st">✅ <b>Tutup</b> — dinilai '+'★'.repeat(Math.round(t.rating))+' oleh '+esc(ticketReqName(t))+'.</div>':'');
  var ag=ticketAging(t);
  return '<div class="mt-card'+(t.esc?' mt-esc':'')+(stg===1&&sla.startLeft<=0?' mt-late':'')+'">'+
    '<div class="mt-h"><span class="so-dot" style="background:'+pip+'"></span><span class="fo-no">'+t.no+'</span>'+(t.esc?'<span class="badge bd-crit" style="font-size:calc(9px*var(--fz))">Escalated</span>':'')+'<span class="mt-prio prio-'+(sla.pr||'Medium').toLowerCase()+'">'+sla.pr+'</span><span class="fo-st" style="color:'+ag.c+'">'+esc(ag.t)+'</span></div>'+
@@ -7809,22 +7993,34 @@ function myTicketCard(t){
      '<div class="mt-sla-i'+(sla.respBreach?' breach':'')+'"><span>Response</span><b>'+fmtDur(sla.respMin)+'</b><small>maks '+SLA_PICK_MAX+' mnt</small></div>'+
      '<div class="mt-sla-i'+(sla.startBreach?' breach':'')+'"><span>Ambil → mulai</span><b>'+fmtDur(sla.startMin)+'</b><small>maks '+SLA_START_MAX+' mnt</small></div>'+
      '<div class="mt-sla-i'+(sla.resBreach?' breach':'')+'"><span>Resolution</span><b>'+fmtDur(sla.resMin)+'</b><small>target '+fmtDur(sla.tg.res)+(sla.resDone?'':' · berjalan')+'</small></div>'+
-   '</div>'+act+'</div>';
+   '</div>'+eskBar+nunggu+act+'</div>';
 }
 function renderMyTickets(){
  var el=document.getElementById("page-myticket"); if(!el)return;
  var me=fieldOpName();
- var mine=TICKETS.filter(function(t){return t.pic===me;});
+ /* pickBy ikut dibaca: kalau `pic` sempat tertimpa perangkat lain, tiket tetap
+    tidak hilang dari daftar orang yang mengerjakannya */
+ var mine=TICKETS.filter(function(t){return t.pic===me||t.pickBy===me;});
  var active=mine.filter(function(t){return (t.stg||0)<3;});
- var done=mine.filter(function(t){return (t.stg||0)>=3;});
+ var esk=mine.filter(function(t){return ticketParked(t);}).length;
+ /* "Selesai" = pekerjaan tuntas DAN pemohon sudah memberi rating. Yang sudah
+    dikerjakan tapi belum dinilai berdiri sendiri, supaya tidak terbaca tutup. */
+ var nunggu=mine.filter(function(t){return (t.stg||0)>=3&&!t.rating;}).length;
+ var done=mine.filter(function(t){return (t.stg||0)>=3&&t.rating;});
  var breached=mine.filter(function(t){return ticketSLA(t).breach;}).length;
  var open=foOpenBy(me).length;
  var head=notifBanner()+'<div class="card pad fo-head"><div><div class="fo-title">🎫 My Tickets — '+esc(me)+'</div>'+
-   '<div class="muted small">'+(fieldOp?esc(fieldOp.role||'Operator')+' · '+esc(fieldOp.shift||''):'operator')+' · <b style="color:'+(open>=FO_WIP_MAX?'var(--red)':'var(--blue)')+'">slot '+open+'/'+FO_WIP_MAX+'</b> · '+active.length+' aktif · '+done.length+' selesai · <b style="color:var(--red)">'+breached+'</b> SLA breach · tercatat di Services</div></div>'+
+   '<div class="muted small">'+(fieldOp?esc(fieldOp.role||'Operator')+' · '+esc(fieldOp.shift||''):'operator')+' · <b style="color:'+(open>=FO_WIP_MAX?'var(--red)':'var(--blue)')+'">slot '+open+'/'+FO_WIP_MAX+'</b> · '+active.length+' aktif'+
+   (esk?' · <b style="color:var(--red)">'+esk+'</b> dieskalasi':'')+
+   (nunggu?' · <b style="color:#b45309">'+nunggu+'</b> menunggu rating':'')+
+   ' · '+done.length+' tutup · <b style="color:var(--red)">'+breached+'</b> SLA breach · tercatat di Services</div></div>'+
    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="notifTest()">🔔 Tes Notif</button>'+
    '<button class="btn-out" onclick="fieldOpReset()">Ganti Operator</button>'+
    '<button class="btn-out" onclick="agavaLogout()" title="Keluar dari AGAVA">⎋ Keluar</button></div></div>';
- var cards=mine.length?mine.slice().sort(function(a,b){return (a.stg||0)-(b.stg||0);}).map(myTicketCard).join(''):'<div class="card pad muted small" style="text-align:center;padding:44px;grid-column:1/-1">Belum ada tiket. Ambil tiket di modul <b>Field Ops</b> → langsung muncul di sini.</div>';
+ /* urutan: yang masih perlu tindakan di atas, yang menunggu rating di tengah,
+    yang sudah dinilai (benar-benar tutup) paling bawah */
+ var urut=function(t){ return t.rating?99:(t.stg||0); };
+ var cards=mine.length?mine.slice().sort(function(a,b){return urut(a)-urut(b);}).map(myTicketCard).join(''):'<div class="card pad muted small" style="text-align:center;padding:44px;grid-column:1/-1">Belum ada tiket. Ambil tiket di modul <b>Field Ops</b> → langsung muncul di sini.</div>';
  el.innerHTML=head+'<div class="mt-grid">'+cards+'</div>';
 }
 /* ══════════════════════════════════════════════════════════════════════════
@@ -8898,6 +9094,11 @@ function renderService(){
  const selB=bulanTerpilih(grup,svcBulan);
  const tampil=selB?grup.filter(g=>g.key===selB):grup;
  const pills=[["all","All",total],["open","Ongoing",ongoing],["esc","Escalated",esc],["resolved","Resolved",resolved]];
+ /* Antrean eskalasi ikut turun ke Services untuk akun yang TIDAK punya modul
+    Approvals — Staff GA (Dedi/Susi) sengaja hanya berbekal Service & Procurement,
+    jadi kalau tidak diletakkan di sini eskalasinya tidak akan pernah terlihat.
+    Yang punya modul Approvals tetap menanganinya di sana, supaya tidak dobel. */
+ const eskalasi=(myMenus().indexOf("approvals")<0)?escalatedTickets():[];
  const el=document.getElementById("page-service");
  let head="";
  if(sup){
@@ -8922,6 +9123,7 @@ function renderService(){
  }
  el.innerHTML=`
   ${gaServiceButtons()}
+  ${escPanelHTML(eskalasi)}
   ${draftListHTML()}
   ${gaOpexHTML("all")}
   ${head}
@@ -10655,9 +10857,36 @@ function otherApprovalRow(a){
 /* ── ESKALASI TIKET → inbox Approval ──
    Operator tak sanggup menyelesaikan sendiri → tiket naik ke sini. Approver
    (admin AGAVA / kelompok Super) menindaklanjuti dengan membuat SO ke Procurement. */
+/* Eskalasi punya ALAMAT, seperti notifikasi & approval — bukan disiarkan ke
+   semua akun Super. Tangga 1 (Staff GA) hanya muncul di Dedi/Susi & supervisor
+   lapangan; tangga 2 (Section Head) di pemilik kategorinya & Dept Head.
+   Owner tetap melihat keduanya. */
+function escUntukSaya(t){
+ if(!t) return false;
+ if(isOwner()) return true;                       // hanya Owner yang melihat semuanya
+ var to=t.escTo||"ga";
+ /* SENGAJA tidak memakai isSuper(): kelompok Super boleh MELIHAT semua tiket,
+    tetapi eskalasi adalah antrean AKSI — ia harus punya satu alamat yang jelas,
+    sama seperti approval. Kalau Section Head sudah melihatnya di tangga pertama,
+    tangganya kehilangan arti; dan Section Head kategori lain tidak berkepentingan. */
+ if(to==="ga") return gRole==="staffga"||gRole==="fieldsup"||gRole==="proc";
+ return gRole==="dept"||(gRole==="section"&&ticketSectionOwner(t)===((gUser&&gUser.name)||""));
+}
 function escalatedTickets(){
- return TICKETS.filter(function(t){ return t.esc && !t.escDone && (t.stg||0)<3; })
+ return TICKETS.filter(function(t){ return t.esc && !t.escDone && (t.stg||0)<3 && escUntukSaya(t); })
    .sort(function(a,b){ return (b.escAt||0)-(a.escAt||0); });
+}
+/* Panel yang sama dipakai di dua tempat: modul Approvals (kelompok Super) dan
+   modul Services — karena Staff GA sengaja hanya berbekal Service + Procurement,
+   jadi antreannya harus datang ke modul yang memang ia buka. */
+function escPanelHTML(list){
+ if(!list.length) return "";
+ return '<div class="card sec" style="margin-bottom:18px"><div class="sec-h">'+
+   secIc('#fdecec','#dc2626','approvals')+
+   '<div><h2>⏫ Eskalasi Tiket dari Lapangan</h2><div class="d">'+list.length+
+     ' tiket — operator tidak dapat menyelesaikan sendiri. Tindak lanjut: buatkan SO ke Procurement, '+
+     'naikkan ke Section Head, atau tutup dengan alasan.</div></div></div>'+
+   '<div class="sec-body">'+list.map(escTicketRow).join("")+'</div></div>';
 }
 function escTicketRow(t){
  var umur=t.escAt?Math.round((nowMs()-t.escAt)/60000):null;
@@ -10668,11 +10897,14 @@ function escTicketRow(t){
      '<div class="esc-t">'+esc(t.judul||'')+'</div>'+
      /* pemohon asli ikut tampil — approver memutuskan membuat SO untuk KELUHAN SIAPA */
      '<div class="esc-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+' · '+pemohonChip(t)+
-       ' · dieskalasi oleh <b>'+esc(t.escBy||'operator')+'</b></div>'+
+       ' · dieskalasi oleh <b>'+esc(t.escBy||'operator')+'</b> → <b>'+esc(escTujuan(t).label)+'</b>'+
+       (t.escUpBy?' · dinaikkan '+esc(t.escUpBy):'')+'</div>'+
      (t.escNote?'<div class="esc-note">💬 '+esc(t.escNote)+'</div>':'')+
    '</div>'+
    '<div class="esc-act">'+
      '<button class="btn-act" onclick="soFromTicket(\''+esc(t.no)+'\')">📋 Buat SO ke Procurement</button>'+
+     /* anak tangga kedua — hanya masuk akal selagi masih di tangga Staff GA */
+     ((t.escTo||"ga")==="ga"?'<button class="btn-out" onclick="escNaikkan(\''+esc(t.no)+'\')">⏫ Naikkan ke Section Head</button>':'')+
      '<button class="btn-out" onclick="escDismiss(\''+esc(t.no)+'\')">Tutup tanpa SO</button>'+
    '</div>'+
  '</div>';
@@ -10688,7 +10920,7 @@ function escDismiss(no){
  alert("Eskalasi "+no+" ditutup tanpa SO.\nOperator dapat melanjutkan penyelesaian di My Tickets.");
 }
 function renderApprovals(){
- const escList=isSuper()?escalatedTickets():[];
+ const escList=escalatedTickets();   // sudah tersaring per alamat di escUntukSaya()
  const otList=isSuper()?OVERTIME_REQ.filter(o=>(o.status||"Diajukan")==="Diajukan"):[];
  /* antrean digabung dari SEMUA tier yang dipegang akun ini (mis. Yessy:
     Section Head + PIC Budget) — tidak perlu berganti akun untuk berpindah peran */
@@ -10723,9 +10955,7 @@ function renderApprovals(){
     <div style="font-size:calc(13px*var(--fz));color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
     <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+oPend.length+escList.length+otList.length} pending</span></div>
   </div>
-  ${escList.length?`<div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','approvals')}<div><h2>⏫ Eskalasi Tiket dari Lapangan</h2><div class="d">${escList.length} tiket — operator tidak dapat menyelesaikan sendiri. Tindak lanjut: buat SO ke Procurement.</div></div></div>
-    <div class="sec-body">${escList.map(escTicketRow).join("")}</div>
-  </div>`:''}
+  ${escPanelHTML(escList)}
   ${otList.length?`<div class="card sec"><div class="sec-h">${secIc('#f3eefe','#7a4fd0','approvals')}<div><h2>⏱️ Pengajuan Overtime</h2><div class="d">${otList.length} menunggu persetujuan — fasilitas gedung disiapkan sesuai jam yang disetujui.</div></div></div>
     <div class="sec-body">${otList.map(o=>`<div class="esc-row">
       <div class="esc-main"><div class="esc-no"><b>${esc(o.no)}</b><span class="badge bd-warn" style="font-size:calc(9px*var(--fz))">Diajukan</span></div>
@@ -12376,7 +12606,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-123";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-124";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
