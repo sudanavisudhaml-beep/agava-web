@@ -7112,11 +7112,33 @@ function normalizeTickets(){ TICKETS.forEach((t,i)=>{
     var m=USERS.find(function(x){return x.name===t.requester;});
     if(m)t.email=m.email;
   }
+  ticketHeal(t);
   if(t._norm4)return;
   if(t.status==="To Procurement"||t.stg===3){ t.status="In Progress"; t.stg=2; t.toProc=true; }
   else if(t.stg>=4){ t.stg=3; t.status="Resolved"; }
   t._norm4=true;
 }); }
+/* ── Pemulihan tiket yang kepemilikannya tertimpa ───────────────────────────
+   Jaring pengaman lapis kedua di belakang dbPatchTicket(): kalau suatu hari
+   `pic`/`stg` hilang lagi padahal `pickBy` ada, tiket dikembalikan ke pemiliknya
+   dan tahapannya dibaca ulang dari jejak jam (ts). Tanpa `pickBy` kita TIDAK
+   menebak siapa pemiliknya — tiket dibiarkan kembali ke antrean Field Ops agar
+   bisa diambil ulang, karena menaikkan tahap tanpa pemilik justru membuatnya
+   tak terlihat oleh siapa pun. */
+function ticketHeal(t){
+ if(!t||!t.pickBy) return;
+ var ubah={};
+ if(!t.pic){ t.pic=t.pickBy; ubah.pic=t.pic; }
+ var jejak=0;
+ if(t.ts) [1,2,3].forEach(function(n){ if(t.ts[n]||t.ts[String(n)]) jejak=n; });
+ if((t.stg||0)<1) jejak=Math.max(jejak,1);            // pickBy ada = minimal sudah diambil
+ if(jejak>(t.stg||0)){ t.stg=jejak; t.status=TSTAGES[t.stg]; ubah.stg=t.stg; ubah.status=t.status; }
+ if(!Object.keys(ubah).length || t._healed) return;
+ t._healed=true;                                       // sekali per sesi — jangan jadi badai tulis
+ try{ dbPatchTicket(t,ubah); }catch(e){}
+ try{ auditLog("ticket-heal", t.no+" · dikembalikan ke "+t.pickBy+" · "+JSON.stringify(ubah)); }catch(e){}
+ console.warn("AGAVA: kepemilikan "+t.no+" dipulihkan ke "+t.pickBy, ubah);
+}
 /* Foto bukti pekerjaan — tampil langsung di baris tiket (Services), untuk semua kelompok */
 function svcProofStrip(t){
  if(!t.proof||!t.proof.length)return'';
@@ -7326,7 +7348,10 @@ function foWatchdog(){ try{ ticketSoSync(); }catch(e){}
  try{
    var naik=[];
    TICKETS.forEach(function(t){
-     if((t.stg||0)>=1 || t.slaAlert) return;
+     /* Jangan pernah berteriak untuk tiket yang SUDAH diambil. Bukti "sudah
+        diambil" dibaca berlapis (stg, pic, pickBy, jam ambil) karena salinan di
+        perangkat ini bisa saja baru menerima sebagian bidangnya. */
+     if((t.stg||0)>=1 || t.pic || t.pickBy || (t.slaMs&&t.slaMs.pickup) || t.slaAlert) return;
      var s=ticketSLA(t);
      if(s.respMin!=null && s.respMin>SLA_PICK_MAX){
        t.slaAlert=nowMs();
@@ -7336,7 +7361,7 @@ function foWatchdog(){ try{ ticketSoSync(); }catch(e){}
          d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · "+(t.lokasi||""),
          at:nowStamp(), sev:"crit", nav:"fieldops", done:false,
          roles:["section","dept","fieldsup"]});
-       dbSaveTicket(t);
+       dbPatchTicket(t,{slaAlert:t.slaAlert});   // HANYA penanda ini — jangan sentuh pic/stg milik operator
        try{ auditLog("sla-pickup-breach", t.no+" · "+foNormCat(t.cat)+" · "+s.respMin+" mnt"); }catch(e){}
      }
    });
@@ -7470,7 +7495,7 @@ function ticketSoSync(){
    /* "Ditutup di Procurement" = pekerjaan SO tuntas (wstep 4) atau tahap akhir. */
    if((s.wstep||0)>=4 || s.stage>=6){
      t.soDone=true; t.soDoneAt=nowStamp(); ubah=true;
-     try{ dbSaveTicket(t); }catch(e){}
+     try{ dbPatchTicket(t,{soDone:true,soDoneAt:t.soDoneAt}); }catch(e){}   // proses latar → satu bidang saja
      try{ agavaNotify("✅ SO selesai — tiket siap ditutup", t.no+" · "+(t.judul||"")+" · SO "+t.soNo); }catch(e){}
    }
  });
@@ -7490,6 +7515,12 @@ function fieldOpsPickup(no){
   t.pic=me; t.stg=Math.max(t.stg||0,1); t.status=TSTAGES[t.stg]; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp();
   t.slaMs=t.slaMs||{}; if(!t.slaMs.created)t.slaMs.created=nowMs(); if(!t.slaMs.pickup)t.slaMs.pickup=nowMs();
   if(fieldOp){ t.opRole=fieldOp.role||""; t.opShift=fieldOp.shift||""; }   // untuk log record CSV
+  /* Catatan pengambilan yang TIDAK pernah ditulis ulang oleh jalur mana pun.
+     `pic` adalah "siapa yang memegang sekarang" — ia wajar berubah (dialihkan,
+     dilepas). `pickBy`/`pickAt` adalah "siapa yang pernah mengambil" — itulah
+     yang jadi dasar Log Record Operator, supaya catatan kerja seseorang tidak
+     ikut hilang kalau kepemilikan tiket berubah atau tertimpa. */
+  if(!t.pickBy){ t.pickBy=me; t.pickAt=nowMs(); }
   dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,pic:me});
   renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
   /* briefing singkat saat tiket diambil: apa masalahnya, catatan pemohon, ada berapa foto */
@@ -7581,11 +7612,23 @@ function foConfirmClose(){
 }
 /* ── Log record operator → CSV (khusus kelompok Super) ──
    Dasar penilaian akhir tahun: jumlah pickup, response & resolution time, breach. */
+/* Sudah diambil? Dibaca dari BUKTI, bukan dari satu bidang. `stg` & `pic` bisa
+   tertimpa perangkat lain (kejadian 28 Jul 2026), sedangkan jam ambil dan
+   pickBy tidak pernah ditulis ulang siapa pun. Selama salah satu ada, kerja
+   operator itu tetap terhitung. */
+function foDiambil(t){
+ return !!(t && ((t.stg||0)>=1 || t.pickBy || (t.slaMs&&t.slaMs.pickup) || (t.ts&&t.ts[1])));
+}
+function foPengambil(t){ return (t&&(t.pickBy||t.pic))||""; }
 function foOperatorStats(){
  var m={};
  TICKETS.forEach(function(t){
-   if(!t.pic||(t.stg||0)<1)return;
-   var s=m[t.pic]=m[t.pic]||{name:t.pic,role:t.opRole||"",shift:t.opShift||"",pick:0,done:0,open:0,esc:0,
+   if(!foDiambil(t))return;
+   var who=foPengambil(t);
+   /* Diambil tapi identitasnya hilang → JANGAN dibuang diam-diam; tampilkan
+      sebagai barisnya sendiri supaya ketahuan ada catatan yang perlu dibetulkan. */
+   if(!who) who="⚠️ operator tidak tercatat";
+   var s=m[who]=m[who]||{name:who,role:t.opRole||"",shift:t.opShift||"",pick:0,done:0,open:0,esc:0,
      respSum:0,respN:0,resSum:0,resN:0,respBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0};
    var sla=ticketSLA(t);
    s.pick++;
@@ -11476,9 +11519,14 @@ function rateAckSet(no,val){ if(!no)return; RATE_ACK[no]=(val==null?true:val); t
    (dulu offline), terapkan lokal & dorong balik agar semua perangkat sinkron. */
 function rateHeal(t){
  if(!t||!t.no) return;
+ /* RATE_ACK dikunci NOMOR tiket dan tersimpan di perangkat. Sejak go-live
+    penomoran dimulai ulang, jadi nomor lama bisa dipakai tiket baru — tanpa
+    pagar ini tiket yang baru masuk langsung tertandai "sudah dinilai & ditutup"
+    hanya karena nomornya kebetulan sama dengan tiket lama di HP itu. */
+ if((t.stg||0)<3) return;
  var v=RATE_ACK[t.no]; if(!v || t.rating) return;
  t.rating=(typeof v==="number"?v:5); t.needRate=false; if(!t.closed)t.closed=TODAY_STR;
- try{ dbSaveTicket(t); }catch(e){}
+ try{ dbPatchTicket(t,{rating:t.rating,needRate:false,closed:t.closed}); }catch(e){}   // proses latar → tiga bidang itu saja
 }
 /* Tiket milik user yang login, sudah diselesaikan operator, tapi belum dirating.
    Cocokkan lewat EMAIL akun dulu (unik), baru nama — supaya tidak meleset karena
@@ -12328,7 +12376,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-122";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-123";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -12559,6 +12607,24 @@ function dbStripTicket(t){
  return c;
 }
 function dbSaveTicket(t){ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(dbStripTicket(t),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
+/* ── Tulis HANYA bidang yang berubah ────────────────────────────────────────
+   Pelajaran 28 Jul 2026 (GA-202607-0144): proses latar yang cuma perlu menandai
+   SATU bidang dulu memanggil dbSaveTicket(), yang mengirim SELURUH tiket versi
+   perangkat itu. HP yang layarnya mati / sinyalnya putus mengantre tulisan
+   berisi salinan LAMA, lalu mengirimnya menit kemudian — dan tiket yang sudah
+   diambil operator kembali jadi `pic:""`, `stg:0` di cloud. Jejak lain selamat
+   (peta ts & slaMs digabung per-kunci), jadi kerusakannya senyap: tiket terlihat
+   "belum diambil" padahal jam ambil & jam mulai kerjanya tercatat.
+
+   Karena itu: proses latar WAJIB lewat sini. Satu bidang masuk, satu bidang
+   tertulis — mustahil menimpa pekerjaan perangkat lain. dbSaveTicket() dipakai
+   hanya saat memang seluruh tiket yang jadi maksudnya (pembuatan & aksi
+   langsung oleh pemegang tiket). */
+function dbPatchTicket(t,fields){
+ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no||!fields)return;
+ try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(fields,{merge:true}); }
+ catch(e){ console.warn("AGDB patch:",e); }
+}
 /* ── SO & KPI ikut sinkron Firestore ──
    SO: koleksi agava_so, 1 dokumen per SO. Lampiran foto/PDF TIDAK ikut ke cloud
    (bisa >1MB, limit Firestore) — lampiran tetap tersimpan lokal di perangkat pembuat.
