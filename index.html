@@ -1157,6 +1157,10 @@ tr.bl-trsep:hover td{background:#f2f6fb}
 .fo-swalayan input{margin-top:2px;accent-color:var(--blue);flex:0 0 auto}
 .fo-swalayan b{display:block;font-size:calc(12.5px*var(--fz));color:var(--ink);font-weight:700}
 .fo-swalayan i{display:block;font-style:normal;font-size:calc(11px*var(--fz));color:var(--muted);line-height:1.45}
+/* Tombol buang di baris notifikasi HP */
+.m-notif-x{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:8px;width:28px;height:28px;
+  color:#9aa7b8;font-size:calc(12px*var(--fz));cursor:pointer;font-family:var(--ff);line-height:1;padding:0}
+.m-notif-x:active{background:#f2f6fb}
 
 table{width:100%;border-collapse:collapse;font-size:calc(13px*var(--fz))}
 thead th{text-align:left;padding:12px 14px;font-size:calc(11px*var(--fz));text-transform:uppercase;letter-spacing:.5px;
@@ -6156,7 +6160,9 @@ function soDocBtnHTML(s){
    '<div class="muted small" style="text-align:center;margin:-6px 0 14px">'+esc(ket)+'</div>';
 }
 let soDocCur=null;
-function soDocShow(no){ var s=SO.find(x=>x.no===no); if(!s)return; soDocCur=no; var pg=document.getElementById('soDocPage'); if(pg)pg.innerHTML=soDocHTML(s); document.getElementById('soDoc').classList.remove('hide'); soDocFit(); soDocExtraRender(s); }
+function soDocShow(no){ var s=SO.find(x=>x.no===no); if(!s)return;
+ if(!soBolehLihat(s)){ soTolakLihat(no); return; }   // dokumen SO = isi lengkap, penjaganya sama dgn daftar
+ soDocCur=no; var pg=document.getElementById('soDocPage'); if(pg)pg.innerHTML=soDocHTML(s); document.getElementById('soDoc').classList.remove('hide'); soDocFit(); soDocExtraRender(s); }
 /* ══════════════════════════════════════════════════════════════════════════
    PRATINJAU HALAMAN 2 DST — lampiran PDF ikut terlihat di layar
    Sebelumnya lampiran PDF hanya muncul setelah berkasnya diunduh; di layar
@@ -6701,16 +6707,47 @@ function procSetBulan(k){ procBulan=k; renderProc(); }
    seluruh departemen — di dalamnya ada nilai, vendor, dan kebutuhan unit lain.
    Yang melihat semuanya: kelompok Super, Division Head, dan karyawan GA yang
    memang mengerjakan SO. Sisanya hanya SO buatannya sendiri. */
+/* Daftar TERTUTUP — ditetapkan Sudana, 28 Jul 2026. Sengaja TIDAK memakai
+   isSuper() maupun daftar karyawan GA: keduanya melebar diam-diam saat ada role
+   atau akun `super:true` baru, dan pengadaan seluruh departemen ikut terbuka
+   tanpa disadari. Siapa pun di luar daftar ini — termasuk yang diberi modul
+   Procurement lewat `plus` — hanya melihat SO yang ia ajukan sendiri. */
+const SO_LIHAT_SEMUA=["proc","staff","budget","section","dept"];
 function soSeeAll(){
- return isSuper()||gRole==="division"||GA_STAFF_ROLES.indexOf(gRole)>=0;
+ if(isOwner()) return true;                       // Owner melihat segalanya
+ return SO_LIHAT_SEMUA.indexOf(gRole)>=0;
 }
+/* Satu penjaga untuk SEMUA pintu SO. Menyaring daftar saja tidak cukup — nomor
+   SO mudah ditebak, dan dulu openDrawer()/soDocShow() membuka SO mana pun yang
+   nomornya disebut. Setiap pintu wajib lewat sini. */
+function soBolehLihat(s){
+ if(!s) return false;
+ if(soSeeAll()) return true;
+ var me=(gUser&&gUser.name)||"", mail=((gUser&&gUser.email)||"").toLowerCase();
+ if(mail&&s.email&&String(s.email).toLowerCase()===mail) return true;
+ if(!!me && soPemohon(s)===me) return true;
+ /* SO yang SEDANG menunggu keputusan akun ini wajib bisa dibuka — kalau tidak,
+    Chief CHCD & Division Head (penyetuju nilai besar, di luar daftar lima)
+    diminta memutuskan tanpa boleh membaca dokumennya. Izin ini melekat pada
+    gerbang yang menunggu, jadi hilang sendiri begitu ia sudah memutuskan. */
+ try{ if(soApprovalsForMe().some(function(x){ return x && x.no===s.no; })) return true; }catch(e){}
+ return false;
+}
+/* Antrean approval dihitung SEKALI di sini — kalau memakai soBolehLihat per
+   baris, soApprovalsForMe() ikut dipanggil ratusan kali tiap render. */
 function soVisible(){
  if(soSeeAll()) return SO;
+ var antre={};
+ try{ soApprovalsForMe().forEach(function(x){ if(x&&x.no) antre[x.no]=1; }); }catch(e){}
  var me=(gUser&&gUser.name)||"", mail=((gUser&&gUser.email)||"").toLowerCase();
  return SO.filter(function(s){
+   if(antre[s.no]) return true;
    if(mail&&s.email&&String(s.email).toLowerCase()===mail) return true;
    return !!me && soPemohon(s)===me;
  });
+}
+function soTolakLihat(no){
+ alert("⛔ SO "+(no||"")+" bukan pengajuan Anda.\n\nAkun Anda hanya dapat melihat Supply Order yang Anda ajukan sendiri.");
 }
 function renderProc(){
  const el=document.getElementById("page-procurement");
@@ -6785,6 +6822,7 @@ function renderProc(){
 
 function openDrawer(no){
  const s=SO.find(x=>x.no===no);if(!s)return;
+ if(!soBolehLihat(s)){ soTolakLihat(no); return; }
  const d=document.getElementById("drawer");
  const pr=soProgress(s), gst=soGroupState(s);
  const steps=LIFECYCLE.map((L,i)=>({...L, cls: i===pr.rej?"rejected":(i<pr.p?"done":(i===pr.p?"active":"pending"))}));
@@ -9114,6 +9152,7 @@ function renderNotif(){
        '<span class="m-notif-ic">'+(uns?'<i class="ndot"></i>':'')+ic+'</span>'+
        '<div class="m-notif-tx"><div class="m-notif-t">'+esc(n.alert||n.module)+'</div>'+
          '<div class="m-notif-s">'+esc(n.module)+' · '+esc(n.status||'')+'</div></div>'+
+       (notifBisaBuang(n)?'<button class="m-notif-x" title="Buang" onclick="notifBuang(\''+n.key+'\','+(n.followId?"'"+n.followId+"'":'null')+',event)">✕</button>':'')+
        mhChev()+'</div>';
    }).join("")+'</div>'
    :'<div class="mh-empty" style="margin-top:12px">Tidak ada notifikasi baru. Semua terpantau.</div>';
@@ -9277,9 +9316,9 @@ function renderMobileHome(){
  /* ── SECTION 2 — Permintaan Pembelian (SO) · hanya role dengan akses procurement ── */
  var soBlok="";
  if(mCanSO()){
-   var meN=(gUser&&gUser.name)||"";
-   var seesAll=isSuper()||gRole==="division";
-   var soArr=(seesAll?SO.slice():SO.filter(function(s){ return (s.requester||s.req)===meN; })).slice().reverse();
+   /* Beranda HP memakai penjaga yang sama dengan modul Procurement — dulu
+      dasarnya isSuper(), sehingga lebih longgar daripada layar desktopnya. */
+   var soArr=soVisible().slice().reverse();
    var soRowsArr=soArr.map(function(s){
        var st=soStatusLabel(s);
        return '<div class="mh-row" onclick="openDrawer(\''+esc(s.no)+'\')">'+
@@ -9505,7 +9544,7 @@ function exportLog(jenis){
      ot.map(function(o){ return [o.no,otJenis(o.jenis).nama,o.tgl,o.mulai,o.selesai,o.lokasi||"",o.ruang||"",
        o.pax||0,o.alasan||"",o.desc||"",o.by||"",o.email||"",o.status||"Diajukan",o.by2||"",o.at2||"",o.createdAt||o.created||""]; }));
  } else if(jenis==="so"){
-   var so=SO.filter(function(s){ return isSuper()||((s.requester||s.req)===me); });
+   var so=soVisible();   // ekspor mengikuti penjaga yang sama dengan layar
    csvDownload("SupplyOrder",
      ["No SO","Item","Kategori","Lokasi","Nilai (Rp jt)","Jenis","Pemohon","Dept/Div","PIC Proc","Vendor",
       "Section","Budget","Procurement","Dept Head","Status","Aging","Tahap"],
@@ -11037,16 +11076,57 @@ function notifItems(){
      status:n.status||(sev==="crit"?"Perlu tindakan":sev==="warn"?"Perlu perhatian":"Informasi"),
      cls:n.cls||(sev==="crit"?"bd-crit":sev==="warn"?"bd-warn":"bd-info"),
      action:n.action||"Buka", open:n.nav||null, followId:n.id}); });
+ /* Yang belum dibaca naik ke atas, yang sudah dibaca turun — supaya kotak tidak
+    terasa macet sesudah diklik. Urutan di dalam masing-masing kelompok tetap
+    (Array.sort stabil), jadi susunan aslinya tidak teracak. */
+ notifSeenEnsure();
+ items.sort(function(a,b){ return (NOTIF_SEEN[a.key]?1:0)-(NOTIF_SEEN[b.key]?1:0); });
  return items;
 }
+/* Hanya kabar bebas (NOTIFS) yang boleh dibuang manual. Approval, tiket, dan
+   payment adalah cerminan keadaan yang masih berjalan — ia lenyap sendiri saat
+   pekerjaannya beres, dan memaksa membuangnya justru menghilangkan pengingat. */
+function notifBisaBuang(i){ return !!(i && i.key && i.key.indexOf("notif:")===0); }
 function notifUnseenCount(){ notifSeenEnsure(); return notifItems().filter(function(i){ return !NOTIF_SEEN[i.key]; }).length; }
 /* klik item → tandai dilihat, lalu buka modulnya / tuntaskan notif */
 /* doc = nomor SO → buka Dokumen SO + lampiran langsung dari notifikasi. */
+/* Dulu jalur "ada tujuan" langsung `go(target); return;` — tandanya sudah
+   tersimpan, tetapi lonceng & daftar notifikasi TIDAK PERNAH disegarkan. Jadi
+   setelah diklik, angka di lonceng tetap sama dan barisnya masih tampak belum
+   dibaca: terasa macet padahal datanya sudah berubah. Sekarang penyegaran
+   dijalankan pada SETIAP jalur, sesudah perpindahan halaman. */
+function notifSegarkan(){
+ try{ renderReminder(); }catch(e){}
+ try{ renderNotif(); }catch(e){}
+ try{ updateBell(); }catch(e){}
+}
 function notifOpen(key,target,doc){
  notifMarkSeen(key);
- if(doc){ try{ go(target||"approvals"); }catch(e){} setTimeout(function(){ try{ soDocShow(doc); }catch(e){} },80); return; }
- if(target){ go(target); return; }
- try{renderReminder();}catch(e){} try{renderNotif();}catch(e){} updateBell();
+ if(doc){
+   try{ go(target||"approvals"); }catch(e){}
+   setTimeout(function(){ try{ soDocShow(doc); }catch(e){} notifSegarkan(); },80);
+   return;
+ }
+ if(target){ go(target); setTimeout(notifSegarkan,0); return; }
+ notifSegarkan();
+}
+/* Buang satu notifikasi dari kotak — untuk kabar yang sifatnya pemberitahuan
+   (NOTIFS), yang memang tidak hilang sendiri karena tidak terikat keadaan yang
+   berubah. Item turunan (approval, tiket, payment) sengaja TIDAK bisa dibuang:
+   ia lenyap sendiri begitu pekerjaannya beres — itulah gunanya. */
+function notifBuang(key,id,ev){
+ try{ if(ev&&ev.stopPropagation) ev.stopPropagation(); }catch(e){}
+ notifMarkSeen(key);
+ var x=id?NOTIFS.find(function(n){ return String(n.id)===String(id); }):null;
+ if(!x && key && key.indexOf("notif:")===0){
+   /* NOTIFS lama tidak punya id — cocokkan lewat kunci yang sama dengan pembuatnya */
+   NOTIFS.forEach(function(n,idx){
+     var k="notif:"+(n.id||n.at||idx)+":"+((n.t||"").slice(0,24));
+     if(k===key) x=n;
+   });
+ }
+ if(x) x.done=true;
+ notifSegarkan();
 }
 function notifFollowUp(key,id){ notifMarkSeen(key); const x=NOTIFS.find(n=>n.id===id); if(x)x.done=true; renderReminder(); updateBell(); }
 function notifMarkAllSeen(){ notifSeenEnsure(); var ks=[]; notifItems().forEach(function(i){ if(!NOTIF_SEEN[i.key]){ NOTIF_SEEN[i.key]=1; ks.push(i.key); } });
@@ -11080,7 +11160,7 @@ function renderReminder(){
   <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>Log Notifikasi & Tindakan</h2><div class="d">Peringatan & persetujuan dari seluruh modul AGAVA · <b>${unseenN} belum ditindak</b> dari ${items.length} item</div></div>${items.length?`<button class="btn-out" style="margin-left:auto;padding:6px 12px;font-size:calc(11.5px*var(--fz))" onclick="notifMarkAllSeen()">✓ Tandai semua dibaca</button>`:''}</div>
     <div class="sec-body">
       ${items.length?`<div class="nlog-head"><span>Module</span><span>Alert</span><span>Status</span><span>Action</span><span></span></div>
-      ${items.map(n=>{const uns=!notifSeen(n.key);return `<div class="nlog-row${uns?' unseen':''}"><span class="nmod">${uns?'<i class="ndot"></i>':''}${n.module}</span><span class="nalert">${n.alert}</span><span><span class="badge ${n.cls}">${n.status}</span></span><span class="naction">${n.action}</span><span>${n.open?`<button class="btn-out" style="padding:7px 11px;font-size:calc(12px*var(--fz))" onclick="notifOpen('${n.key}','${n.open}','${n.doc||''}')">${n.doc?'📄 Buka SO PDF':'Buka'}</button>`:`<button class="btn-act" style="padding:7px 12px;font-size:calc(12px*var(--fz))" onclick="notifFollowUp('${n.key}',${n.followId})">Follow up</button>`}</span></div>`;}).join("")}`
+      ${items.map(n=>{const uns=!notifSeen(n.key);return `<div class="nlog-row${uns?' unseen':''}"><span class="nmod">${uns?'<i class="ndot"></i>':''}${n.module}</span><span class="nalert">${n.alert}</span><span><span class="badge ${n.cls}">${n.status}</span></span><span class="naction">${n.action}</span><span style="display:flex;gap:6px;align-items:center">${n.open?`<button class="btn-out" style="padding:7px 11px;font-size:calc(12px*var(--fz))" onclick="notifOpen('${n.key}','${n.open}','${n.doc||''}')">${n.doc?'📄 Buka SO PDF':'Buka'}</button>`:`<button class="btn-act" style="padding:7px 12px;font-size:calc(12px*var(--fz))" onclick="notifFollowUp('${n.key}',${n.followId?`'${n.followId}'`:'null'})">Follow up</button>`}${notifBisaBuang(n)?`<button class="btn-out" title="Buang dari kotak notifikasi" style="padding:7px 10px;font-size:calc(12px*var(--fz));color:var(--muted)" onclick="notifBuang('${n.key}',${n.followId?`'${n.followId}'`:'null'},event)">✕</button>`:''}</span></div>`;}).join("")}`
       :'<div style="text-align:center;padding:40px;color:var(--green);font-weight:600">✅ Semua beres — tidak ada notifikasi aktif.</div>'}
     </div>
   </div>
@@ -13165,7 +13245,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-129";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-130";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
