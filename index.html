@@ -1188,6 +1188,10 @@ tr.bl-trsep:hover td{background:#f2f6fb}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .so-att-lama{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center}
 .so-att-lama span{font-size:calc(10.5px*var(--fz));background:#eef5ff;color:#0a4bb8;border-radius:20px;padding:3px 9px;font-weight:600}
+/* Pilihan site + isian bebas "Lainnya" (form Tiket & Supply Order) */
+.site-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.site-row select{flex:0 0 auto;min-width:150px}
+.site-row .site-lain{flex:1 1 170px;min-width:0}
 
 table{width:100%;border-collapse:collapse;font-size:calc(13px*var(--fz))}
 thead th{text-align:left;padding:12px 14px;font-size:calc(11px*var(--fz));text-transform:uppercase;letter-spacing:.5px;
@@ -5947,6 +5951,43 @@ function ini(n){if(!n)return"–";const p=n.split(" ");return (p[0][0]+(p[1]?p[1
 /* ===== SO workflow model (Create → Budget → Proc(assign) → Dept → Staff work → Payment) ===== */
 const STAFF_PROC=["Didi Sutama","Endang Maulana","Khalilul Rahman"];
 const KATEGORI8=["Building & Utility","Tenant & General Services","Project Development","Transport, Logistic & Document","Hospitality","HSE & Sustainability","Room & Event","Asset Management"];
+/* ══════════════════════════════════════════════════════════════════════════
+   PILIHAN LOKASI (SITE) — satu daftar untuk Tiket & Supply Order
+   Empat site baku + jalan keluar "Lainnya…" yang membuka isian bebas. Daftar
+   tertutup menjaga ejaan tetap seragam (dipakai pengelompokan Field Ops per
+   site & laporan), sementara "Lainnya" mencegah orang terpaksa memilih site
+   yang salah hanya karena lokasinya belum terdaftar.
+   ══════════════════════════════════════════════════════════════════════════ */
+const SITE_LIST=["AMDI","MA","ABC BSD","ABC BDG"];
+const SITE_LAIN="__lain__";
+/* nilai: isi awal (dipakai saat revisi SO / lanjut draft). Kalau nilainya di
+   luar daftar baku, dropdown otomatis membuka mode "Lainnya" berisi teks itu. */
+function siteSelectHTML(idSel,idLain,nilai){
+ nilai=String(nilai||"");
+ var baku=SITE_LIST.indexOf(nilai)>=0;
+ var lain=!!nilai&&!baku;
+ return '<div class="site-row">'+
+   '<select id="'+idSel+'" onchange="siteLainToggle(\''+idSel+'\',\''+idLain+'\')">'+
+     SITE_LIST.map(function(x){ return '<option'+(baku&&nilai===x?' selected':'')+'>'+esc(x)+'</option>'; }).join("")+
+     '<option value="'+SITE_LAIN+'"'+(lain?' selected':'')+'>Lainnya… (isi sendiri)</option>'+
+   '</select>'+
+   '<input id="'+idLain+'" class="site-lain'+(lain?'':' hide')+'" placeholder="Tulis nama lokasinya" value="'+(lain?esc(nilai):'')+'">'+
+ '</div>';
+}
+function siteLainToggle(idSel,idLain){
+ var s=document.getElementById(idSel), i=document.getElementById(idLain);
+ if(!s||!i) return;
+ var lain=(s.value===SITE_LAIN);
+ i.classList.toggle("hide",!lain);
+ if(lain){ setTimeout(function(){ try{ i.focus(); }catch(e){} },30); }
+ else i.value="";
+}
+function siteValue(idSel,idLain){
+ var s=document.getElementById(idSel), i=document.getElementById(idLain);
+ var v=s?String(s.value||""):"";
+ if(v===SITE_LAIN) return i?String(i.value||"").trim():"";
+ return v;
+}
 /* ===== SO — Section Head routing · inisial staff · dokumen manual ===== */
 /* Section approver per kategori SO (dari form Create SO) — menentukan TTD kolom Pemohon di dokumen */
 const SECTION_MAP={
@@ -9853,7 +9894,10 @@ function ctKriteriaHTML(){
    semakin besar peluang kebiasaannya benar-benar berpindah. */
 function selfCareAsk(){
  var judul=((document.getElementById("ct-title")||{}).value||"").trim();
- var lok=((document.getElementById("ct-loc")||{}).value||"").trim();
+ /* ikut bentuk yang sama dengan tiket: site + detail */
+ var lok=(function(){ var s=siteValue("ct-site","ct-site-lain");
+   var d=((document.getElementById("ct-loc")||{}).value||"").trim();
+   return (s+(d?" "+d:"")).trim(); })();
  var kat=((document.getElementById("ct-cat")||{}).value||"");
  document.getElementById("drawer").innerHTML=
   '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
@@ -9930,7 +9974,10 @@ function renderCreateTicket(){
     <div id="ctCerminSlot"></div>
     <div class="two" style="gap:0 16px"><div class="field"><label>Category</label><select id="ct-cat">${cats.map(c=>`<option>${c}</option>`).join("")}</select></div>
     <div class="field"><label>Priority</label><select id="ct-prio"><option>Low</option><option selected>Medium</option><option>High</option><option>Critical</option></select></div></div>
-    <div class="two" style="gap:0 16px"><div class="field"><label>Location</label><input id="ct-loc" placeholder="Building / floor / room"/></div>
+    <div class="two" style="gap:0 16px"><div class="field"><label>Lokasi</label>
+      ${siteSelectHTML("ct-site","ct-site-lain","")}
+      <input id="ct-loc" style="margin-top:8px" placeholder="Detail — lantai / ruang (mis. Lt.3 Pantry)"/>
+      <div class="hint" style="font-size:calc(11px*var(--fz));color:var(--muted-2,#9aa7b8);margin-top:4px">Site dipilih dari daftar agar tiket sampai ke operator yang tepat; detailnya ditulis bebas.</div></div>
     <div class="field"><label>Requester</label><input id="ct-req" value="${gUser?gUser.name:''}" disabled style="background:#f1f4f8;color:var(--muted)"/></div></div>
     <div class="field"><label>Description <span class="muted small">(dibaca operator sebelum mengambil tiket)</span></label><textarea id="ct-desc" rows="3" placeholder="Jelaskan masalahnya: apa yang rusak/dibutuhkan, sejak kapan, dampaknya…" oninput="ctCerminSync()"></textarea></div>
     <div class="field"><label>Catatan tambahan <span class="muted small">(opsional)</span></label><textarea id="ct-note" rows="2" placeholder="mis. akses lewat pintu belakang · hubungi Pak Budi 0812xxxx · hanya bisa dikerjakan setelah jam 17.00"></textarea></div>
@@ -10007,7 +10054,13 @@ async function submitTicket(){
  const title=(document.getElementById("ct-title").value||"").trim()||"New service request";
  const cat=document.getElementById("ct-cat").value;
  const prio=document.getElementById("ct-prio").value;
- const loc=(document.getElementById("ct-loc").value||"").trim()||"—";
+ /* Lokasi = site (dari daftar / isian "Lainnya") + detail bebas, digabung jadi
+    satu teks seperti sebelumnya — supaya tampilan & pengelompokan per site di
+    Field Ops tetap membaca bentuk yang sama. */
+ const site=siteValue("ct-site","ct-site-lain");
+ if(!site){ alert("Isi dulu nama lokasinya — Anda memilih \"Lainnya\" tetapi kotaknya masih kosong."); return; }
+ const locDetail=(document.getElementById("ct-loc").value||"").trim();
+ const loc=(site+(locDetail?" "+locDetail:"")).trim()||"—";
  const desc=(document.getElementById("ct-desc").value||"").trim()||"—";
  const note=((document.getElementById("ct-note")||{}).value||"").trim();
  const req=gUser?gUser.name:"";
@@ -10649,7 +10702,7 @@ function renderCreateSO(){
       <div class="field"><label>Dept / Divisi <span class="muted small">(muncul di dokumen SO)</span></label><input id="so-deptdiv" placeholder="mis. GENERAL AFFAIR" value="${esc((rev&&rev.deptDiv)||"GENERAL AFFAIR")}"/></div>
     </div>
     <div class="two" style="gap:0 16px">
-      <div class="field"><label>Lokasi <span class="muted small">(site — jadi default lokasi item)</span></label><select id="so-lokasi">${["AMDI","MA","ABC BSD","ABC BDG"].map(x=>`<option${rev&&rev.lokasi===x?" selected":""}>${x}</option>`).join("")}</select></div>
+      <div class="field"><label>Lokasi <span class="muted small">(site — jadi default lokasi item)</span></label>${siteSelectHTML("so-lokasi","so-lokasi-lain",rev?rev.lokasi:"")}</div>
       <div class="field"><label>Kategori</label><select id="so-cat">${KATEGORI8.map(c=>`<option${rev&&rev.kategori===c?" selected":""}>${c}</option>`).join("")}</select></div>
     </div>
     <div class="field"><label>Daftar Item Permintaan <span class="muted small">(Satuan, Lokasi &amp; Keterangan ikut tercetak di Dokumen SO)</span></label>
@@ -10757,7 +10810,8 @@ async function submitSO(){
    return {item:g('item'),spec:g('spec'),satuan:g('satuan'),qty:g('qty'),lokasi:g('lokasi'),ket:g('ket')};
  }).filter(r=>r.item);
  if(!rows.length){ alert("Tambahkan minimal 1 item permintaan."); return; }
- const lokasi=document.getElementById("so-lokasi").value;
+ const lokasi=siteValue("so-lokasi","so-lokasi-lain");
+ if(!lokasi){ alert("Isi dulu nama lokasinya — Anda memilih \"Lainnya\" tetapi kotaknya masih kosong."); return; }
  rows.forEach(r=>{ if(!r.lokasi) r.lokasi=lokasi; });   // lokasi item kosong → ikut lokasi (site) SO
  const kat=document.getElementById("so-cat").value;
  const deptDiv=(document.getElementById("so-deptdiv")&&document.getElementById("so-deptdiv").value.trim())||"GENERAL AFFAIR";
@@ -13386,7 +13440,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-131";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-132";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
