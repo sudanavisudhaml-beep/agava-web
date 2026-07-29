@@ -782,6 +782,10 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
    (badge di atas), jadi tanpa pembungkus ini tiap tombol jatuh ke barisnya
    sendiri — tombol hapus jadi tampak menggantung sendirian di bawah. */
 .so-acts{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+/* SO PDF turun ke kolom Item — kolom Stage dulu jadi bertumpuk badge + tombol */
+.so-pdf-item{margin-top:8px}
+/* Kolom Status: badge aging, tombol hapus menempel di ujung kanan */
+.so-status-cell{display:flex;align-items:center;gap:8px;justify-content:space-between;white-space:nowrap}
 .so-rev{border-color:#f0dcb4;background:#fff8e8;color:#8a5a00}
 .so-rev:hover{background:linear-gradient(135deg,#f6c56b,#d99b1c);color:#fff;border-color:transparent}
 /* Ikon saja — disamakan tingginya dengan SO PDF supaya sejajar rapi */
@@ -4368,7 +4372,7 @@ function gacalEvents(){
    (typeof PJ_P!=='undefined'?PJ_P:[]).forEach((a,i)=>{ if(a.s)evs.push({date:a.s,type:'project',loc:a.p,title:pjShort(a.p)+' — '+a.a,sub:'Mulai fase · '+pjShort(a.p),src:'PJ_P',idx:i}); if(a.e)evs.push({date:a.e,type:'project',loc:a.p,title:pjShort(a.p)+' — '+a.a,sub:'Selesai fase · '+pjShort(a.p),src:'PJ_P',idx:i}); });
  }
  /* Payment Tracker — estimasi (atau tanggal aktual) pembayaran ke vendor */
- (typeof SO!=='undefined'?SO:[]).forEach((s,i)=>{ const d=s.invReleased?s.invReleaseDate:(typeof invRelEst==='function'?invRelEst(s):null); if(d)evs.push({date:d,type:'payment',loc:s.vendor||'',title:'Bayar: '+(s.item||s.no),sub:(s.invReleased?'Sudah dibayar':'Estimasi bayar')+' · '+(s.vendor||'-')+' · Rp'+(s.invNominal||s.nilai||0)+' jt',status:s.invReleased?'Released':((typeof invReleaseOverdue==='function'&&invReleaseOverdue(s))?'Overdue':'Estimasi'),src:'SO',idx:i}); });
+ (typeof SO!=='undefined'?SO:[]).forEach((s,i)=>{ const d=s.invReleased?s.invReleaseDate:(typeof invRelEst==='function'?invRelEst(s):null); if(d)evs.push({date:d,type:'payment',loc:s.vendor||'',title:'Bayar: '+(s.item||s.no),sub:(s.invReleased?'Sudah dibayar':'Estimasi bayar')+' · '+(s.vendor||'-')+' · Rp '+rpFmt(invNomRp(s)),status:s.invReleased?'Released':((typeof invReleaseOverdue==='function'&&invReleaseOverdue(s))?'Overdue':'Estimasi'),src:'SO',idx:i}); });
  /* Building & Utility — jadwal maintenance (bulan → hari representatif per baris) */
  (typeof MAINT_SCHED!=='undefined'?MAINT_SCHED:[]).forEach((r,ri)=>{ (r.m||[]).forEach((v,mi)=>{ if(v>=1){ const day=Math.min(28,6+ri*3); const dt='2026-'+String(mi+1).padStart(2,'0')+'-'+String(day).padStart(2,'0'); evs.push({date:dt,type:'maint',loc:r.cat||'',title:r.n,sub:'Maintenance '+(r.cat||'')+' · '+(v===2?'sudah selesai':'terjadwal'),status:v===2?'Selesai':'Terjadwal',src:'MAINT',idx:ri}); } }); });
  /* HSE & Sustainability — jatuh tempo legal: STNK · PBB · Izin · Izin Operasional */
@@ -5953,7 +5957,29 @@ const TICKETS=[
 ];
 function ticketAge(d){ return Math.floor((new Date(TODAY_STR)-new Date(d))/86400000); }
 let procFilter="all";
-function tier(n){return n<=10?"Dept Head":n<=100?"Division Head":"Chief CHCD";}
+/* ══════════════════════════════════════════════════════════════════════════
+   NILAI SO — DALAM RUPIAH PENUH (sejak v134)
+   Dulu field ini bersatuan JUTA ("Estimasi (Rp juta)"), lalu ditampilkan
+   "Rp 35 M". Di lapangan orang justru mengetik angka sebenarnya: data live
+   sudah campur — ada yang mengisi 500000 (maksudnya Rp 500 ribu) dan ada yang
+   mengisi 35 (maksudnya Rp 35 juta). Sekarang isian & tampilannya dikunci ke
+   RUPIAH PENUH dengan pemisah titik.
+
+   Catatan lama tetap terbaca benar: angka di bawah 1.000 dianggap warisan
+   satuan juta dan dikalikan sejuta. Ambang Rp 1.000 aman karena tidak ada
+   pengadaan yang benar-benar bernilai di bawah seribu rupiah.
+   ══════════════════════════════════════════════════════════════════════════ */
+const SO_NILAI_WARISAN=1000;      // < ini = catatan lama bersatuan juta
+function soNilaiRp(s){
+ var n=parseFloat((s&&typeof s==="object")?s.nilai:s)||0;
+ if(n>0&&n<SO_NILAI_WARISAN) n*=1000000;
+ return n;
+}
+/* 500000 → "500.000" · pemisah titik ala Indonesia */
+function rpFmt(n){ return Math.round(parseFloat(n)||0).toLocaleString("id-ID"); }
+function soNilaiTeks(s){ return "Rp "+rpFmt(soNilaiRp(s)); }
+/* Ambang jenjang approval UPR ikut pindah ke rupiah: ≤10 jt · ≤100 jt · di atas itu */
+function tier(n){ n=soNilaiRp(n); return n<=10000000?"Dept Head":n<=100000000?"Division Head":"Chief CHCD"; }
 function agingBadge(a){return a==="Needs Attention"?'<span class="badge bd-crit">Needs Attention</span>':a==="Warning"?'<span class="badge bd-warn">Warning</span>':'<span class="badge bd-ok">On Track</span>';}
 function ini(n){if(!n)return"–";const p=n.split(" ");return (p[0][0]+(p[1]?p[1][0]:"")).toUpperCase();}
 
@@ -6160,7 +6186,7 @@ function soDocHTML(s){
  var n=Math.max(5,its.length), rows='';
  /* Angka budget = estimasi (Rp juta) dari form Create SO, terisi saat PIC Budget bertindak:
     approve langsung → kolom DALAM BUDGET · ekskalasi ke Dept Head → kolom DILUAR BUDGET. */
- var budgetVal=(s.nilai!=null&&s.nilai!=='')?(s.nilai+' jt'):'';
+ var budgetVal=(s.nilai!=null&&s.nilai!=='')?rpFmt(soNilaiRp(s)):'';
  var inBudgetCell=(s.apprBudget==='Approved')?budgetVal:'';
  var outBudgetCell=(s.apprBudget==='Escalated')?budgetVal:'';
  for(var i=0;i<n;i++){ var it=its[i]||{}; var has=!!(it.item);
@@ -6432,7 +6458,7 @@ function normalizeSO(){SO.forEach(s=>{
  if(s.ts===undefined)s.ts={};
  if(s.tsf===undefined)s.tsf={};
  if(s.invStatus===undefined)s.invStatus=(s.wstep>=4)?"Menunggu Invoice":"";
- if(s.spkNo===undefined)s.spkNo=s.wstep>=3?("SPK-202606-"+String(140+Math.floor(s.nilai)).padStart(4,"0")):"";
+ if(s.spkNo===undefined)s.spkNo=s.wstep>=3?("SPK-202606-"+String(140+(parseInt(String(s.no).replace(/\D/g,"").slice(-4),10)||0)).padStart(4,"0")):"";
  if(s.wstep>=4&&!s.bastDate)s.bastDate="2026-06-11";
 });}
 /* Persistensi SO — SO yang dibuat/di-approve di aplikasi tersimpan agar tidak hilang saat refresh */
@@ -6546,7 +6572,7 @@ function soHapus(no){
  if(AGDB.ro){ alert("🔒 Mode uji (localhost/file) — penghapusan cloud diblokir.\nJalankan dari situs AGAVA yang asli."); return; }
  if(!confirm("🗑 HAPUS SUPPLY ORDER?\n\n"+
    no+"\n"+String(s.item||"").slice(0,70)+"\n"+
-   "Pemohon: "+(soPemohon(s)||"—")+" · Rp "+(s.nilai||0)+" M · "+soStatusLabel(s).t+"\n\n"+
+   "Pemohon: "+(soPemohon(s)||"—")+" · "+soNilaiTeks(s)+" · "+soStatusLabel(s).t+"\n\n"+
    "SO ini akan hilang dari seluruh modul AGAVA.\n"+
    "Salinannya tetap tersimpan di Record Log.\n\n"+
    "Lanjutkan menghapus?")) return;
@@ -6879,12 +6905,13 @@ function renderProc(){
    </tr></thead><tbody>
    ${tampil.map(G=>`<tr class="bl-trsep"><td colspan="6">${bulanSepText(G,"SO")}</td></tr>`+G.rows.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;return `<tr onclick="openDrawer('${s.no}')">
      <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0"><div class="so-no-sm">${s.no}${s.rev?`<span class="so-rev-badge">REV.${s.rev}</span>`:''}</div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span><span style="color:#9aa7b8">🕒 dibuat ${recCreatedLabel(s)}</span>
-        ${soMiniPips(s)}</div></div></td>
+        ${soMiniPips(s)}
+        <button class="so-pdf so-pdf-item" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button></div></div></td>
      <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
-     <td class="nilai">Rp ${s.nilai} M</td>
-     <td><span class="badge bd-neu">${tier(s.nilai)}</span></td>
-     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span><span class="so-acts">${`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>`}${soBolehRevisi(s)?`<button class="so-pdf so-rev" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama">✏️ Revisi</button>`:''}${soBolehHapus(s)?`<button class="so-pdf so-del" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini — wewenang Owner" aria-label="Hapus SO">🗑</button>`:''}</span></div></td>
-     <td>${agingBadge(s.aging)}</td>
+     <td class="nilai">${soNilaiTeks(s)}</td>
+     <td><span class="badge bd-neu">${tier(s)}</span></td>
+     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span>${soBolehRevisi(s)?`<button class="so-pdf so-rev" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama">✏️ Revisi</button>`:''}</div></td>
+     <td><div class="so-status-cell">${agingBadge(s.aging)}${soBolehHapus(s)?`<button class="so-pdf so-del" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini — wewenang Owner" aria-label="Hapus SO">🗑</button>`:''}</div></td>
    </tr>`}).join("")).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'}</td></tr>`}
    </tbody></table>
  </div>
@@ -6921,8 +6948,8 @@ function openDrawer(no){
       <span class="k">Requester</span><span class="v">${s.req}</span>
       <span class="k">Proc PIC</span><span class="v">${s.pic||'— unassigned'}</span>
       <span class="k">Type</span><span class="v">${s.jenis}</span>
-      <span class="k">Est. value</span><span class="v">Rp ${s.nilai} M</span>
-      <span class="k">UPR Approver</span><span class="v">${tier(s.nilai)} <span class="muted" style="font-weight:400">(by value)</span></span>
+      <span class="k">Est. value</span><span class="v">${soNilaiTeks(s)}</span>
+      <span class="k">UPR Approver</span><span class="v">${tier(s)} <span class="muted" style="font-weight:400">(by value)</span></span>
       <span class="k">Vendor</span><span class="v">${s.vendor||'— not sourced yet'}</span>
       <span class="k">Tahap saat ini</span><span class="v">${(()=>{const gi=gst.indexOf("rejected")>=0?gst.indexOf("rejected"):(gst.indexOf("active")>=0?gst.indexOf("active"):SO_GROUPS.length-1);
         return `<span class="stg"><span class="pip" style="background:${gst[gi]==='rejected'?'var(--red)':SO_GROUPS[gi].col}"></span>${gi+1}/${SO_GROUPS.length} · ${SO_GROUPS[gi].n}</span>`;})()}
@@ -9443,7 +9470,7 @@ function renderMobileHome(){
    var soRowsArr=soArr.map(function(s){
        var st=soStatusLabel(s);
        return '<div class="mh-row" onclick="openDrawer(\''+esc(s.no)+'\')">'+
-         '<div class="mh-rhead"><b>'+esc(s.no)+'</b><i>Rp '+esc(String(s.nilai))+' M</i></div>'+
+         '<div class="mh-rhead"><b>'+esc(s.no)+'</b><i>'+esc(soNilaiTeks(s))+'</i></div>'+
          '<div class="mh-rj">'+esc(s.item||"")+'</div>'+soMiniPips(s)+
          '<div class="mh-rfoot"><span class="mh-okind k-so">'+esc(st.t)+'</span>'+
            '<span class="mh-rd">🕒 '+esc(recCreatedLabel(s))+'</span>'+mhChev()+'</div>'+
@@ -10722,7 +10749,7 @@ function renderCreateSO(){
     </div>
     <div class="two" style="gap:0 16px">
       <div class="field"><label>Budget tersedia?</label><select id="so-budget">${["Yes","No"].map(x=>`<option${rev&&rev.budgetFlag===x?" selected":""}>${x}</option>`).join("")}</select></div>
-      <div class="field"><label>Estimasi (Rp juta)</label><input id="so-nilai" type="number" placeholder="e.g. 18" value="${rev?esc(String(rev.nilai||"")):""}"/></div>
+      <div class="field"><label>Estimasi Nilai <span class="muted small">(Rupiah penuh)</span></label><input id="so-nilai" type="number" min="0" step="1000" placeholder="mis. 500000" value="${rev?esc(String(soNilaiRp(rev)||"")):""}" oninput="soNilaiEcho(this)"/><div class="hint" id="soNilaiEcho" style="font-size:calc(11.5px*var(--fz));color:var(--muted);margin-top:4px">Tulis angka rupiah sebenarnya — mis. <b>500000</b> untuk Rp 500.000.</div></div>
     </div>
     <div class="field"><label>Lampiran (foto & dokumen PDF pendukung)</label>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -10757,6 +10784,14 @@ function soRevisiBatal(){ window._soRevisi=null; go('procurement'); }
    submit) supaya bisa dibuang per item — <input type=file> tidak bisa dikurangi
    isinya sebagian. */
 const SO_ATT_MAX=10;
+/* Gema angka di bawah kotak isian — pemohon langsung melihat "Rp 500.000"
+   sambil mengetik, jadi salah nol ketahuan sebelum dikirim. */
+function soNilaiEcho(el){
+ var h=document.getElementById("soNilaiEcho"); if(!h)return;
+ var n=parseFloat(el&&el.value)||0;
+ h.innerHTML = n>0 ? ('Terbaca: <b style="color:var(--ink)">Rp '+rpFmt(n)+'</b> · jenjang approval UPR: <b>'+tier(n)+'</b>')
+   : 'Tulis angka rupiah sebenarnya — mis. <b>500000</b> untuk Rp 500.000.';
+}
 function soAttReset(){ window._soAtt={imgs:[],pdfs:[]}; soAttRender(); }
 function soAttPick(input){
  window._soAtt=window._soAtt||{imgs:[],pdfs:[]};
@@ -11584,7 +11619,7 @@ function openClarify(no){
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">Klarifikasi — ${s.no}</div><div class="muted small" style="margin-top:4px">Catatan dikirim ke Requester (${s.requester||s.req}) lewat Reminder</div></div>
   <div class="db">
-    <div class="card pad" style="background:#f8fafd;font-size:calc(12.5px*var(--fz))">${s.item} · Rp ${s.nilai} M · ${s.requester||s.req}</div>
+    <div class="card pad" style="background:#f8fafd;font-size:calc(12.5px*var(--fz))">${s.item} · ${soNilaiTeks(s)} · ${s.requester||s.req}</div>
     <div class="field" style="margin-top:10px"><label>Catatan klarifikasi</label><textarea id="clar-note" rows="4" placeholder="Apa yang perlu diperjelas dari requester?"></textarea></div>
     <button class="btn-act" style="width:100%;margin-top:8px" onclick="sendClarify('${no}')">Kirim ke Requester</button>
   </div>`;
@@ -11648,7 +11683,7 @@ function soApprovalCard(s){
     tampil sebagai pantauan saja: tidak ada tombol aksi. */
  const pantauSaja = isOwner() && g!=="Section Head";
  const head=`<div><b class="sono">${s.no}</b> · <span style="font-weight:600;color:var(--ink)">${s.item}</span></div>
-   <div class="muted small" style="margin-top:4px">Requester: ${s.requester||s.req} · ${s.jenis||"—"} · Est. <b style="color:var(--ink)">Rp ${s.nilai} M</b>${s.budgetFlag?` · Budget: ${s.budgetFlag}`:""}${esc?` · <span class="badge bd-warn">Eskalasi (budget tdk ada)</span>`:""}${s.spec?`<br>Spec: ${s.spec}${s.qty?` · Qty: ${s.qty}`:""}`:""}</div>`;
+   <div class="muted small" style="margin-top:4px">Requester: ${s.requester||s.req} · ${s.jenis||"—"} · Est. <b style="color:var(--ink)">${soNilaiTeks(s)}</b>${s.budgetFlag?` · Budget: ${s.budgetFlag}`:""}${esc?` · <span class="badge bd-warn">Eskalasi (budget tdk ada)</span>`:""}${s.spec?`<br>Spec: ${s.spec}${s.qty?` · Qty: ${s.qty}`:""}`:""}</div>`;
  const clarBox = s.clarify ? `<div class="card pad" style="background:#f8fafd;margin-top:8px;font-size:calc(12.5px*var(--fz))"><b>📝 Klarifikasi (${s.clarify.by}):</b> ${s.clarify.note}${s.clarify.answered?`<br><b style="color:var(--green)">Jawaban ${s.requester||s.req}:</b> ${s.clarify.answer}`:` <span class="badge bd-info" style="margin-left:4px">menunggu jawaban requester</span>`}</div>` : "";
  let right="";
  if(pantauSaja){
@@ -11858,7 +11893,7 @@ function renderAssigned(){
       <div style="display:flex;gap:16px;align-items:flex-start">
         <div style="flex:1">
           <div><b class="sono">${s.no}</b> · <span style="color:var(--ink);font-weight:600">${s.item}</span></div>
-          <div class="muted small" style="margin:4px 0 0">${WSTEP_DONE[s.wstep]} · ${s.jenis} · Rp ${s.nilai} M${s.vendor?' · '+s.vendor:''}${s.spkNo?' · '+s.spkNo:''}</div>
+          <div class="muted small" style="margin:4px 0 0">${WSTEP_DONE[s.wstep]} · ${s.jenis} · ${soNilaiTeks(s)}${s.vendor?' · '+s.vendor:''}${s.spkNo?' · '+s.spkNo:''}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;min-width:200px;text-align:center">
           ${btn?`<button class="btn-act" onclick="soStep('${s.no}')">${btn} →</button><div class="muted small">${sla}</div>`:`<span class="badge bd-ok">BAST done → Payment Tracker</span>`}
@@ -11871,7 +11906,7 @@ function renderAssigned(){
 }
 function openSPK(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
- var spkNo="SPK-202606-"+String(140+Math.floor(s.nilai)).padStart(4,"0");
+ var spkNo="SPK-202606-"+String(140+(parseInt(String(s.no).replace(/\D/g,"").slice(-4),10)||0)).padStart(4,"0");
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">Kirim SPK — ${s.no}</div><div class="muted small" style="margin-top:4px">Upload SPK & email ke Vendor (cc Section Head, Dept Head)</div></div>
   <div class="db">
@@ -11885,7 +11920,7 @@ function openSPK(no){
       <div class="muted" style="font-size:calc(11.5px*var(--fz));margin-bottom:6px">Production: terkirim langsung dari AGAVA via konektor <b>Office 365 Outlook</b> (standar, tanpa admin/premium).</div>
       <div><b>To:</b> Vendor &nbsp;·&nbsp; <b>Cc:</b> Section Head, Dept Head</div>
       <div style="margin-top:6px"><b>Subject:</b> [SPK] &lt;No SPK&gt; - ${s.item} - &lt;Vendor&gt;</div>
-      <div style="margin-top:6px"><b>Body:</b><br><span class="muted">Yth. Vendor,<br>Bersama ini kami sampaikan SPK untuk pekerjaan "${s.item}" senilai Rp ${s.nilai} juta. Mohon konfirmasi penerimaan & jadwal pelaksanaan. Terima kasih.<br>— GA Procurement, PT Astra International</span></div>
+      <div style="margin-top:6px"><b>Body:</b><br><span class="muted">Yth. Vendor,<br>Bersama ini kami sampaikan SPK untuk pekerjaan "${s.item}" senilai ${soNilaiTeks(s)}. Mohon konfirmasi penerimaan & jadwal pelaksanaan. Terima kasih.<br>— GA Procurement, PT Astra International</span></div>
     </div>
     <button class="btn-act" style="width:100%;margin-top:14px" onclick="sendSPK('${s.no}')">Kirim ke Vendor</button>
   </div>`;
@@ -12053,7 +12088,15 @@ const PIPE=["Invoice Diterima","Invoice di Proses","Invoice Proses BPH","Pembaya
 /* Klasifikasi nominal (Rp juta) → tier approval (di SAP) + SLA hari kerja. */
 function invClass(n){ n=+n||0; if(n<=10) return {tier:"Dept Head", sla:5}; if(n<=100) return {tier:"Division Head", sla:7}; if(n<=300) return {tier:"Chief CHCD", sla:15}; return {tier:"Director In Charge", sla:21}; }
 function workdays(from,to){ let d=new Date(from+"T00:00:00"), end=new Date(to+"T00:00:00"), n=0; if(isNaN(d)||isNaN(end)||end<=d)return 0; while(d<end){ d.setDate(d.getDate()+1); const w=d.getDay(); if(w!==0&&w!==6)n++; } return n; }
-function invNom(s){ return s.invNominal||s.nilai||0; }
+/* Payment Tracker bekerja dalam satuan JUTA (invClass: ≤10 · ≤100 · ≤300 jt).
+   invNominal warisan sudah dalam juta; nilai SO kini rupiah penuh, jadi dibagi
+   sejuta di sini supaya jenjang & SLA pembayaran tetap benar. */
+function invNom(s){
+ if(s&&s.invNominal!=null&&s.invNominal!=="") return (+s.invNominal)||0;
+ return soNilaiRp(s)/1000000;
+}
+/* Nominal pembayaran dalam rupiah penuh — untuk ditampilkan */
+function invNomRp(s){ return invNom(s)*1000000; }
 function invWaitHK(s){ return workdays(s.bastDate||TODAY_STR, TODAY_STR); }
 function invBphEst(s){ return s.invProcDate? addWorkdays(s.invProcDate, invClass(invNom(s)).sla) : null; }
 function invRelEst(s){ return invBphEst(s); }   /* est release = mulai di-Proses + HK approval per nominal (tanpa treasury tambahan) */
@@ -13449,7 +13492,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-133";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-134";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
