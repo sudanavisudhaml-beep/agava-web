@@ -778,6 +778,15 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .so-stage{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
 .so-pdf{border:1px solid rgba(10,124,255,.35);background:linear-gradient(135deg,rgba(0,198,251,.12),rgba(10,124,255,.09));color:#0a4bb8;font-family:var(--ff);font-size:calc(11px*var(--fz));font-weight:700;padding:4px 9px;border-radius:8px;cursor:pointer;white-space:nowrap}
 .so-pdf:hover{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);color:#fff;border-color:transparent}
+/* Tombol aksi baris SO berjajar mendatar. .so-stage sendiri tersusun ke bawah
+   (badge di atas), jadi tanpa pembungkus ini tiap tombol jatuh ke barisnya
+   sendiri — tombol hapus jadi tampak menggantung sendirian di bawah. */
+.so-acts{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+.so-rev{border-color:#f0dcb4;background:#fff8e8;color:#8a5a00}
+.so-rev:hover{background:linear-gradient(135deg,#f6c56b,#d99b1c);color:#fff;border-color:transparent}
+/* Ikon saja — disamakan tingginya dengan SO PDF supaya sejajar rapi */
+.so-del{border-color:#f0d7d7;background:#fdf6f6;color:#9b2c2c;padding:4px 8px;line-height:1.35}
+.so-del:hover{background:#dc2626;color:#fff;border-color:transparent}
 @media print{
   /* Kertas A4 (±794px) lolos ambang 820px, jadi pengali huruf mobile ikut terpakai
      saat mencetak dan dokumen Supply Order membengkak 12%. Kunci kembali ke 1
@@ -6874,7 +6883,7 @@ function renderProc(){
      <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
      <td class="nilai">Rp ${s.nilai} M</td>
      <td><span class="badge bd-neu">${tier(s.nilai)}</span></td>
-     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span>${`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>`}${soBolehRevisi(s)?`<button class="so-pdf" style="border-color:#f0dcb4;background:#fff8e8;color:#8a5a00" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama">✏️ Revisi</button>`:''}${soBolehHapus(s)?`<button class="so-pdf" style="border-color:#f0d7d7;background:#fdf6f6;color:#9b2c2c" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini dari daftar — dipakai bila Anda memilih membuat SO baru">🗑</button>`:''}</div></td>
+     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span><span class="so-acts">${`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>`}${soBolehRevisi(s)?`<button class="so-pdf so-rev" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama">✏️ Revisi</button>`:''}${soBolehHapus(s)?`<button class="so-pdf so-del" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini — wewenang Owner" aria-label="Hapus SO">🗑</button>`:''}</span></div></td>
      <td>${agingBadge(s.aging)}</td>
    </tr>`}).join("")).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'}</td></tr>`}
    </tbody></table>
@@ -13440,7 +13449,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-132";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-133";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
