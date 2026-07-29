@@ -3410,7 +3410,7 @@ const USERS=[
  {email:"endang.maulana@ai.astra.co.id",name:"Endang Maulana",role:"staff"},
  {email:"khalilul.rahman@ai.astra.co.id",name:"Khalilul Rahman",role:"staff"},
  {email:"mujibur@ai.astra.co.id",name:"Mujibur",role:"general",pic:"transport"},
- {email:"muhamad.zhaenuri@ai.astra.co.id",name:"M Zhaenuri",role:"general"},
+ {email:"muhamad.zhaenuri@ai.astra.co.id",name:"M Zhaenuri",role:"general",plus:["procurement"]},
  /* Maria diberi modul Procurement lewat `plus` — bukan dengan mengubah menu role
     "general", karena M Zhaenuri & Mujibur seperan dengannya dan tidak ikut diberi. */
  {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general",plus:["procurement"]},
@@ -6695,19 +6695,37 @@ function bulanSepText(g,satuan){ return bulanLabel(g.key)+' <span>· '+g.rows.le
 let procBulan=null;                                  /* null = belum dipilih → bulan terbaru */
 function procSetBulan(k){ procBulan=k; renderProc(); }
 
+/* ── SIAPA MELIHAT SO SIAPA ────────────────────────────────────────────────
+   Karyawan yang diberi modul Procurement semata-mata supaya BISA MENGAJUKAN
+   (lewat `plus` di akunnya) tidak dengan sendirinya berhak melihat pengadaan
+   seluruh departemen — di dalamnya ada nilai, vendor, dan kebutuhan unit lain.
+   Yang melihat semuanya: kelompok Super, Division Head, dan karyawan GA yang
+   memang mengerjakan SO. Sisanya hanya SO buatannya sendiri. */
+function soSeeAll(){
+ return isSuper()||gRole==="division"||GA_STAFF_ROLES.indexOf(gRole)>=0;
+}
+function soVisible(){
+ if(soSeeAll()) return SO;
+ var me=(gUser&&gUser.name)||"", mail=((gUser&&gUser.email)||"").toLowerCase();
+ return SO.filter(function(s){
+   if(mail&&s.email&&String(s.email).toLowerCase()===mail) return true;
+   return !!me && soPemohon(s)===me;
+ });
+}
 function renderProc(){
  const el=document.getElementById("page-procurement");
  const ap=s=>s.apprDept==="Approved";
+ const base=soVisible();          // semua angka & daftar di bawah turun dari sini
  /* "SO Ongoing" = yang benar-benar berjalan. SO ditolak & dibatalkan tidak ikut
     dihitung — dulu keduanya masuk sehingga angka pipeline selalu kelebihan. */
- const berjalan=SO.filter(soAktif).length;
- const upr=SO.filter(s=>ap(s)&&s.wstep>=2).length;
- const spk=SO.filter(s=>ap(s)&&s.wstep>=3).length;
- const bast=SO.filter(s=>ap(s)&&s.wstep>=4).length;
+ const berjalan=base.filter(soAktif).length;
+ const upr=base.filter(s=>ap(s)&&s.wstep>=2).length;
+ const spk=base.filter(s=>ap(s)&&s.wstep>=3).length;
+ const bast=base.filter(s=>ap(s)&&s.wstep>=4).length;
  /* SO ditolak & dibatalkan punya tabnya sendiri dan TIDAK ikut mengotori tab
     kerja — dulu ia menetap di "All" tanpa bisa diapa-apakan. */
  const macet=s=>soDitolak(s)||s.batal;
- let list=SO.filter(s=>{
+ let list=base.filter(s=>{
    if(procFilter==="tolak")return macet(s);
    if(macet(s))return false;
    if(procFilter==="all")return true;
@@ -6716,8 +6734,8 @@ function renderProc(){
    if(procFilter==="spk")return ap(s)&&s.wstep===3;
    if(procFilter==="bast")return ap(s)&&s.wstep>=4;
  });
- const nMacet=SO.filter(macet).length;
- const perluRevisi=SO.filter(s=>soDitolak(s)&&!s.batal&&soBolehRevisi(s)).length;
+ const nMacet=base.filter(macet).length;
+ const perluRevisi=base.filter(s=>soDitolak(s)&&!s.batal&&soBolehRevisi(s)).length;
  /* Dipilah per bulan agar tidak ada gulungan ratusan baris. */
  const grup=kelompokBulan(list);
  const selB=bulanTerpilih(grup,procBulan);
@@ -6732,7 +6750,7 @@ function renderProc(){
  </div>
 
  <div class="proc-tabs">
-   <div class="ptab ${procFilter==='all'?'on':''}" onclick="procFilter='all';renderProc()">All <b>${SO.filter(x=>!macet(x)).length}</b></div>
+   <div class="ptab ${procFilter==='all'?'on':''}" onclick="procFilter='all';renderProc()">All <b>${base.filter(x=>!macet(x)).length}</b></div>
    <div class="ptab ${procFilter==='pre'?'on':''}" onclick="procFilter='pre';renderProc()">SO & Sourcing</div>
    <div class="ptab ${procFilter==='upr'?'on':''}" onclick="procFilter='upr';renderProc()">UPR Stage</div>
    <div class="ptab ${procFilter==='spk'?'on':''}" onclick="procFilter='spk';renderProc()">SPK & Execution</div>
@@ -9339,6 +9357,7 @@ function gaServiceButtonsRaw(){
    <button class="ga-svc-btn" onclick="go('roombook')"><span class="ga-svc-ic" style="background:#e9f8ef;color:#15a34a">🏢</span><span class="ga-svc-tx"><b>Room Reservation</b><small>Pesan ruang meeting</small></span><span class="ga-svc-go">›</span></button>
    <button class="ga-svc-btn" onclick="go('transport')"><span class="ga-svc-ic" style="background:#fdf3e3;color:#c2740a">🚗</span><span class="ga-svc-tx"><b>Transport Booking</b><small>Pool, Blue Bird, GoCorp</small></span><span class="ga-svc-go">›</span></button>
    <button class="ga-svc-btn" onclick="go('overtime')"><span class="ga-svc-ic" style="background:#f3eefe;color:#7a4fd0">⏱️</span><span class="ga-svc-tx"><b>Overtime</b><small>Pengajuan lembur & fasilitas</small></span><span class="ga-svc-go">›</span></button>
+   ${mCanSO()?`<button class="ga-svc-btn" onclick="go('createso')"><span class="ga-svc-ic" style="background:#eaf6ff;color:#0a4bb8">🛒</span><span class="ga-svc-tx"><b>Create Supply Order</b><small>Ajukan permintaan pembelian</small></span><span class="ga-svc-go">›</span></button>`:''}
   </div>
  </div>`;
 }
@@ -13146,7 +13165,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-128";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-129";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
