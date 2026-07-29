@@ -1103,7 +1103,7 @@ tr.bl-trsep:hover td{background:#f2f6fb}
 .so-tolak{background:#fdf3f3;border:1px solid #f0d7d7;border-left:4px solid #dc2626;border-radius:11px;
   padding:11px 13px;margin:12px 0;font-size:calc(12.5px*var(--fz));color:#7a2020;line-height:1.55}
 .so-tolak.batal{background:#f6f7f9;border-color:#e0e4ea;border-left-color:#7c8798;color:#3d4756}
-.so-tolak b{display:block;color:var(--ink);font-size:calc(13px*var(--fz));margin-bottom:5px}
+.so-tolak b:first-child{display:block;color:var(--ink);font-size:calc(13px*var(--fz));margin-bottom:5px}
 .so-tolak u{text-decoration:none;font-weight:700;color:#8c3030}
 .so-tolak.batal u{color:#4a5563}
 .so-tolak i{display:block;font-style:normal;font-size:calc(10.5px*var(--fz));color:#9aa7b8;margin-top:5px}
@@ -1117,7 +1117,10 @@ tr.bl-trsep:hover td{background:#f2f6fb}
   border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:middle}
 .so-perbaiki{background:#fff8e8;border:1px solid #f0dcb4;border-left:4px solid #d99b1c;border-radius:11px;
   padding:12px 14px;margin-bottom:14px;font-size:calc(12.5px*var(--fz));color:#6b5310;line-height:1.55}
-.so-perbaiki b{display:block;color:var(--ink);font-size:calc(13.5px*var(--fz));margin-bottom:5px}
+/* HANYA judulnya yang jadi blok. Dulu semua <b> kena, jadi tiap kata tebal di
+   badan kalimat patah ke baris sendiri dan spanduknya terbaca berantakan. */
+.so-perbaiki b:first-child{display:block;color:var(--ink);font-size:calc(13.5px*var(--fz));margin-bottom:5px}
+.so-perbaiki b{color:var(--ink)}
 /* ── Kriteria "kapan layak jadi tiket" + cermin dampak (Create Ticket) ── */
 .ct-krit{background:#f7fafd;border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-bottom:16px}
 .ct-krit-h{font-size:calc(12.5px*var(--fz));font-weight:800;color:var(--ink);margin-bottom:9px}
@@ -3408,7 +3411,9 @@ const USERS=[
  {email:"khalilul.rahman@ai.astra.co.id",name:"Khalilul Rahman",role:"staff"},
  {email:"mujibur@ai.astra.co.id",name:"Mujibur",role:"general",pic:"transport"},
  {email:"muhamad.zhaenuri@ai.astra.co.id",name:"M Zhaenuri",role:"general"},
- {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general"},
+ /* Maria diberi modul Procurement lewat `plus` — bukan dengan mengubah menu role
+    "general", karena M Zhaenuri & Mujibur seperan dengannya dan tidak ikut diberi. */
+ {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general",plus:["procurement"]},
  {email:"salsa.savila@ai.astra.co.id",name:"Salsa",role:"finance"},
  {email:"fieldops@ai.astra.co.id",name:"Field Ops - Supervisor",role:"fieldsup"},
  {email:"fieldops.building@ai.astra.co.id",name:"Field Ops - Building & Utility",role:"fieldops",cat:"Building & Utility"},
@@ -3904,7 +3909,14 @@ function isSuper(){ return SUPER_ROLES.indexOf(gRole)>=0 || !!(gUser&&gUser.supe
    notifikasi — supaya hak akses tidak pernah berbeda antar tempat. */
 function menusFor(u,role){
  if(u&&u.super) return ALLMENUS.slice();
- return (ROLES[role]&&ROLES[role].menus)||[];
+ var m=((ROLES[role]&&ROLES[role].menus)||[]).slice();
+ /* Modul TAMBAHAN per AKUN (`plus`), bukan per role. Dipakai saat satu orang
+    perlu satu modul lagi tanpa menaikkan seluruh rolenya — kalau menu role yang
+    diubah, semua rekan seperannya ikut kebagian, dan itu jarang yang dimaui. */
+ if(u&&Array.isArray(u.plus)) u.plus.forEach(function(x){
+   if(ALLMENUS.indexOf(x)>=0 && m.indexOf(x)<0) m.push(x);
+ });
+ return m;
 }
 function myMenus(){ return menusFor(gUser,gRole); }
 /* OWNER — satu-satunya akun yang boleh membuka panel Cloud & Backup
@@ -6386,6 +6398,15 @@ function soBolehRevisi(s){
  var me=(gUser&&gUser.name)||"";
  return !!me && soPemohon(s)===me;
 }
+/* Boleh menghapus: pemohonnya sendiri atau Owner, DAN hanya SO yang sudah macet
+   (ditolak atau dibatalkan). SO yang sedang berjalan tidak boleh dihapus —
+   orang lain sudah membubuhkan persetujuan di sana. */
+function soBolehHapus(s){
+ if(!s || (!soDitolak(s) && !s.batal)) return false;
+ if(isOwner()) return true;
+ var me=(gUser&&gUser.name)||"";
+ return !!me && soPemohon(s)===me;
+}
 /* Ringkasan penolakan + riwayat revisi — dipakai di drawer & form revisi */
 function soTolakHTML(s){
  if(!s) return "";
@@ -6419,6 +6440,69 @@ function soRevisiMulai(no){
  closeDrawer();
  window._soRevisi=no;
  go("createso");
+}
+/* ── HAPUS SO ───────────────────────────────────────────────────────────────
+   Untuk pemohon yang memutuskan TIDAK melanjutkan revisi dan lebih baik membuat
+   SO baru dari awal. Bedanya dengan Batalkan: "batal" menutup SO dengan alasan
+   dan tetap terlihat di tab Ditolak & Batal (kebutuhannya gugur); "hapus"
+   mengeluarkannya sama sekali dari daftar (SO-nya sendiri yang keliru).
+
+   Tiga hal yang dijaga:
+   1. Hanya SO yang DITOLAK/DIBATALKAN yang boleh dihapus — SO yang sedang
+      berjalan tidak, karena orang lain sudah membubuhkan persetujuan di sana.
+   2. Datanya TIDAK musnah: disalin dulu ke agava_recordlog, jalur arsip yang
+      sama dengan data pra-live. Salah hapus masih bisa ditelusuri.
+   3. Kalau SO ini lahir dari tiket eskalasi, tautannya dilepas dan eskalasi
+      tiket itu DIBUKA KEMBALI — kalau tidak, tiketnya menggantung menunjuk SO
+      yang sudah tidak ada. */
+function soHapus(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ if(!soBolehHapus(s)){
+   alert("⛔ Hanya pemohon SO ini ("+(soPemohon(s)||"—")+") atau Owner yang dapat menghapusnya.\n\n"+
+     "SO yang sedang berjalan juga tidak bisa dihapus — tolak atau batalkan dulu.");
+   return;
+ }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost/file) — penghapusan cloud diblokir.\nJalankan dari situs AGAVA yang asli."); return; }
+ var k=prompt("⚠️ MENGHAPUS SO — tidak bisa dibatalkan.\n\n"+no+" akan hilang dari daftar Procurement.\n"+
+   "Datanya tetap tersalin ke Record Log, tapi tidak lagi muncul di modul mana pun.\n\n"+
+   "Kalau Anda hanya ingin menutupnya dengan alasan, pakai Batalkan.\n\n"+
+   "Ketik ulang nomor SO untuk mengonfirmasi:");
+ if(k===null) return;
+ if(String(k).trim().toUpperCase()!==String(no).toUpperCase()){ alert("⛔ Nomor tidak cocok — penghapusan dibatalkan."); return; }
+
+ var salinan=JSON.parse(JSON.stringify(s));
+ salinan._archivedAt=new Date().toISOString();
+ salinan._src="agava_so"; salinan._cutoff="dihapus pemohon";
+ salinan._deletedBy=(gUser&&gUser.name)||""; salinan._deletedAt=nowStamp();
+
+ /* Tiket yang dulu melahirkan SO ini kembali menunggu tindak lanjut. */
+ var tk=s.fromTicket?TICKETS.find(function(x){return x.no===s.fromTicket;}):null;
+ if(tk){
+   tk.soNo=""; tk.toProc=false; tk.escDone=false; tk.soDone=false;
+   try{ tkKomen(tk,"SO "+no+" dihapus pemohon — eskalasi dibuka kembali","eskalasi"); }catch(e){}
+   try{ dbPatchTicket(tk,{soNo:"",toProc:false,escDone:false,soDone:false}); }catch(e){}
+ }
+
+ var lanjut=function(){
+   var i=SO.findIndex(function(x){return x.no===no;});
+   if(i>=0) SO.splice(i,1);
+   try{ delete AGDB.soEcho[no]; }catch(e){}
+   soPersist();
+   try{ auditLog("so-hapus", no+" · "+(salinan.item||"")+(tk?" · eskalasi tiket "+tk.no+" dibuka kembali":"")); }catch(e){}
+   closeDrawer();
+   procFilter="all"; renderProc(); renderApprovals(); renderService(); renderMyTickets(); renderFieldOps(); updateBell();
+   alert("🗑 "+no+" dihapus dari daftar.\n\nSalinannya tersimpan di Record Log."+
+     (tk?"\n\nTiket "+tk.no+" kembali ke antrean eskalasi — SO penggantinya bisa dibuat dari sana.":
+         "\n\nSilakan buat SO baru lewat + Create SO."));
+ };
+ var db=(AGDB.on&&AGDB.db)?AGDB.db:null;
+ if(!db){ lanjut(); return; }
+ db.collection("agava_recordlog").doc("so_"+no).set(salinan,{merge:true})
+   .then(function(){ return db.collection("agava_so").doc(String(no)).delete(); })
+   .then(lanjut)
+   .catch(function(e){
+     alert("⚠️ Gagal menghapus di cloud: "+((e&&(e.code||e.message))||e)+"\n\nSO TIDAK jadi dihapus supaya tidak beda antar perangkat. Coba lagi saat koneksi stabil.");
+   });
 }
 function soBatal(no){
  var s=SO.find(function(x){return x.no===no;}); if(!s)return;
@@ -6656,8 +6740,8 @@ function renderProc(){
    ${nMacet?`<div class="ptab ${procFilter==='tolak'?'on':''}" onclick="procFilter='tolak';renderProc()" title="SO yang ditolak (perlu revisi) & yang dibatalkan">⛔ Ditolak & Batal <b>${nMacet}</b></div>`:''}
  </div>
  ${perluRevisi?`<div class="so-perbaiki" style="margin-bottom:14px"><b>✏️ ${perluRevisi} SO Anda ditolak dan menunggu perbaikan</b>
-   Buka SO-nya di tab <b>⛔ Ditolak &amp; Batal</b> → tekan <b>Revisi &amp; Kirim Ulang</b>. Nomornya tetap sama;
-   Anda tidak perlu membuat SO baru. Kalau kebutuhannya memang gugur, tekan <b>Batalkan</b> supaya tidak menggantung.</div>`:''}
+   Buka SO-nya di tab <b>⛔ Ditolak &amp; Batal</b>, lalu pilih: <b>Revisi &amp; Kirim Ulang</b> (nomor tetap sama, tidak perlu membuat SO baru) ·
+   <b>Batalkan</b> bila kebutuhannya gugur · <b>Hapus</b> bila SO-nya keliru dan Anda ingin membuat yang baru dari awal.</div>`:''}
 
  ${bulanStripHTML(grup,selB,"procSetBulan")}
  <div class="card" style="overflow-x:auto">
@@ -6670,7 +6754,7 @@ function renderProc(){
      <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
      <td class="nilai">Rp ${s.nilai} M</td>
      <td><span class="badge bd-neu">${tier(s.nilai)}</span></td>
-     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span>${`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>`}${soBolehRevisi(s)?`<button class="so-pdf" style="border-color:#f0dcb4;background:#fff8e8;color:#8a5a00" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama">✏️ Revisi</button>`:''}</div></td>
+     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span>${`<button class="so-pdf" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>`}${soBolehRevisi(s)?`<button class="so-pdf" style="border-color:#f0dcb4;background:#fff8e8;color:#8a5a00" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama">✏️ Revisi</button>`:''}${soBolehHapus(s)?`<button class="so-pdf" style="border-color:#f0d7d7;background:#fdf6f6;color:#9b2c2c" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini dari daftar — dipakai bila Anda memilih membuat SO baru">🗑</button>`:''}</div></td>
      <td>${agingBadge(s.aging)}</td>
    </tr>`}).join("")).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'}</td></tr>`}
    </tbody></table>
@@ -6693,11 +6777,17 @@ function openDrawer(no){
   </div>
   <div class="db">
     ${soTolakHTML(s)}
-    ${soBolehRevisi(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px">
+    ${soBolehRevisi(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px">
       <button class="btn-act" style="flex:1 1 200px" onclick="soRevisiMulai('${s.no}')">✏️ Revisi &amp; Kirim Ulang</button>
-      <button class="btn-out" style="flex:0 1 auto" onclick="soBatal('${s.no}')">🗑 Batalkan SO</button></div>
-      <div class="muted small" style="margin:-8px 0 14px;line-height:1.5">Nomor SO tidak berubah saat direvisi — Anda tidak perlu membuat SO baru.</div>`
-     :(soDitolak(s)&&!s.batal?`<div class="muted small" style="margin-bottom:14px;line-height:1.5">Menunggu <b>${esc(soPemohon(s)||"pemohon")}</b> memperbaiki dan mengirim ulang SO ini.</div>`:'')}
+      <button class="btn-out" style="flex:0 1 auto" onclick="soBatal('${s.no}')">🚫 Batalkan SO</button>
+      <button class="btn-out" style="flex:0 1 auto;color:var(--red);border-color:#f0d7d7" onclick="soHapus('${s.no}')">🗑 Hapus SO</button></div>
+      <div class="muted small" style="margin:0 0 14px;line-height:1.55">
+        <b>Revisi</b> — nomor SO tetap, Anda tidak perlu membuat SO baru.<br>
+        <b>Batalkan</b> — kebutuhannya gugur; SO ditutup dengan alasan dan tetap tercatat.<br>
+        <b>Hapus</b> — SO-nya sendiri keliru; hilang dari daftar, salinannya disimpan di Record Log. Setelah itu buat SO baru lewat <b>+ Create SO</b>.</div>`
+     :(soBolehHapus(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px">
+      <button class="btn-out" style="color:var(--red);border-color:#f0d7d7" onclick="soHapus('${s.no}')">🗑 Hapus SO dari daftar</button></div>`
+     :(soDitolak(s)?`<div class="muted small" style="margin-bottom:14px;line-height:1.5">Menunggu <b>${esc(soPemohon(s)||"pemohon")}</b> memperbaiki dan mengirim ulang SO ini.</div>`:''))}
     <div class="kv">
       <span class="k">Requester</span><span class="v">${s.req}</span>
       <span class="k">Proc PIC</span><span class="v">${s.pic||'— unassigned'}</span>
@@ -8211,7 +8301,15 @@ function mobileGroup(){
 function mobileMods(){
  var menus=myMenus();
  var grp=mobileGroup();
- if(grp==="umum"||grp==="fieldops") return [];
+ if(grp==="fieldops") return [];
+ if(grp==="umum"){
+   /* Karyawan umum memang tidak dapat ikon modul — layanannya sudah ada di
+      bottom bar. Kecuali modul tambahan yang sengaja diberikan per akun,
+      supaya pemberian akses di desktop ikut terasa di HP. */
+   var extra=(gUser&&Array.isArray(gUser.plus))?gUser.plus:[];
+   if(!extra.length) return [];
+   return MENU.filter(function(m){ return extra.indexOf(m.id)>=0; });
+ }
  var boleh;
  if(grp==="ga-super"){
    boleh=menus.filter(function(id){ return MOBILE_HIDE_MODS.indexOf(id)<0; });
@@ -13048,7 +13146,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-126";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-128";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
