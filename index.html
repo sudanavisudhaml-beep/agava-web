@@ -1161,6 +1161,33 @@ tr.bl-trsep:hover td{background:#f2f6fb}
 .m-notif-x{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:8px;width:28px;height:28px;
   color:#9aa7b8;font-size:calc(12px*var(--fz));cursor:pointer;font-family:var(--ff);line-height:1;padding:0}
 .m-notif-x:active{background:#f2f6fb}
+/* Tombol hapus — HANYA dirender untuk Owner (lihat tiketBolehHapus/soBolehHapus).
+   Dibuat kalem, bukan merah menyala, supaya tidak mengundang tangan iseng. */
+.svc-del{display:block;margin-top:7px;border:1px solid #f0d7d7;background:#fdf6f6;color:#9b2c2c;
+  border-radius:8px;padding:4px 9px;font-family:var(--ff);font-size:calc(11px*var(--fz));font-weight:600;cursor:pointer}
+.svc-del:hover{background:#fbeaea}
+.hapus-owner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:16px 0 4px;padding:12px 14px;
+  border:1px dashed #e6c9c9;background:#fdf8f8;border-radius:12px}
+.hapus-owner>div{flex:1;min-width:180px}
+.hapus-owner b{display:block;font-size:calc(12.5px*var(--fz));color:var(--ink)}
+.hapus-owner span{display:block;font-size:calc(11.5px*var(--fz));color:var(--muted);line-height:1.45;margin-top:2px}
+.hapus-owner button{flex:0 0 auto;color:var(--red);border-color:#f0d7d7}
+/* Pratinjau lampiran Create SO */
+.so-att-prev{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.so-att-i{position:relative;width:74px}
+.so-att-i img{width:74px;height:74px;object-fit:cover;border-radius:10px;border:1px solid var(--line);
+  background:#f3f6fa;cursor:zoom-in;display:block}
+.so-att-i .pdf{width:74px;height:74px;border-radius:10px;border:1px solid var(--line);background:#f7fafd;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:calc(10px*var(--fz));
+  color:#8a3d3d;text-align:center;padding:4px;overflow:hidden;line-height:1.25}
+.so-att-i .pdf b{font-size:calc(17px*var(--fz));font-weight:400}
+.so-att-i .x{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);
+  background:#fff;color:var(--red);font-size:calc(11px*var(--fz));cursor:pointer;line-height:1;padding:0;
+  box-shadow:0 1px 4px rgba(20,40,80,.14)}
+.so-att-i em{display:block;font-style:normal;font-size:calc(9.5px*var(--fz));color:var(--muted);margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.so-att-lama{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center}
+.so-att-lama span{font-size:calc(10.5px*var(--fz));background:#eef5ff;color:#0a4bb8;border-radius:20px;padding:3px 9px;font-weight:600}
 
 table{width:100%;border-collapse:collapse;font-size:calc(13px*var(--fz))}
 thead th{text-align:left;padding:12px 14px;font-size:calc(11px*var(--fz));text-transform:uppercase;letter-spacing:.5px;
@@ -6404,15 +6431,19 @@ function soBolehRevisi(s){
  var me=(gUser&&gUser.name)||"";
  return !!me && soPemohon(s)===me;
 }
-/* Boleh menghapus: pemohonnya sendiri atau Owner, DAN hanya SO yang sudah macet
-   (ditolak atau dibatalkan). SO yang sedang berjalan tidak boleh dihapus —
-   orang lain sudah membubuhkan persetujuan di sana. */
-function soBolehHapus(s){
- if(!s || (!soDitolak(s) && !s.batal)) return false;
- if(isOwner()) return true;
- var me=(gUser&&gUser.name)||"";
- return !!me && soPemohon(s)===me;
-}
+/* ── MENGHAPUS = HANYA OWNER ────────────────────────────────────────────────
+   Ditetapkan Sudana, 28 Jul 2026. Sebelumnya pemohon boleh menghapus SO-nya
+   sendiri yang ditolak; sekarang tidak lagi. Alasannya jelas: sebuah SO memuat
+   keputusan orang lain (tanda tangan Section, Budget, Procurement) dan jadi
+   bahan hitungan KPI — menghapusnya bukan urusan satu orang.
+
+   Pemohon tetap punya dua jalan keluar yang cukup: REVISI (perbaiki, nomor
+   tetap) dan BATALKAN (tutup dengan alasan). Yang hilang hanya kemampuan
+   melenyapkan jejaknya — dan itu memang wewenang pemilik sistem.
+
+   Owner boleh menghapus SO mana pun yang tampil di modul, tidak terbatas yang
+   ditolak, karena yang dibersihkan biasanya justru salah input. */
+function soBolehHapus(s){ return !!s && isOwner(); }
 /* Ringkasan penolakan + riwayat revisi — dipakai di drawer & form revisi */
 function soTolakHTML(s){
  if(!s) return "";
@@ -6448,44 +6479,38 @@ function soRevisiMulai(no){
  go("createso");
 }
 /* ── HAPUS SO ───────────────────────────────────────────────────────────────
-   Untuk pemohon yang memutuskan TIDAK melanjutkan revisi dan lebih baik membuat
-   SO baru dari awal. Bedanya dengan Batalkan: "batal" menutup SO dengan alasan
-   dan tetap terlihat di tab Ditolak & Batal (kebutuhannya gugur); "hapus"
-   mengeluarkannya sama sekali dari daftar (SO-nya sendiri yang keliru).
+   Wewenang Owner untuk membersihkan daftar — biasanya salah input atau data
+   uji yang terlanjur masuk. Bedanya dengan Batalkan: "batal" menutup SO dengan
+   alasan dan tetap terlihat di tab Ditolak & Batal; "hapus" mengeluarkannya
+   dari seluruh modul.
 
-   Tiga hal yang dijaga:
-   1. Hanya SO yang DITOLAK/DIBATALKAN yang boleh dihapus — SO yang sedang
-      berjalan tidak, karena orang lain sudah membubuhkan persetujuan di sana.
-   2. Datanya TIDAK musnah: disalin dulu ke agava_recordlog, jalur arsip yang
+   Dua hal yang dijaga:
+   1. Datanya TIDAK musnah: disalin dulu ke agava_recordlog, jalur arsip yang
       sama dengan data pra-live. Salah hapus masih bisa ditelusuri.
-   3. Kalau SO ini lahir dari tiket eskalasi, tautannya dilepas dan eskalasi
+   2. Kalau SO ini lahir dari tiket eskalasi, tautannya dilepas dan eskalasi
       tiket itu DIBUKA KEMBALI — kalau tidak, tiketnya menggantung menunjuk SO
       yang sudah tidak ada. */
 function soHapus(no){
  var s=SO.find(function(x){return x.no===no;}); if(!s)return;
- if(!soBolehHapus(s)){
-   alert("⛔ Hanya pemohon SO ini ("+(soPemohon(s)||"—")+") atau Owner yang dapat menghapusnya.\n\n"+
-     "SO yang sedang berjalan juga tidak bisa dihapus — tolak atau batalkan dulu.");
-   return;
- }
+ if(!soBolehHapus(s)){ alert("⛔ Hanya akun Owner yang dapat menghapus Supply Order.\n\nAnda dapat memakai Revisi atau Batalkan."); return; }
  if(AGDB.ro){ alert("🔒 Mode uji (localhost/file) — penghapusan cloud diblokir.\nJalankan dari situs AGAVA yang asli."); return; }
- var k=prompt("⚠️ MENGHAPUS SO — tidak bisa dibatalkan.\n\n"+no+" akan hilang dari daftar Procurement.\n"+
-   "Datanya tetap tersalin ke Record Log, tapi tidak lagi muncul di modul mana pun.\n\n"+
-   "Kalau Anda hanya ingin menutupnya dengan alasan, pakai Batalkan.\n\n"+
-   "Ketik ulang nomor SO untuk mengonfirmasi:");
- if(k===null) return;
- if(String(k).trim().toUpperCase()!==String(no).toUpperCase()){ alert("⛔ Nomor tidak cocok — penghapusan dibatalkan."); return; }
+ if(!confirm("🗑 HAPUS SUPPLY ORDER?\n\n"+
+   no+"\n"+String(s.item||"").slice(0,70)+"\n"+
+   "Pemohon: "+(soPemohon(s)||"—")+" · Rp "+(s.nilai||0)+" M · "+soStatusLabel(s).t+"\n\n"+
+   "SO ini akan hilang dari seluruh modul AGAVA.\n"+
+   "Salinannya tetap tersimpan di Record Log.\n\n"+
+   "Lanjutkan menghapus?")) return;
 
  var salinan=JSON.parse(JSON.stringify(s));
  salinan._archivedAt=new Date().toISOString();
- salinan._src="agava_so"; salinan._cutoff="dihapus pemohon";
+ salinan._src="agava_so"; salinan._cutoff="dihapus Owner";
  salinan._deletedBy=(gUser&&gUser.name)||""; salinan._deletedAt=nowStamp();
 
  /* Tiket yang dulu melahirkan SO ini kembali menunggu tindak lanjut. */
  var tk=s.fromTicket?TICKETS.find(function(x){return x.no===s.fromTicket;}):null;
  if(tk){
    tk.soNo=""; tk.toProc=false; tk.escDone=false; tk.soDone=false;
-   try{ tkKomen(tk,"SO "+no+" dihapus pemohon — eskalasi dibuka kembali","eskalasi"); }catch(e){}
+   try{ tkKomen(tk,"SO "+no+" dihapus Owner — eskalasi dibuka kembali","eskalasi"); }catch(e){}
    try{ dbPatchTicket(tk,{soNo:"",toProc:false,escDone:false,soDone:false}); }catch(e){}
  }
 
@@ -6497,9 +6522,8 @@ function soHapus(no){
    try{ auditLog("so-hapus", no+" · "+(salinan.item||"")+(tk?" · eskalasi tiket "+tk.no+" dibuka kembali":"")); }catch(e){}
    closeDrawer();
    procFilter="all"; renderProc(); renderApprovals(); renderService(); renderMyTickets(); renderFieldOps(); updateBell();
-   alert("🗑 "+no+" dihapus dari daftar.\n\nSalinannya tersimpan di Record Log."+
-     (tk?"\n\nTiket "+tk.no+" kembali ke antrean eskalasi — SO penggantinya bisa dibuat dari sana.":
-         "\n\nSilakan buat SO baru lewat + Create SO."));
+   alert("🗑 "+no+" dihapus dari seluruh modul.\n\nSalinannya tersimpan di Record Log."+
+     (tk?"\n\nTiket "+tk.no+" kembali ke antrean eskalasi — SO penggantinya bisa dibuat dari sana.":""));
  };
  var db=(AGDB.on&&AGDB.db)?AGDB.db:null;
  if(!db){ lanjut(); return; }
@@ -6835,15 +6859,14 @@ function openDrawer(no){
     ${soTolakHTML(s)}
     ${soBolehRevisi(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px">
       <button class="btn-act" style="flex:1 1 200px" onclick="soRevisiMulai('${s.no}')">✏️ Revisi &amp; Kirim Ulang</button>
-      <button class="btn-out" style="flex:0 1 auto" onclick="soBatal('${s.no}')">🚫 Batalkan SO</button>
-      <button class="btn-out" style="flex:0 1 auto;color:var(--red);border-color:#f0d7d7" onclick="soHapus('${s.no}')">🗑 Hapus SO</button></div>
+      <button class="btn-out" style="flex:0 1 auto" onclick="soBatal('${s.no}')">🚫 Batalkan SO</button></div>
       <div class="muted small" style="margin:0 0 14px;line-height:1.55">
         <b>Revisi</b> — nomor SO tetap, Anda tidak perlu membuat SO baru.<br>
-        <b>Batalkan</b> — kebutuhannya gugur; SO ditutup dengan alasan dan tetap tercatat.<br>
-        <b>Hapus</b> — SO-nya sendiri keliru; hilang dari daftar, salinannya disimpan di Record Log. Setelah itu buat SO baru lewat <b>+ Create SO</b>.</div>`
-     :(soBolehHapus(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px">
-      <button class="btn-out" style="color:var(--red);border-color:#f0d7d7" onclick="soHapus('${s.no}')">🗑 Hapus SO dari daftar</button></div>`
-     :(soDitolak(s)?`<div class="muted small" style="margin-bottom:14px;line-height:1.5">Menunggu <b>${esc(soPemohon(s)||"pemohon")}</b> memperbaiki dan mengirim ulang SO ini.</div>`:''))}
+        <b>Batalkan</b> — kebutuhannya gugur; SO ditutup dengan alasan dan tetap tercatat.</div>`
+     :(soDitolak(s)&&!s.batal?`<div class="muted small" style="margin-bottom:14px;line-height:1.5">Menunggu <b>${esc(soPemohon(s)||"pemohon")}</b> memperbaiki dan mengirim ulang SO ini.</div>`:'')}
+    ${soBolehHapus(s)?`<div class="hapus-owner">
+      <div><b>🗝️ Wewenang Owner</b><span>Menghapus SO ini dari seluruh modul AGAVA. Salinannya tetap tersimpan di Record Log.</span></div>
+      <button class="btn-out" onclick="soHapus('${s.no}')">🗑 Hapus SO</button></div>`:''}
     <div class="kv">
       <span class="k">Requester</span><span class="v">${s.req}</span>
       <span class="k">Proc PIC</span><span class="v">${s.pic||'— unassigned'}</span>
@@ -7594,9 +7617,57 @@ function ticketRow(t){
      <div class="svc-req">🙋 Pemohon: <b>${esc(ticketReqName(t))}</b></div>
      <div class="svc-m2">${t.pic?`<span><span class="avt">${ini(t.pic)}</span> <b>${t.pic}</b></span>`:'<span>Belum ada PIC</span>'}<span class="m2-sep">·</span><span>⏱ <b class="${sla.respBreach?'m2-br':''}">${fmtDur(sla.respMin)}</b> / <b class="${sla.resBreach?'m2-br':''}">${fmtDur(sla.resMin)}</b></span>${sla.breach?'<span class="m2-br">⚠ SLA breach</span>':''}</div>${svcProofStrip(t)}</div>
    <div class="svc-resp"><div class="svc-lbl">Response · Resolution</div><b style="${sla.respBreach?'color:var(--red)':''}">${fmtDur(sla.respMin)}</b> <span class="muted">·</span> <b style="${sla.resBreach?'color:var(--red)':''}">${fmtDur(sla.resMin)}</b>${sla.breach?'<div class="svc-breach">⚠ SLA breach</div>':''}</div>
-   <div class="svc-pic">${t.pic?`<span class="avt">${ini(t.pic)}</span>${t.pic}`:'<span class="muted small">Unassigned</span>'}</div>
+   <div class="svc-pic">${t.pic?`<span class="avt">${ini(t.pic)}</span>${t.pic}`:'<span class="muted small">Unassigned</span>'}${tiketBolehHapus()?`<button class="svc-del" title="Hapus tiket — wewenang Owner" onclick="tiketHapus('${t.no}',event)">🗑 Hapus</button>`:''}</div>
    <div>${svcBadge(t.status)}<div class="svc-aging" style="color:${ticketAging(t).c}">${esc(ticketAging(t).t)}</div>${(t.status==="Resolved"&&!t.rating)?`<button class="btn-out" style="margin-top:6px;padding:4px 9px;font-size:calc(11px*var(--fz))" onclick="event.stopPropagation();rateGateOpen('${t.no}')">★ Rate</button>`:(t.rating?`<div class="small" style="margin-top:4px;color:#f5a623;white-space:nowrap">${'★'.repeat(Math.round(t.rating))}${'☆'.repeat(5-Math.round(t.rating))}</div>`:'')}</div>
  </div>`;
+}
+/* ── MENGHAPUS TIKET = HANYA OWNER ──────────────────────────────────────────
+   Sejalan dengan soHapus(): tombolnya hanya muncul di akun Owner, ada dialog
+   ya/tidak berisi identitas tiketnya supaya tidak terhapus karena salah pencet,
+   dan datanya disalin dulu ke Record Log sebelum dilepas. Kalau tiket ini sudah
+   melahirkan SO, tautan di SO-nya ikut dibersihkan supaya tidak menunjuk tiket
+   yang sudah tidak ada. */
+function tiketBolehHapus(){ return isOwner(); }
+function tiketHapus(no,ev){
+ try{ if(ev&&ev.stopPropagation) ev.stopPropagation(); }catch(e){}
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ if(!tiketBolehHapus()){ alert("⛔ Hanya akun Owner yang dapat menghapus tiket."); return; }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost/file) — penghapusan cloud diblokir.\nJalankan dari situs AGAVA yang asli."); return; }
+ var sla=ticketSLA(t);
+ if(!confirm("🗑 HAPUS TIKET LAYANAN?\n\n"+
+   no+"\n"+String(t.judul||"").slice(0,70)+"\n"+
+   "Pemohon: "+ticketReqName(t)+" · "+foNormCat(t.cat)+" · "+(t.lokasi||"—")+"\n"+
+   "Status: "+(t.status||TSTAGES[t.stg||0])+(t.pic?" · dipegang "+t.pic:"")+"\n\n"+
+   "Tiket ini akan hilang dari Services, Field Ops, dan My Tickets.\n"+
+   "Salinannya tetap tersimpan di Record Log.\n\n"+
+   "Lanjutkan menghapus?")) return;
+
+ var salinan=JSON.parse(JSON.stringify(t));
+ salinan._archivedAt=new Date().toISOString();
+ salinan._src="agava_tickets"; salinan._cutoff="dihapus Owner";
+ salinan._deletedBy=(gUser&&gUser.name)||""; salinan._deletedAt=nowStamp();
+
+ /* SO yang lahir dari tiket ini jangan dibiarkan menunjuk tiket yang hilang. */
+ var so=t.soNo?SO.find(function(x){return x.no===t.soNo;}):null;
+ if(so&&so.fromTicket===no){ so.fromTicket=""; try{ soPersist(); }catch(e){} }
+
+ var lanjut=function(){
+   var i=TICKETS.findIndex(function(x){return x.no===no;});
+   if(i>=0) TICKETS.splice(i,1);
+   try{ auditLog("tiket-hapus", no+" · "+(salinan.judul||"")+(so?" · tautan SO "+so.no+" dilepas":"")); }catch(e){}
+   closeDrawer();
+   renderService(); renderFieldOps(); renderMyTickets(); renderOverview(); renderBuilding(); updateBell();
+   alert("🗑 Tiket "+no+" dihapus.\n\nSalinannya tersimpan di Record Log."+(so?"\nTautan pada SO "+so.no+" dilepas.":""));
+ };
+ var db=(AGDB.on&&AGDB.db)?AGDB.db:null;
+ if(!db){ lanjut(); return; }
+ db.collection("agava_recordlog").doc("tk_"+no).set(salinan,{merge:true})
+   .then(function(){ return db.collection("agava_tickets").doc(String(no)).delete(); })
+   .then(lanjut)
+   .catch(function(e){
+     alert("⚠️ Gagal menghapus di cloud: "+((e&&(e.code||e.message))||e)+
+       "\n\nTiket TIDAK jadi dihapus supaya tidak beda antar perangkat. Coba lagi saat koneksi stabil.");
+   });
 }
 function svcRating(){
  const closed=TICKETS.filter(t=>t.stg===3&&t.rating).sort((a,b)=>(b.closed||'').localeCompare(a.closed||'')).slice(0,5);
@@ -10597,17 +10668,89 @@ function renderCreateSO(){
         <button type="button" class="btn-out" onclick="document.getElementById('so-cam').click()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;vertical-align:-3px;margin-right:6px"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8.5 7L10 4.5h4L15.5 7"/><circle cx="12" cy="13.5" r="3.3"/></svg>Kamera</button>
         <span id="so-att-name" class="muted small">Belum ada file</span>
       </div>
-      <input type="file" id="so-file" accept=".pdf,application/pdf,image/*" multiple style="display:none" onchange="soAttName(this)"/>
-      <input type="file" id="so-cam" accept="image/*" capture="environment" style="display:none" onchange="soAttName(this)"/>
+      <input type="file" id="so-file" accept=".pdf,application/pdf,image/*" multiple style="display:none" onchange="soAttPick(this)"/>
+      <input type="file" id="so-cam" accept="image/*" capture="environment" style="display:none" onchange="soAttPick(this)"/>
+      <div id="soAttPrev" class="so-att-prev"></div>
+      ${rev&&((rev.attachments||[]).length||(rev.pdfAttachments||[]).length)?`<div class="so-att-lama"><span>📎 sudah terlampir di SO ini:</span>
+        ${(rev.attachments||[]).map((a,i)=>`<img src="${a.url}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:zoom-in" onclick="soAttZoom('${String(a.url).replace(/'/g,"\\'")}')" title="lampiran lama"/>`).join("")}
+        ${(rev.pdfAttachments||[]).map(p=>`<span>📄 ${esc(p.name||'PDF')}</span>`).join("")}
+        <span class="muted small" style="background:none;color:var(--muted);padding:0">lampiran lama tetap ikut — yang Anda tambahkan di bawah menyusul</span></div>`:''}
       <div class="hint" style="font-size:calc(11px*var(--fz));color:#9aa7b8;margin-top:6px">📎 Foto (spek, kondisi) & <b>dokumen PDF</b> (mis. Working Request / data stok) — file PDF pendukung akan otomatis <b>dijahit ke dalam Dokumen SO PDF</b> yang diunduh.</div>
     </div>
     <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap"><button class="btn-act" onclick="submitSO()">${rev?`🔁 Kirim Ulang sebagai Rev.${nRev}`:"Submit SO"}</button>${rev?"":draftBtn('createso')}<button class="btn-out" onclick="soRevisiBatal()">Cancel</button></div>
   </div>`;
+ soAttReset();   // form dirender ulang tiap masuk → keranjang lampiran ikut bersih
 }
 /* Keluar dari form — mode revisi harus dilepas, kalau tidak form berikutnya
    ikut terbuka dalam mode revisi SO yang sama. */
 function soRevisiBatal(){ window._soRevisi=null; go('procurement'); }
-function soAttName(inp){ const n=inp.files.length; const el=document.getElementById('so-att-name'); if(el) el.textContent = n? (n+" file: "+Array.from(inp.files).map(f=>f.name).join(", ")) : "Belum ada file"; }
+/* ── LAMPIRAN CREATE SO: PRATINJAU SEBELUM DIKIRIM ─────────────────────────
+   Dulu form ini hanya menampilkan NAMA berkas ("3 file: a.jpg, b.pdf"), jadi
+   pemohon tidak bisa memastikan foto yang benar yang terlampir — baru ketahuan
+   setelah SO terkirim dan dokumennya dibuka. Sekarang fotonya tampil sebagai
+   gambar kecil yang bisa diperbesar, PDF tampil sebagai kartu bernama, dan
+   masing-masing bisa dibuang satu per satu sebelum Submit.
+
+   Berkasnya ditahan di window._soAtt (bukan lagi dibaca dari <input> saat
+   submit) supaya bisa dibuang per item — <input type=file> tidak bisa dikurangi
+   isinya sebagian. */
+const SO_ATT_MAX=10;
+function soAttReset(){ window._soAtt={imgs:[],pdfs:[]}; soAttRender(); }
+function soAttPick(input){
+ window._soAtt=window._soAtt||{imgs:[],pdfs:[]};
+ var files=[].slice.call(input.files||[]); input.value="";
+ if(!files.length)return;
+ files.forEach(function(f){
+   var A=window._soAtt;
+   if(A.imgs.length+A.pdfs.length>=SO_ATT_MAX){ return; }
+   var pdf=/pdf/i.test(f.type)||/\.pdf$/i.test(f.name);
+   var rd=new FileReader();
+   rd.onload=function(e){
+     if(pdf){ A.pdfs.push({name:f.name,url:e.target.result,kb:Math.round(f.size/1024)}); soAttRender(); return; }
+     /* foto dikecilkan dulu — ia dijahit ke Dokumen SO, 1600px lebih dari cukup */
+     var img=new Image();
+     img.onload=function(){
+       var mx=1600,w=img.width,h=img.height;
+       if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;} else {w=Math.round(w*mx/h);h=mx;} }
+       var cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+       cv.getContext("2d").drawImage(img,0,0,w,h);
+       var url=cv.toDataURL("image/jpeg",0.8);
+       A.imgs.push({name:f.name,url:url,kb:Math.round(url.length*0.75/1024)}); soAttRender();
+     };
+     img.onerror=function(){ A.imgs.push({name:f.name,url:e.target.result,kb:Math.round(f.size/1024)}); soAttRender(); };
+     img.src=e.target.result;
+   };
+   rd.readAsDataURL(f);
+ });
+}
+function soAttDel(jenis,i){ var A=window._soAtt; if(!A)return; (jenis==="pdf"?A.pdfs:A.imgs).splice(i,1); soAttRender(); }
+function soAttZoom(url){
+ var o=document.createElement("div");
+ o.style.cssText="position:fixed;inset:0;background:rgba(8,18,35,.86);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;cursor:zoom-out";
+ o.onclick=function(){ o.remove(); };
+ var im=document.createElement("img");
+ im.src=url; im.style.cssText="max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 12px 48px rgba(0,0,0,.5)";
+ o.appendChild(im); document.body.appendChild(o);
+}
+function soAttRender(){
+ var A=window._soAtt||{imgs:[],pdfs:[]};
+ var box=document.getElementById("soAttPrev");
+ var lbl=document.getElementById("so-att-name");
+ var n=A.imgs.length+A.pdfs.length;
+ if(lbl) lbl.textContent = n ? (A.imgs.length+" foto · "+A.pdfs.length+" PDF"+(n>=SO_ATT_MAX?" · batas "+SO_ATT_MAX+" berkas":"")) : "Belum ada file";
+ if(!box)return;
+ box.innerHTML=
+   A.imgs.map(function(x,i){
+     return '<div class="so-att-i"><img src="'+x.url+'" onclick="soAttZoom(this.src)" title="klik untuk memperbesar"/>'+
+       '<button class="x" type="button" title="buang" onclick="soAttDel(\'img\','+i+')">✕</button>'+
+       '<em title="'+esc(x.name||"")+'">'+esc(x.name||"foto")+'</em></div>';
+   }).join("")+
+   A.pdfs.map(function(x,i){
+     return '<div class="so-att-i"><div class="pdf" title="'+esc(x.name||"")+'"><b>📄</b>'+esc(String(x.name||"PDF").slice(0,16))+'</div>'+
+       '<button class="x" type="button" title="buang" onclick="soAttDel(\'pdf\','+i+')">✕</button>'+
+       '<em>'+(x.kb||0)+' KB</em></div>';
+   }).join("");
+}
 async function submitSO(){
  const rows=Array.from(document.querySelectorAll('#so-items tr')).map(tr=>{
    const g=k=>{ const el=tr.querySelector('[data-k="'+k+'"]'); return el?String(el.value||'').trim():''; };
@@ -10710,15 +10853,13 @@ async function soRevisiSubmit(rows,f){
    (isSec?"Anda Section Head → langsung ke PIC Budget.":"Menunggu approval Section Head: "+s.sectionBy+"."));
 }
 /* Baca lampiran dari form Create SO → foto (untuk grid Lampiran) + PDF (untuk dijahit ke Dokumen SO) */
+/* Sumbernya kini window._soAtt — apa yang tampil di pratinjau PERSIS yang
+   terkirim. Dulu dibaca ulang dari <input>, sehingga berkas yang sudah dibuang
+   dari layar tetap ikut. */
 async function soReadAttachments(){
- const inputs=[document.getElementById('so-file'),document.getElementById('so-cam')].filter(Boolean);
- const files=[]; inputs.forEach(inp=>{ if(inp.files) for(const f of inp.files) files.push(f); });
- const readUrl=f=>new Promise(r=>{ const rd=new FileReader(); rd.onload=()=>r({name:f.name,url:rd.result}); rd.onerror=()=>r(null); rd.readAsDataURL(f); });
- const imgFiles=files.filter(f=>/^image\//.test(f.type));
- const pdfFiles=files.filter(f=>/pdf/i.test(f.type)||/\.pdf$/i.test(f.name));
- const images=(await Promise.all(imgFiles.map(readUrl))).filter(Boolean);
- const pdfs=(await Promise.all(pdfFiles.map(readUrl))).filter(Boolean);
- return {images:images, pdfs:pdfs};
+ var A=window._soAtt||{imgs:[],pdfs:[]};
+ return {images:A.imgs.map(function(x){ return {name:x.name,url:x.url}; }),
+         pdfs:  A.pdfs.map(function(x){ return {name:x.name,url:x.url}; })};
 }
 
 /* ============ REMINDER PAGE ============ */
@@ -13245,7 +13386,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-130";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-131";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
