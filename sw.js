@@ -1,7 +1,23 @@
 /* AGAVA Service Worker — installable PWA + offline shell + notification.
-   Network-first: selalu ambil versi terbaru saat online (hindari "kok belum berubah"),
-   pakai cache hanya saat offline. */
-const CACHE = 'agava-v3';
+
+   ══ PELAJARAN 30 Jul 2026 — "di iPad kok masih versi lama?" ══════════════════
+   Nama cache dulu dipatok 'agava-v3' dan TIDAK PERNAH dinaikkan. Akibatnya:
+     · handler `activate` tidak pernah membuang cache lama (namanya sama), dan
+     · handler `install` tidak pernah jalan lagi (isi sw.js tidak berubah),
+   sehingga salinan offline ./index.html di perangkat membeku di tanggal ia
+   pertama kali dipasang. Begitu satu permintaan jaringan gagal — hal biasa di
+   iPad yang berpindah wifi — jalur cadangan menyajikan index.html tanggal 27
+   Juli, LENGKAP dengan panel Quick Access yang sudah dibuang di v114.
+
+   Tiga hal yang mencegahnya terulang:
+     1. CACHE diikat ke nomor build → tiap deploy otomatis membuang cache lama.
+     2. Permintaan navigasi/HTML diambil dengan cache:'reload' → melewati cache
+        HTTP browser, bukan cuma cache service worker.
+     3. Ada pintu PURGE lewat postMessage, dipakai tombol "Perbarui sekarang"
+        di aplikasi untuk membersihkan semuanya tanpa menunggu iOS berbaik hati.
+   ══════════════════════════════════════════════════════════════════════════ */
+const BUILD = 'v2026.07.30-136';
+const CACHE = 'agava-' + BUILD;          /* WAJIB ikut naik tiap deploy */
 const ASSETS = [
   './', './index.html',
   './icon-192.png', './icon-512.png', './icon-180.png',
@@ -10,12 +26,29 @@ const ASSETS = [
   './pdf.min.js', './pdf.worker.min.js'
 ];
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(() => {})));
+  /* cache:'reload' → isi ASSETS diambil segar dari jaringan, bukan dari cache
+     HTTP browser yang bisa saja masih memegang berkas lama. */
+  e.waitUntil(caches.open(CACHE).then(c =>
+    Promise.all(ASSETS.map(u =>
+      fetch(new Request(u, { cache: 'reload' })).then(r => r.ok ? c.put(u, r) : null).catch(() => {})
+    ))
+  ));
   self.skipWaiting();
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))));
   self.clients.claim();
+});
+/* Pintu perintah dari aplikasi: PURGE (bersihkan semua cache) & VERSI (tanya build) */
+self.addEventListener('message', e => {
+  const d = e.data || {};
+  if (d.type === 'PURGE') {
+    e.waitUntil(caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))).then(() => {
+      if (e.source && e.source.postMessage) e.source.postMessage({ type: 'PURGED' });
+    }));
+  } else if (d.type === 'VERSI') {
+    if (e.source && e.source.postMessage) e.source.postMessage({ type: 'VERSI', build: BUILD });
+  }
 });
 /* klik notifikasi di tray → fokuskan aplikasi (atau buka baru bila sudah tertutup) */
 self.addEventListener('notificationclick', e => {
@@ -40,10 +73,17 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;                      // biarkan Firebase POST dll lewat
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return;             // jangan cache lintas-origin (Firebase/CDN)
+
+  /* Halaman & skrip aplikasi: PAKSA ambil dari jaringan, lewati cache HTTP.
+     Inilah bedanya dengan sebelumnya — dulu fetch biasa masih boleh dilayani
+     salinan lama Safari, lalu salinan itu ikut disimpan ke cache. */
+  const isShell = e.request.mode === 'navigate' ||
+                  /\.html$/i.test(url.pathname) || url.pathname.endsWith('/') ||
+                  /\/(sw|version)\.(js|json)$/i.test(url.pathname);
+
   e.respondWith(
-    fetch(e.request).then(r => {
-      const cp = r.clone();
-      caches.open(CACHE).then(c => c.put(e.request, cp)).catch(() => {});
+    fetch(isShell ? new Request(e.request, { cache: 'reload' }) : e.request).then(r => {
+      if (r && r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(e.request, cp)).catch(() => {}); }
       return r;
     }).catch(() => caches.match(e.request).then(m => m || caches.match('./index.html')))
   );

@@ -790,6 +790,18 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .fo-pantau{margin-top:9px;background:#f4f8fd;border:1px solid #cfe0f5;border-radius:11px;padding:9px 12px;
   font-size:calc(11.5px*var(--fz));color:#24486f;line-height:1.5}
 .fo-taken.pantau{background:#f4f8fd;border-color:#cfe0f5;color:#24486f}
+/* Pita "versi baru tersedia" — melayang di bawah, di atas bottom bar mobile */
+#agavaVersiBar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9998;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#0b2447,#124a8f);
+  color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 8px 28px rgba(10,30,60,.34);
+  font-size:calc(12.5px*var(--fz));line-height:1.5}
+#agavaVersiBar span{flex:1;min-width:180px}
+#agavaVersiBar b{color:#fff}
+#agavaVersiBar button{flex:0 0 auto;border:0;border-radius:10px;padding:8px 14px;cursor:pointer;
+  font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:800;
+  background:linear-gradient(135deg,#00c6fb,#0a7cff);color:#fff}
+#agavaVersiBar button.nanti{background:rgba(255,255,255,.16);font-weight:700;padding:8px 11px}
+@media(max-width:820px){ #agavaVersiBar{bottom:calc(74px + env(safe-area-inset-bottom))} }
 .so-rev{border-color:#f0dcb4;background:#fff8e8;color:#8a5a00}
 .so-rev:hover{background:linear-gradient(135deg,#f6c56b,#d99b1c);color:#fff;border-color:transparent}
 /* Ikon saja — disamakan tingginya dengan SO PDF supaya sejajar rapi */
@@ -13524,7 +13536,61 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-135";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.30-136";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+                                          WAJIB sama dengan version.json & BUILD di sw.js */
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
+   ║  30 Jul 2026: iPad menyajikan index.html tanggal 27 Juli, lengkap dengan  ║
+   ║  panel Quick Access yang sudah dibuang di v114. Penyebabnya cache service ║
+   ║  worker yang membeku (lihat catatan panjang di sw.js), bukan commit yang   ║
+   ║  tertinggal — situs live memang sudah versi terbaru.                      ║
+   ║                                                                          ║
+   ║  Sisi aplikasi sekarang MEMERIKSA SENDIRI: menanyakan version.json (beberapa║
+   ║  puluh byte, cache:'no-store') lalu membandingkannya dengan build yang     ║
+   ║  sedang berjalan. Kalau beda, muncul pita ajakan perbarui dengan satu      ║
+   ║  tombol yang membersihkan seluruh cache, melepas service worker, lalu     ║
+   ║  memuat ulang. Perangkat tidak lagi perlu menunggu iOS berbaik hati.      ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+let AGAVA_VERSI_BARU=null;
+function agavaCekVersi(){
+ if(agavaReadOnlyEnv()) return;                       // salinan lokal tidak punya version.json yang berarti
+ try{
+   fetch("version.json?t="+Date.now(),{cache:"no-store"})
+     .then(function(r){ return r.ok?r.json():null; })
+     .then(function(j){
+       var baru=j&&j.build;
+       if(!baru||baru===AGAVA_BUILD){ AGAVA_VERSI_BARU=null; agavaVersiBar(); return; }
+       AGAVA_VERSI_BARU=baru; agavaVersiBar();
+     }).catch(function(){});
+ }catch(e){}
+}
+function agavaVersiBar(){
+ var el=document.getElementById("agavaVersiBar");
+ if(!AGAVA_VERSI_BARU){ if(el)el.remove(); return; }
+ if(!el){
+   el=document.createElement("div"); el.id="agavaVersiBar";
+   document.body.appendChild(el);
+ }
+ el.innerHTML='<span>🔄 <b>Versi baru AGAVA tersedia</b> — perangkat ini masih memuat '+esc(AGAVA_BUILD)+
+   ', terbaru '+esc(AGAVA_VERSI_BARU)+'.</span>'+
+   '<button onclick="agavaPerbarui()">Perbarui sekarang</button>'+
+   '<button class="nanti" onclick="AGAVA_VERSI_BARU=null;agavaVersiBar()" aria-label="Tutup">✕</button>';
+}
+/* Bersihkan TOTAL: cache service worker, service workernya sendiri, lalu muat
+   ulang dengan pembeda alamat supaya cache HTTP browser ikut dilewati. */
+function agavaPerbarui(){
+ var lanjut=function(){
+   try{ location.replace(location.pathname+"?v="+Date.now()); }
+   catch(e){ location.reload(); }
+ };
+ var tugas=[];
+ try{ if(window.caches&&caches.keys) tugas.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }catch(e){}
+ try{ if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations)
+   tugas.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); }catch(e){}
+ try{ auditLog("perbarui-versi", AGAVA_BUILD+" → "+(AGAVA_VERSI_BARU||"?")); }catch(e){}
+ Promise.all(tugas).then(lanjut).catch(lanjut);
+ setTimeout(lanjut,2500);                             // jaring pengaman kalau salah satu janji menggantung
+}
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
@@ -14827,6 +14893,11 @@ function renderParams(){
 }
 
 loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();selfCareLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();rmdLoad();try{ rmdSweep(); }catch(e){}try{ sessionClear(); }catch(e){}   /* selalu mulai dari halaman Login — sesi tidak pernah dipulihkan */
+/* Penjaga versi: periksa saat mulai, dan tiap kali aplikasi kembali ke depan —
+   di HP/iPad aplikasi lebih sering "dibangunkan" daripada dibuka dari nol. */
+try{ agavaCekVersi();
+  document.addEventListener("visibilitychange",function(){ if(!document.hidden) agavaCekVersi(); });
+}catch(e){}
 </script>
 </body>
 </html>
