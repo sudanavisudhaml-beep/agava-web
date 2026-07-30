@@ -786,6 +786,10 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .so-pdf-item{margin-top:8px}
 /* Kolom Status: badge aging, tombol hapus menempel di ujung kanan */
 .so-status-cell{display:flex;align-items:center;gap:8px;justify-content:space-between;white-space:nowrap}
+/* Penanda akun pemantau (pantau:true) — Field Ops tanpa tombol aksi */
+.fo-pantau{margin-top:9px;background:#f4f8fd;border:1px solid #cfe0f5;border-radius:11px;padding:9px 12px;
+  font-size:calc(11.5px*var(--fz));color:#24486f;line-height:1.5}
+.fo-taken.pantau{background:#f4f8fd;border-color:#cfe0f5;color:#24486f}
 .so-rev{border-color:#f0dcb4;background:#fff8e8;color:#8a5a00}
 .so-rev:hover{background:linear-gradient(135deg,#f6c56b,#d99b1c);color:#fff;border-color:transparent}
 /* Ikon saja — disamakan tingginya dengan SO PDF supaya sejajar rapi */
@@ -3459,9 +3463,11 @@ const USERS=[
  {email:"khalilul.rahman@ai.astra.co.id",name:"Khalilul Rahman",role:"staff"},
  {email:"mujibur@ai.astra.co.id",name:"Mujibur",role:"general",pic:"transport"},
  {email:"muhamad.zhaenuri@ai.astra.co.id",name:"M Zhaenuri",role:"general",plus:["procurement"]},
- /* Maria diberi modul Procurement lewat `plus` — bukan dengan mengubah menu role
-    "general", karena M Zhaenuri & Mujibur seperan dengannya dan tidak ikut diberi. */
- {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general",plus:["procurement"]},
+ /* Maria diberi modul tambahan lewat `plus` — bukan dengan mengubah menu role
+    "general", karena M Zhaenuri & Mujibur seperan dengannya dan tidak ikut diberi.
+    `pantau:true` = boleh melihat seluruh tiket & papan Field Ops untuk memantau,
+    tetapi tidak mengambil tiket dan tidak melihat Log Record Operator. */
+ {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general",plus:["procurement","service","fieldops"],pantau:true},
  {email:"salsa.savila@ai.astra.co.id",name:"Salsa",role:"finance"},
  {email:"fieldops@ai.astra.co.id",name:"Field Ops - Supervisor",role:"fieldsup"},
  {email:"fieldops.building@ai.astra.co.id",name:"Field Ops - Building & Utility",role:"fieldops",cat:"Building & Utility"},
@@ -3987,9 +3993,18 @@ function ticketMine(t){
 const TICKET_SEE_ALL=["admin","dept"];
 function canSeeAllTickets(){ return TICKET_SEE_ALL.indexOf(gRole)>=0; }
 function isFieldCrew(){ return gRole==="fieldops"||gRole==="fieldsup"; }
+/* ══ AKUN PEMANTAU (`pantau:true` di USERS) ═══════════════════════════════════
+   Boleh MELIHAT seluruh tiket & papan Field Ops, tetapi TIDAK bertindak di sana:
+   tidak bisa mengambil tiket, dan tidak melihat Log Record Operator — isi log
+   itu dasar penilaian kinerja orang, bukan bahan pantauan umum.
+   Dipakai untuk yang perlu memantau operasional GA tanpa masuk kelompok Super;
+   menaikkan role-nya akan memberi jauh lebih banyak daripada yang dimaksud. */
+function isPantau(){ return !!(gUser&&gUser.pantau); }
+function foBolehAmbil(){ return !isPantau(); }
 function visibleTickets(){
  if(canSeeAllTickets()) return TICKETS;            // Administrator & Dept Head: semua
  if(isFieldCrew()) return TICKETS;                 // antrian kerja lapangan
+ if(isPantau()) return TICKETS;                    // pemantau: lihat semua, tanpa aksi
  return TICKETS.filter(ticketMine);                // sisanya: hanya tiket sendiri
 }
 function isPicTransport(){ return !!(gUser&&gUser.pic==="transport"); }
@@ -7661,7 +7676,9 @@ function tkKomenHTML(t,ringkas){
 function tkDetail(no){
  var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
  var sla=ticketSLA(t), ag=ticketAging(t), neu=(!t.pic||(t.stg||0)===0);
- var foot = neu
+ var foot = !foBolehAmbil()
+   ? '<div class="tk-monitor">👀 <b>Mode pantau</b> — akun Anda memantau jalannya tiket, pengambilan &amp; pengerjaannya oleh operator lapangan.</div>'
+   : neu
    ? '<button class="btn-act" style="width:100%" onclick="closeDrawer();fieldOpsPickup(\''+t.no+'\')">🙋 Ambil Tiket Ini</button>'
    : ((t.stg||0)<3 ? '<div class="tk-monitor">✓ Sudah diambil <b>'+esc(t.pic||'operator')+'</b> — lanjutkan di modul My Tickets.</div>'
                    : '<span class="badge bd-ok">Tiket selesai</span>');
@@ -8082,6 +8099,9 @@ const FO_CATATAN_CEPAT=["Baru bisa dikerjakan setelah jam kantor","Menunggu mate
   "Perlu akses / izin ruangan dulu","Dikerjakan bersama vendor","Butuh koordinasi dengan pemohon"];
 function fieldOpsPickup(no){
   var t=TICKETS.find(x=>x.no===no); if(!t)return;
+  /* Penjaga di FUNGSINYA, bukan cuma di tombol — supaya tidak bisa dipanggil
+     lewat jalan lain (mis. peralatan pengembang browser). */
+  if(!foBolehAmbil()){ alert("👀 Akun Anda memantau saja — pengambilan tiket dilakukan operator lapangan."); return; }
   if(gRole==='fieldops' && !(fieldOp&&fieldOp.name)){ fieldOpRegister(); return; }   // wajib registrasi dulu
   var me=fieldOpName()||'Operator';
   var open=foOpenBy(me);
@@ -8308,8 +8328,13 @@ function foTicketCard(t){
   var canSO=myMenus().indexOf('procurement')>=0;
   var sla=ticketSLA(t);
   /* Field Ops = papan rebutan tiket. Hanya tombol AMBIL; begitu diambil tombol HILANG,
-     lanjutannya dikerjakan operator di modul My Tickets. */
-  var act = (t.esc&&canSO) ? '<button class="btn-act fo-btn" onclick="soFromTicket(\''+t.no+'\')">📋 Buat SO (eskalasi)</button>'
+     lanjutannya dikerjakan operator di modul My Tickets.
+     Akun pemantau tidak pernah mendapat tombol aksi apa pun di sini. */
+  var act = !foBolehAmbil()
+    ? (neu ? '<div class="fo-taken pantau">👀 Belum diambil<span>menunggu operator</span></div>'
+      : (t.stg<3 ? '<div class="fo-taken">✓ Diambil <b>'+esc(t.pic||'operator')+'</b><span>sedang dikerjakan</span></div>'
+                 : '<span class="badge bd-ok">Selesai</span>'))
+    : (t.esc&&canSO) ? '<button class="btn-act fo-btn" onclick="soFromTicket(\''+t.no+'\')">📋 Buat SO (eskalasi)</button>'
     : neu ? '<button class="btn-act fo-btn" onclick="fieldOpsPickup(\''+t.no+'\')">🙋 Ambil Tiket</button>'
     : (t.stg<3 ? '<div class="fo-taken">✓ Diambil <b>'+esc(t.pic||'operator')+'</b><span>lanjutkan di My Tickets</span></div>'
                : '<span class="badge bd-ok">Selesai</span>');
@@ -8366,14 +8391,19 @@ function renderFieldOps(){
   var wip = (gRole==='fieldops') ? ' · <b style="color:'+(myOpen>=FO_WIP_MAX?'var(--red)':'var(--blue)')+'">slot '+myOpen+'/'+FO_WIP_MAX+'</b>' : '';
   var head=notifBanner()+'<div class="card pad fo-head">'+
     '<div><div class="fo-title">📡 '+(myCat?'Field Ops · '+esc(myCat):'Field Ops')+'</div>'+
-      '<div class="muted small">'+scope+' · '+active.length+' tiket aktif · <b style="color:var(--amber)">'+unassigned+'</b> belum diambil · '+mine+' milik Anda'+wip+' · realtime Firebase</div></div>'+
+      '<div class="muted small">'+scope+' · '+active.length+' tiket aktif · <b style="color:var(--amber)">'+unassigned+'</b> belum diambil'+
+      (isPantau()?'':' · '+mine+' milik Anda')+wip+' · realtime Firebase</div>'+
+      (isPantau()?'<div class="fo-pantau">👀 <b>Mode pantau</b> — Anda melihat papan tiket &amp; siapa yang mengambilnya. Pengambilan tiket dilakukan operator lapangan.</div>':'')+
+    '</div>'+
     (myCat?'':'<div class="fo-seg"><button class="'+(fieldOpsGroup==='cat'?'on':'')+'" onclick="fieldOpsSetGroup(\'cat\')">Per Kategori</button><button class="'+(fieldOpsGroup==='lokasi'?'on':'')+'" onclick="fieldOpsSetGroup(\'lokasi\')">Per Site</button></div>')+
     /* operator lapangan harus bisa keluar dari akunnya di perangkat bersama */
     (gRole==='fieldops'?'<button class="btn-out" onclick="agavaLogout()" title="Keluar dari AGAVA">⎋ Keluar</button>':'')+
   '</div>';
   /* Log record operator + unduh CSV — hanya kelompok Super (dasar penilaian akhir tahun) */
   var oplog='';
-  if(isSuper()&&!myCat){
+  /* Log Record Operator = dasar penilaian kinerja orang. Bukan bahan pantauan
+     umum, jadi akun pemantau dikecualikan meskipun ia melihat papan tiketnya. */
+  if(isSuper()&&!myCat&&!isPantau()){
     var st=foOperatorStats();
     oplog='<div class="card pad fo-oplog"><div class="fo-oplog-h">'+
       '<div><div class="panel-t" style="margin:0">👷 Log Record Operator</div>'+
@@ -9595,7 +9625,9 @@ function renderService(){
   ${gaOpexHTML("all")}
   ${head}
   <div class="card svc-card">
-    ${sup?'':'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Tiket Saya <span style="font-weight:400;color:var(--muted)">— hanya tiket yang Anda buat · status &amp; perjalanan terupdate realtime</span></div></div>'}
+    ${sup?'':(isPantau()
+      ?'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Pantau Tiket GA <span style="font-weight:400;color:var(--muted)">— seluruh tiket layanan, hanya untuk dipantau · status &amp; perjalanan terupdate realtime</span></div></div>'
+      :'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Tiket Saya <span style="font-weight:400;color:var(--muted)">— hanya tiket yang Anda buat · status &amp; perjalanan terupdate realtime</span></div></div>')}
     <div class="svc-status">
       <div class="svc-st-i"><div class="l">${sup?'Total tickets':'Tiket saya'}</div><div class="v">${total}</div></div>
       <div class="svc-st-i"><div class="l">Ongoing</div><div class="v" style="color:var(--blue)">${ongoing}</div></div>
@@ -13492,7 +13524,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.28-134";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
+const AGAVA_BUILD="v2026.07.28-135";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat */
 /* Uji coba TIDAK boleh menulis ke data live. Selain localhost, berkas yang dibuka
    langsung dari disk (file://) juga dihitung uji coba — dulu tidak, sehingga
    membuka index.html dari OneDrive ikut menulis ke Firestore produksi. */
