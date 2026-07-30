@@ -895,6 +895,50 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   .upr-chain{grid-template-columns:1fr 1fr}
   .ud-sigs{grid-template-columns:1fr 1fr}
 }
+/* ══ CHAT: tab mode, daftar kontak P2P, pengumuman & poster ══ */
+.chat-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);background:#fff;flex:0 0 auto}
+.chat-tabs button{flex:1;border:0;background:transparent;padding:12px 8px;cursor:pointer;font-family:var(--ff);
+  font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--muted);border-bottom:2.5px solid transparent;position:relative}
+.chat-tabs button.on{color:var(--blue);border-bottom-color:var(--blue)}
+.chat-tabs button i{font-style:normal;display:inline-block;margin-left:6px;background:var(--red);color:#fff;
+  border-radius:99px;min-width:18px;padding:1px 5px;font-size:calc(10px*var(--fz));font-weight:800}
+.chat-tools{margin-left:auto;display:flex;gap:6px}
+.chat-tools button{border:1px solid var(--line);background:#fff;border-radius:9px;width:32px;height:32px;
+  cursor:pointer;font-size:calc(14px*var(--fz));line-height:1;padding:0}
+.chat-tools button:active{background:#f2f6fb}
+.chat-back{border:0;background:transparent;font-size:calc(24px*var(--fz));line-height:1;color:var(--blue);
+  cursor:pointer;padding:0 8px 0 0;font-family:var(--ff)}
+.chat-readonly{flex:0 0 auto;background:#f4f8fd;border-top:1px solid #cfe0f5;padding:12px 14px;
+  font-size:calc(11.5px*var(--fz));color:#24486f;line-height:1.55;text-align:center}
+/* daftar kontak */
+.ck-list{display:flex;flex-direction:column;gap:7px;padding:4px 0}
+.ck-row{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:#fff;
+  border:1px solid var(--line);border-radius:13px;padding:10px 12px;cursor:pointer;font-family:var(--ff)}
+.ck-row:active{background:#f7fafd}
+.ck-row.belum{border-color:#bcd3f5;background:#f7fbff}
+.ck-av{flex:0 0 38px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;
+  font-size:calc(12.5px*var(--fz));background:linear-gradient(135deg,#d9f0ff,#bfe2ff);color:#0a4bb8}
+.ck-tx{flex:1;min-width:0}
+.ck-tx b{display:block;font-size:calc(13px*var(--fz));color:var(--ink);line-height:1.3}
+.ck-tx small{display:block;font-size:calc(10.5px*var(--fz));color:var(--muted)}
+.ck-tx em{display:block;font-style:normal;font-size:calc(11.5px*var(--fz));color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.ck-row.belum .ck-tx em{color:var(--ink);font-weight:600}
+.ck-b{flex:0 0 auto;background:var(--red);color:#fff;border-radius:99px;min-width:20px;padding:2px 6px;
+  font-size:calc(10.5px*var(--fz));font-weight:800;text-align:center}
+.ck-t{flex:0 0 auto;font-size:calc(10.5px*var(--fz));color:#9aa7b8}
+/* pengumuman & poster di papan grup */
+.chat-ann{background:linear-gradient(135deg,#fff8e8,#fffdf7);border:1px solid #f0dcb4;border-left:4px solid #d99b1c;
+  border-radius:12px;padding:11px 13px;margin:8px 0;max-width:100%}
+.chat-ann-h{font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.06em;color:#8a5a00;margin-bottom:5px}
+.chat-ann-b{font-size:calc(13px*var(--fz));color:var(--ink);line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.chat-ann-t{font-size:calc(10px*var(--fz));color:#9aa7b8;margin-top:6px}
+.chat-post{background:#fff;border:1px solid var(--line);border-radius:13px;padding:8px;margin:8px 0;overflow:hidden}
+.chat-post img{width:100%;max-height:340px;object-fit:cover;border-radius:9px;display:block;cursor:zoom-in;background:#f3f6fa}
+.chat-post-c{font-size:calc(12.5px*var(--fz));color:var(--ink);line-height:1.5;margin-top:7px}
+/* penanda diskusi pada kartu eskalasi */
+.esc-diskusi{margin-top:6px;font-size:calc(11.5px*var(--fz));color:#24486f;background:#f4f8fd;
+  border:1px solid #cfe0f5;border-radius:9px;padding:6px 10px}
 .so-rev{border-color:#f0dcb4;background:#fff8e8;color:#8a5a00}
 .so-rev:hover{background:linear-gradient(135deg,#f6c56b,#d99b1c);color:#fff;border-color:transparent}
 /* Ikon saja — disamakan tingginya dengan SO PDF supaya sejajar rapi */
@@ -2034,6 +2078,10 @@ body.rg-open{overflow:hidden}
   display:grid;place-items:center;font-size:calc(12px*var(--fz));font-weight:800;color:var(--muted)}
 .rg-nofoto{margin-top:9px;font-size:calc(11px*var(--fz));color:#7a5a12;background:#fff8e8;
   border:1px solid #f0dcb4;border-radius:10px;padding:7px 10px;line-height:1.5;text-align:left}
+/* Tombol "belum beres" — persetujuan tanpa pilihan menolak bukan persetujuan */
+.rg-tolak{display:block;width:100%;margin-top:9px;border:1px solid #f0d7d7;background:#fdf6f6;color:#9b2c2c;
+  border-radius:12px;padding:11px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:700;cursor:pointer}
+.rg-tolak:active{background:#fbeaea}
 .rg-note{font-size:calc(11.5px*var(--fz));color:var(--text);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 11px;margin-top:10px;text-align:left;line-height:1.5}
 .rg-ask{font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--ink);margin-top:16px}
 .rg-stars{font-size:calc(38px*var(--fz));letter-spacing:7px;color:#f5a623;cursor:pointer;margin-top:6px;user-select:none}
@@ -3579,6 +3627,10 @@ const USERS=[
  {email:"khalilul.rahman@ai.astra.co.id",name:"Khalilul Rahman",role:"staff"},
  {email:"mujibur@ai.astra.co.id",name:"Mujibur",role:"general",pic:"transport"},
  {email:"muhamad.zhaenuri@ai.astra.co.id",name:"M Zhaenuri",role:"general",plus:["procurement"]},
+ /* Koordinator Operator per kategori layanan — modul & haknya SAMA dengan Maria:
+    memantau tiket & papan Field Ops tanpa mengambil tiket, tetapi berwenang
+    mengajukan SO untuk tiket yang dieskalasi ke kategorinya. */
+ {email:"sunaryo2@ai.astra.co.id",name:"Sunaryo",role:"general",plus:["procurement","service","fieldops"],pantau:true},
  /* Maria diberi modul tambahan lewat `plus` — bukan dengan mengubah menu role
     "general", karena M Zhaenuri & Mujibur seperan dengannya dan tidak ikut diberi.
     `pantau:true` = boleh melihat seluruh tiket & papan Field Ops untuk memantau,
@@ -8069,28 +8121,80 @@ function fieldOpSubmitReg(){
  closeDrawer(); buildNav(); renderFieldOps(); renderMyTickets(); updateBell();
  alert("✅ Selamat bertugas, "+name+"!\nTiket yang Anda ambil akan muncul di modul My Tickets.");
 }
-/* ══ ESKALASI TIKET ═══════════════════════════════════════════════════════
-   Dua anak tangga, bukan satu (keputusan Sudana, 28 Jul 2026):
-     1. ke STAFF GA  → tangga pertama. Staff GA (Dedi/Susi) yang membuatkan SO
-        pengadaan barang, atau menaikkannya lagi kalau di luar wewenangnya.
-     2. ke SECTION HEAD → tangga kedua, untuk keputusan/anggaran yang lebih besar.
-   Yang berubah HANYA status tiket. Kepemilikan (`pic`) tidak dilepas: tiket
-   tetap ada di My Tickets operator, karena perjalanan tiket baru benar-benar
-   tutup setelah PEMOHON memberi rating — bukan saat dieskalasi. */
+/* ══ ESKALASI TIKET — KOORDINATOR PER KATEGORI ═════════════════════════════
+   Aturan dibarui 30 Jul 2026 (keputusan Sudana). Urutan bakunya:
+     1. Operator lapangan  — tidak sanggup menyelesaikan sendiri
+     2. KOORDINATOR kategori — pemegang hak mengajukan SO untuk kategorinya
+     3. Diskusi dengan Section Head — lewat modul Chat, bila perlu keputusan
+     4. Buat SO ke Procurement
+     5. Lanjut rantai SO yang sudah ada (Section → Budget → Proc → Dept)
+
+   Sebelumnya tangga pertama adalah "Staff GA" (Dedi/Susi) untuk SEMUA kategori.
+   Sekarang beralamat per kategori layanan: yang menerima adalah orang yang
+   memang memegang kategori itu di lapangan. Yang berubah HANYA status tiket —
+   kepemilikan (`pic`) tidak dilepas, karena tiket baru benar-benar tutup
+   setelah PEMOHON menyetujui hasil kerjanya. */
+/* Koordinator per kategori. Kosong = belum ditentukan → jatuh ke Staff GA
+   sebagai penerima sementara, supaya tiket tidak pernah menggantung tanpa
+   alamat. Nama harus SAMA PERSIS dengan `name` di USERS. */
+const KOORDINATOR={
+ "Building & Utility":            "Sunaryo",
+ "Tenant & General Services":     "Maria",
+ "Project Development":           "",
+ "Transport, Logistic & Document":"",
+ "Hospitality":                   "",
+ "HSE & Sustainability":          "",
+ "Room & Event":                  "",
+ "Asset Management":              ""
+};
+function ticketKoordinator(t){
+ var kat=(typeof foNormCat==="function")?foNormCat(t&&t.cat):((t&&t.cat)||"");
+ return KOORDINATOR[kat]||"";
+}
+function koordinatorEmail(nama){
+ var u=USERS.filter(function(x){return x.name===nama;})[0];
+ return u?u.email:"";
+}
+/* Akun ini koordinator untuk kategori tiket t? */
+function akuKoordinator(t){
+ var k=ticketKoordinator(t); if(!k) return false;
+ return ((gUser&&gUser.name)||"")===k;
+}
 const ESC_TUJUAN={
- ga:      {label:"Staff GA", ket:"Dedi / Susi — membuatkan SO pengadaan barang atau menaikkan ke Section Head",
+ koor:    {label:"Koordinator Kategori", ket:"koordinator operator kategori ini — berwenang mengajukan SO atau berdiskusi dengan Section Head",
            roles:["staffga","fieldsup"], nav:"service"},
- section: {label:"Section Head", ket:"keputusan atau anggaran di atas wewenang Staff GA",
+ section: {label:"Section Head", ket:"keputusan atau anggaran di atas wewenang Koordinator",
            roles:["dept","fieldsup"], nav:"approvals"}
 };
-function escTujuan(t){ return ESC_TUJUAN[(t&&t.escTo)||"ga"]||ESC_TUJUAN.ga; }
+/* `ga` adalah nama lama tangga pertama — catatan lama tetap terbaca */
+function escTujuan(t){
+ var k=(t&&t.escTo)||"koor"; if(k==="ga")k="koor";
+ return ESC_TUJUAN[k]||ESC_TUJUAN.koor;
+}
+/* Label yang ditampilkan: sebutkan NAMA koordinatornya bila sudah ditentukan */
+function escTujuanLabel(t){
+ var d=escTujuan(t);
+ if(((t&&t.escTo)||"koor")!=="section"){
+   var k=ticketKoordinator(t);
+   return k?("Koordinator "+k):"Koordinator (belum ditentukan → Staff GA)";
+ }
+ return d.label;
+}
 function myTicketEscalate(no){
  var t=TICKETS.find(x=>x.no===no); if(!t)return;
+ var koor=ticketKoordinator(t);
  var pilih=function(k,on){
    var d=ESC_TUJUAN[k];
+   var judul=(k==="koor")
+     ? ("⏫ Ke Koordinator "+(koor||"kategori ini"))
+     : ("⏫ Ke "+d.label);
+   var ket=(k==="koor")
+     ? (koor?("koordinator kategori "+foNormCat(t.cat)+" — berwenang mengajukan SO atau berdiskusi dengan Section Head")
+            :("koordinator kategori "+foNormCat(t.cat)+" belum ditentukan — sementara diterima Staff GA"))
+     : d.ket;
    return '<label class="fo-opt'+(on?' on':'')+'" onclick="foOptPilih(this)">'+
      '<input type="radio" name="esc-to" value="'+k+'"'+(on?' checked':'')+'>'+
-     '<span style="flex:1;min-width:0"><b>⏫ Ke '+esc(d.label)+'</b><span>'+esc(d.ket)+'</span></span></label>';
+     '<span style="flex:1;min-width:0"><b>'+esc(judul)+'</b><span>'+esc(ket)+'</span></span></label>';
  };
  document.getElementById("drawer").innerHTML=
   '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
@@ -8101,7 +8205,7 @@ function myTicketEscalate(no){
    '<div class="mt-esk-st" style="margin-top:0">Tiket <b>tetap milik Anda</b> di My Tickets selama dieskalasi. '+
      'Yang berubah hanya statusnya — tiket baru benar-benar selesai setelah pemohon memberi rating.</div>'+
    '<div class="field" style="margin-top:14px"><label>Dinaikkan ke siapa?</label></div>'+
-   '<div class="fo-pilih">'+pilih("ga",true)+pilih("section",false)+'</div>'+
+   '<div class="fo-pilih">'+pilih("koor",true)+pilih("section",false)+'</div>'+
    '<div class="field"><label>Alasan eskalasi <span style="color:var(--red)">*</span></label>'+
      '<textarea id="fo-esc-note" rows="3" placeholder="mis. Lampu perlu diganti — butuh pengadaan 3 unit LED 18W"></textarea></div>'+
    '<button class="btn-act" style="width:100%" onclick="myTicketEscalateSubmit(\''+esc(no)+'\')">⏫ Kirim Eskalasi</button>'+
@@ -8119,19 +8223,23 @@ function myTicketEscalateSubmit(no){
  var note=((document.getElementById("fo-esc-note")||{}).value||"").trim();
  if(!note){ alert("Alasan eskalasi wajib diisi — inilah yang dibaca orang yang menindaklanjuti."); return; }
  var r=document.querySelector('input[name="esc-to"]:checked');
- var to=(r&&r.value)||"ga", d=ESC_TUJUAN[to]||ESC_TUJUAN.ga;
+ var to=(r&&r.value)||"koor", d=ESC_TUJUAN[to]||ESC_TUJUAN.koor;
  closeDrawer();
  t.esc=true; t.escTo=to; t.escBy=fieldOpName(); t.escNote=note; t.escAt=nowMs(); t.escDone=false;
- tkKomen(t,"Dieskalasi ke "+d.label+": "+note,"eskalasi");
+ var koor=ticketKoordinator(t);
+ var tujuan=(to==="section")?d.label:(koor?("Koordinator "+koor):"Koordinator kategori (belum ditentukan)");
+ tkKomen(t,"Dieskalasi ke "+tujuan+": "+note,"eskalasi");
  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,esc:true,escTo:to,escBy:t.escBy,escNote:t.escNote});
  var pesan=t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · oleh "+t.escBy+" — "+note;
- var n={ic:"⏫",t:"Eskalasi tiket → "+d.label,d:pesan,at:nowStamp(),sev:"crit",nav:d.nav,done:false,roles:d.roles};
+ var n={ic:"⏫",t:"Eskalasi tiket → "+tujuan,d:pesan,at:nowStamp(),sev:"crit",nav:d.nav,done:false,roles:d.roles};
  if(to==="section"){ n.nama=ticketSectionOwner(t); n.namaRole="section"; }
+ /* Beralamat ke NAMA koordinatornya — bukan disiarkan ke seluruh role */
+ else if(koor){ n.nama=koor; n.roles=[]; }
  NOTIFS.unshift(n);
- agavaNotify("⏫ Eskalasi tiket → "+d.label, t.no+" · "+(t.judul||"")+" · oleh "+t.escBy);
- try{ auditLog("escalation", t.no+" → "+d.label+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
+ agavaNotify("⏫ Eskalasi tiket → "+tujuan, t.no+" · "+(t.judul||"")+" · oleh "+t.escBy);
+ try{ auditLog("escalation", t.no+" → "+tujuan+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
  renderMyTickets(); renderFieldOps(); renderService(); renderApprovals(); renderReminder(); renderOverview(); updateBell();
- alert("⏫ Tiket "+no+" dinaikkan ke "+d.label+".\n\nTiket TETAP ada di My Tickets Anda — yang berubah hanya statusnya.\nAnda menutupnya nanti setelah tindak lanjutnya selesai.");
+ alert("⏫ Tiket "+no+" dinaikkan ke "+tujuan+".\n\nTiket TETAP ada di My Tickets Anda — yang berubah hanya statusnya.\nAnda menutupnya nanti setelah tindak lanjutnya selesai.");
 }
 /* Staff GA menaikkan lagi ke Section Head — anak tangga kedua */
 function escNaikkan(no){
@@ -9402,22 +9510,145 @@ function chatSend(){
  var txt=(inp.value||"").trim(); if(!txt)return;
  if(AGDB.ro){ alert("🔒 Mode uji (localhost) — kirim chat diblokir. Gunakan situs live AGAVA."); return; }
  if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung — chat butuh koneksi internet."); return; }
+ /* Penjaga di FUNGSINYA, bukan cuma menyembunyikan kolom tulis */
+ if(CHAT_MODE==="grup" && !chatBolehPostGrup()){
+   alert("👀 Papan GA Team bersifat baca saja.\n\nYang memposting di sini hanya Owner dan GA Dept Head.\nUntuk berbicara, gunakan tab Pesan Pribadi.");
+   return;
+ }
+ if(CHAT_MODE==="p2p" && !CHAT_LAWAN){ alert("Pilih dulu lawan bicaranya."); return; }
  inp.value=""; chatGrow(inp); chatScrollBottom();   // kembalikan tinggi 1 baris & gulir ke bawah
- var msg={ text:txt.slice(0,1000), by:(gUser&&gUser.name)||"—", email:(gUser&&gUser.email)||"",
-   role:gRole||"", roleLabel:(ROLES[gRole]&&ROLES[gRole].label)||"", ts:Date.now(), at:new Date().toISOString() };
- AGDB.db.collection("agava_chat").add(msg).catch(function(e){ alert("Gagal kirim: "+((e&&(e.code||e.message))||e)); });
+ chatKirimObjek({text:txt.slice(0,1000), kind:"pesan"});
  try{ inp.focus(); }catch(e){}
 }
+function chatKirimObjek(extra){
+ /* Penjaga dipasang DI SINI juga, bukan hanya di chatSend — chatSend berhenti
+    lebih dulu kalau kolom tulisnya tidak ada, sehingga pemeriksaan di sana tak
+    terjangkau. Semua pengiriman (pesan, pengumuman, poster) lewat pintu ini. */
+ if(chatRoom()==="grup" && !chatBolehPostGrup()){
+   alert("👀 Papan GA Team bersifat baca saja.\n\nYang memposting di sini hanya Owner dan GA Dept Head.\nUntuk berbicara, gunakan tab Pesan Pribadi.");
+   return;
+ }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — kirim chat diblokir. Gunakan situs live AGAVA."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung — chat butuh koneksi internet."); return; }
+ var msg={ by:(gUser&&gUser.name)||"—", email:(gUser&&gUser.email)||"",
+   role:gRole||"", roleLabel:(ROLES[gRole]&&ROLES[gRole].label)||"",
+   room:chatRoom(), ts:Date.now(), at:new Date().toISOString() };
+ Object.keys(extra||{}).forEach(function(k){ msg[k]=extra[k]; });
+ AGDB.db.collection("agava_chat").add(msg).catch(function(e){ alert("Gagal kirim: "+((e&&(e.code||e.message))||e)); });
+}
+/* ── PENGUMUMAN & POSTER (papan grup, khusus Owner & Dept Head) ──────────── */
+function chatPengumuman(){
+ if(!chatBolehPostGrup()){ alert("⛔ Hanya Owner dan GA Dept Head yang dapat memasang pengumuman."); return; }
+ var t=prompt("📢 Pengumuman untuk seluruh GA Team\n\nTulis isi pengumumannya:");
+ if(t===null)return; t=String(t).trim();
+ if(t.length<5){ alert("Isi pengumuman terlalu pendek."); return; }
+ CHAT_MODE="grup";
+ chatKirimObjek({text:t.slice(0,1000), kind:"pengumuman"});
+ try{ auditLog("chat-pengumuman", t.slice(0,80)); }catch(e){}
+ renderChat(); setTimeout(chatScrollBottom,60);
+}
+function chatPosterPilih(input){
+ if(!chatBolehPostGrup()){ alert("⛔ Hanya Owner dan GA Dept Head yang dapat memasang poster."); return; }
+ var f=(input.files||[])[0]; input.value=""; if(!f)return;
+ var judul=prompt("🖼️ Judul / keterangan poster (opsional):","")||"";
+ var rd=new FileReader();
+ rd.onload=function(e){
+   var img=new Image();
+   img.onload=async function(){
+     var mx=1400,w=img.width,h=img.height;
+     if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;} else {w=Math.round(w*mx/h);h=mx;} }
+     var cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+     cv.getContext("2d").drawImage(img,0,0,w,h);
+     var url=cv.toDataURL("image/jpeg",0.82);
+     /* Poster diunggah ke Storage — dokumen chat harus tetap kecil */
+     var up=await tkUploadPhotos([{url:url,at:nowStamp()}],"poster-"+Date.now(),"poster");
+     CHAT_MODE="grup";
+     chatKirimObjek({text:String(judul).slice(0,300), kind:"poster", img:(up[0]&&up[0].url)||url});
+     try{ auditLog("chat-poster", judul.slice(0,60)); }catch(e){}
+     renderChat(); setTimeout(chatScrollBottom,60);
+   };
+   img.onerror=function(){ alert("Berkas gambar tidak terbaca."); };
+   img.src=e.target.result;
+ };
+ rd.readAsDataURL(f);
+}
+function chatPosterZoom(url){ if(!url)return; try{ soAttZoom(url); }catch(e){ window.open(url,"_blank","noopener"); } }
 function chatFmtTime(ts){ if(!ts)return""; var d=new Date(ts), now=new Date();
  var hm=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
  if(d.toDateString()===now.toDateString())return hm;
  var bln=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"][d.getMonth()];
  return d.getDate()+" "+bln+" "+hm; }
-function chatUnread(){ if(!CHAT.length)return 0; var last=+localStorage.getItem(chatMailKey())||0;
- var mail=(((gUser&&gUser.email)||"")+"").toLowerCase();
- return CHAT.filter(function(m){ return (m.ts||0)>last && (m.email||"").toLowerCase()!==mail; }).length; }
-function chatMarkRead(){ if(!CHAT.length)return; var latest=CHAT[CHAT.length-1].ts||Date.now();
- try{ localStorage.setItem(chatMailKey(), String(latest)); }catch(e){} chatBadge(); }
+/* ══ DUA MODE CHAT: GROUP & P2P ════════════════════════════════════════════
+   Ditetapkan 30 Jul 2026. Satu koleksi (agava_chat), dibedakan field `room`:
+     · "grup"                → papan bersama GA Team
+     · "p2p:<emailA>|<emailB>" (urut abjad) → percakapan dua orang
+   Pesan lama tanpa `room` dianggap milik grup, jadi riwayatnya tidak hilang.
+
+   ATURAN GROUP: hanya OWNER dan GA DEPT HEAD yang boleh memposting — pesan,
+   pengumuman, maupun poster. Bagi yang lain grup bersifat BACA SAJA. Alasannya:
+   papan bersama dipakai untuk pengumuman resmi; kalau semua orang bisa
+   memposting, ia berubah jadi obrolan dan pengumuman pentingnya tenggelam.
+   Untuk berbicara, semua orang tetap punya jalur P2P tanpa batas. */
+let CHAT_MODE="grup", CHAT_LAWAN="";
+function chatBolehPostGrup(){ return isOwner()||gRole==="dept"; }
+function chatMe(){ return (((gUser&&gUser.email)||"")+"").toLowerCase(); }
+function chatRoomP2P(a,b){ return "p2p:"+[String(a||"").toLowerCase(),String(b||"").toLowerCase()].sort().join("|"); }
+function chatRoom(){ return CHAT_MODE==="grup" ? "grup" : chatRoomP2P(chatMe(),CHAT_LAWAN); }
+function chatMsgRoom(m){ return (m&&m.room)?m.room:"grup"; }          // warisan → grup
+function chatPesan(){ var r=chatRoom(); return CHAT.filter(function(m){ return chatMsgRoom(m)===r; }); }
+/* Lawan bicara yang tersedia — semua akun kecuali diri sendiri & akun Field Ops
+   bersama (perangkat lapangan dipakai bergantian, bukan identitas pribadi). */
+function chatKontak(){
+ var me=chatMe();
+ return USERS.filter(function(u){
+   return String(u.email).toLowerCase()!==me && u.role!=="fieldops";
+ }).map(function(u){
+   var r=chatRoomP2P(me,u.email);
+   var pesan=CHAT.filter(function(m){ return chatMsgRoom(m)===r; });
+   var akhir=pesan.length?pesan[pesan.length-1]:null;
+   return {email:u.email, nama:u.name, peran:(ROLES[u.role]&&ROLES[u.role].label)||"",
+     akhir:akhir, belum:chatBelumRoom(r)};
+ }).sort(function(a,b){
+   var ta=a.akhir?(a.akhir.ts||0):0, tb=b.akhir?(b.akhir.ts||0):0;
+   return tb-ta || a.nama.localeCompare(b.nama);
+ });
+}
+/* Penanda "sudah dibaca" per ruang, bukan satu untuk semuanya — kalau tidak,
+   membuka satu percakapan akan menghapus angka belum-dibaca percakapan lain. */
+function chatReadKey(room){ return "agava_chatread_"+chatMe()+"_"+(room||"grup"); }
+function chatBelumRoom(room){
+ var last=+localStorage.getItem(chatReadKey(room))||0, me=chatMe();
+ return CHAT.filter(function(m){ return chatMsgRoom(m)===room && (m.ts||0)>last && (m.email||"").toLowerCase()!==me; }).length;
+}
+function chatUnread(){
+ if(!CHAT.length)return 0;
+ var me=chatMe(), n=chatBelumRoom("grup");
+ USERS.forEach(function(u){
+   if(String(u.email).toLowerCase()===me||u.role==="fieldops")return;
+   n+=chatBelumRoom(chatRoomP2P(me,u.email));
+ });
+ return n;
+}
+function chatMarkRead(){
+ var p=chatPesan(); if(!p.length){ chatBadge(); return; }
+ var latest=p[p.length-1].ts||Date.now();
+ try{ localStorage.setItem(chatReadKey(chatRoom()), String(latest)); }catch(e){}
+ chatBadge();
+}
+/* Pindah mode / lawan bicara */
+function chatSetMode(m){ CHAT_MODE=(m==="p2p")?"p2p":"grup"; renderChat(); chatMarkRead(); setTimeout(chatScrollBottom,30); }
+function chatPilihLawan(mail){ CHAT_MODE="p2p"; CHAT_LAWAN=mail; renderChat(); chatMarkRead(); setTimeout(chatScrollBottom,30); }
+function chatTutupP2P(){ CHAT_LAWAN=""; renderChat(); }
+/* Dipakai tombol "Diskusi dengan Section Head" pada kartu eskalasi */
+function chatBukaDengan(mail,draf){
+ CHAT_MODE="p2p"; CHAT_LAWAN=mail;
+ go("chat");
+ setTimeout(function(){
+   var i=document.getElementById("chatInput");
+   if(i&&draf){ i.value=draf; chatGrow(i); try{ i.focus(); }catch(e){} }
+   chatMarkRead(); chatScrollBottom();
+ },140);
+}
 function chatBadge(){ var n=chatUnread(); var b=document.getElementById("mChatBdg"); if(b){ b.textContent=n>99?"99+":n; b.classList.toggle("hide",n===0); } }
 function renderChat(){
  var el=document.getElementById("page-chat"); if(!el)return;
@@ -9425,23 +9656,82 @@ function renderChat(){
     diketik (beserta posisi kursor & fokus) supaya tidak hilang di tengah mengetik. */
  var old=document.getElementById("chatInput");
  var draft=old?old.value:"", hadFocus=(old&&document.activeElement===old), caret=old?old.selectionStart:0;
- var mail=(((gUser&&gUser.email)||"")+"").toLowerCase();
- var body=CHAT.length? CHAT.map(function(m){
+ var mail=chatMe();
+ var grup=(CHAT_MODE==="grup");
+ var bolehTulis = grup ? chatBolehPostGrup() : !!CHAT_LAWAN;
+ var lawan=CHAT_LAWAN?(USERS.filter(function(u){return String(u.email).toLowerCase()===String(CHAT_LAWAN).toLowerCase();})[0]||{}):null;
+ var pesan=chatPesan();
+
+ /* Tab pemindah mode + angka belum dibaca per mode */
+ var nGrup=chatBelumRoom("grup");
+ var kontak=chatKontak();
+ var nP2P=kontak.reduce(function(a,k){ return a+k.belum; },0);
+ var tabs='<div class="chat-tabs">'+
+   '<button class="'+(grup?'on':'')+'" onclick="chatSetMode(\'grup\')">📣 Papan GA Team'+(nGrup?'<i>'+nGrup+'</i>':'')+'</button>'+
+   '<button class="'+(grup?'':'on')+'" onclick="chatSetMode(\'p2p\')">💬 Pesan Pribadi'+(nP2P?'<i>'+nP2P+'</i>':'')+'</button>'+
+ '</div>';
+
+ /* Mode P2P tanpa lawan bicara → tampilkan daftar kontak */
+ if(!grup && !CHAT_LAWAN){
+   el.innerHTML='<div class="chat-wrap">'+tabs+
+     '<div class="chat-scroll" id="chatScroll"><div class="ck-list">'+
+       (kontak.length?kontak.map(function(k){
+         var pv=k.akhir?((k.akhir.kind==="poster"?"🖼️ ":"")+String(k.akhir.text||"").slice(0,58)):"belum ada pesan";
+         return '<button class="ck-row'+(k.belum?' belum':'')+'" onclick="chatPilihLawan(\''+esc(k.email)+'\')">'+
+           '<span class="ck-av">'+esc(ini(k.nama))+'</span>'+
+           '<span class="ck-tx"><b>'+esc(k.nama)+'</b><small>'+esc(k.peran)+'</small>'+
+             '<em>'+esc(pv)+'</em></span>'+
+           (k.belum?'<span class="ck-b">'+k.belum+'</span>':(k.akhir?'<span class="ck-t">'+chatFmtTime(k.akhir.ts)+'</span>':''))+
+         '</button>';
+       }).join(""):'<div class="chat-empty">Belum ada kontak.</div>')+
+     '</div></div></div>';
+   return;
+ }
+
+ var body=pesan.length? pesan.map(function(m){
      var mine=(m.email||"").toLowerCase()===mail;
+     if(m.kind==="pengumuman"){
+       return '<div class="chat-ann"><div class="chat-ann-h">📢 PENGUMUMAN · '+esc(m.by||"")+
+         (m.roleLabel?' ('+esc(m.roleLabel)+')':'')+'</div>'+
+         '<div class="chat-ann-b">'+esc(m.text||"")+'</div>'+
+         '<div class="chat-ann-t">'+chatFmtTime(m.ts)+'</div></div>';
+     }
+     if(m.kind==="poster"){
+       return '<div class="chat-post"><img src="'+esc(m.img||"")+'" alt="poster" loading="lazy" '+
+         'onclick="chatPosterZoom(\''+esc(String(m.img||"").replace(/'/g,"\\'"))+'\')"/>'+
+         (m.text?'<div class="chat-post-c">'+esc(m.text)+'</div>':'')+
+         '<div class="chat-ann-t">🖼️ '+esc(m.by||"")+' · '+chatFmtTime(m.ts)+'</div></div>';
+     }
      return '<div class="chat-msg '+(mine?'me':'other')+'">'+
        (mine?'':'<div class="chat-who">'+esc(m.by||"—")+(m.roleLabel?' · '+esc(m.roleLabel):'')+'</div>')+
        '<div class="chat-bub">'+esc(m.text||"")+'</div>'+
        '<div class="chat-t">'+chatFmtTime(m.ts)+'</div></div>';
    }).join("")
-   : '<div class="chat-empty">Belum ada pesan.<br>Mulai obrolan GA Team di sini 👋</div>';
+   : (grup?'<div class="chat-empty">Belum ada pengumuman.<br>Papan ini diisi Owner &amp; GA Dept Head 📣</div>'
+         :'<div class="chat-empty">Belum ada pesan dengan '+esc((lawan&&lawan.name)||"")+'.<br>Mulai percakapan 👋</div>');
+
+ var kepala = grup
+   ? '<div class="chat-head"><b>📣 Papan GA Team</b><span>'+(CHAT_READY?USERS.length+' anggota · '+(chatBolehPostGrup()?'Anda boleh memposting':'baca saja'):'menghubungkan…')+'</span>'+
+       (chatBolehPostGrup()?'<span class="chat-tools">'+
+         '<button onclick="chatPengumuman()" title="Pasang pengumuman">📢</button>'+
+         '<button onclick="document.getElementById(\'chatPoster\').click()" title="Pasang poster">🖼️</button>'+
+         '<input type="file" id="chatPoster" accept="image/*" style="display:none" onchange="chatPosterPilih(this)"/>'+
+       '</span>':'')+'</div>'
+   : '<div class="chat-head"><button class="chat-back" onclick="chatTutupP2P()" aria-label="Kembali">‹</button>'+
+       '<b>'+esc((lawan&&lawan.name)||"—")+'</b><span>'+esc((lawan&&ROLES[lawan.role]&&ROLES[lawan.role].label)||"")+' · percakapan pribadi</span></div>';
+
  el.innerHTML=
-   '<div class="chat-wrap">'+
-     '<div class="chat-head"><b>💬 GA Team</b><span>'+(CHAT_READY?USERS.length+' anggota · tersimpan di cloud':'menghubungkan…')+'</span></div>'+
+   '<div class="chat-wrap">'+tabs+kepala+
      '<div class="chat-scroll" id="chatScroll">'+body+'</div>'+
-     '<div class="chat-inbar">'+
-       '<textarea id="chatInput" class="chat-input" rows="1" placeholder="Tulis pesan ke GA Team…" maxlength="1000" autocomplete="off" oninput="chatGrow(this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();chatSend();}"></textarea>'+
-       '<button class="chat-send" onclick="chatSend()" aria-label="Kirim"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></button>'+
-     '</div>'+
+     (bolehTulis
+       ? '<div class="chat-inbar">'+
+           '<textarea id="chatInput" class="chat-input" rows="1" placeholder="'+
+             (grup?'Tulis pengumuman / pesan ke GA Team…':'Tulis pesan ke '+esc((lawan&&lawan.name)||"")+'…')+
+             '" maxlength="1000" autocomplete="off" oninput="chatGrow(this)" onkeydown="if(event.key===\'Enter\'&&!event.shiftKey){event.preventDefault();chatSend();}"></textarea>'+
+           '<button class="chat-send" onclick="chatSend()" aria-label="Kirim"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></button>'+
+         '</div>'
+       : '<div class="chat-readonly">👀 Papan ini <b>baca saja</b>. Pengumuman dipasang Owner &amp; GA Dept Head.<br>'+
+         'Untuk berbicara, buka tab <b>💬 Pesan Pribadi</b>.</div>')+
    '</div>';
  var ni=document.getElementById("chatInput");
  if(ni&&draft){ ni.value=draft; chatGrow(ni);
@@ -11912,12 +12202,19 @@ function otherApprovalRow(a){
 function escUntukSaya(t){
  if(!t) return false;
  if(isOwner()) return true;                       // hanya Owner yang melihat semuanya
- var to=t.escTo||"ga";
+ var to=t.escTo||"koor"; if(to==="ga")to="koor";
  /* SENGAJA tidak memakai isSuper(): kelompok Super boleh MELIHAT semua tiket,
     tetapi eskalasi adalah antrean AKSI — ia harus punya satu alamat yang jelas,
     sama seperti approval. Kalau Section Head sudah melihatnya di tangga pertama,
     tangganya kehilangan arti; dan Section Head kategori lain tidak berkepentingan. */
- if(to==="ga") return gRole==="staffga"||gRole==="fieldsup"||gRole==="proc";
+ if(to==="koor"){
+   var k=ticketKoordinator(t);
+   /* Sudah ada koordinatornya → HANYA dia (+ Owner). Belum ditentukan → jatuh
+      ke Staff GA / supervisor lapangan sebagai penerima sementara, supaya tiket
+      tidak pernah menggantung tanpa alamat. */
+   if(k) return ((gUser&&gUser.name)||"")===k;
+   return gRole==="staffga"||gRole==="fieldsup"||gRole==="proc";
+ }
  return gRole==="dept"||(gRole==="section"&&ticketSectionOwner(t)===((gUser&&gUser.name)||""));
 }
 function escalatedTickets(){
@@ -11945,17 +12242,40 @@ function escTicketRow(t){
      '<div class="esc-t">'+esc(t.judul||'')+'</div>'+
      /* pemohon asli ikut tampil — approver memutuskan membuat SO untuk KELUHAN SIAPA */
      '<div class="esc-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+' · '+pemohonChip(t)+
-       ' · dieskalasi oleh <b>'+esc(t.escBy||'operator')+'</b> → <b>'+esc(escTujuan(t).label)+'</b>'+
+       ' · dieskalasi oleh <b>'+esc(t.escBy||'operator')+'</b> → <b>'+esc(escTujuanLabel(t))+'</b>'+
        (t.escUpBy?' · dinaikkan '+esc(t.escUpBy):'')+'</div>'+
      (t.escNote?'<div class="esc-note">💬 '+esc(t.escNote)+'</div>':'')+
+     (t.diskusiAt?'<div class="esc-diskusi">💬 Sudah didiskusikan dengan Section Head <b>'+esc(t.diskusiWith||'')+'</b> · '+esc(t.diskusiAt)+'</div>':'')+
    '</div>'+
    '<div class="esc-act">'+
+     /* Langkah 3 & 4 pada urutan baku: berdiskusi dulu bila perlu, lalu buat SO */
+     '<button class="btn-out" onclick="escDiskusiSection(\''+esc(t.no)+'\')" title="Buka Chat dengan Section Head pemilik kategori ini">💬 Diskusi dengan Section Head</button>'+
      '<button class="btn-act" onclick="soFromTicket(\''+esc(t.no)+'\')">📋 Buat SO ke Procurement</button>'+
-     /* anak tangga kedua — hanya masuk akal selagi masih di tangga Staff GA */
-     ((t.escTo||"ga")==="ga"?'<button class="btn-out" onclick="escNaikkan(\''+esc(t.no)+'\')">⏫ Naikkan ke Section Head</button>':'')+
+     /* anak tangga kedua — hanya masuk akal selagi masih di tangga Koordinator */
+     (((t.escTo||"koor")!=="section")?'<button class="btn-out" onclick="escNaikkan(\''+esc(t.no)+'\')">⏫ Naikkan ke Section Head</button>':'')+
      '<button class="btn-out" onclick="escDismiss(\''+esc(t.no)+'\')">Tutup tanpa SO</button>'+
    '</div>'+
  '</div>';
+}
+/* Langkah 3 — Diskusi dengan Section Head lewat modul Chat.
+   Membuka percakapan P2P dengan Section Head pemilik kategori tiket ini, dan
+   menempelkan konteks tiketnya sebagai pesan pembuka supaya yang dibaca Section
+   Head bukan sekadar "pak, mau tanya". */
+function escDiskusiSection(no){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ var sh=ticketSectionOwner(t);
+ if(!sh){ alert("Section Head untuk kategori "+foNormCat(t.cat)+" belum terdaftar."); return; }
+ var mail=koordinatorEmail(sh);
+ if(!mail){ alert("Akun Section Head "+sh+" belum terdaftar di AGAVA."); return; }
+ t.diskusiWith=sh; t.diskusiAt=nowStamp();
+ try{ tkKomen(t,"Didiskusikan dengan Section Head "+sh,"eskalasi"); }catch(e){}
+ try{ dbPatchTicket(t,{diskusiWith:sh,diskusiAt:t.diskusiAt}); }catch(e){}
+ var draf="Diskusi eskalasi tiket "+t.no+" — "+(t.judul||"")+"\n"+
+   "Kategori: "+foNormCat(t.cat)+" · Lokasi: "+(t.lokasi||"-")+"\n"+
+   "Pemohon: "+ticketReqName(t)+" · Operator: "+(t.escBy||t.pic||"-")+"\n"+
+   "Alasan eskalasi: "+(t.escNote||"-")+"\n\nMohon arahannya: lanjut SO pengadaan atau ada opsi lain?";
+ chatBukaDengan(mail,draf);
+ try{ renderApprovals(); renderService(); }catch(e){}
 }
 function escDismiss(no){
  var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
@@ -13439,10 +13759,46 @@ function rateGateShow(t){
     '<div class="rg-stars" id="rgStars">'+[1,2,3,4,5].map(function(s){
        return '<span data-s="'+s+'" onclick="rateGateSet('+s+')">☆</span>'; }).join("")+'</div>'+
     '<div class="rg-val" id="rgVal">Ketuk bintang</div>'+
-    '<button class="rg-btn" id="rgBtn" disabled onclick="rateGateSubmit()">Kirim Penilaian &amp; Tutup</button>'+
-    '<div class="rg-lock">🔒 Kotak ini hanya bisa ditutup setelah Anda memberi bintang</div>'+
+    '<button class="rg-btn" id="rgBtn" disabled onclick="rateGateSubmit()">Setujui &amp; Tutup Tiket</button>'+
+    /* Persetujuan yang tidak punya pilihan MENOLAK bukan persetujuan.
+       Aturan Sudana 30 Jul 2026: tiket tidak boleh ditutup sepihak. */
+    '<button class="rg-tolak" onclick="rateGateTolak()">✋ Belum beres — kembalikan ke operator</button>'+
+    '<div class="rg-lock">🔒 Tiket ini hanya tutup setelah <b>Anda</b> menyetujuinya</div>'+
   '</div>';
  document.body.classList.add("rg-open");
+}
+/* ── PEMOHON MENOLAK HASIL KERJA → tiket kembali ke operator ───────────────
+   "Resolved" oleh operator bukan lagi kata akhir. Kalau pemohon menilai
+   pekerjaannya belum beres, tiket turun ke In Progress lagi, alasannya masuk
+   utas catatan, dan operatornya diberi tahu. Rating tidak diminta karena
+   pekerjaannya memang belum selesai untuk dinilai. */
+function rateGateTolak(){
+ var t=TICKETS.find(function(x){return x.no===RATE_GATE;});
+ if(!t){ rateGateClose(); return; }
+ var a=prompt("✋ Kembalikan tiket "+t.no+" ke operator.\n\nApa yang belum beres? (wajib — dibaca operator)","");
+ if(a===null) return;
+ a=String(a).trim();
+ if(a.length<5){ alert("Tuliskan sebentar apa yang belum beres (minimal 5 karakter)."); return; }
+ t.stg=2; t.status=TSTAGES[2]; t.needRate=false; t.closed="";
+ t.ditolakPemohon={oleh:ticketReqName(t), alasan:a, at:nowStamp()};
+ t.tolakN=(+t.tolakN||0)+1;
+ if(t.slaMs){ t.slaMs.resolved=null; }              // jam resolusi berjalan lagi
+ try{ tkKomen(t,"Pemohon belum menyetujui hasil kerja: "+a,"eskalasi"); }catch(e){}
+ dbSaveTicket(t);
+ NOTIFS.unshift({ic:"✋",t:"Pekerjaan dikembalikan pemohon — "+t.no,
+   d:(t.judul||"")+" · "+a, at:nowStamp(), sev:"crit", nav:"myticket", done:false,
+   nama:(t.pic||t.closedBy||"")});
+ try{ agavaNotify("✋ "+t.no+" dikembalikan pemohon", a); }catch(e){}
+ try{ auditLog("tiket-ditolak-pemohon", t.no+" · "+a); }catch(e){}
+ rateGateClose();
+ renderService(); renderMyTickets(); renderFieldOps(); renderOverview(); updateBell();
+ alert("✋ Tiket "+t.no+" dikembalikan ke "+(t.pic||"operator")+".\n\nStatusnya kembali In Progress dan alasan Anda sudah terkirim.");
+}
+function rateGateClose(){
+ var el=document.getElementById("rateGate");
+ if(el){ el.classList.remove("show"); setTimeout(function(){ el.innerHTML=""; },260); }
+ document.body.classList.remove("rg-open");
+ RATE_GATE=null; window._rateTmp=0;
 }
 function rateGateSet(s){
  window._rateTmp=s;
@@ -14239,7 +14595,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.30-138";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.30-139";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
