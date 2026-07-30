@@ -802,6 +802,99 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   background:linear-gradient(135deg,#00c6fb,#0a7cff);color:#fff}
 #agavaVersiBar button.nanti{background:rgba(255,255,255,.16);font-weight:700;padding:8px 11px}
 @media(max-width:820px){ #agavaVersiBar{bottom:calc(74px + env(safe-area-inset-bottom))} }
+/* ══ SOURCING — pembanding 3 rekanan (seperti membandingkan varian ponsel) ══ */
+.vb-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.vb-slot{position:relative;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px 15px 12px;min-height:150px}
+.vb-slot.kosong{border-style:dashed;background:#fafcfe;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px}
+.vb-slot.kosong em{font-style:normal;font-size:calc(12.5px*var(--fz));font-weight:700;color:#9aa7b8}
+.vb-slot.kosong small{font-size:calc(11px*var(--fz));color:#b6c0cd}
+.vb-n{position:absolute;top:-9px;left:13px;width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;
+  font-size:calc(11px*var(--fz));font-weight:800;display:grid;place-items:center}
+.vb-x{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;border:1px solid var(--line);
+  background:#fff;color:var(--red);cursor:pointer;font-size:calc(11px*var(--fz));line-height:1;padding:0}
+.vb-slot>b{display:block;font-size:calc(13.5px*var(--fz));color:var(--ink);margin:2px 26px 8px 0;line-height:1.3}
+.vb-row{display:flex;gap:8px;font-size:calc(11px*var(--fz));padding:3px 0;border-top:1px dashed var(--line)}
+.vb-row span{flex:0 0 96px;color:var(--muted)}
+.vb-row i{flex:1;min-width:0;font-style:normal;color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.src-siap{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:#f0f9f4;border:1px solid #bfe3cd;
+  border-radius:13px;padding:13px 16px}
+.src-siap.belum{background:#f7fafd;border-color:var(--line)}
+.src-siap>div{flex:1;min-width:200px}
+.src-siap b{display:block;font-size:calc(13.5px*var(--fz));color:var(--ink)}
+.src-siap span{display:block;font-size:calc(11.5px*var(--fz));color:var(--muted);line-height:1.5;margin-top:2px}
+.vnd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:11px}
+.vnd-card{background:#fff;border:1.5px solid var(--line);border-radius:13px;padding:12px 14px;cursor:pointer;transition:.14s}
+.vnd-card:hover{border-color:#bcd3f5;transform:translateY(-1px);box-shadow:0 4px 14px rgba(20,40,80,.07)}
+.vnd-card.on{border-color:var(--blue);background:#f4f9ff;box-shadow:0 0 0 3px rgba(10,124,255,.1)}
+.vnd-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:3px}
+.vnd-h b{font-size:calc(13px*var(--fz));color:var(--ink);line-height:1.3}
+.vnd-pick{flex:0 0 auto;font-size:calc(10.5px*var(--fz));font-weight:800;color:var(--blue)}
+.vnd-card.on .vnd-pick{color:#0b5a35}
+.vnd-g{font-size:calc(10.5px*var(--fz));font-weight:800;letter-spacing:.03em;color:#6b7f9e;text-transform:uppercase;margin-bottom:5px}
+.vnd-s{font-size:calc(12px*var(--fz));color:var(--ink);line-height:1.4;margin-bottom:5px}
+.vnd-m{font-size:calc(11px*var(--fz));color:var(--muted);line-height:1.5;overflow-wrap:anywhere}
+/* undangan tender per vendor */
+.tn-row{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:9px;background:#fff}
+.tn-row.sent{background:#f0f9f4;border-color:#bfe3cd}
+.tn-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px}
+.tn-h b{font-size:calc(13px*var(--fz));color:var(--ink)}
+.tn-e input{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-family:var(--ff);
+  font-size:calc(12.5px*var(--fz));color:var(--ink);background:#fff}
+.tn-b{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.tn-b button{flex:1 1 130px;padding:8px 10px;font-size:calc(12px*var(--fz))}
+/* ══ UPR ══ */
+.upr-chain{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.upr-g{border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:#fafcfe}
+.upr-g b{display:block;font-size:calc(11.5px*var(--fz));color:var(--ink);line-height:1.3}
+.upr-g span{display:block;font-size:calc(10.5px*var(--fz));color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+.upr-g.ok{background:#f0f9f4;border-color:#bfe3cd} .upr-g.now{background:#fff8e8;border-color:#f0dcb4}
+.upr-g.no{background:#fdf3f3;border-color:#f0d7d7}
+.upr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}
+.upr-card{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px 15px}
+.upr-card.win{border-color:var(--ok);background:#f7fdf9;box-shadow:0 0 0 3px rgba(21,163,74,.09)}
+.upr-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.upr-h b{font-size:calc(13.5px*var(--fz));color:var(--ink)}
+.upr-cmp{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 8px}
+.upr-cmp-i{flex:1 1 130px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fafcfe}
+.upr-cmp-i.win{border-color:var(--ok);background:#f0f9f4}
+.upr-cmp-i b{display:block;font-size:calc(11.5px*var(--fz));color:var(--ink);line-height:1.3}
+.upr-cmp-i span{display:block;font-size:calc(13px*var(--fz));font-weight:800;color:var(--ink);margin-top:2px}
+.upr-cmp-i em{display:block;font-style:normal;font-size:calc(10px*var(--fz));font-weight:800;color:#0b5a35;margin-top:2px}
+.upr-cmp-i em.mur{color:var(--amber)}
+.upr-alasan{font-size:calc(12px*var(--fz));color:var(--ink);line-height:1.55;background:#f7fafd;
+  border:1px solid var(--line);border-radius:10px;padding:8px 11px}
+.upr-catat{margin-top:7px;font-size:calc(11.5px*var(--fz));color:#7a5a12;background:#fff8e8;
+  border:1px solid #f0dcb4;border-radius:10px;padding:7px 10px}
+/* ══ Dokumen UPR (dicetak lewat overlay Dokumen SO) ══ */
+.ud{font-family:var(--ff);color:#111;background:#fff;padding:14px 16px}
+.ud-hd{display:flex;align-items:center;gap:14px;border-bottom:2px solid #111;padding-bottom:9px;margin-bottom:11px}
+.ud-hd img{height:34px;width:auto}
+.ud-co{font-size:12px;font-weight:800;letter-spacing:.04em}
+.ud-t{font-size:17px;font-weight:800;letter-spacing:.02em}
+.ud-no{margin-left:auto;text-align:right;font-size:11px;line-height:1.6}
+.ud-meta{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px}
+.ud-meta td{border:1px solid #bbb;padding:5px 8px}
+.ud-meta td:nth-child(odd){background:#f2f4f7;width:118px;font-weight:700}
+.ud-sec{font-size:11px;font-weight:800;letter-spacing:.06em;background:#111;color:#fff;padding:4px 9px;margin:12px 0 7px}
+.ud-tbl{width:100%;border-collapse:collapse;font-size:10.5px}
+.ud-tbl th{border:1px solid #999;background:#eef1f5;padding:5px 6px;font-weight:800;font-size:9.5px;letter-spacing:.03em}
+.ud-tbl td{border:1px solid #bbb;padding:5px 6px;vertical-align:top}
+.ud-tbl td.c{text-align:center} .ud-tbl td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.ud-tbl tr.win td{background:#f2fbf5}
+.ud-tbl .sm{font-size:9px;color:#666}
+.ud-box{border:1px solid #bbb;padding:8px 10px;font-size:11px;line-height:1.6;min-height:42px}
+.ud-box.tolak{border-color:#c33;background:#fdf3f3;margin-top:9px}
+.ud-sigs{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:6px}
+.ud-sig{border:1px solid #bbb;min-height:74px;display:flex;flex-direction:column}
+.ud-sl{font-size:9px;font-weight:800;letter-spacing:.04em;background:#f2f4f7;border-bottom:1px solid #bbb;padding:4px 6px;text-align:center}
+.ud-sb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px;text-align:center}
+.ud-sb b{font-size:10.5px} .ud-sb span{font-size:9px;color:#555} .ud-sb em{font-size:9.5px;color:#999;font-style:italic}
+.ud-draft{margin-top:12px;border:1.5px dashed #c33;color:#c33;font-size:11px;font-weight:800;text-align:center;padding:7px;letter-spacing:.08em}
+@media(max-width:820px){
+  .vb-strip{grid-template-columns:1fr}
+  .upr-chain{grid-template-columns:1fr 1fr}
+  .ud-sigs{grid-template-columns:1fr 1fr}
+}
 .so-rev{border-color:#f0dcb4;background:#fff8e8;color:#8a5a00}
 .so-rev:hover{background:linear-gradient(135deg,#f6c56b,#d99b1c);color:#fff;border-color:transparent}
 /* Ikon saja — disamakan tingginya dengan SO PDF supaya sejajar rapi */
@@ -1932,7 +2025,15 @@ body.rg-open{overflow:hidden}
 .rg-sub{font-size:calc(12.5px*var(--fz));font-weight:700;color:#0a4bb8;margin-top:4px;overflow-wrap:anywhere}
 .rg-meta{font-size:calc(11.5px*var(--fz));color:var(--muted);margin-top:8px;line-height:1.65}
 .rg-fotos{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-.rg-fotos img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.rg-fotos img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line);cursor:zoom-in;background:#f3f6fa}
+/* Foto yang gagal dimuat: jangan tampilkan ikon rusak bawaan browser */
+.rg-fotos img.gagal{background:#f3f6fa;border-style:dashed;position:relative}
+.rg-fotos img.gagal::after{content:"foto tidak termuat";position:absolute;inset:0;display:grid;place-items:center;
+  font-size:calc(8.5px*var(--fz));color:#9aa7b8;text-align:center;padding:4px;line-height:1.25}
+.rg-more{width:64px;height:64px;border-radius:10px;border:1px dashed var(--line);background:#f7fafd;
+  display:grid;place-items:center;font-size:calc(12px*var(--fz));font-weight:800;color:var(--muted)}
+.rg-nofoto{margin-top:9px;font-size:calc(11px*var(--fz));color:#7a5a12;background:#fff8e8;
+  border:1px solid #f0dcb4;border-radius:10px;padding:7px 10px;line-height:1.5;text-align:left}
 .rg-note{font-size:calc(11.5px*var(--fz));color:var(--text);background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 11px;margin-top:10px;text-align:left;line-height:1.5}
 .rg-ask{font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--ink);margin-top:16px}
 .rg-stars{font-size:calc(38px*var(--fz));letter-spacing:7px;color:#f5a623;cursor:pointer;margin-top:6px;user-select:none}
@@ -3312,6 +3413,9 @@ html,body{max-width:100%}
       <div id="page-createso" class="hide"></div>
       <div id="page-approvals" class="hide"></div>
       <div id="page-assigned" class="hide"></div>
+      <!-- Sourcing (pilih 3 vendor) & UPR (Usulan Penunjukan Rekanan) -->
+      <div id="page-sourcing" class="hide"></div>
+      <div id="page-upr" class="hide"></div>
       <div id="page-payment" class="hide"></div>
       <div id="page-vendor" class="hide"></div>
       <div id="page-sla" class="hide"></div>
@@ -3741,6 +3845,8 @@ function go(id){
   else if(id==="roombook"){active="service";navSetActive();renderRoomBook();document.getElementById("page-roombook").classList.remove("hide");t.textContent="Room Booking";s.textContent="Pilih ruang dari denah lantai · powered by ERSUS";}
   else if(id==="transport"){active="service";navSetActive();renderTransport();document.getElementById("page-transport").classList.remove("hide");t.textContent="Transportation";s.textContent="Kendaraan Pool · Voucher Blue Bird · Voucher GoCorp";}
   else if(id==="createso"){active="procurement";navSetActive();renderCreateSO();document.getElementById("page-createso").classList.remove("hide");t.textContent="Create Supply Order";s.textContent="Register a new SO into Procurement";}
+  else if(id==="sourcing"){active="procurement";navSetActive();renderSourcing();document.getElementById("page-sourcing").classList.remove("hide");t.textContent="Sourcing — Pilih 3 Vendor";s.textContent="Bandingkan rekanan per kategori, lalu susun undangan tender";}
+  else if(id==="upr"){active="procurement";navSetActive();renderUPR();document.getElementById("page-upr").classList.remove("hide");t.textContent="UPR — Usulan Penunjukan Rekanan";s.textContent="Rekap penawaran 3 vendor → rekomendasi → approval berjenjang";}
   else if(id==="approvals"){document.getElementById("page-approvals").classList.remove("hide");t.textContent="Approvals";s.textContent="Approvals routed to your tier — review & action";}
   else if(id==="assigned"){document.getElementById("page-assigned").classList.remove("hide");t.textContent="Assigned SO";s.textContent="Your SO worklist — follow up, UPR, SPK, handover";}
   else if(id==="payment"){document.getElementById("page-payment").classList.remove("hide");t.textContent="Payment Tracker";s.textContent="SPK · BAST · Invoice status & overdue alerts";}
@@ -7601,17 +7707,24 @@ function svcProofStrip(t){
  if(!t.proof||!t.proof.length)return'';
  return '<div class="svc-proof" title="foto bukti pekerjaan dari operator">'+
    t.proof.slice(0,4).map(function(im,i){
-     return '<img src="'+im.url+'" onclick="event.stopPropagation();proofView(\''+t.no+'\','+i+')"/>';
+     /* entri tanpa url (mis. sisa pemangkasan dokumen) dilewati, bukan dirender
+        jadi gambar rusak */
+     var u=(im&&typeof im==="object")?(im.url||""):String(im||"");
+     if(!u) return '';
+     return '<img src="'+u+'" onclick="event.stopPropagation();proofView(\''+t.no+'\','+i+')"/>';
    }).join('')+
    (t.proof.length>4?'<span class="svc-proof-more">+'+(t.proof.length-4)+'</span>':'')+
    '<span class="svc-proof-lb">📸 bukti'+(t.closedBy?' · '+esc(t.closedBy):'')+'</span></div>';
 }
 function proofView(no,i){
  var t=TICKETS.find(function(x){return x.no===no;}); if(!t||!t.proof||!t.proof[i])return;
+ var im=t.proof[i];
+ var u=(im&&typeof im==="object")?(im.url||""):String(im||"");
+ if(!u){ alert("📷 Foto ini belum tersinkron dari perangkat operator."); return; }
  var ov=document.getElementById('proofOvl');
  if(!ov){ ov=document.createElement('div'); ov.id='proofOvl'; ov.className='proof-ovl';
    ov.onclick=function(){ ov.classList.remove('show'); }; document.body.appendChild(ov); }
- ov.innerHTML='<div class="proof-box"><img src="'+t.proof[i].url+'"/>'+
+ ov.innerHTML='<div class="proof-box"><img src="'+u+'"/>'+
    '<div class="proof-cap"><b>'+esc(t.no)+'</b> · '+esc(t.judul||'')+'<br>'+
    '<span class="muted">foto '+(i+1)+' dari '+t.proof.length+(t.proof[i].at?' · 🕐 '+esc(t.proof[i].at):'')+
    (t.closedBy?' · oleh '+esc(t.closedBy):'')+'</span>'+
@@ -8256,11 +8369,22 @@ function foPhotoRender(){
    btn.textContent=ok?('✓ Selesaikan Tiket ('+p.imgs.length+' foto)'):'✓ Selesaikan Tiket'; }
 }
 function foPhotoDel(i){ window._foPhoto.imgs.splice(i,1); foPhotoRender(); }
-function foConfirmClose(){
+async function foConfirmClose(){
  var p=window._foPhoto; if(!p||!p.imgs.length){ alert("📸 Wajib lampirkan minimal 1 foto bukti pekerjaan."); return; }
  var t=TICKETS.find(x=>x.no===p.no); if(!t)return;
  var note=(document.getElementById('fo-close-note')||{}).value||"";
- t.proof=p.imgs; t.closeNote=note.trim(); t.closedBy=fieldOpName()||t.pic||"";
+ /* ── Foto bukti DIUNGGAH ke Storage, tidak lagi ditanam sebagai base64 ──
+    Sebelumnya proof disimpan sebagai data URL di dalam dokumen tiket. Begitu
+    dokumen melewati batas 1 MB Firestore, dbStripTicket membuang fotonya dan
+    hanya menyisakan hitungan proofLokal — pemohon di HP lain tidak pernah
+    melihat bukti kerjanya. Sekarang jalurnya sama dengan lampiran pemohon:
+    berkasnya ke Storage, dokumen tiket hanya menyimpan tautan pendek.
+    Kalau Storage gagal, foto tetap dipakai sebagai data URL (tidak hilang) —
+    uploadNote() memberi tahu penggunanya. */
+ var btn=document.getElementById("foCloseBtn");
+ if(btn){ btn.disabled=true; btn.textContent="⏳ Mengunggah foto bukti…"; }
+ var bukti=await tkUploadPhotos(p.imgs.slice(),p.no,"bukti");
+ t.proof=bukti; t.closeNote=note.trim(); t.closedBy=fieldOpName()||t.pic||"";
  var sw=document.getElementById('fo-swalayan');
  if(sw&&sw.checked){ t.swalayan=true; try{ auditLog("tiket-swalayan", t.no+" · "+(t.judul||"")); }catch(e){} }
  t.stg=3; t.status=TSTAGES[3]; t.ts=t.ts||{}; t.ts[3]=nowStamp();
@@ -8269,7 +8393,8 @@ function foConfirmClose(){
  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:3,status:t.status,ts:t.ts[3],closed:t.closed,proof:t.proof.length});
  closeDrawer(); window._foPhoto=null;
  renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
- alert("✅ Tiket "+t.no+" selesai dengan "+t.proof.length+" foto bukti.\nPemohon diminta memberi rating sebelum tiket ditutup.");
+ alert("✅ Tiket "+t.no+" selesai dengan "+t.proof.length+" foto bukti."+uploadNote()+
+   "\nPemohon diminta memberi rating sebelum tiket ditutup.");
  rateGateCheck();   // kalau pemohonnya adalah user yg sedang login di perangkat ini
 }
 /* ── Log record operator → CSV (khusus kelompok Super) ──
@@ -10108,7 +10233,8 @@ function ctPhotoRender(){
 function ctPhotoDel(i){ if(!window._ctPhoto)return; window._ctPhoto.imgs.splice(i,1); ctPhotoRender(); }
 /* Unggah lampiran foto tiket ke Storage → simpan URL-nya di dokumen tiket.
    Gagal / localhost (AGDB.ro) → tetap pakai data URL supaya tiket tidak kehilangan foto. */
-async function tkUploadPhotos(imgs,no){
+/* prefix: "foto" = lampiran pemohon · "bukti" = foto hasil kerja operator */
+async function tkUploadPhotos(imgs,no,prefix){
  var out=imgs||[];
  if(!out.length) return out;
  AGAVA_UPLOAD.cloud=null; AGAVA_UPLOAD.err=""; AGAVA_UPLOAD.at=Date.now();
@@ -10120,7 +10246,7 @@ async function tkUploadPhotos(imgs,no){
    out=await Promise.all(out.map(async function(im,i){
      if(!im||!im.url||im.url.indexOf("data:")!==0) return im;
      try{
-       var ref=st.ref("tiket/"+no+"/foto-"+i+"-"+Date.now()+".jpg");
+       var ref=st.ref("tiket/"+no+"/"+(prefix||"foto")+"-"+i+"-"+Date.now()+".jpg");
        var snap=await ref.putString(im.url,"data_url");
        sukses++;
        return Object.assign({},im,{url:await snap.ref.getDownloadURL()});
@@ -11848,6 +11974,7 @@ function renderApprovals(){
     Section Head + PIC Budget) — tidak perlu berganti akun untuk berpindah peran */
  const myT=myTiers();
  const soList=soApprovalsForMe();
+ const uprList=uprApprovalsForMe();   // UPR: Procurement → Dept Head → Division Head → Chief
  const others=APPROVALS.filter(a=>myT.indexOf(a.tier)>=0);
  const oPend=others.filter(a=>a.status==="Pending");
  /* Administrator: pemilih tier + lencana tier tetap yang selalu menempel padanya */
@@ -11875,9 +12002,12 @@ function renderApprovals(){
  document.getElementById("page-approvals").innerHTML=`
   <div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="font-size:calc(13px*var(--fz));color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
-    <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+oPend.length+escList.length+otList.length} pending</span></div>
+    <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+uprList.length+oPend.length+escList.length+otList.length} pending</span></div>
   </div>
   ${escPanelHTML(escList)}
+  ${uprList.length?`<div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','approvals')}<div><h2>📑 UPR — Usulan Penunjukan Rekanan</h2><div class="d">${uprList.length} usulan menunggu gerbang Anda · perbandingan 3 penawaran &amp; alasan penunjukan ada di kartunya</div></div></div>
+    <div class="sec-body">${uprList.map(uprApprovalCard).join("")}</div>
+  </div>`:''}
   ${otList.length?`<div class="card sec"><div class="sec-h">${secIc('#f3eefe','#7a4fd0','approvals')}<div><h2>⏱️ Pengajuan Overtime</h2><div class="d">${otList.length} menunggu persetujuan — fasilitas gedung disiapkan sesuai jam yang disetujui.</div></div></div>
     <div class="sec-body">${otList.map(o=>`<div class="esc-row">
       <div class="esc-main"><div class="esc-no"><b>${esc(o.no)}</b><span class="badge bd-warn" style="font-size:calc(9px*var(--fz))">Diajukan</span></div>
@@ -11912,13 +12042,280 @@ function tsStepper(labels,doneCount,tsArr,notes){
  });
  return h+'</div>';
 }
+/* Dulu langkah Sourcing & UPR hanya membubuhkan cap waktu — pekerjaannya
+   sebenarnya terjadi di luar AGAVA. Sekarang keduanya membuka halamannya
+   sendiri; cap waktu dibubuhkan oleh langkah itu saat benar-benar tuntas. */
 function soStep(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
- if(s.wstep===2){ openSPK(no); return; }     // Kirim SPK → modal upload+email
- if(s.wstep===3){ openBAST(no); return; }     // Kirim BAST → modal upload
- var keys=["sourcing","upr"]; s.ts[keys[s.wstep]]=nowStamp(); s.wstep++;
- s.stage=Math.max(s.stage||0,s.wstep+2);   // sinkron stage drawer dgn wstep (wstep1→UPR, wstep2→SPK)
- soPersist(); renderAssigned(); renderProc();
+ if(s.wstep===0){ sourcingMulai(no); return; }   // Sourcing → pilih 3 rekanan + undangan tender
+ if(s.wstep===1){ uprMulai(no); return; }        // UPR → rekap penawaran + approval berjenjang
+ if(s.wstep===2){ openSPK(no); return; }         // Kirim SPK → modal upload+email
+ if(s.wstep===3){ openBAST(no); return; }        // Kirim BAST → modal upload
+}
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SOURCING → UPR → SPK — rantai pengadaan di dalam AGAVA                  ║
+   ║  Dulu langkah "Sourcing" dan "UPR" hanya satu klik yang membubuhkan cap   ║
+   ║  waktu; isinya dikerjakan di luar aplikasi (WhatsApp, email, Excel), lalu ║
+   ║  hasilnya diketik ulang. Sekarang tiga langkahnya benar-benar hidup di    ║
+   ║  AGAVA: memilih rekanan, mengundang tender, merekap penawaran, sampai     ║
+   ║  usulan penunjukan yang disetujui berjenjang.                             ║
+   ║                                                                          ║
+   ║  Batas yang JUJUR soal email: AGAVA tidak mengirim email sendiri.         ║
+   ║  Pengiriman dari Firebase sudah terbukti ditahan gateway Astra (kasus     ║
+   ║  reset password, 28 Jul). Jadi AGAVA MENYUSUN suratnya lengkap, lalu      ║
+   ║  membukanya di Outlook milik penggunanya — terkirim dari mailbox Astra    ║
+   ║  yang sah, sampai ke vendor, dan jejaknya ada di Sent Items orang itu.    ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+/* Kelompok rekanan — diturunkan dari kontrak yang sudah ada, bukan daftar baru
+   yang harus dirawat terpisah. */
+const VND_GRUP={HK:"Housekeeping & Kebersihan", BM:"Building Maintenance", GS:"General Services"};
+function vendorDB(){
+ var src=(typeof VENDOR_CONTRACTS!=="undefined")?VENDOR_CONTRACTS:[];
+ var peta={};
+ src.forEach(function(c){
+   var k=String(c.vendor||"").trim(); if(!k)return;
+   var v=peta[k]||(peta[k]={vendor:k, grup:VND_GRUP[c.type]||"Lainnya", tipe:c.type||"",
+     scope:[], site:[], pic:c.pic||"", email:c.email||"", nilai:0, sla:null, kontrak:0});
+   if(c.scope&&v.scope.indexOf(c.scope)<0) v.scope.push(c.scope);
+   if(c.site&&v.site.indexOf(c.site)<0) v.site.push(c.site);
+   if(!v.pic&&c.pic) v.pic=c.pic;
+   if(!v.email&&c.email) v.email=c.email;
+   v.nilai+=(+c.value||0); v.kontrak++;
+   if(c.sla!=null){ v.sla=(v.sla==null)?+c.sla:Math.max(v.sla,+c.sla); }
+ });
+ return Object.keys(peta).map(function(k){return peta[k];})
+   .sort(function(a,b){ return a.grup.localeCompare(b.grup)||a.vendor.localeCompare(b.vendor); });
+}
+let SRC_SO=null;                 /* SO yang sedang dicari rekanannya */
+let SRC_PILIH=[];                /* nama vendor terpilih, maks 3 */
+let SRC_GRUP="";                 /* penyaring kelompok, "" = semua */
+const SRC_MAX=3;
+function sourcingMulai(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ SRC_SO=no;
+ SRC_PILIH=((s.sourcing&&s.sourcing.kandidat)||[]).map(function(k){return k.vendor;});
+ SRC_GRUP=""; go("sourcing");
+}
+function srcToggle(v){
+ var i=SRC_PILIH.indexOf(v);
+ if(i>=0) SRC_PILIH.splice(i,1);
+ else{
+   if(SRC_PILIH.length>=SRC_MAX){ alert("Sudah 3 rekanan terpilih.\n\nLepas salah satu dulu bila ingin menggantinya — pembanding tender memang dikunci 3 vendor."); return; }
+   SRC_PILIH.push(v);
+ }
+ renderSourcing();
+}
+function srcSetGrup(g){ SRC_GRUP=g; renderSourcing(); }
+/* Strip pembanding di ATAS — seperti membandingkan varian ponsel di situs jual
+   beli: 3 slot berjajar, yang belum terisi tampak sebagai slot kosong. */
+function srcBandingHTML(db){
+ var slot=[];
+ for(var i=0;i<SRC_MAX;i++){
+   var nm=SRC_PILIH[i];
+   var v=nm?db.filter(function(x){return x.vendor===nm;})[0]:null;
+   if(!v){ slot.push('<div class="vb-slot kosong"><span class="vb-n">'+(i+1)+'</span><em>Slot kosong</em>'+
+     '<small>pilih rekanan dari daftar di bawah</small></div>'); continue; }
+   slot.push('<div class="vb-slot"><span class="vb-n">'+(i+1)+'</span>'+
+     '<button class="vb-x" title="lepas" onclick="srcToggle(\''+esc(v.vendor)+'\')">✕</button>'+
+     '<b>'+esc(v.vendor)+'</b>'+
+     '<div class="vb-row"><span>Kelompok</span><i>'+esc(v.grup)+'</i></div>'+
+     '<div class="vb-row"><span>Lingkup</span><i>'+esc(v.scope.join(", ")||"—")+'</i></div>'+
+     '<div class="vb-row"><span>Site aktif</span><i>'+esc(v.site.join(", ")||"—")+'</i></div>'+
+     '<div class="vb-row"><span>Kontrak berjalan</span><i>'+v.kontrak+' · Rp '+rpFmt(v.nilai*1000000)+'</i></div>'+
+     '<div class="vb-row"><span>Nilai SLA</span><i>'+(v.sla==null?'belum dinilai':(Math.round(v.sla*100)/100)+' / 3')+'</i></div>'+
+     '<div class="vb-row"><span>PIC</span><i>'+esc(v.pic||"—")+'</i></div>'+
+     '<div class="vb-row"><span>Email</span><i>'+(v.email?esc(v.email):'<b style="color:var(--red)">belum ada</b>')+'</i></div>'+
+   '</div>');
+ }
+ return '<div class="vb-strip">'+slot.join("")+'</div>';
+}
+function renderSourcing(){
+ var el=document.getElementById("page-sourcing"); if(!el)return;
+ var s=SRC_SO?SO.find(function(x){return x.no===SRC_SO;}):null;
+ if(!s){ el.innerHTML='<div class="card pad muted small" style="text-align:center;padding:48px">Buka Sourcing dari <b>Assigned SO</b> — pilih SO yang akan dicari rekanannya.</div>'; return; }
+ var db=vendorDB();
+ /* Database rekanan datang dari master data Kontrak Vendor. Kalau isinya belum
+    cukup, katakan apa adanya — jangan biarkan halaman ini tampak rusak sementara
+    yang kurang sebenarnya datanya. */
+ if(db.length<SRC_MAX){
+   el.innerHTML=
+    '<div class="pg-back" style="margin-bottom:14px"><button class="btn-out" onclick="go(\'assigned\')">← Kembali ke Assigned SO</button></div>'+
+    '<div class="card pad">'+
+      '<div style="font-weight:800;color:var(--ink);font-size:calc(15px*var(--fz))">🔎 Sourcing — '+esc(s.no)+'</div>'+
+      '<div class="muted small" style="margin-top:3px">'+esc(s.item||"")+'</div>'+
+      '<div class="so-perbaiki" style="margin-top:14px"><b>⚠️ Database rekanan baru berisi '+db.length+' vendor</b>'+
+        'Sourcing membandingkan <b>3 penawaran</b>, jadi butuh minimal 3 rekanan terdaftar. '+
+        'Daftar ini dibaca dari master data <b>Kontrak Vendor</b> — tambahkan rekanannya di modul '+
+        '<b>Vendor Management</b> (atau Parameter &amp; Biaya → Master Data), lalu buka Sourcing lagi.</div>'+
+      '<div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn-act" onclick="go(\'vendor\')">🏢 Buka Vendor Management</button>'+
+        '<button class="btn-out" onclick="go(\'assigned\')">Nanti saja</button></div>'+
+    '</div>';
+   return;
+ }
+ var grup=[]; db.forEach(function(v){ if(grup.indexOf(v.grup)<0) grup.push(v.grup); });
+ var tampil=SRC_GRUP?db.filter(function(v){return v.grup===SRC_GRUP;}):db;
+ var siap=(SRC_PILIH.length===SRC_MAX);
+ var tanpaEmail=SRC_PILIH.filter(function(nm){ var v=db.filter(function(x){return x.vendor===nm;})[0]; return !(v&&v.email); });
+ el.innerHTML=
+  '<div class="pg-back" style="margin-bottom:14px"><button class="btn-out" onclick="go(\'assigned\')">← Kembali ke Assigned SO</button></div>'+
+  '<div class="card pad" style="margin-bottom:16px">'+
+    '<div style="font-weight:800;color:var(--ink);font-size:calc(15px*var(--fz))">🔎 Sourcing — '+esc(s.no)+'</div>'+
+    '<div class="muted small" style="margin-top:3px">'+esc(s.item||"")+' · '+esc(s.kategori||"")+' · '+esc(s.lokasi||"")+' · estimasi '+soNilaiTeks(s)+'</div>'+
+    '<div class="muted small" style="margin-top:6px">Pilih <b>3 rekanan</b> untuk diundang menawar. Ketiganya dibandingkan di strip atas, lalu AGAVA menyusun undangan tendernya.</div>'+
+  '</div>'+
+  srcBandingHTML(db)+
+  (siap?('<div class="src-siap"><div><b>✅ 3 rekanan terpilih</b>'+
+     '<span>'+esc(SRC_PILIH.join(" · "))+'</span>'+
+     (tanpaEmail.length?'<span style="color:var(--red)">⚠️ belum ada email: '+esc(tanpaEmail.join(", "))+' — bisa diisi di langkah berikutnya</span>':'')+'</div>'+
+     '<button class="btn-act" onclick="srcLanjut()">Susun Undangan Tender →</button></div>')
+   :('<div class="src-siap belum"><div><b>Terpilih '+SRC_PILIH.length+' dari 3</b><span>Pembanding tender dikunci 3 rekanan agar penawarannya sebanding.</span></div></div>'))+
+  '<div class="proc-tabs" style="margin:16px 0 12px">'+
+    '<div class="ptab '+(SRC_GRUP?'':'on')+'" onclick="srcSetGrup(\'\')">Semua <b>'+db.length+'</b></div>'+
+    grup.map(function(g){ var n=db.filter(function(v){return v.grup===g;}).length;
+      return '<div class="ptab '+(SRC_GRUP===g?'on':'')+'" onclick="srcSetGrup(\''+esc(g)+'\')">'+esc(g)+' <b>'+n+'</b></div>'; }).join("")+
+  '</div>'+
+  '<div class="vnd-grid">'+tampil.map(function(v){
+    var on=SRC_PILIH.indexOf(v.vendor)>=0;
+    return '<div class="vnd-card'+(on?' on':'')+'" onclick="srcToggle(\''+esc(v.vendor)+'\')">'+
+      '<div class="vnd-h"><b>'+esc(v.vendor)+'</b><span class="vnd-pick">'+(on?'✓ terpilih':'+ pilih')+'</span></div>'+
+      '<div class="vnd-g">'+esc(v.grup)+'</div>'+
+      '<div class="vnd-s">'+esc(v.scope.join(" · ")||"—")+'</div>'+
+      '<div class="vnd-m">📍 '+esc(v.site.join(", ")||"—")+'</div>'+
+      '<div class="vnd-m">📄 '+v.kontrak+' kontrak · Rp '+rpFmt(v.nilai*1000000)+
+        ' · SLA '+(v.sla==null?'—':(Math.round(v.sla*100)/100))+'</div>'+
+      '<div class="vnd-m">'+(v.email?('✉️ '+esc(v.email)):'<span style="color:var(--red)">✉️ email belum ada</span>')+'</div>'+
+    '</div>';
+  }).join("")+'</div>';
+}
+function srcLanjut(){
+ var s=SO.find(function(x){return x.no===SRC_SO;}); if(!s)return;
+ if(SRC_PILIH.length!==SRC_MAX){ alert("Pilih tepat 3 rekanan dulu."); return; }
+ var db=vendorDB();
+ s.sourcing=s.sourcing||{};
+ s.sourcing.by=(gUser&&gUser.name)||""; s.sourcing.at=nowStamp();
+ s.sourcing.kandidat=SRC_PILIH.map(function(nm){
+   var v=db.filter(function(x){return x.vendor===nm;})[0]||{vendor:nm};
+   var lama=((s.sourcing&&s.sourcing.kandidat)||[]).filter(function(k){return k.vendor===nm;})[0];
+   return {vendor:nm, email:(lama&&lama.email)||v.email||"", pic:v.pic||"", grup:v.grup||"",
+           scope:(v.scope||[]).join(", "), dikirim:!!(lama&&lama.dikirim), kirimAt:(lama&&lama.kirimAt)||null};
+ });
+ soPersist();
+ try{ auditLog("sourcing-pilih", s.no+" · "+SRC_PILIH.join(" | ")); }catch(e){}
+ srcEmailPanel();
+}
+/* ── Undangan tender: satu template, tiga surat ─────────────────────────────
+   Isi surat disusun dari data SO sendiri supaya tidak ada yang diketik ulang. */
+function srcTenderDefault(s){
+ var d=new Date(); var plus=function(n){ var x=new Date(d.getTime()+n*86400000);
+   return ('0'+x.getDate()).slice(-2)+'/'+('0'+(x.getMonth()+1)).slice(-2)+'/'+x.getFullYear(); };
+ return {batas:plus(7), aanwijzing:plus(3), mulai:plus(14),
+   syarat:"Harga satuan & total (termasuk PPN)\nMasa berlaku penawaran minimal 30 hari\nGaransi pekerjaan & material\nJangka waktu pelaksanaan\nSurat penawaran resmi berkop perusahaan"};
+}
+function srcEmailPanel(){
+ var s=SO.find(function(x){return x.no===SRC_SO;}); if(!s||!s.sourcing)return;
+ var t=srcTenderDefault(s);
+ var lamp=[].concat((s.attachments||[]).map(function(a){return a.name||"foto";}),
+                    (s.pdfAttachments||[]).map(function(p){return p.name||"PDF";}));
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div style="font-weight:800;color:var(--ink);font-size:calc(16px*var(--fz))">📧 Undangan Tender — '+esc(s.no)+'</div>'+
+   '<div class="muted small" style="margin-top:4px">Satu template, tiga surat. Terkirim dari Outlook Anda sendiri.</div></div>'+
+  '<div class="db">'+
+   '<div class="two" style="gap:0 12px">'+
+     '<div class="field"><label>Batas submit penawaran</label><input id="tn-batas" value="'+t.batas+'"/></div>'+
+     '<div class="field"><label>Aanwijzing / peninjauan lokasi</label><input id="tn-aanw" value="'+t.aanwijzing+'"/></div>'+
+   '</div>'+
+   '<div class="field"><label>Target mulai pekerjaan</label><input id="tn-mulai" value="'+t.mulai+'"/></div>'+
+   '<div class="field"><label>Syarat penawaran <span class="muted small">(satu baris = satu poin)</span></label>'+
+     '<textarea id="tn-syarat" rows="5">'+esc(t.syarat)+'</textarea></div>'+
+   '<div class="field"><label>Catatan tambahan <span class="muted small">(opsional)</span></label>'+
+     '<textarea id="tn-note" rows="2" placeholder="mis. pekerjaan hanya boleh di luar jam kantor"></textarea></div>'+
+   (lamp.length?'<div class="so-att-lama"><span>📎 lampiran SO ikut disebut:</span>'+lamp.map(function(n){return '<span>'+esc(n)+'</span>';}).join("")+'</div>'
+    :'<div class="muted small" style="margin:-4px 0 10px">SO ini belum punya lampiran — sebutkan spesifikasinya di catatan tambahan bila perlu.</div>')+
+   '<div class="panel-t" style="margin:14px 0 6px">Tiga rekanan yang diundang</div>'+
+   '<div id="tnList"></div>'+
+   '<button class="btn-out" style="width:100%;margin-top:10px" onclick="srcTenderSelesai()">✓ Semua undangan terkirim → lanjut UPR</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+ srcTenderList();
+}
+function srcTenderList(){
+ var s=SO.find(function(x){return x.no===SRC_SO;}); if(!s)return;
+ var box=document.getElementById("tnList"); if(!box)return;
+ box.innerHTML=(s.sourcing.kandidat||[]).map(function(k,i){
+   return '<div class="tn-row'+(k.dikirim?' sent':'')+'">'+
+     '<div class="tn-h"><b>'+esc(k.vendor)+'</b>'+(k.dikirim?'<span class="badge bd-ok">terkirim '+esc(k.kirimAt||"")+'</span>':'')+'</div>'+
+     '<div class="tn-e"><input id="tn-mail-'+i+'" value="'+esc(k.email||"")+'" placeholder="email vendor"/></div>'+
+     '<div class="tn-b">'+
+       '<button class="btn-act" onclick="srcKirim('+i+')">✉️ Buka di Outlook</button>'+
+       '<button class="btn-out" onclick="srcSalin('+i+')">📋 Salin surat</button>'+
+     '</div></div>';
+ }).join("");
+}
+function srcSuratTeks(i){
+ var s=SO.find(function(x){return x.no===SRC_SO;}); if(!s)return {subject:"",body:"",to:""};
+ var k=(s.sourcing.kandidat||[])[i]||{};
+ var g=function(id){ var el=document.getElementById(id); return el?String(el.value||"").trim():""; };
+ var syarat=g("tn-syarat").split(/\r?\n/).filter(Boolean).map(function(x,n){ return (n+1)+". "+x; }).join("\n");
+ var lamp=[].concat((s.attachments||[]).map(function(a){return a.name||"foto";}),
+                    (s.pdfAttachments||[]).map(function(p){return p.name||"PDF";}));
+ var note=g("tn-note");
+ var body=
+  "Yth. "+(k.pic?k.pic+" — ":"")+k.vendor+",\n\n"+
+  "Dengan hormat,\n"+
+  "General Affairs PT Astra International Tbk mengundang perusahaan Bapak/Ibu untuk mengajukan penawaran atas pekerjaan berikut.\n\n"+
+  "URAIAN PEKERJAAN\n"+
+  "• Pekerjaan : "+(s.item||"-")+"\n"+
+  "• Kategori  : "+(s.kategori||"-")+"\n"+
+  "• Lokasi    : "+(s.lokasi||"-")+"\n"+
+  "• Referensi : "+s.no+"\n\n"+
+  "TIMELINE TENDER\n"+
+  "• Aanwijzing / peninjauan lokasi : "+g("tn-aanw")+"\n"+
+  "• Batas submit penawaran         : "+g("tn-batas")+"\n"+
+  "• Target mulai pekerjaan         : "+g("tn-mulai")+"\n\n"+
+  "SYARAT PENAWARAN\n"+syarat+"\n\n"+
+  (lamp.length?("LAMPIRAN\n"+lamp.map(function(n){return "• "+n;}).join("\n")+
+    "\n(mohon dilampirkan dari berkas yang menyertai email ini)\n\n"):"")+
+  (note?("CATATAN\n"+note+"\n\n"):"")+
+  "Penawaran mohon dikirim sebagai balasan email ini sebelum batas waktu di atas. "+
+  "Penawaran yang masuk akan dibandingkan bersama dua rekanan lain secara terbuka; "+
+  "penunjukan ditetapkan melalui Usulan Penunjukan Rekanan (UPR) yang disetujui berjenjang.\n\n"+
+  "Hormat kami,\n"+((gUser&&gUser.name)||"GA Procurement")+"\nGeneral Affairs — PT Astra International Tbk";
+ return {subject:"[Undangan Tender] "+s.no+" — "+(s.item||"")+" — batas "+g("tn-batas"),
+         body:body, to:(document.getElementById("tn-mail-"+i)||{}).value||k.email||""};
+}
+function srcTandaiKirim(i){
+ var s=SO.find(function(x){return x.no===SRC_SO;}); if(!s)return;
+ var k=(s.sourcing.kandidat||[])[i]; if(!k)return;
+ k.email=(document.getElementById("tn-mail-"+i)||{}).value||k.email||"";
+ k.dikirim=true; k.kirimAt=nowStamp();
+ soPersist(); srcTenderList();
+}
+function srcKirim(i){
+ var m=srcSuratTeks(i);
+ if(!m.to){ alert("Isi dulu email vendornya."); return; }
+ try{ window.location.href="mailto:"+encodeURIComponent(m.to)+
+   "?subject="+encodeURIComponent(m.subject)+"&body="+encodeURIComponent(m.body); }catch(e){}
+ srcTandaiKirim(i);
+}
+function srcSalin(i){
+ var m=srcSuratTeks(i);
+ var teks="To: "+m.to+"\nSubject: "+m.subject+"\n\n"+m.body;
+ var ok=function(){ srcTandaiKirim(i); alert("📋 Surat disalin.\n\nTempel di Outlook, lampirkan berkasnya, lalu kirim."); };
+ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(teks).then(ok,function(){ alert(teks); });
+ else alert(teks);
+}
+function srcTenderSelesai(){
+ var s=SO.find(function(x){return x.no===SRC_SO;}); if(!s)return;
+ var belum=(s.sourcing.kandidat||[]).filter(function(k){return !k.dikirim;});
+ if(belum.length && !confirm("Masih ada "+belum.length+" undangan yang belum ditandai terkirim ("+
+   belum.map(function(k){return k.vendor;}).join(", ")+").\n\nLanjut ke UPR?")) return;
+ s.ts=s.ts||{}; s.ts.sourcing=nowStamp();
+ s.wstep=Math.max(s.wstep||0,1); s.stage=Math.max(s.stage||0,3);
+ soPersist(); closeDrawer();
+ try{ auditLog("sourcing-selesai", s.no+" · undangan ke 3 rekanan"); }catch(e){}
+ renderAssigned(); renderProc();
+ uprMulai(s.no);
 }
 function renderAssigned(){
  const me=gUser?gUser.name:"";
@@ -11948,15 +12345,302 @@ function renderAssigned(){
     </div>`;
   }).join(""):'<div class="card pad muted small" style="text-align:center;padding:46px">No SO assigned to you yet. New SO appears here after Dept Head approves & PIC Procurement assigns you.</div>'}`;
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   UPR — USULAN PENUNJUKAN REKANAN
+   Rekap penawaran 3 rekanan → rekomendasi pemenang → persetujuan berjenjang
+   PIC Procurement → GA Dept Head → HCMS Division Head → Chief of CHCD.
+   Prinsipnya sama dengan SO: satu gerbang satu keputusan, ditolak wajib
+   beralasan, dan tidak boleh ada keadaan buntu.
+
+   BATAS YANG JUJUR — pendeteksian balasan vendor:
+   AGAVA tidak bisa membaca mailbox Outlook, jadi penawaran yang masuk DIISI
+   di sini oleh Staff Procurement. Bentuk datanya (s.upr.penawaran[]) sengaja
+   dibuat rapi supaya nanti sebuah alur Power Automate yang mengawasi mailbox
+   bersama bisa mengisinya sendiri tanpa mengubah tampilan ini sedikit pun.
+   ══════════════════════════════════════════════════════════════════════════ */
+const UPR_GATES=[
+ {k:"proc",     tier:"Procurement",   label:"PIC Procurement"},
+ {k:"dept",     tier:"Dept Head",     label:"GA Dept Head"},
+ {k:"division", tier:"Division Head", label:"HCMS Division Head"},
+ {k:"chief",    tier:"Chief CHCD",    label:"Chief of CHCD"}
+];
+function uprAda(s){ return !!(s&&s.upr); }
+function uprDitolak(s){ return !!(s&&s.upr&&UPR_GATES.some(function(g){return s.upr.appr[g.k]==="Rejected";})); }
+function uprSelesai(s){ return !!(s&&s.upr&&UPR_GATES.every(function(g){return s.upr.appr[g.k]==="Approved";})); }
+/* gerbang yang sedang menunggu — null bila tuntas / ditolak / belum diajukan */
+function uprGate(s){
+ if(!uprAda(s)||!s.upr.diajukan||uprDitolak(s)) return null;
+ for(var i=0;i<UPR_GATES.length;i++){ if(s.upr.appr[UPR_GATES[i].k]!=="Approved") return UPR_GATES[i]; }
+ return null;
+}
+function uprStatusTeks(s){
+ if(!uprAda(s)) return {t:"Belum ada UPR",c:"bd-neu"};
+ if(uprDitolak(s)) return {t:"UPR ditolak",c:"bd-crit"};
+ if(!s.upr.diajukan) return {t:"UPR draft",c:"bd-warn"};
+ if(uprSelesai(s)) return {t:"UPR disetujui",c:"bd-ok"};
+ var g=uprGate(s); return {t:"Menunggu "+(g?g.label:"—"),c:"bd-warn"};
+}
+function uprNo(s){ return "UPR-"+String(s.no).replace(/^SO-/,""); }
+let UPR_SO=null;
+function uprMulai(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ if(!s.sourcing||!(s.sourcing.kandidat||[]).length){
+   alert("Lakukan Sourcing dulu — UPR membandingkan penawaran dari 3 rekanan yang diundang."); sourcingMulai(no); return;
+ }
+ if(!s.upr){
+   s.upr={no:uprNo(s), by:(gUser&&gUser.name)||"", at:nowStamp(), diajukan:false,
+     penawaran:(s.sourcing.kandidat||[]).map(function(k){
+       return {vendor:k.vendor, email:k.email||"", nilai:"", tgl:"", plus:"", minus:"", catatan:""}; }),
+     pilih:"", alasan:"", appr:{proc:"—",dept:"—",division:"—",chief:"—"}, ts:{}, aktor:{}, reject:null};
+   soPersist();
+ }
+ UPR_SO=no; go("upr");
+}
+function uprSet(i,f,v){
+ var s=SO.find(function(x){return x.no===UPR_SO;}); if(!s||!s.upr)return;
+ var p=s.upr.penawaran[i]; if(!p)return;
+ p[f]=v;
+}
+function uprPilih(v){
+ var s=SO.find(function(x){return x.no===UPR_SO;}); if(!s||!s.upr)return;
+ s.upr.pilih=v; renderUPR();
+}
+function uprSimpan(diam){
+ var s=SO.find(function(x){return x.no===UPR_SO;}); if(!s||!s.upr)return;
+ (s.upr.penawaran||[]).forEach(function(p,i){
+   ["nilai","tgl","plus","minus","catatan","email"].forEach(function(f){
+     var el=document.getElementById("upr-"+f+"-"+i); if(el) p[f]=String(el.value||"").trim();
+   });
+ });
+ var al=document.getElementById("upr-alasan"); if(al) s.upr.alasan=String(al.value||"").trim();
+ soPersist();
+ if(!diam) alert("💾 Draft UPR tersimpan.");
+ renderUPR();
+}
+function uprLengkap(s){
+ var p=(s.upr&&s.upr.penawaran)||[];
+ return p.length===3 && p.every(function(x){ return (parseFloat(x.nilai)||0)>0; });
+}
+function uprAjukan(){
+ var s=SO.find(function(x){return x.no===UPR_SO;}); if(!s||!s.upr)return;
+ uprSimpan(true);
+ if(!uprLengkap(s)){ alert("Isi dulu nilai penawaran ketiga rekanan.\n\nUPR membandingkan tiga penawaran — itu inti dokumennya."); return; }
+ if(!s.upr.pilih){ alert("Tentukan rekanan yang diusulkan (klik \"Usulkan\" pada salah satu kartu)."); return; }
+ if((s.upr.alasan||"").length<10){ alert("Tuliskan alasan penunjukan minimal 10 karakter — inilah yang dibaca para approver."); return; }
+ s.upr.diajukan=true; s.upr.ajukanAt=nowStamp(); s.upr.by=(gUser&&gUser.name)||s.upr.by;
+ s.upr.appr={proc:"Pending",dept:"—",division:"—",chief:"—"};
+ s.upr.reject=null;
+ soPersist();
+ try{ auditLog("upr-ajukan", s.upr.no+" · usul "+s.upr.pilih+" · Rp "+rpFmt(uprNilai(s))); }catch(e){}
+ NOTIFS.unshift({ic:"📑",t:"UPR menunggu persetujuan — "+s.upr.no,
+   d:(s.item||"")+" · usulan "+s.upr.pilih+" · Rp "+rpFmt(uprNilai(s)),
+   at:nowStamp(), sev:"warn", nav:"approvals", done:false, roles:["proc"]});
+ renderApprovals(); renderAssigned(); renderProc(); updateBell(); renderUPR();
+ alert("📑 "+s.upr.no+" diajukan.\n\nMasuk gerbang PIC Procurement → GA Dept Head → HCMS Division Head → Chief of CHCD.");
+}
+function uprNilai(s){
+ var p=((s.upr&&s.upr.penawaran)||[]).filter(function(x){return x.vendor===s.upr.pilih;})[0];
+ return p?(parseFloat(p.nilai)||0):0;
+}
+function uprApprovalsForMe(){
+ var t=myTiers();
+ return SO.filter(function(s){
+   var g=uprGate(s); if(!g) return false;
+   if(isOwner()) return true;
+   return t.indexOf(g.tier)>=0;
+ });
+}
+function uprAksi(no,keputusan){
+ var s=SO.find(function(x){return x.no===no;}); if(!s||!s.upr)return;
+ var g=uprGate(s); if(!g){ alert("UPR ini sudah tidak menunggu keputusan."); return; }
+ if(isOwner()){ alert("👀 Mode pantau — gerbang UPR bukan wewenang akun Owner.\n\nGunakan akun pemegang gerbangnya."); return; }
+ if(keputusan==="Rejected"){
+   var a=prompt("Alasan menolak "+s.upr.no+" (dibaca Staff Procurement, wajib):","");
+   if(a===null) return;
+   a=String(a).trim(); if(a.length<10){ alert("Alasan minimal 10 karakter."); return; }
+   s.upr.appr[g.k]="Rejected";
+   s.upr.reject={gate:g.label, by:(gUser&&gUser.name)||"", alasan:a, at:nowStamp()};
+   s.upr.aktor[g.k]=(gUser&&gUser.name)||""; s.upr.ts[g.k]=nowStamp();
+   NOTIFS.unshift({ic:"⛔",t:"UPR ditolak "+g.label+" — "+s.upr.no, d:(s.item||"")+" · "+a,
+     at:nowStamp(), sev:"crit", nav:"assigned", done:false, nama:(s.staffPIC||s.pic||"")});
+   try{ auditLog("upr-reject", s.upr.no+" · "+g.label+" · "+a); }catch(e){}
+ } else {
+   s.upr.appr[g.k]="Approved";
+   s.upr.aktor[g.k]=(gUser&&gUser.name)||""; s.upr.ts[g.k]=nowStamp();
+   var lanjut=uprGate(s);
+   try{ auditLog("upr-approve", s.upr.no+" · "+g.label); }catch(e){}
+   if(lanjut){
+     NOTIFS.unshift({ic:"📑",t:"UPR menunggu "+lanjut.label+" — "+s.upr.no,
+       d:(s.item||"")+" · usulan "+s.upr.pilih, at:nowStamp(), sev:"warn", nav:"approvals", done:false,
+       roles:[lanjut.k==="dept"?"dept":lanjut.k==="division"?"division":"chief"]});
+   } else {
+     /* Tuntas → vendor pemenang menempel ke SO, langkah berikutnya SPK */
+     s.vendor=s.upr.pilih;
+     s.ts=s.ts||{}; s.ts.upr=nowStamp();
+     s.wstep=Math.max(s.wstep||0,2); s.stage=Math.max(s.stage||0,4);
+     NOTIFS.unshift({ic:"✅",t:"UPR disetujui penuh — "+s.upr.no,
+       d:"Rekanan "+s.upr.pilih+" ditunjuk · lanjut terbitkan SPK",
+       at:nowStamp(), sev:"info", nav:"assigned", done:false, nama:(s.staffPIC||s.pic||"")});
+   }
+ }
+ soPersist();
+ renderApprovals(); renderAssigned(); renderProc(); updateBell();
+ try{ if(active==="upr") renderUPR(); }catch(e){}
+ alert(keputusan==="Rejected" ? ("⛔ "+s.upr.no+" ditolak di gerbang "+g.label+".")
+   : (uprSelesai(s) ? ("✅ "+s.upr.no+" DISETUJUI PENUH.\n\nRekanan "+s.upr.pilih+" ditunjuk — lanjut terbitkan SPK.")
+                    : ("✅ "+g.label+" approve.\n\n"+s.upr.no+" diteruskan ke "+uprGate(s).label+".")));
+}
+function uprApprovalCard(s){
+ var g=uprGate(s); if(!g) return "";
+ var pantau=isOwner();
+ var p=(s.upr.penawaran||[]).slice().sort(function(a,b){ return (parseFloat(a.nilai)||0)-(parseFloat(b.nilai)||0); });
+ var menang=s.upr.pilih, termurah=p.length?p[0].vendor:"";
+ return '<div class="card pad" style="margin-bottom:12px;border:1px solid var(--line)">'+
+  '<div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">'+
+   '<div style="flex:1;min-width:250px">'+
+     '<div><b class="sono">'+esc(s.upr.no)+'</b> · <span style="font-weight:600;color:var(--ink)">'+esc(s.item||"")+'</span></div>'+
+     '<div class="muted small" style="margin-top:4px">SO '+esc(s.no)+' · '+esc(s.kategori||"")+' · '+esc(s.lokasi||"")+
+       ' · diajukan <b>'+esc(s.upr.by||"—")+'</b> '+esc(s.upr.ajukanAt||"")+'</div>'+
+     '<div class="upr-cmp">'+p.map(function(x){
+        var win=x.vendor===menang;
+        return '<div class="upr-cmp-i'+(win?' win':'')+'"><b>'+esc(x.vendor)+'</b>'+
+          '<span>Rp '+rpFmt(parseFloat(x.nilai)||0)+'</span>'+
+          (win?'<em>diusulkan</em>':(x.vendor===termurah?'<em class="mur">termurah</em>':''))+'</div>';
+      }).join("")+'</div>'+
+     '<div class="upr-alasan"><b>Alasan penunjukan:</b> '+esc(s.upr.alasan||"—")+'</div>'+
+     (menang&&termurah&&menang!==termurah?'<div class="upr-catat">⚠️ Yang diusulkan bukan penawaran termurah — alasannya wajib dibaca.</div>':'')+
+   '</div>'+
+   '<div style="display:flex;flex-direction:column;gap:8px;min-width:230px">'+
+     '<button class="so-pdf" style="align-self:stretch;text-align:center" onclick="uprDocShow(\''+esc(s.no)+'\')">📑 Buka Dokumen UPR</button>'+
+     (pantau
+       ? '<span class="badge bd-info" style="text-align:center;padding:9px 12px">👀 Menunggu '+esc(g.label)+'</span>'+
+         '<div class="muted small" style="text-align:center">Mode pantau — wewenang ini bukan milik Owner</div>'
+       : '<div class="muted small" style="text-align:center">Gerbang: <b>'+esc(g.label)+'</b></div>'+
+         '<button class="btn-act" onclick="uprAksi(\''+esc(s.no)+'\',\'Approved\')">Approve UPR</button>'+
+         '<button class="btn-out" onclick="uprAksi(\''+esc(s.no)+'\',\'Rejected\')">Reject</button>')+
+   '</div></div></div>';
+}
+function renderUPR(){
+ var el=document.getElementById("page-upr"); if(!el)return;
+ var s=UPR_SO?SO.find(function(x){return x.no===UPR_SO;}):null;
+ if(!s||!s.upr){ el.innerHTML='<div class="card pad muted small" style="text-align:center;padding:48px">Buka UPR dari <b>Assigned SO</b> setelah Sourcing selesai.</div>'; return; }
+ var st=uprStatusTeks(s), bisaEdit=(!s.upr.diajukan||uprDitolak(s));
+ var nilai=(s.upr.penawaran||[]).map(function(x){return parseFloat(x.nilai)||0;});
+ var min=Math.min.apply(null,nilai.filter(function(n){return n>0;}).concat([Infinity]));
+ el.innerHTML=
+  '<div class="pg-back" style="margin-bottom:14px"><button class="btn-out" onclick="go(\'assigned\')">← Kembali ke Assigned SO</button></div>'+
+  '<div class="card pad" style="margin-bottom:16px">'+
+    '<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start">'+
+      '<div><div style="font-weight:800;color:var(--ink);font-size:calc(15px*var(--fz))">📑 '+esc(s.upr.no)+
+        ' <span class="badge '+st.c+'">'+esc(st.t)+'</span></div>'+
+        '<div class="muted small" style="margin-top:3px">SO '+esc(s.no)+' · '+esc(s.item||"")+' · '+esc(s.kategori||"")+
+          ' · estimasi '+soNilaiTeks(s)+'</div></div>'+
+      '<button class="so-pdf" onclick="uprDocShow(\''+esc(s.no)+'\')">📑 Dokumen UPR</button>'+
+    '</div>'+
+    (uprDitolak(s)&&s.upr.reject?('<div class="so-tolak" style="margin:12px 0 0"><b>⛔ Ditolak '+esc(s.upr.reject.gate)+' — '+esc(s.upr.reject.by)+'</b>'+
+      '<div>'+esc(s.upr.reject.alasan)+'</div><i>'+esc(s.upr.reject.at)+'</i></div>'):'')+
+    (s.upr.diajukan&&!uprDitolak(s)?('<div class="upr-chain">'+UPR_GATES.map(function(g){
+        var v=s.upr.appr[g.k], cls=v==="Approved"?"ok":v==="Pending"?"now":v==="Rejected"?"no":"wait";
+        return '<div class="upr-g '+cls+'"><b>'+esc(g.label)+'</b><span>'+
+          (v==="Approved"?("✓ "+esc(s.upr.aktor[g.k]||"")+" · "+esc(s.upr.ts[g.k]||"")):
+           v==="Pending"?"● menunggu":v==="Rejected"?"✕ ditolak":"—")+'</span></div>';
+      }).join("")+'</div>'):'')+
+  '</div>'+
+  '<div class="muted small" style="margin:0 0 10px;line-height:1.55">Isi nilai penawaran yang masuk dari masing-masing rekanan, lalu tentukan yang diusulkan. '+
+    (bisaEdit?'':'<b>UPR sudah diajukan — isian dikunci.</b>')+'</div>'+
+  '<div class="upr-grid">'+(s.upr.penawaran||[]).map(function(x,i){
+     var n=parseFloat(x.nilai)||0, murah=(n>0&&n===min);
+     var win=s.upr.pilih===x.vendor;
+     return '<div class="upr-card'+(win?' win':'')+'">'+
+       '<div class="upr-h"><b>'+esc(x.vendor)+'</b>'+(murah?'<span class="badge bd-ok">termurah</span>':'')+'</div>'+
+       '<div class="field"><label>Email</label><input id="upr-email-'+i+'" value="'+esc(x.email||"")+'"'+(bisaEdit?'':' disabled')+'/></div>'+
+       '<div class="two" style="gap:0 10px">'+
+         '<div class="field"><label>Nilai penawaran (Rp)</label><input id="upr-nilai-'+i+'" type="number" min="0" step="1000" value="'+esc(String(x.nilai||""))+'" placeholder="mis. 12500000" oninput="uprEcho('+i+')"'+(bisaEdit?'':' disabled')+'/><div class="hint" id="uprEcho-'+i+'" style="font-size:calc(11px*var(--fz));color:var(--muted);margin-top:3px">'+(n>0?("Rp "+rpFmt(n)):"belum ada penawaran")+'</div></div>'+
+         '<div class="field"><label>Tgl penawaran masuk</label><input id="upr-tgl-'+i+'" value="'+esc(x.tgl||"")+'" placeholder="dd/mm/yyyy"'+(bisaEdit?'':' disabled')+'/></div>'+
+       '</div>'+
+       '<div class="field"><label>Kelebihan (pro)</label><textarea id="upr-plus-'+i+'" rows="2"'+(bisaEdit?'':' disabled')+'>'+esc(x.plus||"")+'</textarea></div>'+
+       '<div class="field"><label>Kekurangan (kontra)</label><textarea id="upr-minus-'+i+'" rows="2"'+(bisaEdit?'':' disabled')+'>'+esc(x.minus||"")+'</textarea></div>'+
+       '<div class="field"><label>Catatan</label><input id="upr-catatan-'+i+'" value="'+esc(x.catatan||"")+'"'+(bisaEdit?'':' disabled')+'/></div>'+
+       (bisaEdit?('<button class="'+(win?'btn-act':'btn-out')+'" style="width:100%" onclick="uprSimpan(true);uprPilih(\''+esc(x.vendor)+'\')">'+(win?'✓ Diusulkan':'Usulkan rekanan ini')+'</button>')
+         :(win?'<span class="badge bd-ok" style="display:block;text-align:center;padding:8px">✓ Diusulkan</span>':''))+
+     '</div>';
+   }).join("")+'</div>'+
+  '<div class="card pad" style="margin-top:14px">'+
+    '<div class="field"><label>Alasan penunjukan <span style="color:var(--red)">*</span> <span class="muted small">— dibaca PIC Procurement, Dept Head, Division Head, Chief</span></label>'+
+      '<textarea id="upr-alasan" rows="3" placeholder="mis. harga terbaik dengan garansi 12 bulan dan pengalaman pekerjaan serupa di AMDI"'+(bisaEdit?'':' disabled')+'>'+esc(s.upr.alasan||"")+'</textarea></div>'+
+    (bisaEdit?('<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-act" onclick="uprAjukan()">📑 Ajukan UPR →</button>'+
+      '<button class="btn-out" onclick="uprSimpan()">💾 Simpan Draft</button></div>'+
+      '<div class="muted small" style="margin-top:8px;line-height:1.55">Setelah diajukan: PIC Procurement → GA Dept Head → HCMS Division Head → Chief of CHCD. Isian dikunci selama proses berjalan; kalau ditolak, ia terbuka lagi untuk diperbaiki.</div>')
+     :'<div class="muted small">UPR sedang berjalan di rantai persetujuan.</div>')+
+  '</div>';
+}
+function uprEcho(i){
+ var el=document.getElementById("upr-nilai-"+i), h=document.getElementById("uprEcho-"+i);
+ if(!el||!h)return; var n=parseFloat(el.value)||0;
+ h.innerHTML=n>0?('Terbaca: <b style="color:var(--ink)">Rp '+rpFmt(n)+'</b>'):'belum ada penawaran';
+}
+/* Dokumen UPR — dicetak lewat overlay yang sama dengan Dokumen SO, jadi ikut
+   aturan @media print yang sudah ada (hanya dokumennya yang tercetak). */
+function uprDocShow(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s||!s.upr)return;
+ if(!soBolehLihat(s)){ soTolakLihat(no); return; }
+ soDocCur=no;
+ var pg=document.getElementById("soDocPage"); if(pg)pg.innerHTML=uprDocHTML(s);
+ document.getElementById("soDoc").classList.remove("hide");
+ try{ soDocFit(); }catch(e){}
+}
+function uprDocHTML(s){
+ var u=s.upr, p=(u.penawaran||[]).slice().sort(function(a,b){ return (parseFloat(a.nilai)||0)-(parseFloat(b.nilai)||0); });
+ var logoSrc=(document.querySelector('.logo-img')||{}).src||'';
+ var baris=p.map(function(x,i){
+   var win=x.vendor===u.pilih;
+   return '<tr'+(win?' class="win"':'')+'><td class="c">'+(i+1)+'</td><td><b>'+esc(x.vendor)+'</b>'+
+     (x.email?'<br><span class="sm">'+esc(x.email)+'</span>':'')+'</td>'+
+     '<td class="r">'+rpFmt(parseFloat(x.nilai)||0)+'</td>'+
+     '<td class="c">'+esc(x.tgl||"—")+'</td>'+
+     '<td>'+esc(x.plus||"—")+'</td><td>'+esc(x.minus||"—")+'</td>'+
+     '<td class="c">'+(win?'<b>DIUSULKAN</b>':'')+'</td></tr>';
+ }).join("");
+ var ttd=UPR_GATES.map(function(g){
+   var ok=u.appr[g.k]==="Approved";
+   return '<div class="ud-sig"><div class="ud-sl">'+esc(g.label)+'</div>'+
+     '<div class="ud-sb">'+(ok?('<b>'+esc(u.aktor[g.k]||"")+'</b><span>'+esc(u.ts[g.k]||"")+'</span>')
+       :'<em>'+(u.appr[g.k]==="Rejected"?"ditolak":"menunggu")+'</em>')+'</div></div>';
+ }).join("");
+ return '<div class="ud">'+
+  '<div class="ud-hd">'+(logoSrc?'<img src="'+logoSrc+'"/>':'')+
+    '<div><div class="ud-co">PT ASTRA INTERNATIONAL Tbk.</div><div class="ud-t">USULAN PENUNJUKAN REKANAN</div></div>'+
+    '<div class="ud-no">No <b>'+esc(u.no)+'</b><br>Tanggal '+esc(u.ajukanAt||u.at||"")+'</div></div>'+
+  '<table class="ud-meta"><tr><td>Referensi SO</td><td><b>'+esc(s.no)+'</b></td><td>Kategori</td><td>'+esc(s.kategori||"—")+'</td></tr>'+
+    '<tr><td>Uraian pekerjaan</td><td colspan="3"><b>'+esc(s.item||"—")+'</b></td></tr>'+
+    '<tr><td>Lokasi</td><td>'+esc(s.lokasi||"—")+'</td><td>Estimasi SO</td><td>'+esc(soNilaiTeks(s))+'</td></tr>'+
+    '<tr><td>Diajukan oleh</td><td>'+esc(u.by||"—")+'</td><td>Dept/Divisi</td><td>'+esc(s.deptDiv||"GENERAL AFFAIR")+'</td></tr></table>'+
+  '<div class="ud-sec">PERBANDINGAN PENAWARAN</div>'+
+  '<table class="ud-tbl"><thead><tr><th>NO</th><th>REKANAN</th><th>NILAI PENAWARAN (Rp)</th><th>TGL MASUK</th><th>KELEBIHAN</th><th>KEKURANGAN</th><th>USULAN</th></tr></thead>'+
+    '<tbody>'+baris+'</tbody></table>'+
+  '<div class="ud-sec">ALASAN PENUNJUKAN</div>'+
+  '<div class="ud-box">'+esc(u.alasan||"—")+'</div>'+
+  (u.reject?'<div class="ud-box tolak"><b>DITOLAK — '+esc(u.reject.gate)+' ('+esc(u.reject.by)+')</b><br>'+esc(u.reject.alasan)+'<br><span class="sm">'+esc(u.reject.at)+'</span></div>':'')+
+  '<div class="ud-sec">PERSETUJUAN BERJENJANG</div>'+
+  '<div class="ud-sigs">'+ttd+'</div>'+
+  (uprSelesai(s)?'':'<div class="ud-draft">DRAFT — belum disetujui penuh</div>')+
+ '</div>';
+}
 function openSPK(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
  var spkNo="SPK-202606-"+String(140+(parseInt(String(s.no).replace(/\D/g,"").slice(-4),10)||0)).padStart(4,"0");
+ /* Pemenang & nilainya diambil dari UPR yang sudah disetujui — tidak diketik ulang */
+ var win=(s.upr&&s.upr.pilih)||s.vendor||"";
+ var winMail=""; var winNilai=0;
+ if(s.upr){ var pw=(s.upr.penawaran||[]).filter(function(x){return x.vendor===win;})[0];
+   if(pw){ winMail=pw.email||""; winNilai=parseFloat(pw.nilai)||0; } }
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">Kirim SPK — ${s.no}</div><div class="muted small" style="margin-top:4px">Upload SPK & email ke Vendor (cc Section Head, Dept Head)</div></div>
   <div class="db">
     <div class="field"><label>No SPK</label><input id="spk-no" value="${spkNo}"/></div>
-    <div class="field"><label>Vendor pemenang</label><input id="spk-vendor" placeholder="e.g. PT Pantraya"/></div>
-    <div class="two" style="gap:0 12px"><div class="field"><label>Email vendor (To)</label><input id="spk-to" placeholder="vendor@email.com"/></div>
+    <div class="field"><label>Vendor pemenang ${win?'<span class="muted small">— dari UPR '+esc((s.upr&&s.upr.no)||"")+'</span>':''}</label><input id="spk-vendor" value="${esc(win)}" placeholder="e.g. PT Pantraya"/></div>
+    ${winNilai>0?`<div class="muted small" style="margin:-6px 0 12px">Nilai penawaran yang disetujui: <b style="color:var(--ink)">Rp ${rpFmt(winNilai)}</b></div>`:''}
+    <div class="two" style="gap:0 12px"><div class="field"><label>Email vendor (To)</label><input id="spk-to" value="${esc(winMail)}" placeholder="vendor@email.com"/></div>
     <div class="field"><label>Cc</label><input id="spk-cc" value="Section Head; Dept Head"/></div></div>
     <div class="field"><label>Upload SPK (PDF)</label><input id="spk-file" placeholder="Tempel nama file (simulasi upload)"/></div>
     <div class="panel-t" style="margin-top:6px">📧 Email otomatis via Outlook</div>
@@ -12721,7 +13405,26 @@ function rateGateShow(t){
  var el=document.getElementById("rateGate");
  if(!el){ el=document.createElement("div"); el.id="rateGate"; document.body.appendChild(el); }
  var sla=ticketSLA(t);
- var fotos=(t.proof||[]).slice(0,4).map(function(u){ return '<img src="'+u+'" alt="bukti"/>'; }).join("");
+ /* ── BUG DIPERBAIKI 30 Jul 2026 ──────────────────────────────────────────
+    t.proof berisi OBJEK {url,at}, bukan string. Di sini dulu objeknya dipakai
+    langsung sebagai src, jadi yang tertulis src="[object Object]" dan yang
+    tampil hanya ikon gambar rusak — persis "ikon foto dicoret" yang dilaporkan.
+    Semua tempat lain (svcProofStrip, proofView, foPhotoRender) sudah memakai
+    im.url; hanya kartu rating ini yang tertinggal.
+    Bentuk lama (string polos) tetap diterima supaya catatan lama ikut tampil. */
+ var pf=(t.proof||[]);
+ var fotos=pf.slice(0,4).map(function(im,i){
+   var u=(im&&typeof im==="object")?(im.url||""):String(im||"");
+   if(!u) return "";
+   return '<img src="'+u+'" alt="bukti '+(i+1)+'" loading="lazy" '+
+     'onclick="proofView(\''+esc(t.no)+'\','+i+')" '+
+     'onerror="this.classList.add(\'gagal\');this.removeAttribute(\'src\')"/>';
+ }).filter(Boolean).join("");
+ if(pf.length>4) fotos+='<span class="rg-more">+'+(pf.length-4)+'</span>';
+ /* Foto yang tertinggal di perangkat operator (dibuang dbStripTicket karena
+    dokumen Firestore dibatasi 1 MB) — katakan apa adanya, jangan diam. */
+ var fotoHilang=(+t.proofLokal>0)
+   ? '<div class="rg-nofoto">⚠️ '+(+t.proofLokal)+' foto bukti belum tersinkron dari perangkat operator</div>' : '';
  el.className="rg-ovl show";
  el.innerHTML=
   '<div class="rg-box" role="dialog" aria-modal="true">'+
@@ -12730,7 +13433,7 @@ function rateGateShow(t){
     '<div class="rg-sub">'+esc(t.no)+' · '+esc(t.judul||'')+'</div>'+
     '<div class="rg-meta">Dikerjakan <b>'+esc(t.closedBy||t.pic||'tim GA')+'</b> · '+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+
       '<br>Waktu penyelesaian <b>'+fmtDur(sla.resMin)+'</b></div>'+
-    (fotos?'<div class="rg-fotos">'+fotos+'</div>':'')+
+    (fotos?'<div class="rg-fotos">'+fotos+'</div>':'')+fotoHilang+
     (t.closeNote?'<div class="rg-note">💬 '+esc(t.closeNote)+'</div>':'')+
     '<div class="rg-ask">Beri penilaian Anda untuk menutup tiket ini</div>'+
     '<div class="rg-stars" id="rgStars">'+[1,2,3,4,5].map(function(s){
@@ -13536,7 +14239,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.30-136";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.30-138";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
