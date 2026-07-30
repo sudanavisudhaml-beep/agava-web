@@ -939,6 +939,30 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 /* penanda diskusi pada kartu eskalasi */
 .esc-diskusi{margin-top:6px;font-size:calc(11.5px*var(--fz));color:#24486f;background:#f4f8fd;
   border:1px solid #cfe0f5;border-radius:9px;padding:6px 10px}
+/* ══ LAMPIRAN MEDIA: dua pintu (kamera / galeri), lencana video, pratinjau ══ */
+.md-pick{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.md-pick .fo-cam{margin:0}
+.fo-cam.galeri{border-color:#cfe0f5;background:linear-gradient(160deg,#f4f9ff,#fff)}
+/* gambar kecil universal — dipakai daftar tiket, kartu bukti, kartu rating */
+.md-thumb{position:relative;display:inline-block;width:56px;height:56px;border-radius:9px;overflow:hidden;
+  border:1px solid var(--line);background:#f3f6fa;cursor:zoom-in;vertical-align:middle;flex:0 0 auto}
+.md-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.md-thumb.vid{cursor:pointer}
+.md-nothumb{width:100%;height:100%;display:grid;place-items:center;font-size:calc(18px*var(--fz));color:#9aa7b8}
+.md-play{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;
+  font-size:calc(15px*var(--fz));color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.6);
+  background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.35))}
+.md-dur{position:absolute;right:3px;bottom:3px;font-style:normal;font-size:calc(9px*var(--fz));font-weight:800;
+  color:#fff;background:rgba(0,0,0,.62);border-radius:4px;padding:1px 4px;letter-spacing:.02em}
+/* pratinjau sebelum kirim (operator & pemohon) */
+.fo-prev-i.vid img{filter:brightness(.86)}
+.fo-prev-eye{position:absolute;left:4px;bottom:4px;width:24px;height:24px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.6);background:rgba(15,32,54,.6);color:#fff;cursor:pointer;
+  font-size:calc(11px*var(--fz));line-height:1;padding:0}
+.fo-prev-i .md-play{pointer-events:none}
+/* penonton: video ikut muat di kotak yang sama dengan foto */
+.proof-box video{max-width:100%;max-height:74vh;border-radius:12px;display:block;background:#000}
+@media(max-width:560px){ .md-pick{grid-template-columns:1fr} }
 .so-rev{border-color:#f0dcb4;background:#fff8e8;color:#8a5a00}
 .so-rev:hover{background:linear-gradient(135deg,#f6c56b,#d99b1c);color:#fff;border-color:transparent}
 /* Ikon saja — disamakan tingginya dengan SO PDF supaya sejajar rapi */
@@ -7757,13 +7781,14 @@ function ticketHeal(t){
 /* Foto bukti pekerjaan — tampil langsung di baris tiket (Services), untuk semua kelompok */
 function svcProofStrip(t){
  if(!t.proof||!t.proof.length)return'';
- return '<div class="svc-proof" title="foto bukti pekerjaan dari operator">'+
+ return '<div class="svc-proof" title="bukti pekerjaan dari operator">'+
    t.proof.slice(0,4).map(function(im,i){
      /* entri tanpa url (mis. sisa pemangkasan dokumen) dilewati, bukan dirender
         jadi gambar rusak */
      var u=(im&&typeof im==="object")?(im.url||""):String(im||"");
      if(!u) return '';
-     return '<img src="'+u+'" onclick="event.stopPropagation();proofView(\''+t.no+'\','+i+')"/>';
+     return mdThumbHTML(im,i,"event.stopPropagation();proofView('"+t.no+"',"+i+")",
+       (mdIsVideo(im)?"putar video bukti ":"lihat foto bukti ")+(i+1));
    }).join('')+
    (t.proof.length>4?'<span class="svc-proof-more">+'+(t.proof.length-4)+'</span>':'')+
    '<span class="svc-proof-lb">📸 bukti'+(t.closedBy?' · '+esc(t.closedBy):'')+'</span></div>';
@@ -7771,35 +7796,127 @@ function svcProofStrip(t){
 function proofView(no,i){
  var t=TICKETS.find(function(x){return x.no===no;}); if(!t||!t.proof||!t.proof[i])return;
  var im=t.proof[i];
- var u=(im&&typeof im==="object")?(im.url||""):String(im||"");
- if(!u){ alert("📷 Foto ini belum tersinkron dari perangkat operator."); return; }
- var ov=document.getElementById('proofOvl');
- if(!ov){ ov=document.createElement('div'); ov.id='proofOvl'; ov.className='proof-ovl';
-   ov.onclick=function(){ ov.classList.remove('show'); }; document.body.appendChild(ov); }
- ov.innerHTML='<div class="proof-box"><img src="'+u+'"/>'+
-   '<div class="proof-cap"><b>'+esc(t.no)+'</b> · '+esc(t.judul||'')+'<br>'+
-   '<span class="muted">foto '+(i+1)+' dari '+t.proof.length+(t.proof[i].at?' · 🕐 '+esc(t.proof[i].at):'')+
-   (t.closedBy?' · oleh '+esc(t.closedBy):'')+'</span>'+
-   (t.closeNote?'<br><span class="muted">📝 '+esc(t.closeNote)+'</span>':'')+'</div></div>';
- ov.classList.add('show');
+ agavaMediaView(t.proof,i,'<b>'+esc(t.no)+'</b> · '+esc(t.judul||'')+'<br>'+
+   '<span class="muted">'+(mdIsVideo(im)?'🎬 video':'📷 foto')+' bukti '+(i+1)+' dari '+t.proof.length+
+   (im.at?' · 🕐 '+esc(im.at):'')+(t.closedBy?' · oleh '+esc(t.closedBy):'')+'</span>'+
+   (t.closeNote?'<br><span class="muted">📝 '+esc(t.closeNote)+'</span>':''));
 }
 /* ══ DESKRIPSI · CATATAN · LAMPIRAN FOTO DARI PEMOHON ══
    Sebelumnya deskripsi tiket hanya tersimpan, tidak pernah terlihat operator —
    ia menekan "Ambil Tiket" tanpa tahu masalahnya. Sekarang deskripsi, catatan
    tambahan, dan foto pemohon ikut tampil di kartu Field Ops, My Tickets,
    drawer detail, dan tiket pemohon di Services. */
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  LAMPIRAN MEDIA — FOTO & VIDEO, DARI KAMERA ATAU GALERI                  ║
+   ║  Ditambahkan 30 Jul 2026. Operator lapangan & pemohon sering sudah punya  ║
+   ║  foto/video di galeri HP-nya; memaksa mereka memotret ulang lewat kamera  ║
+   ║  aplikasi membuang bukti yang sudah ada.                                  ║
+   ║                                                                          ║
+   ║  Bentuk satu entri lampiran:                                              ║
+   ║    {kind:"foto"|"video", url, poster, at, name, kb, dur}                  ║
+   ║  Entri lama tanpa `kind` dianggap foto — riwayat tidak perlu diubah.      ║
+   ║                                                                          ║
+   ║  SOAL UKURAN VIDEO — dikatakan apa adanya: memampatkan video di dalam     ║
+   ║  browser tidak bisa diandalkan (MediaRecorder di Safari iOS terbatas dan  ║
+   ║  proses ulangnya selama durasi videonya). Yang AGAVA lakukan:             ║
+   ║    · foto  → dikecilkan sungguhan (canvas) seperti sebelumnya             ║
+   ║    · video → TIDAK diproses ulang; dibatasi ukurannya, dan dibuatkan      ║
+   ║      gambar sampul (frame awal) supaya daftar & pratinjau tetap ringan    ║
+   ║    · video WAJIB naik ke Storage. Data URL video tidak boleh masuk        ║
+   ║      dokumen Firestore (batas 1 MB) — kalau unggahannya gagal, videonya   ║
+   ║      dilepas dan penggunanya diberi tahu, bukan disimpan diam-diam.       ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const VID_MAX_MB=20;                 /* > ini: minta dipotong dulu di galeri HP */
+const VID_POSTER_PX=640;             /* lebar maks gambar sampul video */
+function mdIsVideo(m){ return !!(m && (m.kind==="video" || /^data:video|\.mp4($|\?)|\.mov($|\?)|\.webm($|\?)/i.test(String(m.url||"")))); }
+function mdThumb(m){ return mdIsVideo(m) ? (m.poster||"") : ((m&&m.url)||""); }
+function mdDur(s){ s=Math.round(+s||0); if(!s)return""; var m=Math.floor(s/60); return m?(m+":"+("0"+(s%60)).slice(-2)):(s+"s"); }
+/* Satu berkas → satu entri lampiran. Menolak dengan alasan yang jelas, bukan diam. */
+function agavaMediaDari(f,maxPx,q){
+ return new Promise(function(res){
+   if(!f) return res(null);
+   var video=/^video\//i.test(f.type||"")||/\.(mp4|mov|m4v|webm|3gp)$/i.test(f.name||"");
+   if(video && f.size > VID_MAX_MB*1024*1024){
+     alert("🎬 "+(f.name||"Video")+" berukuran "+Math.round(f.size/1048576)+" MB — batasnya "+VID_MAX_MB+" MB.\n\n"+
+       "Potong dulu videonya di Galeri HP (fitur Trim sudah ada di iPhone maupun Android), lalu lampirkan lagi.");
+     return res(null);
+   }
+   var rd=new FileReader();
+   rd.onerror=function(){ res(null); };
+   rd.onload=function(e){
+     var data=e.target.result;
+     if(!video){
+       var img=new Image();
+       img.onload=function(){
+         var mx=maxPx||1000,w=img.width,h=img.height;
+         if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;} else {w=Math.round(w*mx/h);h=mx;} }
+         var cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+         cv.getContext("2d").drawImage(img,0,0,w,h);
+         var u=cv.toDataURL("image/jpeg",q||0.72);
+         res({kind:"foto",url:u,at:nowStamp(),name:f.name||"",kb:Math.round(u.length*0.75/1024)});
+       };
+       img.onerror=function(){ res({kind:"foto",url:data,at:nowStamp(),name:f.name||"",kb:Math.round(f.size/1024)}); };
+       img.src=data;
+       return;
+     }
+     /* VIDEO — ambil frame awal sebagai sampul, catat durasinya */
+     var v=document.createElement("video");
+     v.preload="metadata"; v.muted=true; v.playsInline=true;
+     var beres=false;
+     var selesai=function(poster,dur){
+       if(beres)return; beres=true;
+       res({kind:"video",url:data,poster:poster||"",at:nowStamp(),name:f.name||"",
+            kb:Math.round(f.size/1024),dur:Math.round(dur||0)});
+     };
+     v.onloadeddata=function(){
+       try{ v.currentTime=Math.min(0.3,(v.duration||1)/4); }catch(e){ selesai("",v.duration); }
+     };
+     v.onseeked=function(){
+       try{
+         var mx=VID_POSTER_PX,w=v.videoWidth||mx,h=v.videoHeight||mx;
+         if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;} else {w=Math.round(w*mx/h);h=mx;} }
+         var cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+         cv.getContext("2d").drawImage(v,0,0,w,h);
+         selesai(cv.toDataURL("image/jpeg",0.7),v.duration);
+       }catch(e){ selesai("",v.duration); }
+     };
+     v.onerror=function(){ selesai("",0); };
+     setTimeout(function(){ selesai("",v.duration); },4000);   // jangan menggantung
+     v.src=data;
+   };
+   rd.readAsDataURL(f);
+ });
+}
+/* Gambar kecil untuk daftar — video diberi sampul + lencana ▶ dan durasinya */
+function mdThumbHTML(m,i,onclick,judul){
+ var t=mdThumb(m), vid=mdIsVideo(m);
+ var isi = t ? '<img src="'+t+'" alt="'+(judul||"lampiran")+'" loading="lazy"/>'
+             : '<span class="md-nothumb">'+(vid?'🎬':'📷')+'</span>';
+ return '<span class="md-thumb'+(vid?' vid':'')+'" onclick="'+onclick+'" title="'+esc(judul||"")+'">'+isi+
+   (vid?'<i class="md-play">▶</i>'+(m.dur?'<em class="md-dur">'+mdDur(m.dur)+'</em>':''):'')+'</span>';
+}
+/* Satu penonton untuk SEMUA lampiran — foto dizoom, video diputar dengan kontrol */
+function agavaMediaView(list,i,capHTML){
+ list=list||[]; var m=list[i]; if(!m)return;
+ var u=m.url||"";
+ if(!u){ alert("📷 Lampiran ini belum tersinkron dari perangkat pengirimnya."); return; }
+ var ov=document.getElementById("proofOvl");
+ if(!ov){ ov=document.createElement("div"); ov.id="proofOvl"; ov.className="proof-ovl";
+   ov.onclick=function(ev){ if(ev.target===ov){ ov.classList.remove("show"); ov.innerHTML=""; } };
+   document.body.appendChild(ov); }
+ var isi = mdIsVideo(m)
+   ? '<video src="'+u+'" controls autoplay playsinline'+(m.poster?' poster="'+m.poster+'"':'')+'></video>'
+   : '<img src="'+u+'"/>';
+ ov.innerHTML='<div class="proof-box">'+isi+'<div class="proof-cap">'+(capHTML||"")+'</div></div>';
+ ov.classList.add("show");
+}
 function tkPhotos(t){ return (t&&t.photos&&t.photos.length)?t.photos:[]; }
 function tkPhotoView(no,i){
  var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
  var ph=tkPhotos(t); if(!ph[i])return;
- var ov=document.getElementById('proofOvl');
- if(!ov){ ov=document.createElement('div'); ov.id='proofOvl'; ov.className='proof-ovl';
-   ov.onclick=function(){ ov.classList.remove('show'); }; document.body.appendChild(ov); }
- ov.innerHTML='<div class="proof-box"><img src="'+ph[i].url+'"/>'+
-   '<div class="proof-cap"><b>'+esc(t.no)+'</b> · '+esc(t.judul||'')+'<br>'+
-   '<span class="muted">lampiran pemohon '+(i+1)+' dari '+ph.length+' · 🙋 '+esc(ticketReqName(t))+
-   (ph[i].at?' · 🕐 '+esc(ph[i].at):'')+'</span></div></div>';
- ov.classList.add('show');
+ agavaMediaView(ph,i,'<b>'+esc(t.no)+'</b> · '+esc(t.judul||'')+'<br>'+
+   '<span class="muted">'+(mdIsVideo(ph[i])?'🎬 video':'📷 foto')+' pemohon '+(i+1)+' dari '+ph.length+
+   ' · 🙋 '+esc(ticketReqName(t))+(ph[i].at?' · 🕐 '+esc(ph[i].at):'')+'</span>');
 }
 /* full=false → deskripsi dipangkas 3 baris + maks 3 foto (kartu Field Ops)
    full=true  → deskripsi utuh + semua foto (My Tickets, drawer detail) */
@@ -7812,10 +7929,17 @@ function tkBriefHTML(t,full){
  if(n) h+='<div class="tk-brief-n"><b>📝 Catatan tambahan:</b> '+esc(n)+'</div>';
  /* sebagian foto bisa tertinggal di perangkat pemohon selama Storage belum aktif */
  if(t.photosLokal>0) h+='<div class="tk-noatt">⚠️ '+t.photosLokal+' foto lain hanya tersimpan di perangkat pemohon (belum tersinkron)</div>';
- if(ph.length) h+='<div class="tk-att"><span class="tk-att-lb">📷 '+ph.length+' foto pemohon</span>'+
-     ph.slice(0,lim).map(function(im,i){ return '<img src="'+im.url+'" onclick="event.stopPropagation();tkPhotoView(\''+t.no+'\','+i+')" title="lihat foto '+(i+1)+'"/>'; }).join('')+
+ if(ph.length){
+   var nv=ph.filter(mdIsVideo).length, nf=ph.length-nv;
+   h+='<div class="tk-att"><span class="tk-att-lb">'+
+     (nf?'📷 '+nf+' foto':'')+(nf&&nv?' · ':'')+(nv?'🎬 '+nv+' video':'')+' pemohon</span>'+
+     ph.slice(0,lim).map(function(im,i){
+       return mdThumbHTML(im,i,"event.stopPropagation();tkPhotoView('"+t.no+"',"+i+")",
+         (mdIsVideo(im)?"putar video ":"lihat foto ")+(i+1));
+     }).join('')+
      (ph.length>lim?'<span class="tk-att-more">+'+(ph.length-lim)+' lagi</span>':'')+'</div>';
- else h+='<div class="tk-noatt">tanpa lampiran foto dari pemohon</div>';
+ }
+ else h+='<div class="tk-noatt">tanpa lampiran dari pemohon</div>';
  return h+'</div>'+tkKomenHTML(t,!full);
 }
 /* ══ CATATAN OPERATOR — utas komentar pada tiket ══════════════════════════
@@ -8430,10 +8554,16 @@ function foAskPhoto(no){
    '<div style="font-size:calc(14.5px*var(--fz));color:var(--ink);font-weight:700;margin-top:5px">'+esc(t.judul||'')+'</div>'+
    '<div class="muted small" style="margin-top:3px">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div></div>'+
   '<div class="db">'+
-   '<div class="panel-t" style="margin-bottom:4px">📸 Foto Bukti Pekerjaan <span style="color:var(--red)">*wajib</span></div>'+
-   '<div class="muted small" style="margin-bottom:12px">Tiket hanya bisa ditutup dengan foto hasil pekerjaan. Foto akan tampil di tiket pemohon (modul Services).</div>'+
-   '<label class="fo-cam"><input type="file" accept="image/*" capture="environment" multiple onchange="foPhotoPick(this)"/>'+
-     '<span class="fo-cam-ic">📷</span><b>Ambil Foto dari Kamera</b><small>atau pilih dari galeri · bisa lebih dari satu</small></label>'+
+   '<div class="panel-t" style="margin-bottom:4px">📸 Bukti Pekerjaan <span style="color:var(--red)">*wajib</span></div>'+
+   '<div class="muted small" style="margin-bottom:12px">Tiket hanya bisa ditutup dengan bukti hasil pekerjaan. Foto &amp; video akan tampil di tiket pemohon (modul Services).</div>'+
+   /* DUA pintu: kamera langsung, ATAU galeri HP (foto & video yang sudah ada) */
+   '<div class="md-pick">'+
+     '<label class="fo-cam"><input type="file" accept="image/*" capture="environment" multiple onchange="foPhotoPick(this)"/>'+
+       '<span class="fo-cam-ic">📷</span><b>Kamera</b><small>foto langsung di lokasi</small></label>'+
+     '<label class="fo-cam galeri"><input type="file" accept="image/*,video/*" multiple onchange="foPhotoPick(this)"/>'+
+       '<span class="fo-cam-ic">🖼️</span><b>Galeri HP</b><small>foto &amp; video yang sudah ada</small></label>'+
+   '</div>'+
+   '<div class="muted small" style="margin:-2px 0 10px">🎬 Video maksimal '+VID_MAX_MB+' MB — kalau lebih, potong dulu di Galeri HP.</div>'+
    '<div id="foPhotoPrev" class="fo-prev"></div>'+
    '<div class="field" style="margin-top:12px"><label>Catatan penyelesaian (opsional)</label>'+
      '<textarea id="fo-close-note" rows="2" placeholder="mis. ganti ballast lampu, unit sudah normal"></textarea></div>'+
@@ -8447,36 +8577,42 @@ function foAskPhoto(no){
   '</div>';
  document.getElementById("ovl").classList.add("show");
 }
-function foPhotoPick(input){
- var files=[].slice.call(input.files||[]); if(!files.length)return;
- files.forEach(function(f){
-  var rd=new FileReader();
-  rd.onload=function(e){
-    var img=new Image();
-    img.onload=function(){
-      var mx=1000, w=img.width, h=img.height;
-      if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;} else {w=Math.round(w*mx/h);h=mx;} }
-      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-      cv.getContext('2d').drawImage(img,0,0,w,h);
-      window._foPhoto.imgs.push({url:cv.toDataURL('image/jpeg',0.72), at:nowStamp()});
-      foPhotoRender();
-    };
-    img.src=e.target.result;
-  };
-  rd.readAsDataURL(f);
- });
- input.value="";
+const FO_BUKTI_MAX=8;
+async function foPhotoPick(input){
+ var files=[].slice.call(input.files||[]); input.value=""; if(!files.length)return;
+ window._foPhoto=window._foPhoto||{imgs:[]};
+ var penuh=0;
+ for(var i=0;i<files.length;i++){
+   if(window._foPhoto.imgs.length>=FO_BUKTI_MAX){ penuh++; continue; }
+   var m=await agavaMediaDari(files[i],1000,0.72);
+   if(m){ window._foPhoto.imgs.push(m); foPhotoRender(); }
+ }
+ if(penuh) alert("Maksimal "+FO_BUKTI_MAX+" lampiran bukti — "+penuh+" berkas terakhir tidak dilampirkan.");
+ foPhotoRender();
 }
 function foPhotoRender(){
  var p=window._foPhoto||{imgs:[]}, box=document.getElementById('foPhotoPrev'); if(!box)return;
  box.innerHTML=p.imgs.map(function(im,i){
-   return '<div class="fo-prev-i"><img src="'+im.url+'"/><button onclick="foPhotoDel('+i+')" title="hapus">✕</button></div>';
+   var vid=mdIsVideo(im), t=mdThumb(im);
+   return '<div class="fo-prev-i'+(vid?' vid':'')+'">'+
+     (t?'<img src="'+t+'"/>':'<span class="md-nothumb">'+(vid?'🎬':'📷')+'</span>')+
+     (vid?'<i class="md-play">▶</i>'+(im.dur?'<em class="md-dur">'+mdDur(im.dur)+'</em>':''):'')+
+     '<button type="button" onclick="foBuktiLihat('+i+')" class="fo-prev-eye" title="pratinjau">👁</button>'+
+     '<button type="button" onclick="foPhotoDel('+i+')" title="hapus">✕</button></div>';
  }).join('');
  var btn=document.getElementById('foCloseBtn');
  if(btn){ var ok=p.imgs.length>0; btn.disabled=!ok; btn.style.opacity=ok?1:.5;
    btn.textContent=ok?('✓ Selesaikan Tiket ('+p.imgs.length+' foto)'):'✓ Selesaikan Tiket'; }
 }
 function foPhotoDel(i){ window._foPhoto.imgs.splice(i,1); foPhotoRender(); }
+/* Pratinjau lampiran yang BELUM terkirim — operator wajib bisa memeriksa dulu */
+function foBuktiLihat(i){
+ var p=window._foPhoto||{imgs:[]}, m=p.imgs[i]; if(!m)return;
+ agavaMediaView(p.imgs,i,'<b>Bukti pekerjaan '+(i+1)+' dari '+p.imgs.length+'</b><br>'+
+   '<span class="muted">'+(mdIsVideo(m)?'🎬 video':'📷 foto')+
+   (m.kb?' · '+(m.kb>1024?(Math.round(m.kb/102.4)/10+" MB"):(m.kb+" KB")):'')+
+   (m.dur?' · '+mdDur(m.dur):'')+' · belum terkirim</span>');
+}
 async function foConfirmClose(){
  var p=window._foPhoto; if(!p||!p.imgs.length){ alert("📸 Wajib lampirkan minimal 1 foto bukti pekerjaan."); return; }
  var t=TICKETS.find(x=>x.no===p.no); if(!t)return;
@@ -10476,9 +10612,14 @@ function renderCreateTicket(){
     <div class="field"><label>Requester</label><input id="ct-req" value="${gUser?gUser.name:''}" disabled style="background:#f1f4f8;color:var(--muted)"/></div></div>
     <div class="field"><label>Description <span class="muted small">(dibaca operator sebelum mengambil tiket)</span></label><textarea id="ct-desc" rows="3" placeholder="Jelaskan masalahnya: apa yang rusak/dibutuhkan, sejak kapan, dampaknya…" oninput="ctCerminSync()"></textarea></div>
     <div class="field"><label>Catatan tambahan <span class="muted small">(opsional)</span></label><textarea id="ct-note" rows="2" placeholder="mis. akses lewat pintu belakang · hubungi Pak Budi 0812xxxx · hanya bisa dikerjakan setelah jam 17.00"></textarea></div>
-    <div class="field"><label>Lampiran Foto <span class="muted small">(maks ${CT_PHOTO_MAX} foto — sangat membantu operator)</span></label>
-      <label class="fo-cam"><input type="file" accept="image/*" multiple onchange="ctPhotoPick(this)"/>
-        <span class="fo-cam-ic">📷</span><b>Ambil / Pilih Foto</b><small>foto kondisi di lapangan · bisa lebih dari satu</small></label>
+    <div class="field"><label>Lampiran Foto &amp; Video <span class="muted small">(maks ${CT_PHOTO_MAX} lampiran — sangat membantu operator)</span></label>
+      <div class="md-pick">
+        <label class="fo-cam"><input type="file" accept="image/*" capture="environment" multiple onchange="ctPhotoPick(this)"/>
+          <span class="fo-cam-ic">📷</span><b>Kamera</b><small>foto kondisi sekarang</small></label>
+        <label class="fo-cam galeri"><input type="file" accept="image/*,video/*" multiple onchange="ctPhotoPick(this)"/>
+          <span class="fo-cam-ic">🖼️</span><b>Galeri HP</b><small>foto &amp; video yang sudah ada</small></label>
+      </div>
+      <div class="muted small" style="margin:-2px 0 8px">🎬 Video maksimal ${VID_MAX_MB} MB — kalau lebih, potong dulu di Galeri HP.</div>
       <div id="ctPhotoPrev" class="fo-prev"></div>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-act" onclick="submitTicket()">Submit Ticket</button>${draftBtn('createticket')}<button class="btn-out" onclick="go('service')">Cancel</button></div>
@@ -10491,34 +10632,36 @@ function renderCreateTicket(){
    dokumen tiket di Firestore tetap kecil dan fotonya terlihat di SEMUA perangkat
    (operator, Section Head, pemohon) — bukan hanya perangkat pembuatnya. */
 const CT_PHOTO_MAX=5;
-function ctPhotoPick(input){
+async function ctPhotoPick(input){
  var files=[].slice.call(input.files||[]); input.value=""; if(!files.length)return;
  window._ctPhoto=window._ctPhoto||{imgs:[]};
- files.forEach(function(f){
-  if(window._ctPhoto.imgs.length>=CT_PHOTO_MAX){ return; }
-  var rd=new FileReader();
-  rd.onload=function(e){
-    var img=new Image();
-    img.onload=function(){
-      var mx=1000, w=img.width, h=img.height;
-      if(w>mx||h>mx){ if(w>h){h=Math.round(h*mx/w);w=mx;} else {w=Math.round(w*mx/h);h=mx;} }
-      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-      cv.getContext('2d').drawImage(img,0,0,w,h);
-      if(window._ctPhoto.imgs.length>=CT_PHOTO_MAX){ ctPhotoRender(); return; }
-      window._ctPhoto.imgs.push({url:cv.toDataURL('image/jpeg',0.7), at:nowStamp(), name:f.name||''});
-      ctPhotoRender();
-    };
-    img.src=e.target.result;
-  };
-  rd.readAsDataURL(f);
- });
- if(files.length>CT_PHOTO_MAX) alert("Maksimal "+CT_PHOTO_MAX+" foto per tiket — kelebihannya tidak dilampirkan.");
+ var penuh=0;
+ for(var i=0;i<files.length;i++){
+   if(window._ctPhoto.imgs.length>=CT_PHOTO_MAX){ penuh++; continue; }
+   var m=await agavaMediaDari(files[i],1000,0.7);
+   if(m){ window._ctPhoto.imgs.push(m); ctPhotoRender(); }
+ }
+ if(penuh) alert("Maksimal "+CT_PHOTO_MAX+" lampiran per tiket — "+penuh+" berkas terakhir tidak dilampirkan.");
+ ctPhotoRender();
 }
 function ctPhotoRender(){
  var p=window._ctPhoto||{imgs:[]}, box=document.getElementById('ctPhotoPrev'); if(!box)return;
  box.innerHTML=p.imgs.map(function(im,i){
-   return '<div class="fo-prev-i"><img src="'+im.url+'"/><button type="button" onclick="ctPhotoDel('+i+')" title="hapus">✕</button></div>';
+   var vid=mdIsVideo(im), t=mdThumb(im);
+   return '<div class="fo-prev-i'+(vid?' vid':'')+'">'+
+     (t?'<img src="'+t+'"/>':'<span class="md-nothumb">'+(vid?'🎬':'📷')+'</span>')+
+     (vid?'<i class="md-play">▶</i>'+(im.dur?'<em class="md-dur">'+mdDur(im.dur)+'</em>':''):'')+
+     '<button type="button" onclick="ctLampiranLihat('+i+')" class="fo-prev-eye" title="pratinjau">👁</button>'+
+     '<button type="button" onclick="ctPhotoDel('+i+')" title="hapus">✕</button></div>';
  }).join('');
+}
+/* Pratinjau lampiran pemohon SEBELUM tiket dikirim */
+function ctLampiranLihat(i){
+ var p=window._ctPhoto||{imgs:[]}, m=p.imgs[i]; if(!m)return;
+ agavaMediaView(p.imgs,i,'<b>Lampiran '+(i+1)+' dari '+p.imgs.length+'</b><br>'+
+   '<span class="muted">'+(mdIsVideo(m)?'🎬 video':'📷 foto')+
+   (m.kb?' · '+(m.kb>1024?(Math.round(m.kb/102.4)/10+" MB"):(m.kb+" KB")):'')+
+   (m.dur?' · '+mdDur(m.dur):'')+' · belum terkirim</span>');
 }
 function ctPhotoDel(i){ if(!window._ctPhoto)return; window._ctPhoto.imgs.splice(i,1); ctPhotoRender(); }
 /* Unggah lampiran foto tiket ke Storage → simpan URL-nya di dokumen tiket.
@@ -10532,17 +10675,43 @@ async function tkUploadPhotos(imgs,no,prefix){
    if(AGDB.ro) return out;                                        // localhost/file://: jangan sentuh cloud
    var st=agavaStorage();
    if(!st){ AGAVA_UPLOAD.cloud=false; AGAVA_UPLOAD.err="library Storage tidak termuat"; return out; }
-   var gagal=0, sukses=0, pesan="";
+   var gagal=0, sukses=0, pesan="", videoGagal=0;
    out=await Promise.all(out.map(async function(im,i){
      if(!im||!im.url||im.url.indexOf("data:")!==0) return im;
+     var vid=mdIsVideo(im);
+     /* Sampul video ikut diunggah sendiri supaya daftar tetap ringan walau
+        videonya belum/ gagal terunggah. */
+     var eks=vid?".mp4":".jpg";
      try{
-       var ref=st.ref("tiket/"+no+"/"+(prefix||"foto")+"-"+i+"-"+Date.now()+".jpg");
+       var ref=st.ref("tiket/"+no+"/"+(prefix||"foto")+"-"+i+"-"+Date.now()+eks);
        var snap=await ref.putString(im.url,"data_url");
+       var url=await snap.ref.getDownloadURL();
+       var hasil=Object.assign({},im,{url:url});
+       if(vid && im.poster && im.poster.indexOf("data:")===0){
+         try{
+           var pr=st.ref("tiket/"+no+"/"+(prefix||"foto")+"-"+i+"-"+Date.now()+"-poster.jpg");
+           var ps=await pr.putString(im.poster,"data_url");
+           hasil.poster=await ps.ref.getDownloadURL();
+         }catch(e2){ /* sampul gagal → biarkan data URL kecilnya, masih muat di dokumen */ }
+       }
        sukses++;
-       return Object.assign({},im,{url:await snap.ref.getDownloadURL()});
-     }catch(e){ gagal++; pesan=pesan||((e&&e.code)||(e&&e.message)||"gagal"); console.warn("upload foto tiket:",e&&e.message); return im; }
+       return hasil;
+     }catch(e){
+       gagal++; pesan=pesan||((e&&e.code)||(e&&e.message)||"gagal");
+       console.warn("upload lampiran tiket:",e&&e.message);
+       /* VIDEO yang gagal naik TIDAK boleh disimpan sebagai data URL — puluhan MB
+          tidak akan pernah muat di dokumen Firestore (batas 1 MB) dan akan dibuang
+          diam-diam oleh dbStripTicket. Lebih jujur: lepaskan videonya, sisakan
+          sampulnya, dan beri tahu penggunanya. */
+       if(vid){ videoGagal++; return Object.assign({},im,{url:"",gagalUnggah:true}); }
+       return im;
+     }
    }));
    AGAVA_UPLOAD.cloud=(gagal===0&&sukses>0); AGAVA_UPLOAD.err=pesan;
+   AGAVA_UPLOAD.videoGagal=videoGagal;
+   if(videoGagal) alert("🎬 "+videoGagal+" video gagal diunggah ke penyimpanan cloud"+(pesan?" ("+pesan+")":"")+
+     ".\n\nSampulnya tetap terlampir sebagai penanda, tetapi videonya TIDAK tersimpan — "+
+     "video terlalu besar untuk ditanam di dokumen tiket. Coba lagi saat koneksi lebih baik.");
  }catch(e){ AGAVA_UPLOAD.cloud=false; AGAVA_UPLOAD.err=(e&&e.message)||"gagal"; console.warn("tkUploadPhotos:",e&&e.message); }
  return out;
 }
@@ -13736,9 +13905,8 @@ function rateGateShow(t){
  var fotos=pf.slice(0,4).map(function(im,i){
    var u=(im&&typeof im==="object")?(im.url||""):String(im||"");
    if(!u) return "";
-   return '<img src="'+u+'" alt="bukti '+(i+1)+'" loading="lazy" '+
-     'onclick="proofView(\''+esc(t.no)+'\','+i+')" '+
-     'onerror="this.classList.add(\'gagal\');this.removeAttribute(\'src\')"/>';
+   return mdThumbHTML(im,i,"proofView('"+esc(t.no)+"',"+i+")",
+     (mdIsVideo(im)?"putar video bukti ":"lihat foto bukti ")+(i+1));
  }).filter(Boolean).join("");
  if(pf.length>4) fotos+='<span class="rg-more">+'+(pf.length-4)+'</span>';
  /* Foto yang tertinggal di perangkat operator (dibuang dbStripTicket karena
@@ -14595,7 +14763,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.30-139";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.30-140";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
