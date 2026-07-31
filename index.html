@@ -7175,8 +7175,35 @@ function soPip(s){var p=soPhase(s);return (p==="rejected")?"#dc2626":(p==="work"
 function soDitolak(s){ return !!(s && (s.apprSection==="Rejected"||s.apprDept==="Rejected")); }
 function soAktif(s){ return !!s && !s.batal && !soDitolak(s); }
 function soPemohon(s){ return (s&&(s.requester||s.req))||""; }
+/* ── SIAPA & KAPAN BOLEH MEREVISI ───────────────────────────────────────────
+   31 Jul 2026 (laporan Sudana: "masih ada SO yang tidak bisa direvisi" —
+   SO-202606-0004 milik Susi, "Tempat sampah staff"). Dulu Revisi HANYA
+   ditawarkan untuk SO yang sudah DITOLAK. Akibatnya pemohon yang menyadari
+   salah ketik saat SO-nya masih berjalan tidak punya jalan apa pun: ia harus
+   menunggu SO-nya ditolak dulu baru boleh memperbaiki. Itu memaksa penolakan
+   yang sebenarnya tidak perlu, dan membuat SO menggantung.
+
+   Sekarang: SO boleh direvisi selama BELUM DIEKSEKUSI. Batasnya wstep>=2 —
+   sejak UPR/SPK terbit, vendor sudah dilibatkan, jadi perubahan bukan lagi
+   perbaikan dokumen melainkan pembatalan + SO baru. Merevisi selalu memutar
+   ulang rantai persetujuan dari awal (soRevisiSubmit), jadi persetujuan yang
+   terlanjur diberikan untuk versi lama tidak pernah ikut terbawa. */
+function soSudahEksekusi(s){ return !!s && (+s.wstep||0)>=2; }
 function soBolehRevisi(s){
- if(!s||s.batal||!soDitolak(s)) return false;
+ if(!s||s.batal) return false;
+ if(soSudahEksekusi(s)) return false;              // UPR/SPK/BAST → pakai Batalkan
+ if(isOwner()) return true;
+ var me=(gUser&&gUser.name)||"";
+ return !!me && soPemohon(s)===me;
+}
+/* Label tombol menyesuaikan keadaannya — "Revisi & Kirim Ulang" untuk yang
+   ditolak, "Perbaiki" untuk yang masih berjalan. */
+function soRevisiLabel(s){ return soDitolak(s) ? "✏️ Revisi" : "✏️ Perbaiki"; }
+/* MEMBATALKAN punya penjaga SENDIRI: kepemilikan saja, tanpa batas eksekusi.
+   Kalau ikut soBolehRevisi, SO yang sudah masuk UPR/SPK justru tidak bisa
+   dibatalkan — padahal justru di situlah pembatalan paling dibutuhkan. */
+function soBolehBatal(s){
+ if(!s||s.batal) return false;
  if(isOwner()) return true;
  var me=(gUser&&gUser.name)||"";
  return !!me && soPemohon(s)===me;
@@ -7223,7 +7250,11 @@ function soTolakHTML(s){
 }
 function soRevisiMulai(no){
  var s=SO.find(function(x){return x.no===no;}); if(!s)return;
- if(!soBolehRevisi(s)){ alert("⛔ Hanya pemohon SO ini ("+(soPemohon(s)||"—")+") atau Owner yang dapat merevisinya."); return; }
+ if(!soBolehRevisi(s)){
+   alert(soSudahEksekusi(s)
+     ? "⛔ "+no+" sudah masuk tahap UPR/SPK — vendor sudah dilibatkan.\n\nPerubahan di titik ini bukan lagi perbaikan dokumen: pakai Batalkan, lalu buat SO baru."
+     : "⛔ Hanya pemohon SO ini ("+(soPemohon(s)||"—")+") atau Owner yang dapat merevisinya.");
+   return; }
  closeDrawer();
  window._soRevisi=no;
  go("createso");
@@ -7286,7 +7317,7 @@ function soHapus(no){
 }
 function soBatal(no){
  var s=SO.find(function(x){return x.no===no;}); if(!s)return;
- if(!soBolehRevisi(s)){ alert("⛔ Hanya pemohon SO ini atau Owner yang dapat membatalkannya."); return; }
+ if(!soBolehBatal(s)){ alert("⛔ Hanya pemohon SO ini atau Owner yang dapat membatalkannya."); return; }
  var a=prompt("Batalkan "+no+" — kebutuhannya tidak jadi diteruskan.\n\nAlasan pembatalan (tercatat di dokumen & jejak audit):","");
  if(a===null) return;
  a=String(a).trim();
@@ -7691,7 +7722,7 @@ function renderProc(){
      <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
      <td class="nilai">${soNilaiTeks(s)}</td>
      <td><span class="badge bd-neu">${tier(s)}</span></td>
-     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span>${soBolehRevisi(s)?`<button class="so-pdf so-rev" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama">✏️ Revisi</button>`:''}</div></td>
+     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span>${soBolehRevisi(s)?`<button class="so-pdf so-rev" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama, rantai approval diputar ulang">${soRevisiLabel(s)}</button>`:''}</div></td>
      <td><div class="so-status-cell">${agingBadge(s.aging)}${soBolehHapus(s)?`<button class="so-pdf so-del" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini — wewenang Owner" aria-label="Hapus SO">🗑</button>`:''}</div></td>
    </tr>`}).join(""))).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${qP?cariKosongHTML(qP,'SO'):(SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.')}</td></tr>`}
    </tbody></table>
@@ -7716,12 +7747,15 @@ function openDrawer(no){
   <div class="db">
     ${soTolakHTML(s)}
     ${soBolehRevisi(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px">
-      <button class="btn-act" style="flex:1 1 200px" onclick="soRevisiMulai('${s.no}')">✏️ Revisi &amp; Kirim Ulang</button>
+      <button class="btn-act" style="flex:1 1 200px" onclick="soRevisiMulai('${s.no}')">${soDitolak(s)?'✏️ Revisi &amp; Kirim Ulang':'✏️ Perbaiki SO Ini'}</button>
       <button class="btn-out" style="flex:0 1 auto" onclick="soBatal('${s.no}')">🚫 Batalkan SO</button></div>
       <div class="muted small" style="margin:0 0 14px;line-height:1.55">
-        <b>Revisi</b> — nomor SO tetap, Anda tidak perlu membuat SO baru.<br>
+        <b>${soDitolak(s)?'Revisi':'Perbaiki'}</b> — nomor SO tetap, Anda tidak perlu membuat SO baru.${soDitolak(s)?'':'<br>Karena isinya berubah, <b>rantai persetujuan diputar ulang dari awal</b> — persetujuan untuk versi lama tidak ikut terbawa.'}<br>
         <b>Batalkan</b> — kebutuhannya gugur; SO ditutup dengan alasan dan tetap tercatat.</div>`
-     :(soDitolak(s)&&!s.batal?`<div class="muted small" style="margin-bottom:14px;line-height:1.5">Menunggu <b>${esc(soPemohon(s)||"pemohon")}</b> memperbaiki dan mengirim ulang SO ini.</div>`:'')}
+     :(soDitolak(s)&&!s.batal?`<div class="muted small" style="margin-bottom:14px;line-height:1.5">Menunggu <b>${esc(soPemohon(s)||"pemohon")}</b> memperbaiki dan mengirim ulang SO ini.</div>`
+      :(soSudahEksekusi(s)&&!s.batal&&soBolehBatal(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="btn-out" style="flex:0 1 auto" onclick="soBatal('${s.no}')">🚫 Batalkan SO</button></div>
+        <div class="muted small" style="margin:0 0 14px;line-height:1.55">SO ini sudah masuk tahap UPR/SPK — vendor sudah dilibatkan, jadi isinya tidak bisa lagi diperbaiki. Bila kebutuhannya berubah: <b>Batalkan</b>, lalu buat SO baru.</div>`:''))}
     ${soBolehHapus(s)?`<div class="hapus-owner">
       <div><b>🗝️ Wewenang Owner</b><span>Menghapus SO ini dari seluruh modul AGAVA. Salinannya tetap tersimpan di Record Log.</span></div>
       <button class="btn-out" onclick="soHapus('${s.no}')">🗑 Hapus SO</button></div>`:''}
@@ -15388,7 +15422,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-155";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-156";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
