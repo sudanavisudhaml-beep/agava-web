@@ -2500,6 +2500,38 @@ body.rg-open{overflow:hidden}
 .ot-note{font-size:calc(11.5px*var(--fz));color:#0a4bb8;background:#eef5ff;border:1px solid #cfe0f8;border-radius:9px;
   padding:8px 11px;margin:2px 0 12px;line-height:1.5}
 @media(max-width:560px){.ot-pick{grid-template-columns:1fr}}
+/* ── PAPAN LEMBUR di beranda operator (desktop & HP memakai markup sama) ── */
+.ot-papan{margin-bottom:16px}
+.ot-papan-h{display:flex;align-items:flex-start;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.ot-papan-ic{font-size:calc(22px*var(--fz));line-height:1}
+.ot-papan-n{margin-left:auto;flex:0 0 auto;background:#0f172a;color:#fff;border-radius:99px;
+  padding:3px 11px;font-size:calc(12px*var(--fz));font-weight:800}
+.ot-site{margin-bottom:14px}
+.ot-site:last-child{margin-bottom:0}
+.ot-site-h{display:flex;align-items:center;gap:8px;font-size:calc(12.5px*var(--fz));font-weight:800;color:var(--ink);
+  background:#eef4ff;border:1px solid #dbe7fb;border-radius:10px;padding:8px 12px;margin-bottom:8px}
+.ot-site-h span{margin-left:auto;font-weight:700;color:var(--muted);font-size:calc(11px*var(--fz))}
+.ot-hari{margin:0 0 8px 2px}
+.ot-hari .hr-sep{padding:6px 2px}
+.ot-row{display:flex;align-items:flex-start;gap:11px;padding:10px 12px;border:1px solid var(--line);
+  border-radius:11px;margin:6px 0 0;background:#fff}
+.ot-row.baru{border-color:#f6c67a;background:#fffaf0}
+.ot-rj{font-size:calc(19px*var(--fz));line-height:1.1;flex:0 0 auto}
+.ot-rmid{flex:1;min-width:0}
+.ot-rt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:calc(13px*var(--fz));font-weight:800;color:var(--ink)}
+.ot-rt b{font-weight:700;color:var(--muted);font-size:calc(11.5px*var(--fz))}
+.ot-new{font-style:normal;background:#D92D20;color:#fff;border-radius:99px;padding:1px 7px;
+  font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.04em}
+.ot-rs{font-size:calc(11.5px*var(--fz));color:var(--muted);margin-top:2px}
+.ot-rd{font-size:calc(11.5px*var(--fz));color:var(--ink);margin-top:3px;line-height:1.45}
+.ot-rst{flex:0 0 auto;font-size:calc(10.5px*var(--fz));font-weight:800;color:#15803d;
+  background:#e9f8ef;border-radius:99px;padding:3px 9px;white-space:nowrap}
+.ot-rst.auto{color:#b45309;background:#fef3c7}
+@media(max-width:760px){
+  .ot-papan{border-radius:16px}
+  .ot-row{padding:9px 10px;gap:9px}
+  .ot-rst{align-self:flex-start}
+}
 /* estimasi jarak & jejak karbon di form transport */
 .tr-est{font-size:calc(12px*var(--fz));color:var(--muted);background:#f5f8fc;border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:2px 0 4px;line-height:1.5}
 .tr-est.on{color:#0a4bb8;background:#eef5ff;border-color:#cfe0f8}
@@ -7574,10 +7606,14 @@ function kelompokHari(arr){
 }
 const HARI_TUTUP_STORE="agava_hari_tutup_v1";
 let HARI_TUTUP=(function(){ try{ return JSON.parse(localStorage.getItem(HARI_TUTUP_STORE))||{}; }catch(e){ return {}; } })();
-let HARI_KEYS={proc:[],svc:[]};                 // kunci hari yang sedang tampil per modul
+let HARI_KEYS={proc:[],svc:[],ot:[]};           // kunci hari yang sedang tampil per modul
 function hariSimpan(){ try{ localStorage.setItem(HARI_TUTUP_STORE,JSON.stringify(HARI_TUTUP)); }catch(e){} }
 function hariTutup(modul,k){ return !!HARI_TUTUP[modul+":"+k]; }
-function hariRender(modul){ if(modul==="proc"){renderProc();} else {renderService();} }
+function hariRender(modul){
+ if(modul==="proc"){ renderProc(); return; }
+ if(modul==="ot"){ agavaRenderAman(["renderFieldOps","renderMobileHome"]); return; }
+ renderService();
+}
 function hariToggle(modul,k){
  var id=modul+":"+k;
  if(HARI_TUTUP[id]) delete HARI_TUTUP[id]; else HARI_TUTUP[id]=1;
@@ -9457,6 +9493,8 @@ function renderFieldOps(){
        :'<div class="muted small" style="padding:22px;text-align:center">Belum ada operator yang mengambil tiket.</div>')+
     '</div>';
   }
+  /* Papan lembur — di ATAS papan tiket: setup AC punya jam mati, tiket tidak */
+  try{ head+=otPapanHTML("fo"); }catch(e){ console.warn("papan lembur:",e&&e.message); }
   head+=oplog;
   var chans = keys.length ? keys.map(function(k){
     var list=(groups[k]||[]).slice().sort(function(a,b){return ((a.stg||0)-(b.stg||0))||String(a.no).localeCompare(String(b.no));});
@@ -10763,6 +10801,10 @@ function renderMobileHome(){
   '</div>'+
   mBannerHTML()+
   ikon+
+  /* Papan lembur — operator lapangan melihatnya lebih dulu daripada apa pun,
+     karena setup AC punya jam mati. Sisi HP & desktop memakai fungsi papan
+     yang sama (aturan Sudana: satu update untuk kedua versi). */
+  otPapanMobile()+
   mJejakCard()+
   mSecBlock("🗂️ Pengajuan Saya",ord.length+" pengajuan",(ord.length?"all":null),listOrder)+
   soBlok+wipBlok+remBlok+kal;
@@ -11770,8 +11812,187 @@ const OT_JENIS=[
  {id:"man", ic:"🧹", nama:"Manpower OB / Cleaning", sub:"Permintaan OB / Cleaning Service lembur"}
 ];
 const OT_ALASAN=["Pekerjaan mendesak","Support event / acara","Perbaikan darurat","Closing bulanan","Kunjungan tamu / audit","Lainnya"];
-/* Approver: Section Head Tenant & General Services */
-const OT_APPROVER="Yessy";
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  OVERTIME — PENYETUJU PER JENIS + AUTO-APPROVE + PAPAN OPERATOR          ║
+   ║  Arahan Sudana 31 Jul 2026:                                              ║
+   ║   · Lembur AC   → Section Head ELOK (lokasi mana pun)                     ║
+   ║   · Lembur OB/CS→ Section Head YESSY                                      ║
+   ║   · 2 menit tanpa keputusan → AUTO-APPROVE, lalu langsung tampil di       ║
+   ║     beranda operator supaya setup AC tidak tertunda menunggu approval.    ║
+   ║   · Permintaan baru ditandai NEW selama 5 menit.                          ║
+   ║  Ambang waktunya sengaja pendek: lembur diajukan sore untuk dipakai       ║
+   ║  malam itu juga — approval yang telat sama saja dengan tidak ada.         ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const OT_APPROVER="Yessy";                    /* dipertahankan: dipakai teks lama */
+const OT_APPROVER_JENIS={ ac:"Elok", man:"Yessy" };
+const OT_KATEGORI_JENIS={ ac:"Building & Utility", man:"Tenant & General Services" };
+const OT_AUTO_MENIT=2;                        /* tanpa keputusan → disetujui sendiri */
+const OT_NEW_MENIT=5;                         /* lama tanda NEW menyala */
+function otApprover(jenis){ return OT_APPROVER_JENIS[jenis]||OT_APPROVER; }
+function otMs(o){
+ if(!o) return 0;
+ if(+o.ms>0) return +o.ms;
+ var t=Date.parse(o.createdAt||""); return isNaN(t)?0:t;   /* catatan lama tanpa ms */
+}
+function otBaru(o){ var m=otMs(o); return m>0 && (nowMs()-m)<OT_NEW_MENIT*60000; }
+function otMenitTunggu(o){ var m=otMs(o); return m>0?Math.floor((nowMs()-m)/60000):0; }
+/* Lokasi dinormalkan ke daftar site supaya pengelompokannya rapi */
+function otSite(o){
+ var l=String((o&&o.lokasi)||"").toUpperCase();
+ if(l.indexOf("BSD")>=0) return "ABC BSD";
+ if(l.indexOf("BDG")>=0||l.indexOf("BANDUNG")>=0) return "ABC BDG";
+ if(l.indexOf("AMDI")>=0) return "AMDI";
+ if(l==="MA"||l.indexOf("MENARA")>=0) return "MA";
+ return (o&&o.lokasi)?String(o.lokasi):"Tanpa lokasi";
+}
+/* ── AUTO-APPROVE: dijalankan berkala + tiap render papan ──
+   Hanya menyentuh yang benar-benar lewat ambang, dan mencatat bahwa
+   keputusannya OTOMATIS — bukan menyamar sebagai tanda tangan Section Head. */
+function otAutoCek(){
+ var ubah=0;
+ OVERTIME_REQ.forEach(function(o){
+   if((o.status||"Diajukan")!=="Diajukan") return;
+   if(otMenitTunggu(o)<OT_AUTO_MENIT) return;
+   o.status="Disetujui"; o.auto=true; o.by2="Otomatis ("+otApprover(o.jenis)+" tidak merespons "+OT_AUTO_MENIT+" menit)";
+   o.at2=nowStamp();
+   try{
+     ROOM_BOOKINGS.unshift({room:(o.ruang||o.lokasi||"—"), event:"Overtime — "+otJenis(o.jenis).nama+" · "+o.by,
+       date:o.tgl, start:o.mulai, end:(o.selesai==="00:00"?"23:59":o.selesai),
+       status:"Booked", src:"overtime", otNo:o.no});
+   }catch(e){}
+   NOTIFS.unshift({ic:"⚡",t:"Overtime disetujui otomatis — "+o.no,
+     d:otJenis(o.jenis).nama+" · "+otSite(o)+" · "+o.tgl+" "+o.mulai+"–"+o.selesai+" · siap di-setup operator",
+     at:nowStamp(), sev:"warn", nav:"fieldops", done:false, roles:["fieldops"], cat:OT_KATEGORI_JENIS[o.jenis]||""});
+   try{ agavaNotify("⚡ Overtime disetujui otomatis", o.no+" · "+otJenis(o.jenis).nama+" · "+otSite(o)+" · "+o.mulai+"–"+o.selesai); }catch(e){}
+   try{ auditLog("overtime-auto-approve", o.no+" · "+o.jenis+" · "+otSite(o)); }catch(e){}
+   ubah++;
+ });
+ if(ubah){
+   try{ otPersist(); }catch(e){}
+   agavaRenderAman(["renderFieldOps","renderApprovals","renderService","renderMobileHome","updateBell"]);
+ }
+ return ubah;
+}
+/* jam pemeriksa: tiap 20 detik — cukup rapat untuk ambang 2 menit */
+if(!window._otTimer) window._otTimer=setInterval(function(){ try{ otAutoCek(); }catch(e){} },20000);
+/* Overtime yang relevan untuk akun ini: operator melihat kategorinya sendiri,
+   Owner & pemantau melihat semuanya. */
+function otUntukSaya(o){
+ if(!o||(o.status||"Diajukan")!=="Disetujui") return false;
+ if(isOwner()||isPantau()||isSuper()) return true;
+ var myCat=(gUser&&gUser.cat)||"";
+ if(!myCat) return true;
+ return (OT_KATEGORI_JENIS[o.jenis]||"")===myCat;
+}
+/* ── PENYIMPANAN OVERTIME ───────────────────────────────────────────────────
+   Sampai v157 OVERTIME_REQ hanya hidup di memori: hilang saat halaman dimuat
+   ulang dan TIDAK PERNAH sampai ke perangkat operator. Papan lembur di beranda
+   operator mustahil bekerja tanpa ini, jadi disimpan seperti tiket & SO:
+   localStorage sebagai cache + Firestore sebagai sumber kebenaran. */
+const OT_STORE="agava_overtime_v1";
+function otPersist(){
+ try{ localStorage.setItem(OT_STORE, JSON.stringify(OVERTIME_REQ)); }catch(e){}
+ try{ dbSaveOT(); }catch(e){}
+}
+function otLoadLokal(){
+ try{ var r=localStorage.getItem(OT_STORE); if(!r)return;
+   var a=JSON.parse(r); if(Array.isArray(a)&&a.length&&!OVERTIME_REQ.length) a.forEach(function(x){OVERTIME_REQ.push(x);});
+ }catch(e){}
+}
+function dbSaveOT(){
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return;
+ if(!gUser||!gUser.name) return;                     // pagar data bersama: tanpa login, tanpa hak tulis
+ OVERTIME_REQ.forEach(function(o){
+   if(!o||!o.no)return;
+   var j=JSON.stringify(o);
+   AGDB.otEcho=AGDB.otEcho||{};
+   if(AGDB.otEcho[o.no]===j)return;                  // tidak berubah → jangan tulis ulang
+   AGDB.otEcho[o.no]=j;
+   AGDB.db.collection("agava_overtime").doc(String(o.no)).set(o,{merge:true})
+     .catch(function(e){ console.warn("OT cloud:",e&&e.code); });
+ });
+}
+/* ══ PAPAN LEMBUR DI BERANDA OPERATOR ═══════════════════════════════════════
+   Susunan: LOKASI (tiap site punya seksinya sendiri) → TANGGAL (bisa dilipat,
+   memakai mesin lipat yang sama dengan daftar tiket & SO). Kartu yang baru
+   masuk (<5 menit) diberi tanda NEW.
+   Dipakai DUA sisi — halaman Field Ops (desktop) & beranda HP — sesuai aturan
+   Sudana: satu update berlaku untuk kedua versi. */
+function otPapanData(){
+ try{ otAutoCek(); }catch(e){}
+ return OVERTIME_REQ.filter(otUntukSaya);
+}
+function otKartuHTML(o){
+ var j=otJenis(o.jenis);
+ return '<div class="ot-row'+(otBaru(o)?' baru':'')+'">'+
+   '<span class="ot-rj">'+j.ic+'</span>'+
+   '<div class="ot-rmid">'+
+     '<div class="ot-rt">'+esc(o.mulai)+'–'+esc(o.selesai)+
+       '<b>'+esc(j.nama)+'</b>'+(otBaru(o)?'<i class="ot-new">NEW</i>':'')+'</div>'+
+     '<div class="ot-rs">'+esc(o.ruang||o.lokasi||"—")+' · '+esc(o.by||"—")+
+       (o.pax>0?' · '+o.pax+' personel':'')+'</div>'+
+     (o.desc?'<div class="ot-rd">'+esc(o.desc)+'</div>':'')+
+   '</div>'+
+   '<span class="ot-rst'+(o.auto?' auto':'')+'" title="'+esc(o.by2||"")+'">'+(o.auto?'⚡ auto':'✅ disetujui')+'</span>'+
+ '</div>';
+}
+function otPapanHTML(modulKey){
+ var data=otPapanData();
+ var judul='<div class="ot-papan-h"><span class="ot-papan-ic">🌙</span>'+
+   '<div><div class="panel-t" style="margin:0">Lembur Malam Ini &amp; Berikutnya</div>'+
+   '<div class="muted small">Permintaan yang sudah disetujui — dikelompokkan per lokasi, lalu per tanggal. '+
+   'Tanpa keputusan '+OT_AUTO_MENIT+' menit, permintaan disetujui otomatis supaya setup tidak tertunda.</div></div>'+
+   '<span class="ot-papan-n">'+data.length+'</span></div>';
+ if(!data.length){
+   return '<div class="card pad ot-papan">'+judul+
+     '<div class="muted small" style="padding:18px 2px 4px;text-align:center">Belum ada permintaan lembur yang perlu disiapkan.</div></div>';
+ }
+ /* per LOKASI */
+ var perSite={}, urutSite=[];
+ data.forEach(function(o){ var s=otSite(o); if(!perSite[s]){perSite[s]=[];urutSite.push(s);} perSite[s].push(o); });
+ urutSite.sort(function(a,b){
+   var ia=SITE_LIST.indexOf(a), ib=SITE_LIST.indexOf(b);
+   if(ia<0)ia=99; if(ib<0)ib=99;
+   return ia-ib || String(a).localeCompare(String(b));
+ });
+ var kunci=[];
+ var isi=urutSite.map(function(site){
+   /* per TANGGAL di dalam lokasi — memakai kelompokHari (tgl lembur, bukan tgl dibuat) */
+   var perHari={}, urutHari=[];
+   perSite[site].forEach(function(o){
+     var k=String(o.tgl||"0000-00-00");
+     if(!perHari[k]){perHari[k]=[];urutHari.push(k);}
+     perHari[k].push(o);
+   });
+   urutHari.sort();                                   // tanggal terdekat dulu — lembur itu urusan hari ini
+   var badan=urutHari.map(function(k){
+     var kk=modulKey+":"+site+":"+k; kunci.push(kk);
+     var tutup=hariTutup("ot",kk);
+     var rows=perHari[k];
+     var baruN=rows.filter(otBaru).length;
+     return '<div class="ot-hari">'+
+       '<button class="hr-sep'+(tutup?' tutup':'')+'" onclick="hariToggle(\'ot\',\''+kk+'\')">'+
+         '<span class="hr-chev">▾</span><b>'+esc(hariLabel(k))+'</b>'+
+         '<span class="hr-n">'+rows.length+' lembur'+(baruN?' · '+baruN+' baru':'')+'</span></button>'+
+       (tutup?'':rows.map(otKartuHTML).join(""))+
+     '</div>';
+   }).join("");
+   return '<div class="ot-site"><div class="ot-site-h">📍 '+esc(site)+
+     '<span>'+perSite[site].length+' permintaan</span></div>'+badan+'</div>';
+ }).join("");
+ HARI_KEYS.ot=kunci;
+ return '<div class="card pad ot-papan">'+judul+isi+'</div>';
+}
+/* Versi HP: hanya ditampilkan kepada yang memang perlu menyiapkannya —
+   operator lapangan, pemantau, dan Owner. Pemohon biasa tidak perlu melihat
+   papan setup orang lain di berandanya. */
+function otPapanMobile(){
+ try{
+   if(!(gRole==="fieldops"||isPantau()||isOwner())) return "";
+   if(!otPapanData().length && gRole!=="fieldops") return "";
+   return '<div class="mh-ot">'+otPapanHTML("mh")+'</div>';
+ }catch(e){ console.warn("papan lembur HP:",e&&e.message); return ""; }
+}
 function overtimePending(){ return OVERTIME_REQ.filter(function(o){return (o.status||"Diajukan")==="Diajukan";}).length; }
 function otJenis(id){ return OT_JENIS.find(function(x){return x.id===id;})||OT_JENIS[0]; }
 /* ── ATURAN JAM ──
@@ -11911,19 +12132,23 @@ function submitOvertime(){
  var rec={no:no, jenis:jen, tgl:tgl, mulai:mulai, selesai:selesai, lokasi:g("ot-lokasi"), ruang:g("ot-ruang"),
    pax:+g("ot-pax")||0, alasan:g("ot-alasan"), desc:desc,
    by:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"",
-   status:"Diajukan", approver:OT_APPROVER, created:TODAY_STR, createdAt:nowStamp()};
+   status:"Diajukan", approver:otApprover(jen), created:TODAY_STR, createdAt:nowStamp(), ms:nowMs()};
  OVERTIME_REQ.unshift(rec);
- /* alamat: penyetuju lembur (Section Head Tenant & General Services) + Dept Head */
+ otPersist();
+ /* Alamat penyetuju mengikuti JENIS lembur (aturan Sudana 31 Jul):
+    AC → Elok · OB/CS → Yessy. Dept Head ikut diberi tembusan. */
  NOTIFS.unshift({ic:"⏱️",t:"Pengajuan Overtime — "+otJenis(jen).nama,
-   d:no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai+" · "+rec.lokasi,
+   d:no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai+" · "+otSite(rec)+
+     " · disetujui otomatis bila tidak diputuskan dalam "+OT_AUTO_MENIT+" menit",
    at:nowStamp(), sev:"warn", nav:"approvals", done:false,
-   nama:OT_APPROVER, namaRole:"section", roles:["dept"]});
- try{ agavaNotify("⏱️ Overtime — "+otJenis(jen).nama, no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai); }catch(e){}
- try{ auditLog("overtime-create", no+" · "+jen+" · "+rec.lokasi); }catch(e){}
+   nama:otApprover(jen), namaRole:"section", roles:["dept"]});
+ try{ agavaNotify("⏱️ Overtime — "+otJenis(jen).nama, no+" · "+rec.by+" · "+tgl+" "+mulai+"–"+selesai+" · "+otSite(rec)); }catch(e){}
+ try{ auditLog("overtime-create", no+" · "+jen+" · "+otSite(rec)+" · ke "+otApprover(jen)); }catch(e){}
  triggerFlow("overtime",{mode:"create",record:rec});
- otPick=null; renderOvertime(); renderApprovals(); renderReminder(); updateBell(); try{ renderMobileHome(); }catch(e){}
- alert("✅ Pengajuan Overtime terkirim.\nNo. tiket: "+no+"\n"+otJenis(jen).nama+"\n"+tgl+" · "+mulai+"–"+selesai+" · "+rec.lokasi+
-   "\n\nMenunggu persetujuan "+OT_APPROVER+" (Section Head Tenant & General Services).");
+ otPick=null; renderOvertime(); renderApprovals(); renderReminder(); updateBell();
+ agavaRenderAman(["renderFieldOps","renderMobileHome"]);
+ alert("✅ Pengajuan Overtime terkirim.\nNo. tiket: "+no+"\n"+otJenis(jen).nama+"\n"+tgl+" · "+mulai+"–"+selesai+" · "+otSite(rec)+
+   "\n\nMenunggu persetujuan "+otApprover(jen)+".\nBila belum diputuskan dalam "+OT_AUTO_MENIT+" menit, permintaan disetujui otomatis dan langsung tampil di beranda operator.");
 }
 function overtimeAct(no,st){
  var o=OVERTIME_REQ.find(function(x){return x.no===no;}); if(!o)return;
@@ -11938,10 +12163,19 @@ function overtimeAct(no,st){
  } else if(st==="Ditolak"){
    for(var i=ROOM_BOOKINGS.length-1;i>=0;i--) if(ROOM_BOOKINGS[i].otNo===o.no)ROOM_BOOKINGS.splice(i,1);
  }
- try{ agavaNotify(st==="Disetujui"?"✅ Overtime disetujui":"⛔ Overtime ditolak", o.no+" · "+o.by+" · "+o.tgl); }catch(e){}
+ o.auto=false;                                   // keputusan manusia, bukan auto-approve
+ otPersist();
+ if(st==="Disetujui"){
+   NOTIFS.unshift({ic:"❄️",t:"Overtime siap di-setup — "+o.no,
+     d:otJenis(o.jenis).nama+" · "+otSite(o)+" · "+o.tgl+" "+o.mulai+"–"+o.selesai,
+     at:nowStamp(), sev:"warn", nav:"fieldops", done:false,
+     roles:["fieldops"], cat:OT_KATEGORI_JENIS[o.jenis]||""});
+ }
+ try{ agavaNotify(st==="Disetujui"?"✅ Overtime disetujui":"⛔ Overtime ditolak", o.no+" · "+o.by+" · "+o.tgl+" · "+otSite(o)); }catch(e){}
  try{ auditLog("overtime-"+st.toLowerCase(), o.no); }catch(e){}
  renderApprovals(); renderReminder(); renderService(); updateBell();
- try{ renderOvertime(); }catch(e){} try{ renderMobileHome(); }catch(e){}
+ try{ renderOvertime(); }catch(e){}
+ agavaRenderAman(["renderFieldOps","renderMobileHome"]);
  alert((st==="Disetujui"?"✅ ":"⛔ ")+o.no+" — "+st+(st==="Disetujui"?"\nJadwal tampil di Room & Event Usage.":""));
 }
 /* ===================== ROOM BOOKING — ERSUS idle auto-release =====================
@@ -15497,7 +15731,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-157";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-158";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -15645,6 +15879,24 @@ function dbInit(){
     }
     AGDB.ticketsInit=true;
   },err=>{ AGDB.on=false; dbPill("Database: rules tertutup — mode lokal",false); console.warn("AGDB rules/err:",err&&err.code); });
+  /* Overtime — papan lembur harus sama di semua perangkat operator */
+  AGDB.db.collection("agava_overtime").limit(300).onSnapshot(snap=>{
+    let ubah=false;
+    snap.docChanges().forEach(ch=>{
+      const d=ch.doc.data(); d.no=d.no||ch.doc.id;
+      const i=OVERTIME_REQ.findIndex(o=>o.no===d.no);
+      if(ch.type==="removed"){ if(i>=0){OVERTIME_REQ.splice(i,1);ubah=true;} }
+      else if(i>=0){ Object.assign(OVERTIME_REQ[i],d); ubah=true; }
+      else { OVERTIME_REQ.unshift(d); ubah=true; }
+    });
+    if(ubah){
+      AGDB.otEcho=AGDB.otEcho||{};
+      OVERTIME_REQ.forEach(function(o){ if(o&&o.no) AGDB.otEcho[o.no]=JSON.stringify(o); });  // gema simpanan sendiri
+      try{ localStorage.setItem(OT_STORE, JSON.stringify(OVERTIME_REQ)); }catch(e){}
+      try{ otAutoCek(); }catch(e){}
+      agavaRenderAman(["renderFieldOps","renderMobileHome","renderApprovals","renderOvertime","updateBell"]);
+    }
+  },err=>{ console.warn("Overtime rules/err:",err&&err.code); });
   /* Aksi Mandiri — dikumpulkan lintas perangkat supaya rasio swalayannya utuh */
   AGDB.db.collection("agava_selfcare").limit(500).onSnapshot(snap=>{
     let ubah=false;
@@ -16966,6 +17218,7 @@ try{ agavaCekVersi();
   document.addEventListener("visibilitychange",function(){ if(!document.hidden) agavaCekVersi(); });
 }catch(e){}
 try{ agavaTulisVersi(); }catch(e){}   // stempel versi di samping jam — terisi sejak boot
+try{ otLoadLokal(); }catch(e){}       // papan lembur tidak kosong sebelum cloud tiba
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  Shift+Enter / Alt+Enter = BARIS BARU di kolom isian                     ║
    ║  Permintaan Sudana 31 Jul 2026: isian form yang panjang memanjang ke     ║
