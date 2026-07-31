@@ -2878,25 +2878,36 @@ body.rg-open{overflow:hidden}
    ║  kali untuk SEMUA penanda lipat (KPI Key, KPI Standard, separator hari,  ║
    ║  KPI Tahunan, kepala section) supaya seragam di seluruh AGAVA.           ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
-/* Gaya FINAL pilihan Sudana (31 Jul, revisi ke-4): SEGITIGA ▾ polos MENYATU
-   langsung di belakang teksnya — TANPA bingkai, tanpa kotak, tanpa latar,
-   dan cukup BESAR (glyph segitiga tampil lebih kecil daripada chevron pada
-   font-size yang sama, maka dipatok 19px). Versi berbingkai ditolak karena
-   merusak tata letak. JANGAN diubah lagi tanpa arahan Sudana. */
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  IKON LIPAT — BENTUK & ARAH FINAL (Sudana, 31 Jul 2026)                  ║
+   ║  BENTUK : segitiga ▾ polos, TANPA bingkai/kotak/latar, menyatu langsung   ║
+   ║           di belakang teksnya. Besar (19px; 21px di HP) karena glyph      ║
+   ║           segitiga tampil lebih kecil daripada chevron pada ukuran sama.  ║
+   ║  ARAH   : TERTUTUP menghadap KANAN ▶ · TERBUKA menghadap BAWAH ▼          ║
+   ║           Glyph di HTML tetap '▾' (menghadap bawah); keadaan TERTUTUP     ║
+   ║           diputar −90° sehingga menunjuk kanan, dan kembali ke 0° saat    ║
+   ║           terbuka. Ditulis begitu supaya satu glyph melayani dua arah     ║
+   ║           dengan animasi yang mulus.                                      ║
+   ║  Versi berbingkai (kotak & lingkaran) dan chevron '⌄' SUDAH DITOLAK.      ║
+   ║  JANGAN diubah tanpa arahan Sudana.                                       ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
 .pi-chev,.pik-chev,.hr-chev,.kpy-chev,.sec-h .chev{
   display:inline-block;border:0;background:transparent;box-shadow:none;
   color:#0f172a;font-size:calc(19px*var(--fz));font-weight:700;line-height:1;
   margin-left:3px;cursor:pointer;user-select:none;vertical-align:-2px;
+  transform:rotate(-90deg);                       /* DEFAULT (tertutup) → kanan ▶ */
   transition:transform .2s,color .15s}
 .pi-chev:hover,.pik-chev:hover,.hr-chev:hover,.kpy-chev:hover,.sec-h .chev:hover,
 .pi-name:hover .pi-chev,.hr-sep:hover .hr-chev,.sec-h:hover .chev{color:var(--blue)}
 .sec-h .chev{margin-left:auto}
 @media(max-width:760px){.pi-chev,.pik-chev,.hr-chev,.kpy-chev,.sec-h .chev{font-size:calc(21px*var(--fz))}}
-/* arah putaran tiap keadaan — ditulis ulang di sini agar menang atas aturan lama */
-.pi-row.open .pi-chev,.pik-chev.open,.kpy-row.open .kpy-chev{transform:rotate(180deg)}
-.pik-chev.open{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
-.hr-sep.tutup .hr-chev{transform:rotate(-90deg)}
-.sec.collapsed .chev{transform:rotate(-90deg)}
+/* TERBUKA → kembali ke 0° (menghadap bawah ▼). Ditulis di sini agar menang
+   atas aturan lama. Separator hari & section memakai penanda keadaan yang
+   berlawanan (tutup/collapsed), jadi arahnya diatur terbalik: yang TIDAK
+   tertutup berarti terbuka. */
+.pi-row.open .pi-chev,.pik-chev.open,.kpy-row.open .kpy-chev{transform:rotate(0deg)}
+.hr-sep:not(.tutup) .hr-chev{transform:rotate(0deg)}
+.sec:not(.collapsed) .sec-h .chev{transform:rotate(0deg)}
 /* Separator hari memuat penandanya di dalam <span>, dan aturan lama
    ".bl-sep span" / "tr.bl-trsep td span" lebih spesifik — tanpa dua baris ini
    penandanya kembali pucat abu-abu meski ukurannya sudah besar. */
@@ -7189,12 +7200,38 @@ function soPemohon(s){ return (s&&(s.requester||s.req))||""; }
    ulang rantai persetujuan dari awal (soRevisiSubmit), jadi persetujuan yang
    terlanjur diberikan untuk versi lama tidak pernah ikut terbawa. */
 function soSudahEksekusi(s){ return !!s && (+s.wstep||0)>=2; }
+/* Arahan Sudana 31 Jul: SEMUA SO harus bisa direvisi pembuatnya — tidak ada
+   yang boleh buntu. Yang sudah masuk UPR/SPK pun boleh, hanya saja pemohon
+   diberi peringatan tegas dulu (soRevisiMulai), karena vendor sudah dilibatkan
+   dan dokumen tender/SPK-nya jadi batal. */
 function soBolehRevisi(s){
  if(!s||s.batal) return false;
- if(soSudahEksekusi(s)) return false;              // UPR/SPK/BAST → pakai Batalkan
  if(isOwner()) return true;
  var me=(gUser&&gUser.name)||"";
  return !!me && soPemohon(s)===me;
+}
+/* ── KE MANA SO KEMBALI SETELAH DIREVISI ────────────────────────────────────
+   Aturan Sudana 31 Jul: "SO direject di Dept Head → balik ke pembuat untuk
+   direvisi → submit → masuk KEMBALI LANGSUNG ke Dept Head. Jangan mengulang."
+   Jadi revisi TIDAK lagi memutar rantai dari nol; ia melanjutkan dari gerbang
+   yang memang harus bertindak. Hanya `section` yang berarti mulai dari awal,
+   karena itu memang gerbang pertama.
+   Penolakan di AGAVA hanya bisa datang dari Section atau Dept Head. */
+const SO_GATE_URUT=["section","budget","proc","dept"];
+function soGateDitolak(s){
+ if(!s) return "";
+ if(s.apprSection==="Rejected") return "section";
+ if(s.apprDept==="Rejected")    return "dept";
+ var g=(s.reject&&s.reject.gate)||"";
+ return SO_GATE_URUT.indexOf(g)>=0?g:"";
+}
+/* gerbang yang sedang menunggu (untuk SO yang belum ditolak) */
+function soGateBerjalan(s){
+ var p=soPhase(s);
+ return SO_GATE_URUT.indexOf(p)>=0?p:"dept";
+}
+function soGateLabel(g){
+ return ({section:"Section Head",budget:"PIC Budget",proc:"PIC Procurement",dept:"GA Dept Head"})[g]||g;
 }
 /* Label tombol menyesuaikan keadaannya — "Revisi & Kirim Ulang" untuk yang
    ditolak, "Perbaiki" untuk yang masih berjalan. */
@@ -7250,11 +7287,13 @@ function soTolakHTML(s){
 }
 function soRevisiMulai(no){
  var s=SO.find(function(x){return x.no===no;}); if(!s)return;
- if(!soBolehRevisi(s)){
-   alert(soSudahEksekusi(s)
-     ? "⛔ "+no+" sudah masuk tahap UPR/SPK — vendor sudah dilibatkan.\n\nPerubahan di titik ini bukan lagi perbaikan dokumen: pakai Batalkan, lalu buat SO baru."
-     : "⛔ Hanya pemohon SO ini ("+(soPemohon(s)||"—")+") atau Owner yang dapat merevisinya.");
-   return; }
+ if(!soBolehRevisi(s)){ alert("⛔ Hanya pemohon SO ini ("+(soPemohon(s)||"—")+") atau Owner yang dapat merevisinya."); return; }
+ /* Sudah dieksekusi tetap BOLEH direvisi, tapi jangan sampai tidak disadari:
+    UPR/SPK yang sudah terbit menjadi batal dan harus diterbitkan ulang. */
+ if(soSudahEksekusi(s) && !confirm(
+     "⚠️ "+no+" sudah masuk tahap "+(WSTEP_DONE&&WSTEP_DONE[s.wstep]?WSTEP_DONE[s.wstep]:"UPR/SPK")+" — vendor sudah dilibatkan.\n\n"+
+     "Kalau isinya Anda ubah sekarang, dokumen UPR/SPK yang sudah terbit menjadi TIDAK BERLAKU dan harus diterbitkan ulang.\n\n"+
+     "Lanjutkan merevisi?")) return;
  closeDrawer();
  window._soRevisi=no;
  go("createso");
@@ -12155,6 +12194,9 @@ async function soRevisiSubmit(rows,f){
  var att=await soReadAttachments();
  att=await soUploadAttachments(att,no);
 
+ /* direkam SEBELUM isinya ditimpa — dipakai memeriksa perpindahan jenjang */
+ var tierLama={nilai:s.nilai};
+
  s.rev=(s.rev||0)+1;
  s.revLog=Array.isArray(s.revLog)?s.revLog:[];
  s.revLog.push({rev:s.rev,
@@ -12169,30 +12211,63 @@ async function soRevisiSubmit(rows,f){
  if(att.images&&att.images.length) s.attachments=(s.attachments||[]).concat(att.images);
  if(att.pdfs&&att.pdfs.length)     s.pdfAttachments=(s.pdfAttachments||[]).concat(att.pdfs);
 
- /* rantai persetujuan diputar ulang dari awal */
+ /* ── RANTAI MELANJUTKAN, TIDAK MENGULANG (aturan Sudana 31 Jul) ──────────
+    SO kembali ke gerbang yang memang harus bertindak: yang MENOLAK bila
+    ditolak, atau yang sedang menunggu bila SO masih berjalan. Persetujuan
+    gerbang SEBELUMNYA dipertahankan — mereka sudah menilai kebutuhan yang
+    sama dan tidak perlu diminta lagi.
+    SATU PENGECUALIAN yang dijaga: bila nilainya berpindah JENJANG approval
+    (mis. dari Dept Head ke Division Head), rantai WAJIB mulai dari awal —
+    kalau tidak, revisi bisa dipakai menaikkan nilai tanpa melewati pejabat
+    yang berwenang atasnya. */
+ var gate = soDitolak(s) ? (soGateDitolak(s)||"section") : soGateBerjalan(s);
+ var naikJenjang = tier(tierLama) !== tier({nilai:f.nilai});
+ if(naikJenjang) gate="section";
+ var idx=SO_GATE_URUT.indexOf(gate); if(idx<0) idx=0;
  var isSec=(gRole==="section");
+
  s.reject=null; s.batal=false;
- s.apprSection=isSec?"Approved":"Pending";
- s.apprBudget=isSec?"Pending":"—"; s.apprProc="—"; s.apprDept="—";
- s.escalated=false; s.wstep=0; s.stage=0; s.aging="On Track";
- s.staffPIC=""; s.pic=""; s.fup=""; s.vendor="";
- s.aktor={}; s.override=[];
- ["section","budget","proc","dept"].forEach(function(g){ if(s.ts)delete s.ts[g]; if(s.tsf)delete s.tsf[g]; });
+ if(idx===0){                                    /* mulai dari awal */
+   s.apprSection=isSec?"Approved":"Pending";
+   s.apprBudget=isSec?"Pending":"—"; s.apprProc="—"; s.apprDept="—";
+   s.escalated=false; s.staffPIC=""; s.pic=""; s.fup=""; s.vendor="";
+   s.aktor={}; s.override=[];
+   SO_GATE_URUT.forEach(function(g){ if(s.ts)delete s.ts[g]; if(s.tsf)delete s.tsf[g]; });
+   s.sectionBy=soSectionApprover(s);
+   if(isSec){ s.sectionBy=soPemohon(s); s.ts=s.ts||{}; s.ts.section=nowStamp(); s.tsf=s.tsf||{}; s.tsf.section=nowStampDoc(); }
+ } else {                                        /* lanjutkan dari `gate` */
+   /* hanya gerbang ini & sesudahnya yang dibuka lagi; sebelumnya tetap sah */
+   SO_GATE_URUT.slice(idx).forEach(function(g){
+     if(g==="section") s.apprSection="Pending";
+     if(g==="budget")  s.apprBudget="—";
+     if(g==="proc"){   s.apprProc="—"; s.staffPIC=""; s.pic=""; s.fup=""; }
+     if(g==="dept")    s.apprDept="—";
+     if(s.ts)delete s.ts[g]; if(s.tsf)delete s.tsf[g];
+     if(s.aktor)delete s.aktor[g];
+   });
+   if(gate==="budget") s.apprBudget="Pending";
+ }
+ /* isinya berubah → hasil sourcing/UPR/SPK lama tidak berlaku lagi */
+ s.wstep=0; s.stage=0; s.aging="On Track";
  s.ts=s.ts||{}; s.ts.revisi=nowStamp();
- s.sectionBy=soSectionApprover(s);
- if(isSec){ s.sectionBy=soPemohon(s); s.ts.section=nowStamp(); s.tsf=s.tsf||{}; s.tsf.section=nowStampDoc(); }
+
+ var tujuan = (idx===0 && isSec) ? "budget" : gate;
+ var tujuanLabel = (tujuan==="section") ? ("Section Head "+(s.sectionBy||"")) : soGateLabel(tujuan);
 
  window._soRevisi=null;
  soPersist();
- try{ auditLog("so-revisi", no+" · Rev."+s.rev+" · "+catatan); }catch(e){}
+ try{ auditLog("so-revisi", no+" · Rev."+s.rev+" · lanjut ke "+tujuan+(naikJenjang?" (naik jenjang → ulang dari awal)":"")+" · "+catatan); }catch(e){}
  NOTIFS.unshift({ic:"🔁",t:"SO direvisi & dikirim ulang — "+no+" Rev."+s.rev,
-   d:(s.item||"")+" · "+catatan+" · menunggu "+(isSec?"PIC Budget":"Section Head "+s.sectionBy),
+   d:(s.item||"")+" · "+catatan+" · menunggu "+tujuanLabel,
    at:nowStamp(), sev:"warn", nav:"approvals", done:false,
-   nama:isSec?"":s.sectionBy, namaRole:isSec?"":"section", roles:isSec?["budget"]:[]});
+   nama:(tujuan==="section")?s.sectionBy:"", namaRole:(tujuan==="section")?"section":"",
+   roles:(tujuan==="section")?[]:[tujuan]});
  procFilter="all"; renderProc(); renderApprovals(); renderReminder(); navSetActive(); updateBell();
  notifySound(); go("procurement");
- alert("🔁 "+no+" dikirim ulang sebagai Rev."+s.rev+".\n\nNomornya tetap sama — riwayat penolakan & perbaikannya menempel di SO ini.\n"+
-   (isSec?"Anda Section Head → langsung ke PIC Budget.":"Menunggu approval Section Head: "+s.sectionBy+"."));
+ alert("🔁 "+no+" dikirim ulang sebagai Rev."+s.rev+".\n\n"+
+   "Nomornya tetap sama — riwayat penolakan & perbaikannya menempel di SO ini.\n"+
+   "Langsung kembali ke: "+tujuanLabel+(idx>0?" — persetujuan sebelumnya tetap sah, tidak perlu diulang.":".")+
+   (naikJenjang?"\n\n⚠️ Nilainya berpindah jenjang approval, jadi rantai dimulai dari awal.":""));
 }
 /* Baca lampiran dari form Create SO → foto (untuk grid Lampiran) + PDF (untuk dijahit ke Dokumen SO) */
 /* Sumbernya kini window._soAtt — apa yang tampil di pratinjau PERSIS yang
@@ -15422,7 +15497,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-156";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-157";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
