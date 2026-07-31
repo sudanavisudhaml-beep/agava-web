@@ -1320,13 +1320,17 @@ textarea.ta-tumbuh{white-space:pre-wrap;overflow-wrap:anywhere;resize:vertical;l
   opacity:1;transition:opacity .4s}
 .enter-hint b{font-weight:800}
 .enter-hint.pergi{opacity:0}
-.bl-sep{position:sticky;top:0;z-index:1;padding:8px 16px;background:#f2f6fb;border-bottom:1px solid var(--line);
-  font-size:calc(11.5px*var(--fz));font-weight:800;color:var(--ink);letter-spacing:.03em;text-transform:uppercase}
-.bl-sep span{font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
-tr.bl-trsep td{background:#f2f6fb;padding:8px 16px;font-size:calc(11.5px*var(--fz));font-weight:800;color:var(--ink);
-  letter-spacing:.03em;text-transform:uppercase;border-bottom:1px solid var(--line)}
-tr.bl-trsep td span{font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
-tr.bl-trsep:hover td{background:#f2f6fb}
+/* Separator tanggal — 31 Jul 2026: latar dinaikkan ke abu yang jelas lebih
+   gelap (#dbe3ec) atas permintaan Sudana; sebelumnya #f2f6fb nyaris menyatu
+   dengan baris di bawahnya sehingga batas antar hari tidak terbaca. */
+.bl-sep{position:sticky;top:0;z-index:1;padding:8px 16px;background:#dbe3ec;border-top:1px solid #c3cede;border-bottom:1px solid #c3cede;
+  font-size:calc(11.5px*var(--fz));font-weight:800;color:#1e293b;letter-spacing:.03em;text-transform:uppercase}
+.bl-sep span{font-weight:600;color:#475569;text-transform:none;letter-spacing:0}
+tr.bl-trsep td{background:#dbe3ec;padding:8px 16px;font-size:calc(11.5px*var(--fz));font-weight:800;color:#1e293b;
+  letter-spacing:.03em;text-transform:uppercase;border-top:1px solid #c3cede;border-bottom:1px solid #c3cede}
+tr.bl-trsep td span{font-weight:600;color:#475569;text-transform:none;letter-spacing:0}
+tr.bl-trsep:hover td{background:#dbe3ec}
+.bl-sep .hr-sep .hr-n,tr.bl-trsep td .hr-sep .hr-n{background:#fff;border-color:#c3cede;color:#475569}
 /* ── SO ditolak: alasan, perbaikan yang diminta, riwayat revisi ── */
 .so-tolak{background:#fdf3f3;border:1px solid #f0d7d7;border-left:4px solid #dc2626;border-radius:11px;
   padding:11px 13px;margin:12px 0;font-size:calc(12.5px*var(--fz));color:#7a2020;line-height:1.55}
@@ -2500,6 +2504,58 @@ body.rg-open{overflow:hidden}
 .ot-note{font-size:calc(11.5px*var(--fz));color:#0a4bb8;background:#eef5ff;border:1px solid #cfe0f8;border-radius:9px;
   padding:8px 11px;margin:2px 0 12px;line-height:1.5}
 @media(max-width:560px){.ot-pick{grid-template-columns:1fr}}
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  LIFECYCLE JOURNEY SO — bulatan, garis gradien, animasi wipe             ║
+   ║  Checkpoint terlewati = bulatan terisi penuh BIRU.                       ║
+   ║  Sub-point terlewati  = bulatan HIJAU bercentang.                        ║
+   ║  Garis penghubung transparan; yang sudah dilalui terisi gradasi          ║
+   ║  biru→hijau; yang SEDANG berjalan mengulang animasi wipe turun.          ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+.soj{position:relative;padding:4px 0 2px}
+.soj-cp{display:flex;align-items:center;gap:12px;padding:7px 0;position:relative}
+.soj-bul{flex:0 0 26px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:calc(12px*var(--fz));font-weight:800;background:#fff;border:2px solid #cbd5e1;color:#94a3b8;
+  transition:background .25s,border-color .25s,color .25s;z-index:1}
+.soj-cp.done .soj-bul{background:#0a7cff;border-color:#0a7cff;color:#fff;box-shadow:0 0 0 4px rgba(10,124,255,.16)}
+.soj-cp.active .soj-bul{background:#fff;border-color:#0a7cff;color:#0a7cff;box-shadow:0 0 0 4px rgba(10,124,255,.16);
+  animation:sojPulse 1.8s ease-in-out infinite}
+.soj-cp.rejected .soj-bul{background:var(--red);border-color:var(--red);color:#fff}
+.soj-cpt{font-size:calc(14px*var(--fz));font-weight:800;color:#94a3b8;letter-spacing:-.01em}
+.soj-cp.done .soj-cpt,.soj-cp.active .soj-cpt{color:var(--ink)}
+.soj-cp.rejected .soj-cpt{color:var(--red)}
+@keyframes sojPulse{0%,100%{box-shadow:0 0 0 4px rgba(10,124,255,.16)}50%{box-shadow:0 0 0 8px rgba(10,124,255,.06)}}
+/* sub-point */
+.soj-sub{display:flex;align-items:center;gap:12px;padding:5px 0;position:relative;margin-left:0}
+.soj-dot{flex:0 0 26px;display:flex;align-items:center;justify-content:center;z-index:1}
+.soj-dot::before{content:"";width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #d7dee8;
+  transition:background .25s,border-color .25s}
+.soj-sub.done .soj-dot{color:#fff;font-size:calc(9px*var(--fz));font-weight:900}
+.soj-sub.done .soj-dot::before{background:#15a34a;border-color:#15a34a;position:absolute}
+.soj-sub.active .soj-dot::before{border-color:#0a7cff;box-shadow:0 0 0 3px rgba(10,124,255,.14)}
+.soj-sub.rejected .soj-dot{color:#fff;font-size:calc(9px*var(--fz));font-weight:900}
+.soj-sub.rejected .soj-dot::before{background:var(--red);border-color:var(--red);position:absolute}
+.soj-subt{font-size:calc(12.5px*var(--fz));font-weight:600;color:#9aa7b8;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.soj-sub.done .soj-subt{color:var(--ink)}
+.soj-sub.active .soj-subt{color:var(--ink);font-weight:700}
+.soj-sub.rejected .soj-subt{color:var(--red);font-weight:700}
+.soj-subt i{font-style:normal;font-size:calc(11px*var(--fz));font-weight:600;color:var(--blue)}
+/* GARIS penghubung — transparan, terisi gradasi, wipe saat berjalan */
+.soj-line{position:absolute;left:12px;top:-14px;bottom:calc(50% + 9px);width:3px;border-radius:3px;
+  background:#e6ebf2;overflow:hidden}
+.soj-line.done{background:linear-gradient(180deg,#0a7cff,#15a34a)}
+.soj-line.pending{background:#e9edf3}
+.soj-line.active{background:#e6ebf2}
+.soj-line.active::after{content:"";position:absolute;left:0;right:0;top:0;height:100%;
+  background:linear-gradient(180deg,#0a7cff,#15a34a);
+  transform-origin:top;animation:sojWipe 1.5s ease-in-out infinite}
+@keyframes sojWipe{0%{transform:scaleY(0);opacity:.25}55%{transform:scaleY(1);opacity:1}100%{transform:scaleY(1);opacity:.25}}
+/* jarak antar checkpoint — garisnya panjang penuh */
+.soj-gap{position:relative;height:16px}
+.soj-gap .soj-line{top:0;bottom:0;left:12px}
+@media(max-width:760px){
+  .soj-cpt{font-size:calc(13.5px*var(--fz))}
+  .soj-subt{font-size:calc(12px*var(--fz))}
+}
 /* ── PAPAN LEMBUR di beranda operator (desktop & HP memakai markup sama) ── */
 .ot-papan{margin-bottom:16px}
 .ot-papan-h{display:flex;align-items:flex-start;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:12px}
@@ -7847,16 +7903,9 @@ function openDrawer(no){
     </div>
     ${soDocBtnHTML(s)}
     <div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>
-    <div class="muted small" style="margin-bottom:12px">${SO_GROUPS.length} checkpoint besar · ${LIFECYCLE.length} perjalanan kecil di antaranya — sama dengan status bar di daftar SO</div>
+    <div class="muted small" style="margin-bottom:12px">5 checkpoint · sub-langkah di antaranya bergerak mengikuti proses yang berjalan</div>
     ${soGroupBarHTML(s,gst)}
-    ${jtHTML(SO_GROUPS.map((G,gi)=>({
-      name:G.n, state:gst[gi], meta:"status bar: "+G.bar,
-      steps:steps.map((st,i)=>({st,i})).filter(x=>x.st.g===gi).map(({st,i})=>{
-        const tv=st.tk==='invIn'?(s.invRecvDate||''):(st.tk&&s.ts?s.ts[st.tk]:'');
-        return {num:i+1, t:esc(st.t), gate:st.gate, cls:st.cls, sub:st.sub?esc(st.sub):null,
-                ts:((st.cls==='done'||st.cls==='rejected')&&tv)?tv:null};
-      })
-    })))}
+    ${soJourneyHTML(s)}
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
@@ -7878,6 +7927,82 @@ function jtHTML(groups){
      '<div class="jt-cb"><div class="jt-cn">'+G.name+'</div>'+(G.meta?'<div class="jt-cm">'+G.meta+'</div>':'')+'</div>'+
      '<span class="jt-cs">'+(G.state==='done'?'✓ tercapai':G.state==='active'?'● menuju':G.state==='rejected'?'⛔ ditolak':'checkpoint '+(gi+1))+'</span></div>';
  }).join('')+'</div>';
+}
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  LIFECYCLE JOURNEY SO — susunan checkpoint & sub-point (Sudana 31 Jul)   ║
+   ║   1 SO Submitted → Approval Section · Budget · PIC Procurement · Dept    ║
+   ║   2 Approve      → Sourcing · UPR · SPK                                  ║
+   ║   3 Delivered · 4 BAST · 5 Invoicing                                     ║
+   ║  Bulatan checkpoint yang TERLEWATI terisi penuh BIRU; sub-point yang     ║
+   ║  terlewati bercentang & HIJAU. Garis penghubung transparan, terisi       ║
+   ║  gradasi biru→hijau, dan yang sedang berjalan ber-animasi wipe turun     ║
+   ║  supaya terlihat "sekarang di mana dan sudah bergerak ke mana".          ║
+   ║  Keterangan kanan (approval / menuju / checkpoint n) DIBUANG — Sudana    ║
+   ║  menilainya tidak berguna dan hanya meramaikan.                          ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const SOJ=[
+ {n:"SO Submitted", subs:[
+   {t:"Approval Section",         k:"section"},
+   {t:"Approval Budget",          k:"budget"},
+   {t:"Approval PIC Procurement", k:"proc"},
+   {t:"Approval Dept Head",       k:"dept"}]},
+ {n:"Approve", subs:[
+   {t:"Sourcing", k:"sourcing"},
+   {t:"UPR",      k:"upr"},
+   {t:"SPK",      k:"spk"}]},
+ {n:"Delivered", subs:[]},
+ {n:"BAST",      subs:[]},
+ {n:"Invoicing", subs:[]}
+];
+/* keadaan satu sub-point: done · rejected · active · pending */
+function sojSub(s,k){
+ var A=function(v){ return v==="Approved"||v==="Escalated"; };
+ var w=+s.wstep||0;
+ if(k==="section") return s.apprSection==="Rejected"?"rejected":(s.apprSection==="Approved"?"done":"active");
+ if(k==="budget")  return s.apprSection!=="Approved"?"pending":(A(s.apprBudget)?"done":"active");
+ if(k==="proc")    return !A(s.apprBudget)?"pending":(s.apprProc==="Approved"?"done":"active");
+ if(k==="dept")    return s.apprDept==="Rejected"?"rejected":
+                          (s.apprDept==="Approved"?"done":(s.apprProc==="Approved"||s.escalated?"active":"pending"));
+ if(k==="sourcing")return s.apprDept!=="Approved"?"pending":(w>=1?"done":"active");
+ if(k==="upr")     return w<1?"pending":(w>=2?"done":"active");
+ if(k==="spk")     return w<2?"pending":(w>=3?"done":"active");
+ return "pending";
+}
+/* keadaan checkpoint besar */
+function sojCp(s,i){
+ var w=+s.wstep||0, tolak=soDitolak(s);
+ if(i===0) return tolak?"rejected":(s.apprDept==="Approved"?"done":"active");
+ if(i===1) return s.apprDept!=="Approved"?"pending":(w>=3?"done":"active");
+ if(i===2) return w<3?"pending":(w>=4?"done":"active");           // Delivered
+ if(i===3) return w<4?"pending":"done";                           // BAST
+ return !s.invReceived?(w>=4?"active":"pending"):(s.invReleased?"done":"active");  // Invoicing
+}
+function sojIcon(st,teks){
+ if(st==="done")     return "✓";
+ if(st==="rejected") return "✕";
+ return teks||"";
+}
+function soJourneyHTML(s){
+ var baris=SOJ.map(function(G,gi){
+   var cs=sojCp(s,gi);
+   var kepala='<div class="soj-cp '+cs+'">'+
+     '<span class="soj-bul">'+sojIcon(cs,String(gi+1))+'</span>'+
+     '<div class="soj-cpt">'+esc(G.n)+'</div></div>';
+   var anak=(G.subs||[]).map(function(sb){
+     var ss=sojSub(s,sb.k);
+     var tv=(s.ts&&s.ts[sb.k])||"";
+     return '<div class="soj-sub '+ss+'">'+
+       '<span class="soj-line '+ss+'"></span>'+
+       '<span class="soj-dot">'+sojIcon(ss,"")+'</span>'+
+       '<div class="soj-subt">'+esc(sb.t)+
+         (tv&&(ss==="done"||ss==="rejected")?'<i>🕐 '+esc(tv)+'</i>':'')+'</div></div>';
+   }).join("");
+   /* garis dari checkpoint ini menuju checkpoint berikutnya */
+   var sambung=(gi<SOJ.length-1)?'<div class="soj-gap"><span class="soj-line '+
+     (sojCp(s,gi+1)==="pending"?(cs==="done"?"active":"pending"):"done")+'"></span></div>':"";
+   return kepala+anak+sambung;
+ }).join("");
+ return '<div class="soj">'+baris+'</div>';
 }
 /* Bar 5 tahap di kepala Journey — bentuk besar dari pip yang sama di baris SO */
 function soGroupBarHTML(s,gst){
@@ -15731,7 +15856,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-158";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-159";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
