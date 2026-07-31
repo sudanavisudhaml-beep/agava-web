@@ -2878,20 +2878,20 @@ body.rg-open{overflow:hidden}
    ║  kali untuk SEMUA penanda lipat (KPI Key, KPI Standard, separator hari,  ║
    ║  KPI Tahunan, kepala section) supaya seragam di seluruh AGAVA.           ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
-/* Gaya FINAL pilihan Sudana (31 Jul, revisi ke-3): glyph ⌄ polos MENYATU
-   langsung di belakang teksnya — TANPA bingkai, tanpa kotak, tanpa latar.
-   Versi berbingkai (kotak/lingkaran) dua-duanya ditolak karena merusak
-   tata letak baris KPI. Tetap terlihat karena glyph-nya besar & gelap.
-   JANGAN diberi frame lagi tanpa arahan Sudana. */
+/* Gaya FINAL pilihan Sudana (31 Jul, revisi ke-4): SEGITIGA ▾ polos MENYATU
+   langsung di belakang teksnya — TANPA bingkai, tanpa kotak, tanpa latar,
+   dan cukup BESAR (glyph segitiga tampil lebih kecil daripada chevron pada
+   font-size yang sama, maka dipatok 19px). Versi berbingkai ditolak karena
+   merusak tata letak. JANGAN diubah lagi tanpa arahan Sudana. */
 .pi-chev,.pik-chev,.hr-chev,.kpy-chev,.sec-h .chev{
   display:inline-block;border:0;background:transparent;box-shadow:none;
-  color:#0f172a;font-size:calc(16px*var(--fz));font-weight:700;line-height:1;
-  margin-left:2px;cursor:pointer;user-select:none;vertical-align:-2px;
+  color:#0f172a;font-size:calc(19px*var(--fz));font-weight:700;line-height:1;
+  margin-left:3px;cursor:pointer;user-select:none;vertical-align:-2px;
   transition:transform .2s,color .15s}
 .pi-chev:hover,.pik-chev:hover,.hr-chev:hover,.kpy-chev:hover,.sec-h .chev:hover,
 .pi-name:hover .pi-chev,.hr-sep:hover .hr-chev,.sec-h:hover .chev{color:var(--blue)}
 .sec-h .chev{margin-left:auto}
-@media(max-width:760px){.pi-chev,.pik-chev,.hr-chev,.kpy-chev,.sec-h .chev{font-size:calc(18px*var(--fz))}}
+@media(max-width:760px){.pi-chev,.pik-chev,.hr-chev,.kpy-chev,.sec-h .chev{font-size:calc(21px*var(--fz))}}
 /* arah putaran tiap keadaan — ditulis ulang di sini agar menang atas aturan lama */
 .pi-row.open .pi-chev,.pik-chev.open,.kpy-row.open .kpy-chev{transform:rotate(180deg)}
 .pik-chev.open{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
@@ -5369,7 +5369,7 @@ function codecPerfIndicatorHTML(){
      return '<button onclick="event.stopPropagation();go(\''+nv+'\')">🔗 '+esc(modLabel(nv))+' →</button>';}).join('')+'</div>';
    return '<div class="pi-row pi-std" id="pistd-'+i+'">'+
      '<div class="pi-code2">'+code+'</div>'+
-     '<div class="pi-main"><div class="pi-name" onclick="codecPiToggle('+i+')" title="klik untuk lihat dari mana angka ini dihitung">'+namaPlusChev(f.name,'<span class="pi-chev">⌄</span>')+'</div>'+
+     '<div class="pi-main"><div class="pi-name" onclick="codecPiToggle('+i+')" title="klik untuk lihat dari mana angka ini dihitung">'+namaPlusChev(f.name,'<span class="pi-chev">▾</span>')+'</div>'+
        '<div class="pi-bar"><div class="inv-bar"><div class="fill '+(f.st==='ok'?'':'flow')+'" style="width:'+Math.min(100,f.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,f.target)+'%"></div></div></div>'+
        '<div class="pi-cost">💰 <span>Cost element</span> '+(
           (GA_COST_LIVE&&cb.rp[code]>0)
@@ -5398,7 +5398,7 @@ function codecPerfIndicatorHTML(){
         dan label "📡 live CODEC" dihapus — penanda hanya muncul bila angkanya
         override manual, karena itulah satu-satunya yang perlu dibedakan. */
      '<div class="pik-kpi"><span class="pi-code" style="background:'+pc+'1a;color:'+pc+'" title="'+esc(r.from||'KPI baru / custom')+'">'+pcode+'</span>'+
-       '<div style="min-width:0;flex:1"><div class="pik-name">'+namaPlusChev(r.name,'<span class="pik-chev'+(kpiKeyDet[i]?' open':'')+'" onclick="kpiKeyDetToggle('+i+')" title="lihat/ubah detail KPI">⌄</span>')+'</div></div></div>'+
+       '<div style="min-width:0;flex:1"><div class="pik-name">'+namaPlusChev(r.name,'<span class="pik-chev'+(kpiKeyDet[i]?' open':'')+'" onclick="kpiKeyDetToggle('+i+')" title="lihat/ubah detail KPI">▾</span>')+'</div></div></div>'+
      '<div class="pik-c">'+(ed?'<input class="pik-num" type="number" min="0" max="100" step="1" value="'+r.weight+'" onchange="kpiFieldSave('+i+',\'weight\',this.value)"/>':r.weight+'%')+'</div>'+
      '<div class="pik-c">'+(ed?'<input class="pik-num" type="number" min="0" max="120" step="1" value="'+r.target+'" onchange="kpiFieldSave('+i+',\'target\',this.value)"/>':r.target+'%')+'</div>'+
      '<div class="pik-ytd">'+(ed
@@ -5742,7 +5742,7 @@ function renderKpiYear(){
        <div class="kpy-bar"><div class="inv-bar"><div class="fill ${r.st==="ok"?"":"flow"}" style="width:${w}%;background:${c}"></div></div>
          <div class="kpy-tgt" style="left:${Math.min(100,r.target)}%"></div></div>
        <div class="kpy-val"><b style="color:${c}">${r.ach}%</b><span class="muted small">skor ${r.score}</span></div>
-       <div class="kpy-chev">⌄</div>
+       <div class="kpy-chev">▾</div>
      </div>
      <div class="kpy-body">
        <div class="kpy-src">📡 Sumber angka: <b>${r.src}</b> — bukan input manual di halaman ini.</div>
@@ -6501,7 +6501,7 @@ function renderOverview(){
  // overview sections jadi accordion (klik header utk collapse/expand)
  document.querySelectorAll('#page-overview .card.sec').forEach(sec=>{
    const h=sec.querySelector('.sec-h'); if(!h||h.querySelector('.chev')) return;
-   const c=document.createElement('span'); c.className='chev'; c.textContent='⌄'; c.title='Klik untuk melipat / membuka bagian ini'; h.appendChild(c);
+   const c=document.createElement('span'); c.className='chev'; c.textContent='▾'; c.title='Klik untuk melipat / membuka bagian ini'; h.appendChild(c);
    h.style.cursor='pointer';
    h.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; sec.classList.toggle('collapsed'); });
  });
@@ -7523,7 +7523,7 @@ function hariSemua(modul,tutup){
 function hariSepHTML(modul,g,satuan,pakaiTR,kolom){
  var tutup=hariTutup(modul,g.key);
  var isi='<button class="hr-sep'+(tutup?' tutup':'')+'" onclick="event.stopPropagation();hariToggle(\''+modul+'\',\''+g.key+'\')" '+
-   'title="'+(tutup?'Buka':'Tutup')+' '+esc(g.label)+'"><span class="hr-chev">⌄</span>'+
+   'title="'+(tutup?'Buka':'Tutup')+' '+esc(g.label)+'"><span class="hr-chev">▾</span>'+
    '<b>'+esc(g.label)+'</b><span class="hr-n">'+g.rows.length+' '+satuan+'</span></button>';
  return pakaiTR ? '<tr class="bl-trsep"><td colspan="'+(kolom||6)+'">'+isi+'</td></tr>' : '<div class="bl-sep">'+isi+'</div>';
 }
@@ -15388,7 +15388,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-153";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-154";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
