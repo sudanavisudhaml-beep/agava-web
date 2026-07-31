@@ -1282,6 +1282,43 @@ html,body{overscroll-behavior-y:contain}
 .bl-chip.on b{opacity:.75}
 .bl-chip:not(.on):hover{border-color:#cdddf7;color:var(--blue)}
 /* Judul pemisah bulan — versi daftar (div) & versi tabel (tr) */
+/* ── kepala HARI yang bisa dilipat (di dalam .bl-sep / tr.bl-trsep) ── */
+.hr-sep{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;padding:0;cursor:pointer;
+  font-family:var(--ff);font-size:calc(12px*var(--fz));font-weight:800;color:var(--ink);text-align:left;letter-spacing:.01em}
+.hr-sep b{font-weight:800}
+.hr-sep .hr-chev{flex:0 0 auto;font-size:calc(11px*var(--fz));color:var(--muted);transition:transform .16s}
+.hr-sep.tutup .hr-chev{transform:rotate(-90deg)}
+.hr-sep .hr-n{margin-left:auto;font-weight:700;color:var(--muted);font-size:calc(11px*var(--fz));white-space:nowrap;
+  background:#fff;border:1px solid var(--line);border-radius:99px;padding:2px 9px}
+.hr-sep:hover b{color:var(--blue)}
+.hr-sep.tutup b{color:var(--muted)}
+.hr-bar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:10px;font-size:calc(11.5px*var(--fz));color:var(--muted)}
+.hr-bar span{font-weight:700}
+.hr-bar em{font-style:normal;font-weight:700;color:#b45309}
+.hr-bar button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;cursor:pointer;
+  font-family:var(--ff);font-size:calc(11.5px*var(--fz));font-weight:700;color:var(--muted)}
+.hr-bar button:hover{border-color:var(--blue);color:var(--blue)}
+/* ── kotak cari daftar SO & tiket ── */
+.cari-box{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:0 12px;margin-bottom:12px;max-width:520px}
+.cari-box .cari-ic{flex:0 0 auto;opacity:.55;font-size:calc(13px*var(--fz))}
+.cari-box input{flex:1;min-width:0;border:0;outline:0;background:transparent;padding:10px 0;
+  font-family:var(--ff);font-size:calc(13px*var(--fz));color:var(--ink)}
+.cari-box input::-webkit-search-cancel-button{display:none}
+.cari-box .cari-x{flex:0 0 auto;border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:calc(13px*var(--fz));padding:4px}
+.cari-box:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+@media(max-width:760px){.cari-box{max-width:none}}
+/* ── kolom isian yang dinaikkan jadi banyak-baris (Shift+Enter) ── */
+textarea.ta-tumbuh{white-space:pre-wrap;overflow-wrap:anywhere;resize:vertical;line-height:1.5;min-height:64px}
+/* teks isian TIDAK boleh memanjang ke samping — batasi lebarnya supaya
+   yang diketik selalu terbaca utuh (permintaan Sudana 31 Jul 2026) */
+.db .field input,.db .field textarea,.db .field select{max-width:100%;box-sizing:border-box}
+.enter-hint{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:1400;
+  background:#0f172a;color:#fff;border-radius:12px;padding:11px 17px;max-width:min(92vw,460px);
+  font-size:calc(12.5px*var(--fz));font-weight:600;box-shadow:0 12px 34px rgba(15,23,42,.34);
+  opacity:1;transition:opacity .4s}
+.enter-hint b{font-weight:800}
+.enter-hint.pergi{opacity:0}
 .bl-sep{position:sticky;top:0;z-index:1;padding:8px 16px;background:#f2f6fb;border-bottom:1px solid var(--line);
   font-size:calc(11.5px*var(--fz));font-weight:800;color:var(--ink);letter-spacing:.03em;text-transform:uppercase}
 .bl-sep span{font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
@@ -7257,8 +7294,107 @@ function bulanStripHTML(grup,sel,fn){
 }
 function bulanSepText(g,satuan){ return bulanLabel(g.key)+' <span>· '+g.rows.length+' '+satuan+'</span>'; }
 
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SEPARATOR PER HARI — lipat / buka per tanggal                           ║
+   ║  Permintaan Sudana 31 Jul 2026: SO & tiket makin banyak; per bulan saja  ║
+   ║  masih terlalu panjang. Tiap hari kini punya kepala sendiri yang bisa    ║
+   ║  ditutup/dibuka, plus tombol tutup-semua untuk melihat hanya tanggalnya. ║
+   ║  Keadaan lipat disimpan di perangkat supaya tidak balik terbuka setiap   ║
+   ║  render (daftar ini dirender ulang tiap ada tiket/SO masuk).             ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const HARI_ID=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+function hariKey(r){
+ var ms=goLiveMs(r);
+ if(ms>0){ var d=new Date(ms); return d.getFullYear()+"-"+('0'+(d.getMonth()+1)).slice(-2)+"-"+('0'+d.getDate()).slice(-2); }
+ return bulanKey(r)+"-00";                     // tanggal tidak diketahui → satu kantong per bulan
+}
+function hariLabel(k){
+ var p=String(k).split("-");
+ if(p.length<3||p[2]==="00"||p[0]==="0000") return "Tanpa tanggal";
+ var d=new Date(+p[0],+p[1]-1,+p[2]);
+ return HARI_ID[d.getDay()]+", "+(+p[2])+" "+BULAN_ID[+p[1]-1]+" "+p[0];
+}
+function kelompokHari(arr){
+ var peta={},urut=[];
+ (arr||[]).forEach(function(r){
+   var k=hariKey(r);
+   if(!peta[k]){ peta[k]={key:k,label:hariLabel(k),rows:[]}; urut.push(k); }
+   peta[k].rows.push(r);
+ });
+ urut.sort(function(a,b){ return String(b).localeCompare(String(a)); });
+ return urut.map(function(k){ return peta[k]; });
+}
+const HARI_TUTUP_STORE="agava_hari_tutup_v1";
+let HARI_TUTUP=(function(){ try{ return JSON.parse(localStorage.getItem(HARI_TUTUP_STORE))||{}; }catch(e){ return {}; } })();
+let HARI_KEYS={proc:[],svc:[]};                 // kunci hari yang sedang tampil per modul
+function hariSimpan(){ try{ localStorage.setItem(HARI_TUTUP_STORE,JSON.stringify(HARI_TUTUP)); }catch(e){} }
+function hariTutup(modul,k){ return !!HARI_TUTUP[modul+":"+k]; }
+function hariRender(modul){ if(modul==="proc"){renderProc();} else {renderService();} }
+function hariToggle(modul,k){
+ var id=modul+":"+k;
+ if(HARI_TUTUP[id]) delete HARI_TUTUP[id]; else HARI_TUTUP[id]=1;
+ hariSimpan(); hariRender(modul);
+}
+function hariSemua(modul,tutup){
+ (HARI_KEYS[modul]||[]).forEach(function(k){
+   var id=modul+":"+k; if(tutup)HARI_TUTUP[id]=1; else delete HARI_TUTUP[id];
+ });
+ hariSimpan(); hariRender(modul);
+}
+/* satu kepala hari — dipakai baris tabel (SO) maupun div (tiket) */
+function hariSepHTML(modul,g,satuan,pakaiTR,kolom){
+ var tutup=hariTutup(modul,g.key);
+ var isi='<button class="hr-sep'+(tutup?' tutup':'')+'" onclick="event.stopPropagation();hariToggle(\''+modul+'\',\''+g.key+'\')" '+
+   'title="'+(tutup?'Buka':'Tutup')+' '+esc(g.label)+'"><span class="hr-chev">▾</span>'+
+   '<b>'+esc(g.label)+'</b><span class="hr-n">'+g.rows.length+' '+satuan+'</span></button>';
+ return pakaiTR ? '<tr class="bl-trsep"><td colspan="'+(kolom||6)+'">'+isi+'</td></tr>' : '<div class="bl-sep">'+isi+'</div>';
+}
+function hariBarHTML(modul,grup){
+ if(!grup.length) return "";
+ var n=grup.filter(function(g){ return hariTutup(modul,g.key); }).length;
+ return '<div class="hr-bar"><span>'+grup.length+' hari</span>'+
+   '<button onclick="hariSemua(\''+modul+'\',true)" title="Tutup semua hari — sisakan tanggalnya saja">⊟ Tutup semua</button>'+
+   '<button onclick="hariSemua(\''+modul+'\',false)" title="Buka semua hari">⊞ Buka semua</button>'+
+   (n?'<em>'+n+' hari tertutup</em>':'')+'</div>';
+}
+/* ══ PENCARIAN daftar SO & tiket ══════════════════════════════════════════
+   Semua kata harus cocok (bukan frasa utuh) — "lampu amdi" menemukan baris
+   yang memuat keduanya di mana pun letaknya. */
+function cariCocok(teks,q){
+ q=String(q||"").trim().toLowerCase(); if(!q) return true;
+ var hay=String(teks||"").toLowerCase();
+ return q.split(/\s+/).every(function(w){ return hay.indexOf(w)>=0; });
+}
+function soCariTeks(s){ return [s.no,s.item,s.jenis,s.lokasi,s.vendor,soPemohon(s),s.staffPIC,s.pic,s.dept,soNilaiTeks(s),soStatusLabel(s).t].filter(Boolean).join(" "); }
+function tkCariTeks(t){ return [t.no,t.judul,t.detail,foNormCat(t.cat),t.lokasi,ticketReqName(t),t.pic,t.status].filter(Boolean).join(" "); }
+/* Kotak cari kehilangan fokus tiap render (innerHTML dibangun ulang), jadi
+   posisi kursor disimpan lalu dikembalikan setelah render. */
+let CARI_FOKUS=null;
+function cariBoxHTML(id,val,ph,fn){
+ return '<div class="cari-box"><span class="cari-ic">🔍</span>'+
+   '<input id="'+id+'" type="search" data-noenter value="'+esc(val||"")+'" placeholder="'+esc(ph)+'" '+
+   'oninput="'+fn+'(this.value,this)" autocomplete="off" spellcheck="false">'+
+   (val?'<button class="cari-x" onclick="'+fn+'(\'\')" title="Hapus pencarian">✕</button>':'')+'</div>';
+}
+function cariFokusSimpan(el){
+ if(!el||!el.id){ CARI_FOKUS=null; return; }
+ var pos=null; try{ pos=el.selectionStart; }catch(e){}
+ CARI_FOKUS={id:el.id,pos:pos};
+}
+function cariFokusPulih(){
+ if(!CARI_FOKUS) return;
+ var f=CARI_FOKUS; CARI_FOKUS=null;
+ var el=document.getElementById(f.id); if(!el) return;
+ try{ el.focus(); if(f.pos!=null) el.setSelectionRange(f.pos,f.pos); }catch(e){}
+}
+function cariKosongHTML(q,apa){
+ return '<b>Tidak ada '+apa+' yang cocok dengan "'+esc(q)+'"</b><br><span style="font-weight:400">Coba kata lain, atau hapus pencarian untuk melihat semuanya.</span>';
+}
+
 let procBulan=null;                                  /* null = belum dipilih → bulan terbaru */
 function procSetBulan(k){ procBulan=k; renderProc(); }
+let procCari="";
+function procSetCari(v,el){ procCari=v||""; cariFokusSimpan(el); renderProc(); cariFokusPulih(); }
 
 /* ── SIAPA MELIHAT SO SIAPA ────────────────────────────────────────────────
    Karyawan yang diberi modul Procurement semata-mata supaya BISA MENGAJUKAN
@@ -7332,10 +7468,16 @@ function renderProc(){
  });
  const nMacet=base.filter(macet).length;
  const perluRevisi=base.filter(s=>soDitolak(s)&&!s.batal&&soBolehRevisi(s)).length;
+ /* Pencarian dulu, baru dipilah — supaya strip bulan menghitung hasil cari. */
+ const qP=procCari.trim();
+ const listQ=qP?list.filter(s=>cariCocok(soCariTeks(s),qP)):list;
  /* Dipilah per bulan agar tidak ada gulungan ratusan baris. */
- const grup=kelompokBulan(list);
+ const grup=kelompokBulan(listQ);
  const selB=bulanTerpilih(grup,procBulan);
  const tampil=selB?grup.filter(g=>g.key===selB):grup;
+ /* …lalu per HARI di dalam bulan yang tampil, tiap hari bisa dilipat */
+ const hariP=kelompokHari([].concat.apply([],tampil.map(g=>g.rows)));
+ HARI_KEYS.proc=hariP.map(g=>g.key);
  el.innerHTML=`
  <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px">${soImportBoleh()?'<button class="btn-out" onclick="soImportPanel()" title="Tempelkan foto / dokumen PDF ke SO yang sudah ada">📎 Impor Lampiran</button>':''}${viewerOnly()?'':'<button class="btn-act" onclick="go(\'createso\')">+ Create SO</button>'}</div>
  <div class="funnel">
@@ -7357,12 +7499,14 @@ function renderProc(){
    Buka SO-nya di tab <b>⛔ Ditolak &amp; Batal</b>, lalu pilih: <b>Revisi &amp; Kirim Ulang</b> (nomor tetap sama, tidak perlu membuat SO baru) ·
    <b>Batalkan</b> bila kebutuhannya gugur · <b>Hapus</b> bila SO-nya keliru dan Anda ingin membuat yang baru dari awal.</div>`:''}
 
+ ${cariBoxHTML("procCariBox",procCari,"Cari SO — nomor, item, vendor, lokasi, pemohon…","procSetCari")}
  ${bulanStripHTML(grup,selB,"procSetBulan")}
+ ${hariBarHTML("proc",hariP)}
  <div class="card" style="overflow-x:auto">
    <table><thead><tr>
      <th>Item</th><th>PIC</th><th>Value</th><th>Approver</th><th>Stage</th><th>Status</th>
    </tr></thead><tbody>
-   ${tampil.map(G=>`<tr class="bl-trsep"><td colspan="6">${bulanSepText(G,"SO")}</td></tr>`+G.rows.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;return `<tr onclick="openDrawer('${s.no}')">
+   ${hariP.map(G=>hariSepHTML("proc",G,"SO",true,6)+(hariTutup("proc",G.key)?"":G.rows.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;return `<tr onclick="openDrawer('${s.no}')">
      <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0"><div class="so-no-sm">${s.no}${s.rev?`<span class="so-rev-badge">REV.${s.rev}</span>`:''}</div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span><span style="color:#9aa7b8">🕒 dibuat ${recCreatedLabel(s)}</span>
         ${soMiniPips(s)}
         <button class="so-pdf so-pdf-item" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button></div></div></td>
@@ -7371,7 +7515,7 @@ function renderProc(){
      <td><span class="badge bd-neu">${tier(s)}</span></td>
      <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span>${soBolehRevisi(s)?`<button class="so-pdf so-rev" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama">✏️ Revisi</button>`:''}</div></td>
      <td><div class="so-status-cell">${agingBadge(s.aging)}${soBolehHapus(s)?`<button class="so-pdf so-del" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini — wewenang Owner" aria-label="Hapus SO">🗑</button>`:''}</div></td>
-   </tr>`}).join("")).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'}</td></tr>`}
+   </tr>`}).join(""))).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${qP?cariKosongHTML(qP,'SO'):(SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.')}</td></tr>`}
    </tbody></table>
  </div>
  <div style="display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap">
@@ -7955,6 +8099,8 @@ function renderErsus(){
 let svcFilter="all";
 let svcBulan=null;                                   /* null = belum dipilih → bulan terbaru */
 function svcSetBulan(k){ svcBulan=k; renderService(); }
+let svcCari="";
+function svcSetCari(v,el){ svcCari=v||""; cariFokusSimpan(el); renderService(); cariFokusPulih(); }
 const TSTAGES=["Submitted","Assigned","In Progress","Resolved"];
 function svcPip(s){ return s==="Resolved"?"#15a34a":s==="In Progress"?"#2563eb":s==="Assigned"?"#c2740a":"#9aa7b8"; }
 function svcBadge(s){ const m={"Submitted":"bd-neu","Assigned":"bd-warn","In Progress":"bd-info","Resolved":"bd-ok"}; return `<span class="badge ${m[s]||'bd-neu'}">${s}</span>`; }
@@ -10397,11 +10543,16 @@ function renderService(){
  const sup=isSuper()||gRole==="fieldops";
  const base=visibleTickets();   // hanya admin & Dept Head lihat semua; sisanya tiket sendiri
  const total=base.length, ongoing=base.filter(t=>t.status!=="Resolved").length, resolved=base.filter(t=>t.status==="Resolved").length, esc=base.filter(t=>t.esc&&t.status!=="Resolved").length;
- const list=base.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?(t.esc&&t.status!=="Resolved"): svcFilter==="resolved"?t.status==="Resolved":true);
+ const listF=base.filter(t=> svcFilter==="all"?true: svcFilter==="open"?t.status!=="Resolved": svcFilter==="esc"?(t.esc&&t.status!=="Resolved"): svcFilter==="resolved"?t.status==="Resolved":true);
+ const qS=svcCari.trim();
+ const list=qS?listF.filter(t=>cariCocok(tkCariTeks(t),qS)):listF;
  /* Dipilah per bulan — tiket menumpuk jauh lebih cepat daripada SO. */
  const grup=kelompokBulan(list);
  const selB=bulanTerpilih(grup,svcBulan);
  const tampil=selB?grup.filter(g=>g.key===selB):grup;
+ /* …lalu per HARI, tiap hari bisa dilipat sendiri */
+ const hariS=kelompokHari([].concat.apply([],tampil.map(g=>g.rows)));
+ HARI_KEYS.svc=hariS.map(g=>g.key);
  const pills=[["all","All",total],["open","Ongoing",ongoing],["esc","Escalated",esc],["resolved","Resolved",resolved]];
  /* Antrean eskalasi ikut turun ke Services untuk akun yang TIDAK punya modul
     Approvals — Staff GA (Dedi/Susi) sengaja hanya berbekal Service & Procurement,
@@ -10449,9 +10600,11 @@ function renderService(){
     </div>
     <div style="padding:16px 16px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${pills.map(p=>`<div class="ptab ${svcFilter===p[0]?'on':''}" onclick="svcFilter='${p[0]}';renderService()">${p[1]} <b style="opacity:.7">${p[2]}</b></div>`).join("")}
       <button class="btn-out" style="margin-left:auto;padding:6px 11px;font-size:calc(12px*var(--fz))" onclick="exportLog('ticket')" title="Unduh log tiket (CSV/Excel)">⬇ CSV</button></div>
+    <div style="padding:0 16px 12px">${cariBoxHTML("svcCariBox",svcCari,"Cari tiket — nomor, judul, kategori, lokasi, pemohon, PIC…","svcSetCari")}</div>
     ${grup.length>1?`<div style="padding:0 16px 12px">${bulanStripHTML(grup,selB,"svcSetBulan")}</div>`:''}
+    ${hariS.length?`<div style="padding:0 16px 12px">${hariBarHTML("svc",hariS)}</div>`:''}
     <div class="svc-head"><span></span><span>Ticket</span><span style="text-align:center">Response</span><span>PIC</span><span>Status</span></div>
-    <div class="svc-list">${list.length?tampil.map(G=>`<div class="bl-sep">${bulanSepText(G,"tiket")}</div>`+G.rows.map(ticketRow).join("")).join(""):('<div class="muted small" style="padding:30px;text-align:center">'+(sup?'No tickets in this filter.':'Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.')+'</div>')}</div>
+    <div class="svc-list">${list.length?hariS.map(G=>hariSepHTML("svc",G,"tiket")+(hariTutup("svc",G.key)?"":G.rows.map(ticketRow).join(""))).join(""):('<div class="muted small" style="padding:30px;text-align:center">'+(qS?cariKosongHTML(qS,'tiket'):(sup?'No tickets in this filter.':'Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.'))+'</div>')}</div>
   </div>`;
 }
 let ticketSeq=143;
@@ -15057,7 +15210,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-147";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-148";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -16472,6 +16625,64 @@ try{ agavaCekVersi();
   document.addEventListener("visibilitychange",function(){ if(!document.hidden) agavaCekVersi(); });
 }catch(e){}
 try{ agavaTulisVersi(); }catch(e){}   // stempel versi di samping jam — terisi sejak boot
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  Shift+Enter / Alt+Enter = BARIS BARU di kolom isian                     ║
+   ║  Permintaan Sudana 31 Jul 2026: isian form yang panjang memanjang ke     ║
+   ║  samping sehingga yang diketik tidak terbaca utuh. Kolom satu-baris      ║
+   ║  (<input>) memang tidak bisa memuat baris kedua, jadi saat pengguna      ║
+   ║  menekan Shift+Enter kolomnya DINAIKKAN menjadi kotak banyak-baris —     ║
+   ║  seluruh atribut, id, dan penangan kejadiannya ikut pindah, sehingga     ║
+   ║  kode form yang membaca .value tidak perlu tahu apa-apa. Tingginya       ║
+   ║  tumbuh mengikuti isi, lebarnya dibatasi agar teksnya membungkus.        ║
+   ║  Berlaku untuk SEMUA form: SO, tiket, dan modul lain — satu penangan     ║
+   ║  di tingkat dokumen, bukan tambalan per form.                            ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const ENTER_HINT_STORE="agava_enter_hint_v1";
+function agavaTaTumbuh(ta){
+ try{ ta.style.height="auto"; ta.style.height=Math.min(ta.scrollHeight+2,260)+"px"; }catch(e){}
+}
+function agavaInputJadiTextarea(el){
+ var ta=document.createElement("textarea");
+ for(var i=0;i<el.attributes.length;i++){
+   var a=el.attributes[i];
+   if(a.name==="type"||a.name==="value") continue;      // sisanya ikut: id, class, oninput, onchange, placeholder…
+   try{ ta.setAttribute(a.name,a.value); }catch(e){}
+ }
+ ta.value=el.value;
+ ta.classList.add("ta-tumbuh");
+ ta.setAttribute("rows","2");
+ el.parentNode.replaceChild(ta,el);
+ return ta;
+}
+function agavaEnterHint(){
+ try{ if(localStorage.getItem(ENTER_HINT_STORE)) return; localStorage.setItem(ENTER_HINT_STORE,"1"); }catch(e){ return; }
+ var d=document.createElement("div"); d.className="enter-hint";
+ d.innerHTML="↵ <b>Shift+Enter</b> menambah baris baru — kolomnya melebar ke bawah, bukan ke samping.";
+ document.body.appendChild(d);
+ setTimeout(function(){ d.classList.add("pergi"); setTimeout(function(){ d.remove(); },400); },4200);
+}
+document.addEventListener("keydown",function(e){
+ if(e.key!=="Enter"||(!e.shiftKey&&!e.altKey)) return;
+ var el=e.target; if(!el) return;
+ if(el.tagName==="TEXTAREA"){ setTimeout(function(){ agavaTaTumbuh(el); },0); return; }   // sudah bisa sendiri
+ if(el.tagName!=="INPUT") return;
+ if(el.hasAttribute("data-noenter")) return;              // kotak cari & sejenisnya
+ var t=(el.getAttribute("type")||"text").toLowerCase();
+ if(["text","tel","url","email",""].indexOf(t)<0) return; // date/number/file/search tidak masuk akal
+ e.preventDefault();
+ var awal=el.selectionStart, akhir=el.selectionEnd, v=el.value;
+ if(awal==null){ awal=akhir=v.length; }
+ var ta=agavaInputJadiTextarea(el);
+ ta.value=v.slice(0,awal)+"\n"+v.slice(akhir);
+ ta.focus();
+ try{ ta.setSelectionRange(awal+1,awal+1); }catch(e2){}
+ agavaTaTumbuh(ta);
+ agavaEnterHint();
+},true);
+document.addEventListener("input",function(e){
+ var el=e.target;
+ if(el&&el.classList&&el.classList.contains("ta-tumbuh")) agavaTaTumbuh(el);
+},true);
 </script>
 </body>
 </html>
