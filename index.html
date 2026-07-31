@@ -2756,6 +2756,13 @@ body.rg-open{overflow:hidden}
 .pik-detail{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px;font-size:calc(11.5px*var(--fz));color:var(--muted)}
 .pik-det-item b{color:var(--ink);font-weight:700}
 .pik-jenis{width:100%}
+/* identitas baris KPI (mode ubah) — nama / perspektif / sumber capaian */
+.pik-idwrap{width:100%;display:grid;grid-template-columns:1.4fr 1fr 1.4fr;gap:10px;margin-bottom:10px}
+.pik-idwrap .pik-det-f select,.pik-idwrap .pik-det-f input{width:100%}
+.pik-id-nama{border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-family:var(--ff);
+  font-size:calc(12.5px*var(--fz));font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink);background:#fff}
+.pik-id-hint{grid-column:1/-1;font-size:calc(10.5px*var(--fz));font-weight:600;text-transform:none;letter-spacing:0;color:#9aa7b8}
+@media(max-width:820px){.pik-idwrap{grid-template-columns:1fr}}
 .pik-det-f{display:flex;flex-direction:column;gap:4px;font-size:calc(9.5px*var(--fz));font-weight:800;color:#7d8ca3;text-transform:uppercase;letter-spacing:.04em}
 .pik-det-f em{font-style:normal;font-weight:600;text-transform:none;letter-spacing:0;color:#aab4c2}
 .pik-det-f select{width:210px;max-width:100%;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink);background:#fff}
@@ -5219,6 +5226,30 @@ function kpiFieldSave(i,field,val){
  kpiPersist();
  var s=document.getElementById('pik-saved'); if(s){ s.style.opacity=1; setTimeout(function(){ s.style.opacity=0; },1500); }
 }
+/* ── Ubah IDENTITAS baris KPI — nama, perspektif, sumber capaian ────────────
+   Permintaan Sudana 31 Jul 2026: baris KPI harus bisa DIEDIT penuh, bukan
+   hanya ditambah. Capaian tetap ditarik live dari sumber CODEC yang dipilih;
+   ganti sumber → pick di-reset supaya ambil rata-rata sub-fungsi barunya. */
+function kpiRowSet(i,field,val){
+ if(!kpiEditOn())return;
+ var k=KPI_CLA[i]; if(!k)return;
+ if(field==="name"){
+   val=(val||"").trim();
+   if(!val){ alert("Nama KPI tidak boleh kosong."); renderOverview(); return; }
+   k.name=val;
+ }
+ else if(field==="persp"){ k.persp=val||k.persp; }
+ else if(field==="from"){
+   k.from=val||"";
+   k.pick="";                          // sumber baru → rata-rata sub-fungsi itu
+   delete k.manual;                    // tersambung sumber → bukan manual lagi
+   k.nav=val?((codecSubFnData().find(function(f){return f.name===val;})||{}).nav||"overview"):"overview";
+ }
+ else return;
+ kpiPersist();
+ var s=document.getElementById('pik-saved'); if(s){ s.style.opacity=1; setTimeout(function(){ s.style.opacity=0; },1500); }
+ renderOverview();
+}
 /* ── Detail KPI = daftar SUB-KPI (input manual di Page Ubah). Total KPI dihitung
    otomatis = rata-rata % pencapaian sub-KPI yang terisi. ── */
 let kpiKeyDet={};
@@ -5238,7 +5269,18 @@ function kpiDetailHTML(r,i,ed){
    return filled.map(function(s){ return '<span class="pik-det-item">'+esc(s.n||'(sub KPI)')+': <b>'+(s.v==null?'—':s.v+'%')+'</b></span>'; }).join('')+
      '<span class="pik-det-item pik-det-tot">Total Pencapaian KPI: <b>'+(tot==null?'—':tot+'%')+'</b></span>';
  }
- var kt=(KPI_CLA[i]&&KPI_CLA[i].type)||"";
+ var k=KPI_CLA[i]||{};
+ /* identitas baris — nama / perspektif / sumber bisa diubah, bukan cuma ditambah */
+ var identitas='<div class="pik-idwrap">'+
+   '<label class="pik-det-f">Nama KPI<input class="pik-id-nama" value="'+esc(k.name||'')+'" onchange="kpiRowSet('+i+',\'name\',this.value)"></label>'+
+   '<label class="pik-det-f">Perspektif<select onchange="kpiRowSet('+i+',\'persp\',this.value)">'+
+     Object.keys(KPI_PERSP).map(function(p){return '<option'+(k.persp===p?' selected':'')+'>'+esc(p)+'</option>';}).join('')+'</select></label>'+
+   '<label class="pik-det-f">Sumber capaian<select onchange="kpiRowSet('+i+',\'from\',this.value)">'+
+     '<option value="">— Manual / Custom —</option>'+
+     codecSubFnData().map(function(f){return '<option'+(k.from===f.name?' selected':'')+'>'+esc(f.name)+'</option>';}).join('')+'</select></label>'+
+   '<div class="pik-id-hint">Capaian tetap ditarik live dari sumber yang dipilih; ganti nama tidak mengubah angkanya.</div>'+
+ '</div>';
+ var kt=k.type||"";
  var jenis='<div class="pik-jenis"><label class="pik-det-f">Jenis KPI <em>(agar % presisi routine / non-routine)</em>'+
    '<select onchange="kpiSetType('+i+',this.value)">'+[['','otomatis'],['routine','Routine'],['nonroutine','Non-Routine']].map(function(t){return '<option value="'+t[0]+'"'+(kt===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></label></div>';
  kpiSubEnsure(i); subs=KPI_CLA[i].subs;
@@ -5248,7 +5290,7 @@ function kpiDetailHTML(r,i,ed){
      '<button class="pik-sub-x" onclick="kpiSubDel('+i+','+j+')" title="hapus baris">✕</button></div>';
  }).join('');
  var tot=kpiSubTotal(subs);
- return jenis+'<div class="pik-subwrap"><div class="pik-sub-head"><span>Sub KPI</span><span>% Pencapaian</span><span></span></div>'+rows+
+ return identitas+jenis+'<div class="pik-subwrap"><div class="pik-sub-head"><span>Sub KPI</span><span>% Pencapaian</span><span></span></div>'+rows+
    '<div class="pik-sub-foot"><button class="btn-out pik-sub-add" onclick="kpiSubAdd('+i+')">+ Tambah sub KPI</button>'+
    '<span class="pik-sub-total">Total Pencapaian KPI: <b>'+(tot==null?'—':tot+'%')+'</b></span></div></div>';
 }
@@ -14896,7 +14938,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-144";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-145";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
