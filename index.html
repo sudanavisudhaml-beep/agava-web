@@ -4441,15 +4441,49 @@ function pjPushToFrame(){
    if(typeof w.agavaProjectsFromCloud==="function") w.agavaProjectsFromCloud(PJ_CLOUD);
  }catch(e){ console.warn("kirim proyek ke frame:",e&&e.message); }
 }
+/* Dipanggil DARI iframe Project Development: unggah foto progres ke Storage,
+   kembalikan URL-nya. Dokumen agava_config/projects dibatasi 1 MB Firestore,
+   jadi foto TIDAK BOLEH tinggal sebagai data URL di dalamnya — itulah bug
+   "foto Stevano hilang saat scroll" (31 Jul): set() ditolak diam-diam, lalu
+   versi cloud tanpa-foto menimpa balik layar pengunggahnya. */
+async function pjUploadFoto(dataUrl,pid,phid){
+ try{
+   if(AGDB.ro) return "";                                        // localhost/file:// → jangan sentuh cloud
+   var st=agavaStorage(); if(!st) return "";
+   var ref=st.ref("projects/"+String(pid||"tanpa-id").replace(/[^A-Za-z0-9_-]/g,"")+"/"+String(phid||"foto").replace(/[^A-Za-z0-9_-]/g,"")+"-"+Date.now()+".jpg");
+   var snap=await ref.putString(dataUrl,"data_url");
+   return await snap.ref.getDownloadURL();
+ }catch(e){ console.warn("unggah foto proyek:",(e&&e.code)||(e&&e.message)); return ""; }
+}
+window.pjUploadFoto=pjUploadFoto;
 /* dipanggil DARI dalam iframe setiap kali penggunanya menyimpan perubahan */
 function pjCloudSave(list){
  try{
    if(!Array.isArray(list))return;
    PJ_CLOUD=list;
    if(AGDB.ro||!AGDB.on||!AGDB.db)return;                       // uji coba / offline → cukup lokal
-   AGDB.pjEcho=JSON.stringify(list);
+   var j=JSON.stringify(list);
+   /* PAGAR 1 MB — dan yang terpenting: TIDAK PERNAH GAGAL DIAM-DIAM.
+      Bila masih ada foto data URL yang membuat muatan >900 KB (Storage
+      gagal / offline), foto itu dilepas dari DOKUMEN BERSAMA (tetap utuh di
+      perangkat pengunggah) dan penggunanya diberi tahu — bukan set() ditolak
+      senyap lalu foto raib seperti sebelumnya. */
+   if(j.length>900000){
+     var dibuang=0;
+     list=JSON.parse(j);
+     list.forEach(function(p){ (p.photos||[]).forEach(function(ph){
+       if(ph&&typeof ph.src==="string"&&ph.src.indexOf("data:")===0){ ph.src=""; ph.gagalUnggah=true; dibuang++; }
+     }); });
+     j=JSON.stringify(list);
+     PJ_CLOUD=list;
+     if(dibuang){
+       try{ alert("⚠️ "+dibuang+" foto proyek belum bisa naik ke Storage dan dilepas dari dokumen bersama.\nFotonya masih ada di perangkat pengunggah — coba unggah ulang saat koneksi normal."); }catch(e){}
+       try{ auditLog("project-foto-dilepas", dibuang+" foto data-url dilepas dari dokumen (pagar 1 MB)"); }catch(e){}
+     }
+   }
+   AGDB.pjEcho=j;
    AGDB.db.collection("agava_config").doc("projects").set({
-     list:JSON.stringify(list), n:list.length,
+     list:j, n:list.length,
      by:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"", up:new Date().toISOString()
    },{merge:true}).catch(function(e){ console.warn("simpan proyek:",e&&e.code); });
    try{ auditLog("project-update", list.length+" proyek · "+list.map(function(p){return p.name;}).join(" · ").slice(0,160)); }catch(e){}
@@ -14862,7 +14896,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-143";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-144";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║

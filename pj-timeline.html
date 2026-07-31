@@ -2583,8 +2583,13 @@ function renderPhotos(p) {
   p.photos.forEach(ph => {
     const card = document.createElement("div");
     card.className = "photo-card";
+    /* src kosong = foto dilepas pagar 1 MB sebelum terunggah — katakan apa
+       adanya, jangan render ikon gambar rusak */
+    const gambar = ph.src
+      ? `<img src="${ph.src}" alt="${escapeHtml(ph.caption || "")}">`
+      : `<div style="width:100%;height:100%;display:grid;place-items:center;background:#eef2f7;color:#8a97a8;font-size:11px;text-align:center;padding:8px">⚠️ foto belum terunggah<br>dari perangkat pengunggah</div>`;
     card.innerHTML = `
-      <img src="${ph.src}" alt="${escapeHtml(ph.caption || "")}">
+      ${gambar}
       <button class="p-del" data-photo-id="${ph.id}" title="Hapus foto">×</button>
       <div class="p-meta">
         <div class="p-caption">${escapeHtml(ph.caption || "Foto tanpa keterangan")}</div>
@@ -2593,6 +2598,7 @@ function renderPhotos(p) {
     `;
     card.addEventListener("click", (e) => {
       if (e.target.classList.contains("p-del")) return;
+      if (!ph.src) return;   // placeholder — tidak ada yang bisa diperbesar
       openLightbox(ph);
     });
     card.querySelector(".p-del").addEventListener("click", (e) => {
@@ -3069,34 +3075,58 @@ function saveProject() {
 
 /* ═════════════════════════════════════════════════════
    PHOTO UPLOAD
+   ── BUG 31 Jul 2026 (dites di akun Stevano): foto dulu disimpan sebagai
+   data URL MENTAH (foto HP = 3–10 MB) di dalam dokumen bersama
+   agava_config/projects, padahal dokumen Firestore dibatasi 1 MB. Tulisan
+   ke cloud ditolak DIAM-DIAM → di layar pengunggah foto tampak masuk, ke
+   pengguna lain tidak pernah sampai, lalu versi cloud tanpa-foto menimpa
+   balik saat snapshot/refresh — "fotonya hilang saat scroll".
+   Sekarang: foto DIKECILKAN dulu (maks 1000px JPEG), lalu DIUNGGAH ke
+   Firebase Storage lewat AGAVA induk; dokumen hanya menyimpan tautan.
    ═════════════════════════════════════════════════════ */
-function handlePhotoUpload(files) {
+function pjKecilkanFoto(file, maxPx, q) {
+  return new Promise(function(res){
+    const rd = new FileReader();
+    rd.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        const w = img.width, h = img.height, m = Math.max(w, h), sk = m > maxPx ? maxPx / m : 1;
+        const c = document.createElement("canvas");
+        c.width = Math.round(w * sk); c.height = Math.round(h * sk);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        try { res(c.toDataURL("image/jpeg", q || 0.8)); } catch(err){ res(e.target.result); }
+      };
+      img.onerror = function(){ res(e.target.result); };
+      img.src = e.target.result;
+    };
+    rd.readAsDataURL(file);
+  });
+}
+async function handlePhotoUpload(files) {
   const p = state.projects.find(x => x.id === state.currentProjectId);
   if (!p) return;
-  const list = Array.from(files);
+  const list = Array.from(files).filter(f => f.type.startsWith("image/"));
   if (!list.length) return;
 
-  let processed = 0;
   const today = new Date().toISOString().slice(0, 10);
-  list.forEach(file => {
-    if (!file.type.startsWith("image/")) { processed++; return; }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      p.photos.push({
-        id: uid(),
-        src: e.target.result,
-        caption: file.name.replace(/\.[^.]+$/, ""),
-        date: today
-      });
-      processed++;
-      if (processed === list.length) {
-        saveProjects();
-        renderPhotos(p);
-        showToast(list.length === 1 ? "Foto ditambahkan" : list.length + " foto ditambahkan");
-      }
-    };
-    reader.readAsDataURL(file);
-  });
+  showToast(list.length === 1 ? "Mengunggah foto…" : "Mengunggah " + list.length + " foto…");
+  let gagalUnggah = 0;
+  for (const file of list) {
+    const kecil = await pjKecilkanFoto(file, 1000, 0.8);
+    const phid = uid();
+    /* unggah ke Storage lewat AGAVA induk — dokumen bersama hanya menyimpan URL */
+    let src = "";
+    try {
+      if (window.parent && window.parent !== window && typeof window.parent.pjUploadFoto === "function")
+        src = await window.parent.pjUploadFoto(kecil, p.id, phid);
+    } catch(e){ /* standalone / cross-origin */ }
+    if (!src) { src = kecil; gagalUnggah++; }   // fallback: data URL KECIL — pagar 1 MB di induk tetap menjaga
+    p.photos.push({ id: phid, src: src, caption: file.name.replace(/\.[^.]+$/, ""), date: today });
+  }
+  saveProjects();
+  renderPhotos(p);
+  showToast(list.length === 1 ? "Foto ditambahkan" : list.length + " foto ditambahkan");
+  if (gagalUnggah) showToast("⚠️ " + gagalUnggah + " foto belum naik ke Storage — tersimpan sementara di perangkat ini");
 }
 
 /* ═════════════════════════════════════════════════════
