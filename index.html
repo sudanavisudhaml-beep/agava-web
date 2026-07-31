@@ -15388,7 +15388,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-154";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-155";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -16603,10 +16603,30 @@ function paramReset(){
    ========================================================================== */
 var KA={buka:false,akun:[],sibuk:false,pesan:""};
 
-function kaFungsi(){
- if(!window.firebase||!firebase.apps.length||!firebase.functions) return null;
- try{ return firebase.app().functions("asia-southeast2"); }catch(e){ return null; }
-}
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  KENAPA TIDAK MEMAKAI SDK httpsCallable — cacat firebase-functions 10.12.2║
+   ║                                                                          ║
+   ║  Sudana tidak bisa membuka Kelola Akun: panel menampilkan                 ║
+   ║  "Registration failed - push service error". Server SEHAT (POST tanpa     ║
+   ║  login membalas 401 UNAUTHENTICATED) dan re-auth berhasil — yang gagal    ║
+   ║  adalah SDK-nya sendiri, sebelum permintaan dikirim.                      ║
+   ║                                                                          ║
+   ║  Di firebase-functions-compat 10.12.2:                                    ║
+   ║    async getMessagingToken(){ if(this.messaging && ...granted...)          ║
+   ║      try{ return this.messaging.getToken() }catch(e){ return } }           ║
+   ║  `return` TANPA `await` → try/catch itu tidak pernah menangkap penolakan  ║
+   ║  getToken(). Jadi begitu jaringan kantor memblokir layanan push Google,   ║
+   ║  galat Push API lolos keluar dan MENJATUHKAN seluruh pemanggilan callable ║
+   ║  — padahal token FCM sama sekali tidak diperlukan Kelola Akun.            ║
+   ║  Syarat pemicunya persis keadaan Sudana: messaging-compat termuat +       ║
+   ║  izin Notifikasi "granted" + push diblokir jaringan.                      ║
+   ║                                                                          ║
+   ║  Maka kita panggil endpoint-nya LANGSUNG dengan fetch memakai protokol    ║
+   ║  callable (body {data}, balasan {result}|{error}). Header yang dipakai    ║
+   ║  sudah diverifikasi lolos preflight CORS: authorization, content-type,    ║
+   ║  x-firebase-appcheck. Tidak ada lagi jalur yang menyentuh FCM.            ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const KA_ENDPOINT="https://asia-southeast2-agava-astra.cloudfunctions.net/kelolaAkun";
 /* Menerjemahkan kegagalan teknis jadi kalimat yang bisa ditindaklanjuti. */
 function kaSalah(e){
  var c=String((e&&e.code)||"").replace("functions/","");
@@ -16631,10 +16651,31 @@ function kaSalah(e){
     lagi jadi teka-teki yang harus ditebak dari tangkapan layar */
  return (m||"Terjadi kesalahan yang tidak dikenal.")+(c?" [kode: "+c+"]":"");
 }
-function kaPanggil(payload){
- var f=kaFungsi();
- if(!f) return Promise.reject({message:"SDK Functions belum termuat — muat ulang halaman."});
- return f.httpsCallable("kelolaAkun")(payload).then(function(r){ return r.data||{}; });
+async function kaPanggil(payload){
+ var u=(window.firebase&&firebase.auth&&firebase.auth().currentUser)||null;
+ if(!u) throw {code:"unauthenticated",message:"Sesi Firebase Auth tidak ditemukan."};
+ var h={"Content-Type":"application/json"};
+ h["Authorization"]="Bearer "+(await u.getIdToken());
+ /* App Check ditegakkan di server. Kalau tokennya gagal diambil, JANGAN
+    jatuhkan panggilan di sini — kirim apa adanya dan biarkan SERVER yang
+    memutuskan, supaya pesannya jelas ("Ditolak App Check") bukan galat
+    setengah jalan yang membingungkan. */
+ try{
+   if(window.firebase&&firebase.appCheck){
+     var t=await firebase.appCheck().getToken();
+     if(t&&t.token) h["X-Firebase-AppCheck"]=t.token;
+   }
+ }catch(e){ console.warn("App Check token:",(e&&e.message)||e); }
+ var res,j=null;
+ try{ res=await fetch(KA_ENDPOINT,{method:"POST",headers:h,body:JSON.stringify({data:payload})}); }
+ catch(e){ throw {code:"unavailable",message:"Server kelola akun tidak dapat dihubungi dari jaringan ini."}; }
+ try{ j=await res.json(); }catch(e){}
+ if(!res.ok||!j||j.error){
+   var er=(j&&j.error)||{};
+   throw { code:String(er.status||"").toLowerCase().replace(/_/g,"-")||("http-"+res.status),
+           message:er.message||("Server membalas HTTP "+res.status) };
+ }
+ return j.result||{};
 }
 
 /* Membuka kunci: Firebase yang memverifikasi password, bukan kode ini. */
