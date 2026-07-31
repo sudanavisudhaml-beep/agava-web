@@ -2130,6 +2130,7 @@ body.rg-open{overflow:hidden}
    MOBILE SHELL — top bar neon · beranda · bottom bar. Desktop tidak tersentuh.
    ══════════════════════════════════════════════════════════════════════════ */
 .mtop,.mbot,.mswipe-hint{display:none}
+.mtop-ver{display:none}
 @media(max-width:820px){
   /* ── UKURAN HURUF APLIKASI MOBILE ──
      Satu tuas untuk seluruh teks mobile. Yang dikalikan HANYA font-size;
@@ -2168,6 +2169,10 @@ body.rg-open{overflow:hidden}
     background:var(--m-bg)}
   .mtop-glow,.mtop-grid{display:none}
   .mtop-in{position:relative;z-index:1}
+  /* stempel versi build di bar atas HP — satu baris tipis di bawah tombol */
+  .mtop-ver{display:block;text-align:center;font-family:ui-monospace,monospace;
+    font-size:calc(8.5px*var(--fz));font-weight:600;color:#b6c0cc;
+    letter-spacing:.5px;margin-top:4px;line-height:1}
   .mtop-row{display:flex;align-items:center;gap:9px}
   /* tombol kembali — muncul begitu masuk modul, menampilkan nama modulnya */
   .mtop-back{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px;border-radius:14px;padding:11px 13px;
@@ -2852,7 +2857,12 @@ body.rg-open{overflow:hidden}
 .gd-topclock{display:flex;align-items:center;gap:11px}
 .gd-topclock .d{font-size:calc(12.5px*var(--fz));color:var(--muted);font-weight:600;white-space:nowrap}
 .gd-ctime2{background:linear-gradient(120deg,#1d4ed8,#3b82f6,#7c3aed,#0ea5a3,#1d4ed8);background-size:300% 100%;animation:gdFlow 7s linear infinite,gdGlow 2.4s ease-in-out infinite;color:#fff;border-radius:12px;padding:8px 17px;font-family:ui-monospace,monospace;font-size:calc(19px*var(--fz));font-weight:800;letter-spacing:2.5px;white-space:nowrap}
-@media(max-width:820px){.gd-topclock .d{display:none}.gd-ctime2{font-size:calc(14px*var(--fz));padding:6px 11px;letter-spacing:1.5px}}
+/* stempel versi build di samping jam — kecil & kalem, cukup untuk menjawab
+   "perangkat ini termuat versi berapa?" tanpa membuka console */
+.gd-ver{font-family:ui-monospace,monospace;font-size:calc(9.5px*var(--fz));font-weight:600;
+  color:#9aa7b8;background:#f2f5f9;border:1px solid var(--line);border-radius:8px;
+  padding:3px 8px;letter-spacing:.4px;white-space:nowrap;cursor:default}
+@media(max-width:820px){.gd-topclock .d{display:none}.gd-ctime2{font-size:calc(14px*var(--fz));padding:6px 11px;letter-spacing:1.5px}.gd-ver{display:none}}
 .gd-nav{background:#fff;border:1px solid var(--line);border-radius:12px;padding:2px 10px;display:flex;gap:2px;overflow-x:auto;position:sticky;top:8px;z-index:28;box-shadow:0 2px 10px rgba(15,23,42,.06)}
 .gd-nav a{padding:10px 13px;font-size:calc(12px*var(--fz));font-weight:500;color:#64748B;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer;transition:.15s}
 .gd-nav a.on{font-weight:700;color:#2563EB;border-bottom-color:#2563EB}
@@ -3428,6 +3438,8 @@ html,body{max-width:100%}
         <i class="mtop-bdg hide" id="mChatBdg">0</i>
       </button>
     </div>
+    <!-- stempel versi build — jawaban cepat untuk "perangkat ini termuat versi berapa?" -->
+    <div class="mtop-ver" id="mVer"></div>
   </div>
 </div>
 <div class="app">
@@ -3455,7 +3467,7 @@ html,body{max-width:100%}
         <div class="sub" id="pgSub">Rekap seluruh section · Thursday, 18 June 2026</div>
       </div>
       <div class="acts">
-        <div class="gd-topclock" id="gdTopClock"><span class="d" id="gdDate"></span><span class="gd-ctime2" id="gdTime"></span></div>
+        <div class="gd-topclock" id="gdTopClock"><span class="d" id="gdDate"></span><span class="gd-ctime2" id="gdTime"></span><span class="gd-ver" id="gdVer" title="Versi build AGAVA yang sedang termuat perangkat ini"></span></div>
         <div class="acts-btns">
           <button class="live-chip" id="liveChip" onclick="liveToggle()" title="Click to connect a local Excel workbook"><span class="live-dot" id="liveDot"></span><span id="liveTxt">Connect Excel</span></button>
           <button class="copilot-btn" onclick="openCopilot()" title="Ask AGAVA Copilot"><svg class="cp-mark" viewBox="0 0 24 24"><defs><linearGradient id="cpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2563eb"/><stop offset=".5" stop-color="#39a0ff"/><stop offset="1" stop-color="#7a4fd0"/></linearGradient></defs><path fill="url(#cpg)" d="M12 2l2.2 5.7L20 9.9l-5.8 2.2L12 18l-2.2-5.9L4 9.9l5.8-2.2z"/><path fill="url(#cpg)" opacity=".8" d="M19 14l.85 2.25L22 17.1l-2.15.85L19 20l-.85-2.05L16 17.1l2.15-.85z"/></svg><span class="cp-label">Ask AGAVA Copilot</span></button>
@@ -5638,6 +5650,13 @@ function startTopClock(){
    te.innerHTML=String(d.getHours()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getMinutes()).padStart(2,'0')+'<span class="gd-blink">:</span>'+String(d.getSeconds()).padStart(2,'0'); };
  const tick=()=>{ upd(); try{ mTopSync(); }catch(e){} };
  tick(); if(!window._gdClock) window._gdClock=setInterval(tick,1000);
+ try{ agavaTulisVersi(); }catch(e){}
+}
+/* stempel versi build di samping jam (desktop) & bar atas (HP) — elemennya
+   statis, cukup diisi sekali; dipanggil saat boot dan tiap startTopClock */
+function agavaTulisVersi(){
+ var a=document.getElementById('gdVer'); if(a&&!a.textContent)a.textContent=AGAVA_BUILD;
+ var b=document.getElementById('mVer'); if(b&&!b.textContent)b.textContent="AGAVA "+AGAVA_BUILD;
 }
 /* ukur tinggi top bar → CSS var --topH (untuk offset sticky gd-nav di mobile) */
 function setTopH(){ const t=document.querySelector('.top'); if(t)document.documentElement.style.setProperty('--topH',t.offsetHeight+'px'); }
@@ -14843,7 +14862,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-142";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-143";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -16257,6 +16276,7 @@ loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();selfCareLoad();ener
 try{ agavaCekVersi();
   document.addEventListener("visibilitychange",function(){ if(!document.hidden) agavaCekVersi(); });
 }catch(e){}
+try{ agavaTulisVersi(); }catch(e){}   // stempel versi di samping jam — terisi sejak boot
 </script>
 </body>
 </html>
