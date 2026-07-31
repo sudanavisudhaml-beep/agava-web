@@ -4950,16 +4950,96 @@ function codecCostTally(scope){
    '<div class="ct-src">Rumus & tarif: <button onclick="event.stopPropagation();'+(isOwner()?'go(\'params\')':'0')+'" '+(isOwner()?'':'disabled')+'>modul Parameter</button> · angka ini dihitung dari record aktual tiap modul, bukan input manual.</div>';
  el.innerHTML=h; el.classList.add('show'); el.dataset.on=key;
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  METODE PENCAPAIAN KPI ASTRA — akru bulanan, bukan rata-rata periode     ║
+   ║  Ditegakkan Sudana 31 Jul 2026 setelah CODEC menampilkan GA-01 = 87%.    ║
+   ║                                                                          ║
+   ║  Angka 87% itu keliru: ia rata-rata ABSOLUT sepanjang periode. Pencapaian ║
+   ║  tahunan tidak boleh dibaca begitu, karena target tahunan harus DIJAGA   ║
+   ║  tiap bulan sampai Desember. Aturannya:                                   ║
+   ║    1. tiap bulan dinilai sendiri → attainment = capaian ÷ target × 100    ║
+   ║    2. over-achievement DIBATASI 125% (kebijakan Astra)                    ║
+   ║    3. tiap bulan menyumbang attainment(dibatasi) ÷ 12 ke angka YTD        ║
+   ║    4. YTD = jumlah sumbangan bulan yang sudah ada datanya                 ║
+   ║  Contoh Sudana: GRK Januari turun 30% dari target 15% → 200% → dibatasi   ║
+   ║  125% → sumbangan 125/12 = 10,4%. Februari sama → YTD 20,8%. Dst.        ║
+   ║                                                                          ║
+   ║  Konsekuensi yang HARUS terlihat apa adanya: dengan data sampai Juli,     ║
+   ║  YTD paling tinggi hanya 125%/12 × 7 = 72,9%. Tidak mungkin 87%.         ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const KPI_CAP_OVER=125;     // batas over-achievement — kebijakan Astra
+const KPI_BULAN=12;         // pencapaian tahunan selalu dibagi 12 bulan
+/* % penurunan bulan-i terhadap baseline (dipakai GRK & Water) */
+function ePersenTurun(a26,a19,i){
+ var v=a26[i], b=a19[i];
+ if(v==null||isNaN(v)||b==null||isNaN(b)||!b) return null;
+ return (1-v/b)*100;
+}
+/* deret ATTAINMENT ABSOLUT per bulan (%) — belum dibatasi, belum dibagi 12 */
+function eAttainSeri(nilaiBulan,target,n){
+ var out=[];
+ for(var i=0;i<n;i++){
+   var v=nilaiBulan(i);
+   out.push((v==null||isNaN(v)||!target)?null:Math.max(0,v/target*100));
+ }
+ return out;
+}
+/* Sub-KPI Energy: tiap baris punya deret bulanannya sendiri + targetnya */
+function energySubKpi(){
+ var n=ENERGY_MONTHS.length;
+ return [
+  {n:"GRK / Emisi — ESG 2030", target:15, nav:"energy", satuan:"% penurunan vs 2019",
+   seri:eAttainSeri(function(i){ return ePersenTurun(GRK_2026,GRK_2019,i); },15,n)},
+  {n:"Water Intensity", target:13, nav:"energy", satuan:"% penurunan vs 2019",
+   seri:eAttainSeri(function(i){ return ePersenTurun(WATER_INT_2026,WATER_INT_2019,i); },13,n)},
+  {n:"REM — Renewable/Efficiency", target:8, nav:"energy", satuan:"% renewable",
+   seri:eAttainSeri(function(i){ var v=REM_PCT[i]; return (v==null||isNaN(v))?null:v; },8,n)},
+  {n:"Waste terolah", target:99, nav:"energy", satuan:"% terolah",
+   seri:eAttainSeri(function(i){ var o=WASTE_OK[i],x=WASTE_NO[i];
+     if((o==null||isNaN(o))&&(x==null||isNaN(x))) return null;
+     var t=(o||0)+(x||0); return t?(o||0)/t*100:null; },99,n)}
+ ];
+}
+/* akru YTD dari deret attainment absolut — inti rumusnya */
+function kpiAkru(seri,sampaiIdx){
+ var ytd=0, n=0, absTerakhir=null, idxTerakhir=-1;
+ for(var i=0;i<(seri||[]).length;i++){
+   if(sampaiIdx!=null && i>sampaiIdx) break;
+   var a=seri[i]; if(a==null) continue;
+   ytd += Math.min(a,KPI_CAP_OVER)/KPI_BULAN;
+   n++; absTerakhir=a; idxTerakhir=i;
+ }
+ return { ytd:Math.round(ytd*10)/10, bulan:n,
+          abs:(absTerakhir==null?null:Math.round(absTerakhir)),
+          idx:idxTerakhir, maks:Math.round(KPI_CAP_OVER/KPI_BULAN*n*10)/10 };
+}
+/* "2026-07" → indeks bulan pada ENERGY_MONTHS (Jan=0). null bila di luar deret. */
+function kpiBulanIdx(m){
+ var p=String(m||"").split("-");
+ if(p.length<2) return null;
+ var i=(+p[1])-1;
+ return (i>=0 && i<ENERGY_MONTHS.length) ? i : null;
+}
 function codecSubFnData(){
  const avgA=a=>eAvgG(a);   // null-safe: bulan kosong (Jun/Jul) diabaikan
  // 1. GFM ← ENERGY: GRK · Water · REM · Waste (routine · ESG 2030)
- const grkRed=(1-avgA(GRK_2026)/avgA(GRK_2019))*100, grkAtt=Math.min(100,grkRed/15*100);
- const watRed=(1-avgA(WATER_INT_2026)/avgA(WATER_INT_2019))*100, watAtt=Math.max(0,Math.min(100,watRed/13*100));
- const remAtt=Math.min(100,avgA(REM_PCT)/8*100);
- const wOk=WASTE_OK.reduce((a,b)=>a+b,0), wTot=WASTE_OK.reduce((a,b,i)=>a+b+WASTE_NO[i],0), wstAtt=Math.min(100,(wOk/wTot*100)/99*100);
- /* 'nav' = modul tempat angka ini dihitung — dipakai supaya tiap komponen bisa diklik ke sumbernya */
- const gfmComp=[{n:"GRK / Emisi — ESG 2030",v:Math.round(grkAtt),type:"routine",nav:"energy"},{n:"Water Intensity",v:Math.round(watAtt),type:"routine",nav:"energy"},{n:"REM — Renewable/Efficiency",v:Math.round(remAtt),type:"routine",nav:"energy"},{n:"Waste terolah",v:Math.round(wstAtt),type:"routine",nav:"energy"}];
+ /* Dulu: rata-rata absolut sepanjang periode, dipagari 100 — itulah asal angka
+    87% yang keliru. Kini tiap komponen memakai AKRU BULANAN Astra (lihat blok
+    metode di atas): v = sumbangan YTD, `abs` = pencapaian absolut bulan terakhir
+    yang ada datanya — angka absolut itulah yang dipakai mengisi form Sub-KPI. */
+ const eSub=energySubKpi();
+ const gfmComp=eSub.map(function(s){
+   var ak=kpiAkru(s.seri);
+   return {n:s.n, v:Math.round(ak.ytd), type:"routine", nav:"energy",
+           akru:true, abs:ak.abs, nBulan:ak.bulan, maks:ak.maks,
+           target:s.target, satuan:s.satuan, seri:s.seri};
+ });
  const gfm=Math.round(avgA(gfmComp.map(c=>c.v)));
+ const eBulanN=Math.max.apply(null,gfmComp.map(function(c){return c.nBulan;}).concat([0]));
+ const eMaks=Math.round(KPI_CAP_OVER/KPI_BULAN*eBulanN*10)/10;
+ const grkRed=(1-avgA(GRK_2026)/avgA(GRK_2019))*100;   // dipakai catatan & kartu Energy
+ const watRed=(1-avgA(WATER_INT_2026)/avgA(WATER_INT_2019))*100;
+ const wOk=WASTE_OK.reduce((a,b)=>a+(b||0),0), wTot=WASTE_OK.reduce((a,b,i)=>a+(b||0)+(WASTE_NO[i]||0),0);
  // 2. GSM ← SERVICE: penilaian vendor per site (routine · shuttle experience)
  const gsmComp=VENDOR_PERF.map(v=>{const sc=(v.hk+v.bm)/2;return {n:v.site+" · "+vendorTier(sc).n,v:Math.round(sc/3*100),type:"routine",nav:"service"};});
  const gsm=Math.round(avgA(gsmComp.map(c=>c.v)));
@@ -4999,7 +5079,7 @@ function codecSubFnData(){
  const vals=[gfm,gsm,adm,psd,ext,ehs], comps=[gfmComp,gsmComp,admComp,pdComp,extComp,ehsComp];
  const delayed=codecProjects().filter(p=>p.actual<50).length;
  const notes=[
-   "GRK −"+(Math.round(grkRed*10)/10)+"% ✓ · Water −"+(Math.round(watRed*10)/10)+"% · REM "+(Math.round(avgA(REM_PCT)*10)/10)+"% · Waste "+(Math.round(wOk/wTot*1000)/10)+"% · dari modul Energy",
+   "Akru YTD "+eBulanN+"/12 bulan (maks "+eMaks+"% pada posisi ini · over-achievement dibatasi "+KPI_CAP_OVER+"%) — GRK −"+(Math.round(grkRed*10)/10)+"% · Water −"+(Math.round(watRed*10)/10)+"% · REM "+(Math.round(avgA(REM_PCT)*10)/10)+"% · Waste "+(Math.round(wOk/wTot*1000)/10)+"% · dari modul Energy",
    VENDOR_PERF.length+" site dinilai · avg "+gsm+"% · dari modul Service",
    "Payment "+payBPH+"% · Procurement "+procPct+"% · (PBB & STNK ditunda — data confidential; Asset STO & Land Bank ada di KEY — modul belum ada)",
    codecProjects().length+" project"+(PJ_TIMELINE?" · live dari modul Project Development":"")+" · "+delayed+" di bawah 50% · + Procurement Hub "+CODEC_PROC_HUB.ach+"%",
@@ -5084,8 +5164,11 @@ const KPI_SUMBER_MODUL="@modul";
 function kpiSumberKatalog(){
  var grup=[];
  codecSubFnData().forEach(function(f){
-   var opsi=[{v:f.name+"§", label:"⟨seluruh sub-fungsi⟩ — rata-rata "+f.ach+"%", nilai:f.ach}];
-   (f.comp||[]).forEach(function(c){ opsi.push({v:f.name+"§"+c.n, label:c.n, nilai:c.v}); });
+   var akru=(f.comp||[]).some(function(c){ return c.akru; });
+   var opsi=[{v:f.name+"§", label:"⟨seluruh sub-fungsi⟩ — rata-rata "+f.ach+"%"+(akru?" (akru YTD)":""), nilai:f.ach}];
+   (f.comp||[]).forEach(function(c){
+     opsi.push({v:f.name+"§"+c.n, label:c.n+(c.akru&&c.abs!=null?" — bulan ini "+c.abs+"%":""), nilai:c.v});
+   });
    grup.push({judul:f.name+"  ·  CODEC "+codecStdCode(f.name), opsi:opsi});
  });
  var perModul={};
@@ -5213,6 +5296,8 @@ function codecSaveKpi(){
  else if(from){ nav=((codecSubFnData().find(function(f){return f.name===from;})||{}).nav)||"overview"; }
  var baris={code:kpiNextCode(),persp:persp,name:name,from:from,pick:pick,target:target,weight:weight,nav:nav};
  if(!from) baris.manual=true;                 // tanpa sumber → capaian diisi lewat sub-KPI
+ var auto=kpiSubDariSumber(baris);            // sub-KPI ikut tergenerate sejak dibuat
+ if(auto&&auto.length) baris.subs=auto;
  KPI_CLA.push(baris);
  kpiPersist(); closeDrawer(); renderOverview();
  alert("✅ KPI \""+name+"\" ditambahkan ke Key Performance Indicator.");
@@ -5366,6 +5451,36 @@ function kpiFieldSave(i,field,val){
  kpiPersist();
  var s=document.getElementById('pik-saved'); if(s){ s.style.opacity=1; setTimeout(function(){ s.style.opacity=0; },1500); }
 }
+/* ── Sub-KPI otomatis dari sumber yang dipilih ──────────────────────────────
+   Memilih head section (sub-fungsi) tidak hanya menyambungkan capaian induknya;
+   seluruh komponennya ikut dituliskan sebagai baris Sub-KPI, terisi angka
+   ABSOLUT bulan berjalan. Untuk komponen yang punya deret bulanan (Energy),
+   angka yang diambil adalah attainment bulan yang dipilih di tabel KPI —
+   bukan akru YTD, karena akru itu milik induknya. */
+function kpiSubDariSumber(k){
+ if(!k) return null;
+ var idx=kpiBulanIdx(typeof kpiMonthNow==="function"?kpiMonthNow():"");
+ var nilai=function(c){
+   if(c&&Array.isArray(c.seri)){
+     if(idx!=null&&c.seri[idx]!=null) return Math.round(c.seri[idx]);
+     if(c.abs!=null) return c.abs;                 // bulan terpilih kosong → bulan terakhir yang ada
+   }
+   return (c&&c.v!=null)?Math.round(c.v):null;
+ };
+ if(k.from===KPI_SUMBER_MODUL){
+   var a=kpiModulAngka(k.pick); if(!a) return null;
+   var v=null; try{ v=a.get(); }catch(e){}
+   return [{n:a.label, v:(v==null?null:Math.round(v))}];
+ }
+ if(!k.from) return null;
+ var f=codecSubFnData().find(function(x){ return x.name===k.from; });
+ if(!f) return null;
+ if(k.pick){
+   var c=(f.comp||[]).find(function(x){ return x.n===k.pick; });
+   return c?[{n:c.n, v:nilai(c)}]:null;
+ }
+ return (f.comp||[]).map(function(c){ return {n:c.n, v:nilai(c)}; });
+}
 /* ── Ubah IDENTITAS baris KPI — nama, perspektif, sumber capaian ────────────
    Permintaan Sudana 31 Jul 2026: baris KPI harus bisa DIEDIT penuh, bukan
    hanya ditambah. Capaian tetap ditarik live dari sumber CODEC yang dipilih;
@@ -5395,6 +5510,11 @@ function kpiRowSet(i,field,val){
      var c=k.pick&&(f.comp||[]).find(function(x){return x.n===k.pick;});
      k.nav=(c&&c.nav)||f.nav||"overview";
    } else { k.nav="overview"; k.manual=true; }   // manual → capaian diisi sendiri lewat sub-KPI
+   /* Pilih head section → sub-KPI ikut TERGENERATE & terisi otomatis.
+      Isinya angka ABSOLUT bulan berjalan (bukan akru), sesuai kaidah Sudana:
+      "Sub-KPI ambil angka absolut pencapaiannya di bulan itu." */
+   var auto=kpiSubDariSumber(k);
+   if(auto&&auto.length) k.subs=auto;
  }
  else return;
  kpiPersist();
@@ -15210,7 +15330,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-148";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-149";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
