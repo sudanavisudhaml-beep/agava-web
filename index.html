@@ -1286,8 +1286,9 @@ html,body{overscroll-behavior-y:contain}
 .hr-sep{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;padding:0;cursor:pointer;
   font-family:var(--ff);font-size:calc(12px*var(--fz));font-weight:800;color:var(--ink);text-align:left;letter-spacing:.01em}
 .hr-sep b{font-weight:800}
-.hr-sep .hr-chev{flex:0 0 auto;font-size:calc(11px*var(--fz));color:var(--muted);transition:transform .16s}
-.hr-sep.tutup .hr-chev{transform:rotate(-90deg)}
+/* tampilan .hr-chev diatur bersama penanda lipat lain (cari "PENANDA LIPAT") —
+   sengaja TIDAK ditulis sebagai .hr-sep .hr-chev, karena selektor dua-kelas itu
+   akan mengalahkan aturan bersama dan penandanya kembali kecil & pucat. */
 .hr-sep .hr-n{margin-left:auto;font-weight:700;color:var(--muted);font-size:calc(11px*var(--fz));white-space:nowrap;
   background:#fff;border:1px solid var(--line);border-radius:99px;padding:2px 9px}
 .hr-sep:hover b{color:var(--blue)}
@@ -2868,8 +2869,40 @@ body.rg-open{overflow:hidden}
 /* seluruh area nama indikator + panah dropdown = jari telunjuk (bisa diklik) */
 .pi-name{font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--ink);line-height:1.3;cursor:pointer;user-select:none}
 .pi-name:hover{color:#0a4bb8}
-.pi-name:hover .pi-chev{color:var(--blue)}
 .pi-row.pi-std .pi-code2{cursor:pointer}
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  PENANDA LIPAT (▾) — dibesarkan & dikontraskan 31 Jul 2026               ║
+   ║  Dulu glyph 9px berwarna abu muda: pengguna tidak sadar barisnya bisa    ║
+   ║  dibuka/dilipat sama sekali. Kini berbentuk tombol bulat 26px bergaris  ║
+   ║  biru — terbaca sebagai sesuatu yang memang untuk ditekan. Ditulis satu  ║
+   ║  kali untuk SEMUA penanda lipat (KPI Key, KPI Standard, separator hari,  ║
+   ║  KPI Tahunan, kepala section) supaya seragam di seluruh AGAVA.           ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+.pi-chev,.pik-chev,.hr-chev,.kpy-chev,.sec-h .chev{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;flex:0 0 26px;border-radius:50%;
+  background:#e8f0ff;border:1.5px solid #b9d2ff;color:#1d4ed8;
+  font-size:calc(14px*var(--fz));font-weight:800;line-height:1;
+  cursor:pointer;user-select:none;vertical-align:middle;
+  transition:transform .2s,background .15s,border-color .15s,box-shadow .15s}
+.pi-chev:hover,.pik-chev:hover,.hr-chev:hover,.kpy-chev:hover,.sec-h .chev:hover,
+.pi-name:hover .pi-chev,.hr-sep:hover .hr-chev,.sec-h:hover .chev{
+  background:#1d4ed8;border-color:#1d4ed8;color:#fff;box-shadow:0 2px 8px rgba(29,78,216,.28)}
+.pik-chev{margin-left:8px}
+.sec-h .chev{margin-left:auto}
+/* arah putaran tiap keadaan — ditulis ulang di sini agar menang atas aturan lama */
+.pi-row.open .pi-chev,.pik-chev.open,.kpy-row.open .kpy-chev{transform:rotate(180deg)}
+.pik-chev.open{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+.hr-sep.tutup .hr-chev{transform:rotate(-90deg)}
+.sec.collapsed .chev{transform:rotate(-90deg)}
+/* Separator hari memuat penandanya di dalam <span>, dan aturan lama
+   ".bl-sep span" / "tr.bl-trsep td span" lebih spesifik — tanpa dua baris ini
+   penandanya kembali pucat abu-abu meski ukurannya sudah besar. */
+.bl-sep .hr-chev,tr.bl-trsep td .hr-chev{color:#1d4ed8;font-weight:800;letter-spacing:0}
+.bl-sep .hr-sep:hover .hr-chev,tr.bl-trsep td .hr-sep:hover .hr-chev{color:#fff}
+@media(max-width:760px){
+  .pi-chev,.pik-chev,.hr-chev,.kpy-chev,.sec-h .chev{width:30px;height:30px;flex-basis:30px;font-size:calc(15px*var(--fz))}
+}
 .pi-type{font-size:calc(8.5px*var(--fz));font-weight:800;letter-spacing:.03em;padding:1px 6px;border-radius:20px;text-transform:uppercase;vertical-align:middle}
 .pi-type.routine{background:#e9f8ef;color:#15a34a}
 .pi-type.mixed{background:#eef4ff;color:#2563eb}
@@ -6443,7 +6476,7 @@ function renderOverview(){
  // overview sections jadi accordion (klik header utk collapse/expand)
  document.querySelectorAll('#page-overview .card.sec').forEach(sec=>{
    const h=sec.querySelector('.sec-h'); if(!h||h.querySelector('.chev')) return;
-   const c=document.createElement('span'); c.className='chev'; c.textContent='⌄'; h.appendChild(c);
+   const c=document.createElement('span'); c.className='chev'; c.textContent='▾'; c.title='Klik untuk melipat / membuka bagian ini'; h.appendChild(c);
    h.style.cursor='pointer';
    h.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; sec.classList.toggle('collapsed'); });
  });
@@ -15330,7 +15363,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-149";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-150";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
