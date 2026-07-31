@@ -1366,7 +1366,7 @@ select { appearance: none; background-image: url("data:image/svg+xml;utf8,<svg x
 
     <div class="glass">
       <h2 style="margin-bottom: 16px;">Informasi Proyek</h2>
-      <div style="display: grid; gap: 14px; grid-template-columns: 2fr 2fr 1fr 1fr 1fr;">
+      <div style="display: grid; gap: 14px; grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1fr;">
         <div class="field">
           <label>Nama proyek</label>
           <input type="text" id="editName" placeholder="cth. Gedung Kantor 8 Lantai">
@@ -1377,11 +1377,17 @@ select { appearance: none; background-image: url("data:image/svg+xml;utf8,<svg x
         </div>
         <div class="field">
           <label>Tanggal mulai</label>
-          <input type="date" id="editStart">
+          <input type="date" id="editStart" onchange="pjSyncAkhir('start')">
+        </div>
+        <!-- Target selesai: cara paling manusiawi memperpanjang gantt —
+             pilih Desember, durasinya dihitung sendiri. -->
+        <div class="field">
+          <label>Target selesai</label>
+          <input type="date" id="editEnd" onchange="pjSyncAkhir('end')">
         </div>
         <div class="field">
           <label>Durasi (hari)</label>
-          <input type="number" id="editDuration" min="1" value="90">
+          <input type="number" id="editDuration" min="1" value="90" onchange="pjSyncAkhir('dur')">
         </div>
         <div class="field">
           <label>Hari laporan ke-</label>
@@ -2212,6 +2218,9 @@ function renderProjectSummary(p) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             ${p.duration} hari · Hari berjalan ke-${todayOf(p)}
           </div>
+          ${pjSpanHari(p) > num(p.duration) ? `<div class="item" style="color:var(--warning,#b45309);font-weight:700" title="Gantt diperpanjang otomatis supaya pekerjaan ini tidak terpotong">
+            ⚠ Ada pekerjaan sampai ${fmtDate(addDays(p.startDate, pjSpanHari(p) - 1))} — melewati durasi proyek
+          </div>` : ""}
         </div>
       </div>
     </div>
@@ -2251,17 +2260,35 @@ function renderProjectKPIs(p) {
 /* ═════════════════════════════════════════════════════
    GANTT RENDER (with scale switch)
    ═════════════════════════════════════════════════════ */
+/* ── RENTANG KANVAS GANTT (31 Jul 2026) ────────────────────────────────────
+   Dulu kanvas dipatok PERSIS p.duration hari. Padahal beberapa proyek punya
+   pekerjaan yang berakhir SETELAH durasi proyeknya — mis. "Additional Sport
+   Facility at PAKO": durasi 92 hari (berakhir 5 Juli) tetapi ada item sampai
+   30 September. Akibatnya kepala waktu berhenti di Juli dan pekerjaan sesudah
+   itu tidak terlihat sama sekali — inilah "gantt cuma sampai Juli".
+   Sekarang rentang kanvas = yang TERJAUH antara durasi proyek dan akhir
+   pekerjaan terakhir, jadi tidak ada pekerjaan yang pernah terpotong.
+   p.duration sendiri TIDAK diubah — itu tetap kontrak durasi proyek. */
+function pjSpanHari(p) {
+  let span = num(p.duration) || 1;
+  (p.items || []).forEach(it => {
+    const akhir = num(it.startDay) + num(it.duration) - 1;
+    if (akhir > span) span = akhir;
+  });
+  return Math.max(1, Math.round(span));
+}
 function buildTimescaleTicks(p) {
   // Return array of { xStart, xEnd, primaryLabel, subLabel, monthFirst, weekend, w }
   const scale = SCALES[state.ganttScale];
   const px = scale.pxPerDay;
-  const totalWidth = p.duration * px;
+  const SPAN = pjSpanHari(p);
+  const totalWidth = SPAN * px;
   const ticks = [];
   const startDate = new Date(p.startDate);
 
   if (scale.key === "day") {
     let lastMonth = -1;
-    for (let d = 1; d <= p.duration; d++) {
+    for (let d = 1; d <= SPAN; d++) {
       const dt = addDays(p.startDate, d - 1);
       const dow = dt.getDay();
       const monthFirst = dt.getMonth() !== lastMonth;
@@ -2277,10 +2304,10 @@ function buildTimescaleTicks(p) {
       });
     }
   } else if (scale.key === "week") {
-    const totalWeeks = Math.ceil(p.duration / 7);
+    const totalWeeks = Math.ceil(SPAN / 7);
     for (let w = 0; w < totalWeeks; w++) {
       const d1 = w * 7 + 1;
-      const d2 = Math.min((w + 1) * 7, p.duration);
+      const d2 = Math.min((w + 1) * 7, SPAN);
       const dt1 = addDays(p.startDate, d1 - 1);
       const dt2 = addDays(p.startDate, d2 - 1);
       ticks.push({
@@ -2294,7 +2321,7 @@ function buildTimescaleTicks(p) {
       });
     }
   } else if (scale.key === "month") {
-    const endDate = addDays(p.startDate, p.duration - 1);
+    const endDate = addDays(p.startDate, SPAN - 1);
     let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
     while (cursor <= endDate) {
       const monthStart = cursor > startDate ? cursor : startDate;
@@ -2314,7 +2341,7 @@ function buildTimescaleTicks(p) {
       cursor = nextMonth;
     }
   } else if (scale.key === "year") {
-    const endDate = addDays(p.startDate, p.duration - 1);
+    const endDate = addDays(p.startDate, SPAN - 1);
     let year = startDate.getFullYear();
     while (year <= endDate.getFullYear()) {
       const yStart = new Date(year, 0, 1);
@@ -2349,9 +2376,10 @@ function renderGantt(p) {
   }
   grid.style.gridTemplateColumns = "260px 1fr";
 
+  const SPAN = pjSpanHari(p);          // rentang kanvas — ikut pekerjaan terjauh
   const { ticks, totalWidth, pxPerDay } = buildTimescaleTicks(p);
   const overlaps = overlapMap(p.items);
-  const concurrent = concurrentByDay(p.items, p.duration);
+  const concurrent = concurrentByDay(p.items, SPAN);
   const groups = groupByCategory(p.items);
 
   // ── LABELS COLUMN ────────────────────────────
@@ -2422,7 +2450,7 @@ function renderGantt(p) {
 
       // Weekend bands only in day scale
       if (state.ganttScale === "day") {
-        for (let d = 1; d <= p.duration; d++) {
+        for (let d = 1; d <= SPAN; d++) {
           const dt = addDays(p.startDate, d - 1);
           const dow = dt.getDay();
           if (dow === 0 || dow === 6) {
@@ -2437,7 +2465,7 @@ function renderGantt(p) {
 
       // Overlap bands
       const s = num(it.startDay), dur = num(it.duration);
-      for (let d = s; d < s + dur && d <= p.duration; d++) {
+      for (let d = s; d < s + dur && d <= SPAN; d++) {
         if (concurrent[d] > 1) {
           const band = document.createElement("div");
           band.className = "overlap-band";
@@ -2487,7 +2515,7 @@ function renderGantt(p) {
 
   // Today line
   const _td = todayOf(p);
-  if (_td > 0 && _td <= p.duration) {
+  if (_td > 0 && _td <= SPAN) {
     const line = document.createElement("div");
     line.className = "today-line";
     line.style.left = (_td * pxPerDay - 1) + "px";
@@ -2505,7 +2533,9 @@ function renderCurve(p) {
   const W = 800, H = 320;
   const M = { l: 42, r: 20, t: 20, b: 34 };
   const iw = W - M.l - M.r, ih = H - M.t - M.b;
-  const dur = p.duration, today = todayOf(p);
+  /* rentang sama dengan Gantt — kurva yang berhenti di Juli sementara Gantt
+     berjalan sampai Desember akan saling bertentangan di mata pembacanya */
+  const dur = pjSpanHari(p), today = todayOf(p);
 
   const planSeries = [];
   for (let d = 0; d <= dur; d++) planSeries.push({ x: d, y: plannedCumulativeAtDay(p.items, d) });
@@ -2832,6 +2862,7 @@ function renderEditView() {
   document.getElementById("editLocation").value = s.location;
   document.getElementById("editStart").value = s.startDate;
   document.getElementById("editDuration").value = s.duration;
+  try { pjSyncAkhir("dur"); } catch(e){}   // isi Target selesai dari durasi tersimpan
   document.getElementById("editToday").value = todayOf(s);
   Object.keys(s.team).forEach(k => {
     const el = document.querySelector(`[data-team-edit="${k}"]`);
@@ -3035,6 +3066,22 @@ function saveItemModal() {
 /* ═════════════════════════════════════════════════════
    SAVE PROJECT (from edit view)
    ═════════════════════════════════════════════════════ */
+/* ── Tanggal mulai ⇄ Target selesai ⇄ Durasi selalu sejalan ────────────────
+   "Saya mau gantt-nya sampai Desember" tidak boleh berarti menghitung hari
+   sendiri. Pilih tanggalnya, durasinya yang menyesuaikan (atau sebaliknya). */
+function pjSyncAkhir(dari) {
+  const eS = document.getElementById("editStart");
+  const eE = document.getElementById("editEnd");
+  const eD = document.getElementById("editDuration");
+  if (!eS || !eE || !eD || !eS.value) return;
+  if (dari === "end" && eE.value) {
+    if (eE.value < eS.value) { showToast("Target selesai tidak boleh lebih awal dari tanggal mulai"); eE.value = addDaysISO(eS.value, Math.max(0, num(eD.value) - 1)); return; }
+    eD.value = daysBetweenInclusive(eS.value, eE.value);
+  } else {
+    eD.value = Math.max(1, parseInt(eD.value) || 1);
+    eE.value = addDaysISO(eS.value, num(eD.value) - 1);
+  }
+}
 function readProjectForm() {
   const s = state.editingScratch;
   s.name = document.getElementById("editName").value.trim();
