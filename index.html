@@ -2520,7 +2520,9 @@ body.rg-open{overflow:hidden}
 .soj-cp.active .soj-bul{background:#fff;border-color:#0a7cff;color:#0a7cff;box-shadow:0 0 0 4px rgba(10,124,255,.16);
   animation:sojPulse 1.8s ease-in-out infinite}
 .soj-cp.rejected .soj-bul{background:var(--red);border-color:var(--red);color:#fff}
-.soj-cpt{font-size:calc(14px*var(--fz));font-weight:800;color:#94a3b8;letter-spacing:-.01em}
+.soj-cpb{min-width:0;flex:1}
+.soj-cpt{font-size:calc(14px*var(--fz));font-weight:800;color:#94a3b8;letter-spacing:-.01em;line-height:1.3}
+.soj-cpm{font-size:calc(11.5px*var(--fz));font-weight:600;color:var(--muted);margin-top:2px;line-height:1.45}
 .soj-cp.done .soj-cpt,.soj-cp.active .soj-cpt{color:var(--ink)}
 .soj-cp.rejected .soj-cpt{color:var(--red)}
 @keyframes sojPulse{0%,100%{box-shadow:0 0 0 4px rgba(10,124,255,.16)}50%{box-shadow:0 0 0 8px rgba(10,124,255,.06)}}
@@ -2534,11 +2536,13 @@ body.rg-open{overflow:hidden}
 .soj-sub.active .soj-dot::before{border-color:#0a7cff;box-shadow:0 0 0 3px rgba(10,124,255,.14)}
 .soj-sub.rejected .soj-dot{color:#fff;font-size:calc(9px*var(--fz));font-weight:900}
 .soj-sub.rejected .soj-dot::before{background:var(--red);border-color:var(--red);position:absolute}
-.soj-subt{font-size:calc(12.5px*var(--fz));font-weight:600;color:#9aa7b8;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.soj-sub.done .soj-subt{color:var(--ink)}
-.soj-sub.active .soj-subt{color:var(--ink);font-weight:700}
-.soj-sub.rejected .soj-subt{color:var(--red);font-weight:700}
-.soj-subt i{font-style:normal;font-size:calc(11px*var(--fz));font-weight:600;color:var(--blue)}
+.soj-subt{min-width:0;flex:1;display:flex;flex-direction:column;gap:1px}
+.soj-st1{font-size:calc(12.5px*var(--fz));font-weight:600;color:#9aa7b8;line-height:1.35}
+.soj-st2{font-size:calc(11.5px*var(--fz));font-weight:500;color:var(--muted);line-height:1.45}
+.soj-st3{font-size:calc(11px*var(--fz));font-weight:600;color:var(--blue)}
+.soj-sub.done .soj-st1{color:var(--ink)}
+.soj-sub.active .soj-st1{color:var(--ink);font-weight:700}
+.soj-sub.rejected .soj-st1{color:var(--red);font-weight:700}
 /* GARIS penghubung — transparan, terisi gradasi, wipe saat berjalan */
 .soj-line{position:absolute;left:12px;top:-14px;bottom:calc(50% + 9px);width:3px;border-radius:3px;
   background:#e6ebf2;overflow:hidden}
@@ -7914,20 +7918,10 @@ function closeDrawer(){document.getElementById("ovl").classList.remove("show");}
    Metafora: perjalanan besar punya CHECKPOINT (node besar, biru neon); sebelum sampai
    checkpoint ada perjalanan-perjalanan kecil (node kecil, light grey) yang dirender DI ATAS
    checkpoint-nya. groups=[{name,state:done|active|pending|rejected,meta,steps:[{num,t,gate,cls,sub,ts}]}] */
-function jtHTML(groups){
- return '<div class="jt">'+groups.map(function(G,gi){
-   var steps=(G.steps||[]).map(function(st){
-     return '<div class="jt-s '+st.cls+'"><span class="jt-sd">'+(st.cls==='done'?'✓':st.cls==='rejected'?'✕':'')+'</span>'+
-       '<div class="jt-sb"><div class="jt-s1">'+(st.num?st.num+'. ':'')+st.t+(st.gate?'<span class="gate-chip">◆ approval</span>':'')+'</div>'+
-       (st.sub?'<div class="jt-s2">'+st.sub+'</div>':'')+
-       (st.ts?'<div class="jt-s2" style="color:var(--blue);font-weight:600">🕐 '+st.ts+'</div>':'')+'</div></div>';
-   }).join('');
-   return steps+
-     '<div class="jt-cp '+G.state+'"><span class="jt-cd">'+(G.state==='done'?'✓':G.state==='rejected'?'✕':(gi+1))+'</span>'+
-     '<div class="jt-cb"><div class="jt-cn">'+G.name+'</div>'+(G.meta?'<div class="jt-cm">'+G.meta+'</div>':'')+'</div>'+
-     '<span class="jt-cs">'+(G.state==='done'?'✓ tercapai':G.state==='active'?'● menuju':G.state==='rejected'?'⛔ ditolak':'checkpoint '+(gi+1))+'</span></div>';
- }).join('')+'</div>';
-}
+/* jtHTML DIBUANG 31 Jul 2026 — seluruh Lifecycle Journey (SO, tiket, work
+   permit) kini memakai satu perender bersama jrHTML dengan gaya yang disukai
+   Sudana. Sengaja tidak disisakan sebagai cadangan: dua gaya journey yang
+   hidup berdampingan pasti berujung tampilan yang tidak seragam lagi. */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  LIFECYCLE JOURNEY SO — susunan checkpoint & sub-point (Sudana 31 Jul)   ║
    ║   1 SO Submitted → Approval Section · Budget · PIC Procurement · Dept    ║
@@ -7982,27 +7976,51 @@ function sojIcon(st,teks){
  if(st==="rejected") return "✕";
  return teks||"";
 }
-function soJourneyHTML(s){
- var baris=SOJ.map(function(G,gi){
-   var cs=sojCp(s,gi);
+/* ── PERENDER BERSAMA — dipakai SEMUA Lifecycle Journey ─────────────────────
+   Bentuk masukan: [{name, state, meta, subs:[{t, state, sub, ts}]}]
+   state: done · active · rejected · pending
+   Sudana 31 Jul 2026: gaya ini yang dipakai untuk SEMUA journey (SO, tiket,
+   work permit, dan yang menyusul). Jangan bikin gaya journey kedua. */
+function jrHTML(groups){
+ groups=groups||[];
+ return '<div class="soj">'+groups.map(function(G,gi){
+   var cs=G.state||"pending";
+   /* Bentuk lama (jtHTML) memakai `steps` + `cls` — diterima apa adanya supaya
+      tiket & work permit tidak perlu ditulis ulang isinya. */
+   var subs=G.subs||(G.steps||[]).map(function(x){ return {t:x.t, state:x.cls, sub:x.sub, ts:x.ts}; });
    var kepala='<div class="soj-cp '+cs+'">'+
      '<span class="soj-bul">'+sojIcon(cs,String(gi+1))+'</span>'+
-     '<div class="soj-cpt">'+esc(G.n)+'</div></div>';
-   var anak=(G.subs||[]).map(function(sb){
-     var ss=sojSub(s,sb.k);
-     var tv=(s.ts&&s.ts[sb.k])||"";
+     '<div class="soj-cpb"><div class="soj-cpt">'+(G.name||"")+'</div>'+
+       (G.meta?'<div class="soj-cpm">'+G.meta+'</div>':'')+'</div></div>';
+   var anak=(subs||[]).map(function(sb){
+     var ss=sb.state||"pending";
      return '<div class="soj-sub '+ss+'">'+
        '<span class="soj-line '+ss+'"></span>'+
        '<span class="soj-dot">'+sojIcon(ss,"")+'</span>'+
-       '<div class="soj-subt">'+esc(sb.t)+
-         (tv&&(ss==="done"||ss==="rejected")?'<i>🕐 '+esc(tv)+'</i>':'')+'</div></div>';
+       '<div class="soj-subt"><span class="soj-st1">'+(sb.t||"")+'</span>'+
+         (sb.sub?'<span class="soj-st2">'+sb.sub+'</span>':'')+
+         (sb.ts?'<span class="soj-st3">🕐 '+sb.ts+'</span>':'')+
+       '</div></div>';
    }).join("");
-   /* garis dari checkpoint ini menuju checkpoint berikutnya */
-   var sambung=(gi<SOJ.length-1)?'<div class="soj-gap"><span class="soj-line '+
-     (sojCp(s,gi+1)==="pending"?(cs==="done"?"active":"pending"):"done")+'"></span></div>':"";
+   /* garis menuju checkpoint berikutnya: sudah dilalui = terisi, sedang
+      ditempuh = wipe berjalan, belum = transparan */
+   var next=groups[gi+1];
+   var sambung=(gi<groups.length-1)?'<div class="soj-gap"><span class="soj-line '+
+     ((next&&next.state&&next.state!=="pending")?"done":(cs==="done"?"active":"pending"))+
+     '"></span></div>':"";
    return kepala+anak+sambung;
- }).join("");
- return '<div class="soj">'+baris+'</div>';
+ }).join("")+'</div>';
+}
+function soJourneyHTML(s){
+ return jrHTML(SOJ.map(function(G,gi){
+   return {
+     name:esc(G.n), state:sojCp(s,gi),
+     subs:(G.subs||[]).map(function(sb){
+       var ss=sojSub(s,sb.k), tv=(s.ts&&s.ts[sb.k])||"";
+       return {t:esc(sb.t), state:ss, ts:(tv&&(ss==="done"||ss==="rejected"))?esc(tv):null};
+     })
+   };
+ }));
 }
 /* Bar 5 tahap di kepala Journey — bentuk besar dari pip yang sama di baris SO */
 function soGroupBarHTML(s,gst){
@@ -8925,8 +8943,8 @@ function openTicket(no){
     </div>
     ${tkBriefHTML(t,true)}
     <div class="panel-t" style="margin-bottom:4px;margin-top:14px">Lifecycle Journey</div>
-    <div class="muted small" style="margin-bottom:10px">4 checkpoint besar · perjalanan kecil di antaranya (respon, eskalasi, SO) ikut tergambar</div>
-    ${jtHTML(ticketJourneyGroups(t))}
+    <div class="muted small" style="margin-bottom:10px">4 checkpoint · sub-langkah di antaranya (respon, eskalasi, SO) bergerak mengikuti proses yang berjalan</div>
+    ${jrHTML(ticketJourneyGroups(t))}
     <div style="margin-top:14px">${foot}</div>
   </div>`;
  document.getElementById("ovl").classList.add("show");
@@ -15575,9 +15593,9 @@ function wpOpenDetail(no){
      kv("Dokumen pendukung",(w.docs&&w.docs.length)?w.docs.map(function(d){return '<span class="wp-dok">📎 '+esc(d)+'</span>';}).join(' '):'<span class="muted">belum ada</span>')+
    '</div>'+
    '<div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>'+
-   '<div class="muted small" style="margin-bottom:10px">4 checkpoint besar · perjalanan kecil di antaranya ikut tergambar</div>'+
+   '<div class="muted small" style="margin-bottom:10px">4 checkpoint · sub-langkah di antaranya bergerak mengikuti proses yang berjalan</div>'+
    wpGroupBarHTML(w)+
-   jtHTML(wpJourneyGroups(w))+
+   jrHTML(wpJourneyGroups(w))+
    (can&&w.status==="Menunggu Review"
      ? '<div style="display:flex;gap:8px;margin-top:16px"><button class="btn-act" style="flex:1" onclick="wpActNo(\''+w.no+'\',\'Disetujui\')">✓ Setujui Izin Kerja</button>'+
        '<button class="btn-out" style="flex:1" onclick="wpActNo(\''+w.no+'\',\'Ditolak\')">✕ Tolak</button></div>'
@@ -15856,7 +15874,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-159";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-160";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
