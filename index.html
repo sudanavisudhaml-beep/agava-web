@@ -2878,16 +2878,21 @@ body.rg-open{overflow:hidden}
    ║  kali untuk SEMUA penanda lipat (KPI Key, KPI Standard, separator hari,  ║
    ║  KPI Tahunan, kepala section) supaya seragam di seluruh AGAVA.           ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
+/* Gaya final pilihan Sudana (31 Jul, dari contoh gambar): kotak PUTIH membulat
+   bergaris tipis dengan glyph ⌄ gelap — sederhana, dan tetap terbaca sebagai
+   tombol karena bentuk kotaknya. Versi lingkaran biru pekat sebelumnya justru
+   merusak tata letak baris KPI. JANGAN diganti tanpa arahan Sudana. */
 .pi-chev,.pik-chev,.hr-chev,.kpy-chev,.sec-h .chev{
   display:inline-flex;align-items:center;justify-content:center;
-  width:26px;height:26px;flex:0 0 26px;border-radius:50%;
-  background:#e8f0ff;border:1.5px solid #b9d2ff;color:#1d4ed8;
-  font-size:calc(14px*var(--fz));font-weight:800;line-height:1;
+  width:26px;height:26px;flex:0 0 26px;border-radius:9px;
+  background:#fff;border:1px solid #e2e8f0;color:#0f172a;
+  box-shadow:0 1px 2px rgba(15,23,42,.05);
+  font-size:calc(15px*var(--fz));font-weight:600;line-height:1;
   cursor:pointer;user-select:none;vertical-align:middle;
-  transition:transform .2s,background .15s,border-color .15s,box-shadow .15s}
+  transition:transform .2s,border-color .15s,box-shadow .15s}
 .pi-chev:hover,.pik-chev:hover,.hr-chev:hover,.kpy-chev:hover,.sec-h .chev:hover,
 .pi-name:hover .pi-chev,.hr-sep:hover .hr-chev,.sec-h:hover .chev{
-  background:#1d4ed8;border-color:#1d4ed8;color:#fff;box-shadow:0 2px 8px rgba(29,78,216,.28)}
+  border-color:#94a3b8;box-shadow:0 2px 6px rgba(15,23,42,.12)}
 .pik-chev{margin-left:8px}
 .sec-h .chev{margin-left:auto}
 /* arah putaran tiap keadaan — ditulis ulang di sini agar menang atas aturan lama */
@@ -2898,8 +2903,7 @@ body.rg-open{overflow:hidden}
 /* Separator hari memuat penandanya di dalam <span>, dan aturan lama
    ".bl-sep span" / "tr.bl-trsep td span" lebih spesifik — tanpa dua baris ini
    penandanya kembali pucat abu-abu meski ukurannya sudah besar. */
-.bl-sep .hr-chev,tr.bl-trsep td .hr-chev{color:#1d4ed8;font-weight:800;letter-spacing:0}
-.bl-sep .hr-sep:hover .hr-chev,tr.bl-trsep td .hr-sep:hover .hr-chev{color:#fff}
+.bl-sep .hr-chev,tr.bl-trsep td .hr-chev{color:#0f172a;font-weight:600;letter-spacing:0}
 @media(max-width:760px){
   .pi-chev,.pik-chev,.hr-chev,.kpy-chev,.sec-h .chev{width:30px;height:30px;flex-basis:30px;font-size:calc(15px*var(--fz))}
 }
@@ -5008,12 +5012,16 @@ function ePersenTurun(a26,a19,i){
  if(v==null||isNaN(v)||b==null||isNaN(b)||!b) return null;
  return (1-v/b)*100;
 }
-/* deret ATTAINMENT ABSOLUT per bulan (%) — belum dibatasi, belum dibagi 12 */
+/* deret ATTAINMENT per bulan (%) — LANGSUNG dipagari 125 di sumbernya.
+   Insiden 31 Jul: jalur sub-KPI otomatis pernah menulis GRK=330% ke dokumen
+   bersama karena pagarnya hanya ada di kpiAkru. Kebijakan Astra berlaku untuk
+   SEMUA tampilan attainment, jadi pagarnya dipasang di deret — akru tidak
+   berubah (ia memagari angka yang sudah terpagar). */
 function eAttainSeri(nilaiBulan,target,n){
  var out=[];
  for(var i=0;i<n;i++){
    var v=nilaiBulan(i);
-   out.push((v==null||isNaN(v)||!target)?null:Math.max(0,v/target*100));
+   out.push((v==null||isNaN(v)||!target)?null:Math.min(Math.max(0,v/target*100),KPI_CAP_OVER));
  }
  return out;
 }
@@ -5357,7 +5365,7 @@ function codecPerfIndicatorHTML(){
      return '<button onclick="event.stopPropagation();go(\''+nv+'\')">🔗 '+esc(modLabel(nv))+' →</button>';}).join('')+'</div>';
    return '<div class="pi-row pi-std" id="pistd-'+i+'">'+
      '<div class="pi-code2">'+code+'</div>'+
-     '<div class="pi-main"><div class="pi-name" onclick="codecPiToggle('+i+')" title="klik untuk lihat dari mana angka ini dihitung">'+esc(f.name)+' <span class="pi-chev">▾</span></div>'+
+     '<div class="pi-main"><div class="pi-name" onclick="codecPiToggle('+i+')" title="klik untuk lihat dari mana angka ini dihitung">'+esc(f.name)+' <span class="pi-chev">⌄</span></div>'+
        '<div class="pi-bar"><div class="inv-bar"><div class="fill '+(f.st==='ok'?'':'flow')+'" style="width:'+Math.min(100,f.ach)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,f.target)+'%"></div></div></div>'+
        '<div class="pi-cost">💰 <span>Cost element</span> '+(
           (GA_COST_LIVE&&cb.rp[code]>0)
@@ -5382,7 +5390,7 @@ function codecPerfIndicatorHTML(){
    var pc=KPI_PERSP[r.persp]||'#5b6b80';
    return '<div class="pik-row">'+
      '<div class="pik-kpi"><span class="pi-code" style="background:'+pc+'1a;color:'+pc+'" title="'+esc(r.from||'KPI baru / custom')+'">'+pcode+'</span>'+
-       '<div style="min-width:0;flex:1"><div class="pik-name">'+esc(r.name)+'<span class="pik-chev'+(kpiKeyDet[i]?' open':'')+'" onclick="kpiKeyDetToggle('+i+')" title="lihat/ubah detail KPI">▾</span></div>'+
+       '<div style="min-width:0;flex:1"><div class="pik-name">'+esc(r.name)+'<span class="pik-chev'+(kpiKeyDet[i]?' open':'')+'" onclick="kpiKeyDetToggle('+i+')" title="lihat/ubah detail KPI">⌄</span></div>'+
        '<div class="pik-bar"><div class="inv-bar"><div class="fill" style="width:'+Math.min(100,ytd||0)+'%;background:'+c+'"></div><div class="pi-tgt" style="left:'+Math.min(100,r.target)+'%"></div></div></div></div></div>'+
      '<div class="pik-c">'+(ed?'<input class="pik-num" type="number" min="0" max="100" step="1" value="'+r.weight+'" onchange="kpiFieldSave('+i+',\'weight\',this.value)"/>':r.weight+'%')+'</div>'+
      '<div class="pik-c">'+(ed?'<input class="pik-num" type="number" min="0" max="120" step="1" value="'+r.target+'" onchange="kpiFieldSave('+i+',\'target\',this.value)"/>':r.target+'%')+'</div>'+
@@ -5494,11 +5502,14 @@ function kpiSubDariSumber(k){
  if(!k) return null;
  var idx=kpiBulanIdx(typeof kpiMonthNow==="function"?kpiMonthNow():"");
  var nilai=function(c){
+   var v=null;
    if(c&&Array.isArray(c.seri)){
-     if(idx!=null&&c.seri[idx]!=null) return Math.round(c.seri[idx]);
-     if(c.abs!=null) return c.abs;                 // bulan terpilih kosong → bulan terakhir yang ada
+     if(idx!=null&&c.seri[idx]!=null) v=c.seri[idx];
+     else if(c.abs!=null) v=c.abs;                 // bulan terpilih kosong → bulan terakhir yang ada
    }
-   return (c&&c.v!=null)?Math.round(c.v):null;
+   if(v==null&&c&&c.v!=null) v=c.v;
+   /* pagar 125 dijaga DI SINI juga — jangan pernah lagi menulis 330% ke dokumen */
+   return v==null?null:Math.min(Math.round(v),KPI_CAP_OVER);
  };
  if(k.from===KPI_SUMBER_MODUL){
    var a=kpiModulAngka(k.pick); if(!a) return null;
@@ -5545,9 +5556,16 @@ function kpiRowSet(i,field,val){
    } else { k.nav="overview"; k.manual=true; }   // manual → capaian diisi sendiri lewat sub-KPI
    /* Pilih head section → sub-KPI ikut TERGENERATE & terisi otomatis.
       Isinya angka ABSOLUT bulan berjalan (bukan akru), sesuai kaidah Sudana:
-      "Sub-KPI ambil angka absolut pencapaiannya di bulan itu." */
-   var auto=kpiSubDariSumber(k);
-   if(auto&&auto.length) k.subs=auto;
+      "Sub-KPI ambil angka absolut pencapaiannya di bulan itu."
+      ── PAGAR INSIDEN 31 Jul: auto-generate TIDAK BOLEH menimpa sub-KPI yang
+      sudah DIKETIK pengguna. Isian manual Sudana di GA-01 (GRK Reduction=36
+      dst.) pernah lenyap ditimpa angka otomatis hanya karena dropdown sumber
+      disentuh. Ketikan orang menang atas generator — selamanya. */
+   var adaIsianManual=Array.isArray(k.subs)&&k.subs.some(function(s){ return s&&((s.n&&s.n.trim())||s.v!=null); });
+   if(!adaIsianManual){
+     var auto=kpiSubDariSumber(k);
+     if(auto&&auto.length) k.subs=auto;
+   }
  }
  else return;
  kpiPersist();
@@ -5717,7 +5735,7 @@ function renderKpiYear(){
        <div class="kpy-bar"><div class="inv-bar"><div class="fill ${r.st==="ok"?"":"flow"}" style="width:${w}%;background:${c}"></div></div>
          <div class="kpy-tgt" style="left:${Math.min(100,r.target)}%"></div></div>
        <div class="kpy-val"><b style="color:${c}">${r.ach}%</b><span class="muted small">skor ${r.score}</span></div>
-       <div class="kpy-chev">▾</div>
+       <div class="kpy-chev">⌄</div>
      </div>
      <div class="kpy-body">
        <div class="kpy-src">📡 Sumber angka: <b>${r.src}</b> — bukan input manual di halaman ini.</div>
@@ -6476,7 +6494,7 @@ function renderOverview(){
  // overview sections jadi accordion (klik header utk collapse/expand)
  document.querySelectorAll('#page-overview .card.sec').forEach(sec=>{
    const h=sec.querySelector('.sec-h'); if(!h||h.querySelector('.chev')) return;
-   const c=document.createElement('span'); c.className='chev'; c.textContent='▾'; c.title='Klik untuk melipat / membuka bagian ini'; h.appendChild(c);
+   const c=document.createElement('span'); c.className='chev'; c.textContent='⌄'; c.title='Klik untuk melipat / membuka bagian ini'; h.appendChild(c);
    h.style.cursor='pointer';
    h.addEventListener('click',e=>{ if(e.target.closest('a,button')) return; sec.classList.toggle('collapsed'); });
  });
@@ -7498,7 +7516,7 @@ function hariSemua(modul,tutup){
 function hariSepHTML(modul,g,satuan,pakaiTR,kolom){
  var tutup=hariTutup(modul,g.key);
  var isi='<button class="hr-sep'+(tutup?' tutup':'')+'" onclick="event.stopPropagation();hariToggle(\''+modul+'\',\''+g.key+'\')" '+
-   'title="'+(tutup?'Buka':'Tutup')+' '+esc(g.label)+'"><span class="hr-chev">▾</span>'+
+   'title="'+(tutup?'Buka':'Tutup')+' '+esc(g.label)+'"><span class="hr-chev">⌄</span>'+
    '<b>'+esc(g.label)+'</b><span class="hr-n">'+g.rows.length+' '+satuan+'</span></button>';
  return pakaiTR ? '<tr class="bl-trsep"><td colspan="'+(kolom||6)+'">'+isi+'</td></tr>' : '<div class="bl-sep">'+isi+'</div>';
 }
@@ -15363,7 +15381,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-151";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-152";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
