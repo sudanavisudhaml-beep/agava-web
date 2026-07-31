@@ -15363,7 +15363,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-150";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-151";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -16585,13 +16585,26 @@ function kaFungsi(){
 /* Menerjemahkan kegagalan teknis jadi kalimat yang bisa ditindaklanjuti. */
 function kaSalah(e){
  var c=String((e&&e.code)||"").replace("functions/","");
+ var m=String((e&&e.message)||"");
  if(c==="unauthenticated")    return "Sesi Anda tidak dikenali server. Keluar lalu masuk lagi.";
  if(c==="permission-denied")  return "Server menolak: hanya akun Owner yang boleh mengelola akun.";
  if(c==="unavailable"||c==="internal"||c==="not-found")
    return "Server kelola akun belum bisa dihubungi. Bila baru saja di-deploy, tunggu semenit lalu coba lagi.";
- if(/app-?check/i.test(String((e&&e.message)||"")+c))
+ if(/app-?check/i.test(m+c))
    return "Ditolak App Check — panel ini hanya jalan di situs AGAVA asli (s.astra.id/AGAVA), bukan salinan lokal.";
- return (e&&e.message)||"Terjadi kesalahan yang tidak dikenal.";
+ /* ── 31 Jul 2026 ──────────────────────────────────────────────────────────
+    "Registration failed - push service error" itu galat Push API BROWSER
+    (pendaftaran notifikasi latar gagal — lazim bila jaringan kantor memblokir
+    layanan push Google), BUKAN kegagalan Kelola Akun. Dulu pesannya diteruskan
+    mentah-mentah sehingga tampak seperti panel yang rusak. Sekarang dikenali
+    dan dijelaskan apa adanya, lengkap dengan jalan keluarnya. */
+ if(/push service|registration failed|permission denied.*notification/i.test(m))
+   return "Pendaftaran notifikasi latar perangkat ini gagal (layanan push Google tidak terjangkau dari jaringan ini) — "+
+          "bukan kegagalan Kelola Akun. Muat ulang halaman lalu buka panel ini lagi; bila tetap muncul, "+
+          "matikan izin Notifikasi untuk situs AGAVA di browser ini. Kelola Akun tidak membutuhkan notifikasi.";
+ /* kode mentah selalu ikut ditampilkan — supaya galat tak dikenal tidak pernah
+    lagi jadi teka-teki yang harus ditebak dari tangkapan layar */
+ return (m||"Terjadi kesalahan yang tidak dikenal.")+(c?" [kode: "+c+"]":"");
 }
 function kaPanggil(payload){
  var f=kaFungsi();
