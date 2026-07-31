@@ -2119,6 +2119,11 @@ body.rg-open{overflow:hidden}
 .rg-btn.ready{background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);box-shadow:0 8px 22px rgba(10,124,255,.4)}
 .rg-btn:disabled{cursor:not-allowed}
 .rg-lock{font-size:calc(10.5px*var(--fz));color:#9aa7b8;margin-top:10px}
+/* Tunda — sengaja tampil paling kalem: teks kecil bergaris bawah, bukan tombol
+   besar, supaya jalur utamanya tetap menilai/mengembalikan; ini pintu darurat. */
+.rg-nanti{display:block;margin:8px auto 0;border:none;background:none;color:#9aa7b8;
+  font-family:var(--ff);font-size:calc(11.5px*var(--fz));text-decoration:underline;cursor:pointer;padding:6px 10px}
+.rg-nanti:active{color:var(--muted)}
 @media(max-width:430px){.rg-box{padding:20px 18px 16px}.rg-h{font-size:calc(18px*var(--fz))}.rg-stars{font-size:calc(32px*var(--fz));letter-spacing:5px}}
 @media(prefers-reduced-motion:reduce){.rg-box,.rg-burst,.rg-ovl.show{animation:none}}
 /* ══════════════════════════════════════════════════════════════════════════
@@ -13846,6 +13851,10 @@ let RATE_GATE=null;
    sudah dinilai — kartu tidak akan muncul lagi di web. */
 const RATE_ACK_STORE="agava_rateack_v1";
 let RATE_ACK=(function(){ try{ return JSON.parse(localStorage.getItem(RATE_ACK_STORE))||{}; }catch(e){ return {}; } })();
+/* Tiket yang kartunya DITUNDA pemohon ("Ingatkan saya nanti") atau gagal
+   dirakit — hanya di memori, jadi kartu muncul lagi saat aplikasi dibuka
+   berikutnya. Menunda BUKAN menutup: tiketnya tetap menunggu persetujuan. */
+let RATE_TUNDA={};
 function rateAcked(no){ return !!(no && RATE_ACK[no]); }
 function rateAckSet(no,val){ if(!no)return; RATE_ACK[no]=(val==null?true:val); try{ localStorage.setItem(RATE_ACK_STORE,JSON.stringify(RATE_ACK)); }catch(e){} }
 /* Tiket dari cloud: bila perangkat ini pernah menilai tapi cloud belum punya rating
@@ -13872,6 +13881,7 @@ function rateGatePending(){
  return TICKETS.filter(function(t){
    if((t.stg||0)<3 || t.rating) return false;
    if(rateAcked(t.no)) return false;   // sudah dinilai/ditutup di perangkat ini → jangan tampilkan lagi
+   if(RATE_TUNDA[t.no]) return false;  // ditunda pemohon — muncul lagi saat aplikasi dibuka berikutnya
    if(!t.needRate && !(t.proof&&t.proof.length)) return false;
    var tm=String(t.email||"").trim().toLowerCase();
    if(tm&&mail) return tm===mail;
@@ -13880,6 +13890,11 @@ function rateGatePending(){
 }
 function rateGateCheck(){
  if(RATE_GATE) return;                 // sudah tampil
+ /* Jangan menyela orang yang sedang mengetik/mengisi form — snapshot cloud bisa
+    datang kapan saja, dan kartu yang menimpa isian setengah jadi terasa seperti
+    aplikasi "melompat". Kartu akan mencoba lagi pada peristiwa berikutnya. */
+ var ae=document.activeElement;
+ if(ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName||"")) return;
  var list=rateGatePending();
  if(list.length) rateGateShow(list[0]);
 }
@@ -13889,10 +13904,29 @@ function rateGateOpen(no){
  if(t && !t.rating && (t.stg||0)>=3) rateGateShow(t);
 }
 function rateGateShow(t){
+ /* ── DIRAKIT DULU, BARU DITAYANGKAN (31 Jul 2026) ──────────────────────────
+    Dulu overlay layar-penuh dipasang SEBELUM isinya selesai dibangun. Kalau
+    perakitan isi melempar error di tengah (bentuk tiket dari cache lama bisa
+    aneh-aneh), yang tersisa adalah overlay gelap KOSONG yang menutup seluruh
+    layar tanpa satu tombol pun — persis laporan "macet, blank, harus restart
+    dan login ulang". Sekarang seluruh HTML dirakit dulu di dalam try; gagal
+    merakit → tiketnya ditunda & dilewati, layar tidak pernah disandera. */
+ var html;
+ try{ html=rateGateHTML(t); }
+ catch(e){
+   console.warn("kartu rating gagal dirakit:",t&&t.no,e&&e.message);
+   if(t&&t.no) RATE_TUNDA[t.no]=1;      // jangan dicoba terus setiap snapshot
+   return;
+ }
  RATE_GATE=t.no;
  window._rateTmp=0;
  var el=document.getElementById("rateGate");
  if(!el){ el=document.createElement("div"); el.id="rateGate"; document.body.appendChild(el); }
+ el.className="rg-ovl show";
+ el.innerHTML=html;
+ document.body.classList.add("rg-open");
+}
+function rateGateHTML(t){
  var sla=ticketSLA(t);
  /* ── BUG DIPERBAIKI 30 Jul 2026 ──────────────────────────────────────────
     t.proof berisi OBJEK {url,at}, bukan string. Di sini dulu objeknya dipakai
@@ -13913,8 +13947,7 @@ function rateGateShow(t){
     dokumen Firestore dibatasi 1 MB) — katakan apa adanya, jangan diam. */
  var fotoHilang=(+t.proofLokal>0)
    ? '<div class="rg-nofoto">⚠️ '+(+t.proofLokal)+' foto bukti belum tersinkron dari perangkat operator</div>' : '';
- el.className="rg-ovl show";
- el.innerHTML=
+ return (
   '<div class="rg-box" role="dialog" aria-modal="true">'+
     '<div class="rg-burst">✅</div>'+
     '<div class="rg-h">Pekerjaan Selesai</div>'+
@@ -13931,9 +13964,17 @@ function rateGateShow(t){
     /* Persetujuan yang tidak punya pilihan MENOLAK bukan persetujuan.
        Aturan Sudana 30 Jul 2026: tiket tidak boleh ditutup sepihak. */
     '<button class="rg-tolak" onclick="rateGateTolak()">✋ Belum beres — kembalikan ke operator</button>'+
+    /* Jalan keluar ketiga: MENUNDA. Tanpa ini, pemohon yang belum siap menilai
+       terkunci di balik overlay — satu-satunya "keluar" adalah mematikan
+       aplikasi. Menunda tidak menutup tiket; kartunya kembali di sesi berikut. */
+    '<button class="rg-nanti" onclick="rateGateNanti()">⏳ Ingatkan saya nanti</button>'+
     '<div class="rg-lock">🔒 Tiket ini hanya tutup setelah <b>Anda</b> menyetujuinya</div>'+
-  '</div>';
- document.body.classList.add("rg-open");
+  '</div>');
+}
+/* tunda kartu rating — tiket TETAP menunggu persetujuan pemohon */
+function rateGateNanti(){
+ if(RATE_GATE) RATE_TUNDA[RATE_GATE]=1;
+ rateGateClose();
 }
 /* ── PEMOHON MENOLAK HASIL KERJA → tiket kembali ke operator ───────────────
    "Resolved" oleh operator bukan lagi kata akhir. Kalau pemohon menilai
@@ -13959,7 +14000,7 @@ function rateGateTolak(){
  try{ agavaNotify("✋ "+t.no+" dikembalikan pemohon", a); }catch(e){}
  try{ auditLog("tiket-ditolak-pemohon", t.no+" · "+a); }catch(e){}
  rateGateClose();
- renderService(); renderMyTickets(); renderFieldOps(); renderOverview(); updateBell();
+ agavaRenderAman(["renderService","renderMyTickets","renderFieldOps","renderOverview","renderMobileHome","updateBell"]);
  alert("✋ Tiket "+t.no+" dikembalikan ke "+(t.pic||"operator")+".\n\nStatusnya kembali In Progress dan alasan Anda sudah terkirim.");
 }
 function rateGateClose(){
@@ -13991,7 +14032,7 @@ function rateGateSubmit(){
  if(el){ el.classList.remove("show"); setTimeout(function(){ el.innerHTML=""; },260); }
  document.body.classList.remove("rg-open");
  RATE_GATE=null; window._rateTmp=0;
- renderService(); renderOverview(); updateBell();
+ agavaRenderAman(["renderService","renderMyTickets","renderOverview","renderMobileHome","updateBell"]);
  setTimeout(rateGateCheck,400);   // masih ada tiket lain yg menunggu dinilai?
 }
 
@@ -14745,6 +14786,14 @@ function renderAll(){
   [renderOverview,renderProc,renderBuilding,renderService,renderFieldOps,renderMyTickets,renderEnergy,renderErsus,renderReminder,renderApprovals,renderAssigned,renderPayment,renderVendor,renderHSE,updateBell]
     .forEach(fn=>{ try{ fn(); }catch(e){ console.warn("render error:",e.message); } });
 }
+/* ── Gambar ulang berurutan TANPA saling menjatuhkan (31 Jul 2026) ──────────
+   Dulu rantai render di onSnapshot dipanggil telanjang berderet — satu modul
+   yang melempar error menghentikan seluruh sisa deret, sehingga di perangkat
+   itu CODEC, lonceng, dan modul di belakangnya TIDAK PERNAH diperbarui lagi
+   ("rating di CODEC tidak terupdate") padahal datanya sudah sampai. */
+function agavaRenderAman(fns){
+ fns.forEach(function(f){ try{ if(typeof window[f]==="function") window[f](); }catch(e){ console.warn("render:",f,e&&e.message); } });
+}
 
 function liveStatus(state,name){
   const chip=document.getElementById("liveChip"),dot=document.getElementById("liveDot"),txt=document.getElementById("liveTxt");
@@ -14763,7 +14812,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.30-140";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-141";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -14890,7 +14939,10 @@ function dbInit(){
     });
     if(changed){
       normalizeTickets();   // tiket dari perangkat lain ikut dilengkapi pemohon & SLA
-      renderService(); renderFieldOps(); renderMyTickets(); renderOverview(); renderBuilding(); updateBell();
+      /* renderMobileHome WAJIB ikut: daftar tiket di Beranda HP dulu tidak pernah
+         digambar ulang saat data cloud berubah — hanya segar bila di-tarik-refresh,
+         sehingga di HP terlihat "tidak terupdate" padahal datanya sudah sampai. */
+      agavaRenderAman(["renderService","renderFieldOps","renderMyTickets","renderOverview","renderBuilding","renderMobileHome","updateBell"]);
       try{ rateGateCheck(); }catch(e){}   // tiket saya baru diselesaikan operator → minta rating
     }
     /* Tiket baru dari perangkat lain → sound + push notif di tray HP.
@@ -14935,7 +14987,8 @@ function dbInit(){
     if(ch3){
       normalizeSO(); try{ ticketSoSync(); }catch(e){}
       try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){}
-      renderProc(); renderApprovals(); renderAssigned(); renderPayment(); renderOverview(); updateBell();
+      /* renderMobileHome ikut — daftar "Permintaan Pembelian" di Beranda HP */
+      agavaRenderAman(["renderProc","renderApprovals","renderAssigned","renderPayment","renderOverview","renderMobileHome","updateBell"]);
     }
     if(soNew.length) agavaNotify("📋 SO baru masuk", soNew[0].no+" · "+(soNew[0].item||"")+(soNew.length>1?" · +"+(soNew.length-1)+" lainnya":""));
     if(!AGDB.soInit){ AGDB.soInit=true; dbSaveSOAll(); }   // koneksi pertama → unggah SO lokal yang belum ada di cloud
