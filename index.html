@@ -4973,7 +4973,7 @@ function kpiClaRows(){
 }
 /* ===== Performance Indikator (section CODEC) — Standard (6 baku) vs Key (KPI tahun ini) ===== */
 const KPI_STORE="agava_kpi_v1";
-function kpiPersist(){ try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){} try{ dbSaveKPI(); }catch(e){} }
+function kpiPersist(asal){ try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){} try{ dbSaveKPI(asal||"edit-kpi"); }catch(e){} }
 /* Peta ulang KPI lama yang sudah tersimpan di perangkat ke sumber CODEC yang baru,
    supaya capaian tidak jatuh ke 0 gara-gara nama komponen berubah. */
 function kpiMigrate(k){
@@ -4986,7 +4986,12 @@ function kpiMigrate(k){
  }
  return k;
 }
-function kpiLoad(){ try{ var r=localStorage.getItem(KPI_STORE); if(r){ var d=JSON.parse(r); if(d&&Array.isArray(d.cla)){ KPI_CLA.length=0; d.cla.forEach(function(x){KPI_CLA.push(kpiMigrate(x));}); if(d.meta)Object.assign(KPI_YEAR_META,d.meta); kpiPersist(); return true; } } }catch(e){} return false; }
+/* MEMUAT = MEMBACA SAJA. Dulu kpiLoad ikut memanggil kpiPersist() → dbSaveKPI(),
+   sehingga perangkat yang baru dibuka (bahkan SEBELUM login) mendorong salinan
+   localStorage lamanya menimpa dokumen KPI bersama di cloud — isian PDCA pemilik
+   hilang dua kali (28 & 30 Jul 2026, keduanya tercap by:""). Jalur muat tidak
+   boleh pernah menulis. */
+function kpiLoad(){ try{ var r=localStorage.getItem(KPI_STORE); if(r){ var d=JSON.parse(r); if(d&&Array.isArray(d.cla)){ KPI_CLA.length=0; d.cla.forEach(function(x){KPI_CLA.push(kpiMigrate(x));}); if(d.meta)Object.assign(KPI_YEAR_META,d.meta); return true; } } }catch(e){} return false; }
 function kpiNextCode(){ var mx=0; KPI_CLA.forEach(function(k){ var m=String(k.code||'').match(/(\d+)/); if(m)mx=Math.max(mx,+m[1]); }); return 'GA-'+String(mx+1).padStart(2,'0'); }
 function codecPerspFor(name){ return {"General Facilities Management":"Sustainability","General Services Management":"Customer","General Administration":"Financial","Project Development":"Internal Process","External Relation":"External Relation","Environment Health & Safety (P2K3L)":"Safety"}[name]||"Internal Process"; }
 function codecPromoteKey(name){
@@ -5088,6 +5093,8 @@ function codecPerfIndicatorHTML(){
  var lockBtn = viewerOnly() ? ''
    : (ed ? '<button class="pi-save" onclick="kpiEditSave()">💾 Simpan</button>'
          : '<button class="pi-lock" onclick="kpiEditUnlock()">🔒 Ubah</button>');
+ /* 🛟 hanya Owner — recall isian KPI dari kantong penyelamat perangkat ini */
+ if(isOwner()) lockBtn='<button class="pi-lock" onclick="kpiPulihkan()" title="Pulihkan KPI dari kantong penyelamat perangkat ini">🛟</button>'+lockBtn;
  return '<div class="card mt16 pi-card">'+
    /* judul section memakai tahun KPI berjalan, jadi tidak basi saat ganti tahun */
    '<div class="gd-ch"><span class="gd-chi">🎯</span><div><div class="gd-cht">Key Performance Indikator '+KPI_YEAR_META.year+'</div></div></div>'+
@@ -5115,6 +5122,30 @@ function codecPerfIndicatorHTML(){
 const KPI_PIN="123456";
 let kpiEdit=false;
 function kpiEditOn(){ return kpiEdit && !viewerOnly(); }
+/* ── 🛟 PULIHKAN — recall isian KPI dari kantong penyelamat perangkat ini ────
+   Untuk insiden "KPI kembali dummy": perangkat yang terakhir dipakai mengisi
+   KPI dan BELUM dibuka lagi sejak penimpaan masih menyimpan salinan baik di
+   localStorage. Dengan build ini, saat perangkat itu dibuka, salinan baiknya
+   dipindah ke kantong penyelamat (bukan dibuang). Owner menekan 🛟 →
+   pratinjau → salinan baik dinaikkan kembali ke cloud (versi sekarang tetap
+   diarsipkan dulu ke riwayat, jadi langkah ini pun bisa dibatalkan). */
+function kpiPulihkan(){
+ if(!isOwner()){ alert("⛔ Hanya Owner yang bisa memulihkan KPI."); return; }
+ var r=null; try{ r=JSON.parse(localStorage.getItem("agava_kpi_rescue_v1")); }catch(e){}
+ var d=r&&r.data;
+ if(!d||!Array.isArray(d.cla)||!d.cla.length){
+   alert("🛟 Tidak ada salinan penyelamat di perangkat ini.\n\nBuka AGAVA (build ini) di perangkat yang terakhir dipakai mengisi KPI dan belum dibuka lagi sejak isian hilang — kantongnya akan terisi otomatis di sana, lalu tekan 🛟 dari perangkat itu.");
+   return;
+ }
+ var ber=d.cla.filter(function(x){return x.mon&&Object.keys(x.mon).length;});
+ if(!confirm("🛟 Pulihkan KPI dari salinan penyelamat perangkat ini?\n\nTersimpan: "+(r.saat||"?")+"\n"+d.cla.length+" indikator · "+ber.length+" di antaranya punya isian/catatan bulanan.\n\nIni menimpa KPI bersama di cloud — versi sekarang diarsipkan dulu ke riwayat."))return;
+ KPI_CLA.length=0; d.cla.forEach(function(x){KPI_CLA.push(kpiMigrate(x));});
+ if(d.meta)Object.assign(KPI_YEAR_META,d.meta);
+ kpiPersist("pulihkan-rescue");
+ try{ auditLog("kpi-pulihkan","dari kantong penyelamat · "+ber.length+" indikator ber-isian"); }catch(e){}
+ renderOverview();
+ alert("🛟 KPI dipulihkan dan dinaikkan ke cloud.\nPeriksa tabel Key Performance — semua perangkat lain akan ikut ter-update.");
+}
 function kpiEditUnlock(){
  var p=prompt("🔒 Masukkan PIN untuk mengubah tabel KPI "+KPI_YEAR_META.year+":","");
  if(p===null)return;
@@ -14812,7 +14843,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-141";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-142";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -14995,11 +15026,21 @@ function dbInit(){
   },err=>{ console.warn("SO rules/err:",err&&err.code); });
   /* KPI + review PDCA bulanan — satu dokumen bersama */
   AGDB.db.collection("agava_config").doc("kpi").onSnapshot(doc=>{
-    if(!doc.exists){ dbSaveKPI(); return; }     // cloud kosong → seed dari perangkat ini
+    if(!doc.exists){ dbSaveKPI("seed-cloud-kosong"); return; }   // cloud kosong → seed (hanya jalan bila sudah login)
     const d=doc.data(); if(!d||!Array.isArray(d.cla)||!d.cla.length)return;
     AGDB.kpiCloud=d;                            // simpan utk re-apply bila loadDataFiles menimpa belakangan
     const j=JSON.stringify(d.cla);
     if(j===JSON.stringify(KPI_CLA))return;      // sama dengan lokal → tidak ada yang perlu diubah
+    /* 🛟 KANTONG PENYELAMAT: bila salinan LOKAL perangkat ini punya catatan
+       bulanan (mon) yang TIDAK ada di versi cloud yang datang, pindahkan dulu
+       ke kantong — jangan langsung ditimpa. Inilah bekal tombol 🛟 Pulihkan:
+       perangkat yang terakhir dipakai mengisi KPI masih bisa mengembalikan
+       isiannya walau cloud sudah telanjur berisi versi kosong. */
+    try{
+      var lokalKpi=localStorage.getItem(KPI_STORE);
+      if(lokalKpi && lokalKpi.indexOf('"mon":{')>=0 && j.indexOf('"mon":{')<0)
+        localStorage.setItem("agava_kpi_rescue_v1", JSON.stringify({saat:nowStamp(), data:JSON.parse(lokalKpi)}));
+    }catch(e){}
     AGDB.kpiEcho=j;
     KPI_CLA.length=0; d.cla.forEach(x=>KPI_CLA.push(kpiMigrate(x)));
     if(d.meta)Object.assign(KPI_YEAR_META,d.meta);
@@ -15278,30 +15319,66 @@ function dbSaveSOAll(){
    AGDB.db.collection("agava_so").doc(String(s.no)).set(c,{merge:true}).catch(function(e){ console.warn("SO cloud:",e&&e.code); });
  });
 }
-function dbSaveKPI(){
+/* ══ PAGAR DATA BERSAMA (31 Jul 2026) — insiden "KPI kembali dummy" ══════════
+   Dokumen agava_config/kpi TERTIMPA salinan basi dua kali (28 & 30 Jul, keduanya
+   by:"" = proses boot pra-login): kpiLoad() dulu ikut menulis saat memuat, dan
+   snapshot menyebarkan timpaan itu ke localStorage semua perangkat lain. Isian
+   PDCA pemilik hilang total, tanpa riwayat untuk kembali. Pagar sekarang:
+     1. jalur muat tidak pernah menulis (lihat kpiLoad),
+     2. tulis cloud DITOLAK sebelum login — tanpa identitas, tanpa hak tulis,
+     3. tulis cloud DITOLAK tanpa keterangan asal (edit-kpi / pulihkan-rescue /
+        seed-cloud-kosong) — tidak ada lagi penulis anonim,
+     4. versi cloud yang sedang berlaku DIARSIPKAN dulu ke agava_config_riwayat
+        (+ jejak agava_audit) sebelum ditimpa — setiap override berjejak dan
+        bisa di-recall. */
+function dbSaveKPI(asal){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
- var payload={cla:JSON.parse(JSON.stringify(KPI_CLA)), meta:JSON.parse(JSON.stringify(KPI_YEAR_META)), up:Date.now(), by:(gUser&&gUser.name)||""};
+ if(!gUser||!gUser.name){ console.warn("KPI: tulis cloud DITOLAK — belum login (pagar insiden 30 Jul)"); return; }
+ if(!asal){ console.warn("KPI: tulis cloud DITOLAK — tanpa keterangan asal"); return; }
+ var payload={cla:JSON.parse(JSON.stringify(KPI_CLA)), meta:JSON.parse(JSON.stringify(KPI_YEAR_META)), up:Date.now(), by:gUser.name, asal:asal};
  var j=JSON.stringify([payload.cla,payload.meta]);   // meta ikut → jejak "diubah oleh" tersimpan juga
  if(AGDB.kpiEcho===j)return;
  AGDB.kpiEcho=j;
+ try{ dbSimpanRiwayat("kpi", AGDB.kpiCloud, asal); }catch(e){}
+ try{ auditLog("kpi-simpan", asal+" · "+payload.cla.length+" indikator"); }catch(e){}
  AGDB.db.collection("agava_config").doc("kpi").set(payload).catch(function(e){ console.warn("KPI cloud:",e&&e.code); });
+}
+/* ── LOG OVERRIDE dokumen bersama — arsip versi lama SEBELUM ditimpa ────────
+   Permintaan Sudana 31 Jul 2026: data live tidak boleh bisa dioverride tanpa
+   jejak. Setiap dokumen agava_config yang akan ditimpa diarsipkan dulu ke
+   koleksi agava_config_riwayat: siapa, kapan, dari jalur mana, build apa, dan
+   ISI PENUH versi sebelumnya — sehingga override apa pun bisa di-recall dan
+   dipulihkan, bukan hilang diam-diam. */
+function dbSimpanRiwayat(dok,sebelum,asal){
+ if(AGDB.ro||!AGDB.on||!AGDB.db||!sebelum)return;
+ try{
+  AGDB.db.collection("agava_config_riwayat").add({
+    dok:dok, asal:asal||"", oleh:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"",
+    at:new Date().toISOString(), atLocal:nowStamp(), build:AGAVA_BUILD,
+    sebelum:JSON.stringify(sebelum).slice(0,900000)
+  }).catch(function(){});
+ }catch(e){}
 }
 /* ── MASTER DATA (STNK, PBB, Izin, Kontrak Vendor, Maintenance, dll) → Firestore ── */
 function dbSaveMaster(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
+ if(!gUser||!gUser.name){ console.warn("Master: tulis cloud DITOLAK — belum login (pagar data bersama)"); return; }
  var out={}; Object.keys(DB_SETS).forEach(function(k){ out[k]=DB_SETS[k].get(); });
- var payload={sets:JSON.parse(JSON.stringify(out)), up:Date.now(), by:(gUser&&gUser.name)||""};
+ var payload={sets:JSON.parse(JSON.stringify(out)), up:Date.now(), by:gUser.name};
  var j=JSON.stringify(payload.sets);
  if(AGDB.masterEcho===j)return;
+ try{ if(AGDB.masterEcho) dbSimpanRiwayat("master", AGDB.masterEcho, "edit-master"); }catch(e){}
  AGDB.masterEcho=j;
  AGDB.db.collection("agava_config").doc("master").set(payload).catch(function(e){ console.warn("Master cloud:",e&&e.code); });
 }
 /* ── KONFIGURASI FLOW Power Automate → Firestore (jangan hilang saat ganti perangkat) ── */
 function dbSaveFlow(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
- var payload={endpoints:JSON.parse(JSON.stringify(FLOW.endpoints||{})), up:Date.now(), by:(gUser&&gUser.name)||""};
+ if(!gUser||!gUser.name){ console.warn("Flow: tulis cloud DITOLAK — belum login (pagar data bersama)"); return; }
+ var payload={endpoints:JSON.parse(JSON.stringify(FLOW.endpoints||{})), up:Date.now(), by:gUser.name};
  var j=JSON.stringify(payload.endpoints);
  if(AGDB.flowEcho===j)return;
+ try{ if(AGDB.flowEcho) dbSimpanRiwayat("flow", AGDB.flowEcho, "edit-flow"); }catch(e){}
  AGDB.flowEcho=j;
  AGDB.db.collection("agava_config").doc("flow").set(payload).catch(function(e){ console.warn("Flow cloud:",e&&e.code); });
 }
@@ -15677,9 +15754,11 @@ function paramPersist(){
 }
 function dbSaveParam(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
- var payload={param:JSON.parse(JSON.stringify(GA_PARAM)), up:Date.now(), by:(gUser&&gUser.name)||""};
+ if(!gUser||!gUser.name){ console.warn("Param: tulis cloud DITOLAK — belum login (pagar data bersama)"); return; }
+ var payload={param:JSON.parse(JSON.stringify(GA_PARAM)), up:Date.now(), by:gUser.name};
  var j=JSON.stringify(payload.param);
  if(AGDB.paramEcho===j)return;
+ try{ if(AGDB.paramEcho) dbSimpanRiwayat("params", AGDB.paramEcho, "edit-param"); }catch(e){}
  AGDB.paramEcho=j;
  AGDB.db.collection("agava_config").doc("params").set(payload).catch(function(e){ console.warn("Param cloud:",e&&e.code); });
 }
