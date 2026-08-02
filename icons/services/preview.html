@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ikon Layanan AGAVA — uji terima</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#fff;color:#0F1728;padding:36px 28px 64px;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .bungkus{max-width:900px;margin:0 auto}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.9px;margin-bottom:6px}
+  .sub{font-size:14.5px;color:#667085;margin-bottom:34px;line-height:1.55}
+  h2{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:#2563EB;margin:38px 0 4px}
+  .ket{font-size:13.5px;color:#667085;margin-bottom:16px;line-height:1.5}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:#98A2B3;text-align:left;padding:0 0 12px}
+  td{padding:11px 0;border-top:1px solid #E4E7EC;vertical-align:middle}
+  .nama{font-size:14.5px;font-weight:600;letter-spacing:-.2px}
+  .berkas{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;color:#98A2B3}
+  /* ubin sesuai spesifikasi */
+  .ubin{background:#EEF4FF;display:grid;place-items:center;flex:0 0 auto}
+  .u44{width:44px;height:44px;border-radius:12px}
+  .u56{width:56px;height:56px;border-radius:14px}
+  .u28{width:28px;height:28px;border-radius:8px}
+  .g16{width:16px;height:16px;display:block}
+  .g26{width:26px;height:26px;display:block}
+  .g34{width:34px;height:34px;display:block}
+  .baris{display:flex;align-items:center;gap:18px}
+  .abu{filter:grayscale(1)}
+  .catatan{margin-top:40px;padding:18px 20px;background:#F5F7FB;border-radius:14px;
+    font-size:13.5px;line-height:1.6;color:#344054}
+  .catatan b{font-weight:600;color:#0F1728}
+  .pita{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+</style>
+</head>
+<body>
+<div class="bungkus">
+
+  <h1>Ikon Layanan AGAVA</h1>
+  <p class="sub">Uji terima glif pejal dua warna. Semua ubin memakai latar <code>#EEF4FF</code> —
+     warna yang sama dengan lubang di dalam ikon, sehingga lubangnya terbaca sebagai lubang.</p>
+
+  <h2>Tiga ukuran pakai</h2>
+  <p class="ket">26 px adalah ukuran sebenarnya di halaman Layanan GA. 34 px untuk lembar
+     spesifikasi. 16 px menguji apakah bentuk pokoknya masih dikenali saat detail dalam hilang.</p>
+  <table>
+    <thead><tr><th style="width:40%">Layanan</th><th>16 px</th><th>26 px · ukuran pakai</th><th>34 px</th></tr></thead>
+    <tbody id="tbl"></tbody>
+  </table>
+
+  <h2>Uji grayscale</h2>
+  <p class="ket">Dicetak atau dilihat orang dengan buta warna: massa navy dan bagian biru
+     harus tetap terbedakan.</p>
+  <div class="pita" id="abu"></div>
+
+  <h2>Berat visual sejajar</h2>
+  <p class="ket">Kelimanya berdampingan pada ukuran pakai — tidak boleh ada satu ikon yang
+     jauh lebih gelap, lebih ramai, atau lebih kecil dari yang lain.</p>
+  <div class="pita" id="sejajar"></div>
+
+  <div class="catatan">
+    <b>Berkas SVG di folder ini adalah sumber desain.</b> Yang dipakai aplikasi adalah salinan
+    sebaris di dalam <code>index.html</code> (konstanta <code>M_LAYANAN</code> dan tombol
+    Create Supply Order) — supaya AGAVA tetap satu berkas dan tetap bekerja luring.
+    Kalau berkas di sini diubah, salinan sebaris itu harus ikut diubah; keduanya tidak
+    tersambung otomatis.
+  </div>
+
+</div>
+
+<script>
+var IKON=[
+  ["complaint-handling","Complaint Handling"],
+  ["room-reservation","Room Reservation"],
+  ["transport-booking","Transport Booking"],
+  ["overtime","Overtime"],
+  ["supply-order","Create Supply Order"]
+];
+function img(f,k){ return '<img class="'+k+'" src="'+f+'.svg" alt="">'; }
+document.getElementById("tbl").innerHTML=IKON.map(function(x){
+  return '<tr><td><div class="nama">'+x[1]+'</div><div class="berkas">'+x[0]+'.svg</div></td>'+
+    '<td><span class="ubin u28">'+img(x[0],"g16")+'</span></td>'+
+    '<td><span class="ubin u44">'+img(x[0],"g26")+'</span></td>'+
+    '<td><span class="ubin u56">'+img(x[0],"g34")+'</span></td></tr>';
+}).join("");
+document.getElementById("abu").innerHTML=IKON.map(function(x){
+  return '<span class="ubin u44 abu">'+img(x[0],"g26")+'</span>';
+}).join("");
+document.getElementById("sejajar").innerHTML=IKON.map(function(x){
+  return '<span class="ubin u44">'+img(x[0],"g26")+'</span>';
+}).join("");
+</script>
+</body>
+</html>

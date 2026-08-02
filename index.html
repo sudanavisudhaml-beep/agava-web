@@ -2588,7 +2588,20 @@ body.rg-open{overflow:hidden}
     background:transparent;box-shadow:none;cursor:pointer;font-family:var(--ff);position:relative}
   .m-svc+.m-svc::before{content:"";position:absolute;left:var(--m-inset);right:0;top:0;height:1px;background:var(--m-sep)}
   .m-svc:active{background:var(--m-fill)}
-  .m-svc-ic{flex:0 0 44px;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:calc(21px*var(--fz))}
+  /* Ubin ikon layanan — 44px radius 12, latar #EEF4FF, glif 26px (spesifikasi
+     ikon di icons/services/README.md).
+     LATARNYA SERAGAM, DAN ITU BUKAN PILIHAN GAYA. Ikon layanan memakai teknik
+     knockout: lubang di dalam glif diwarnai #EEF4FF supaya terbaca sebagai
+     lubang, bukan sebagai bidang. Itu hanya bekerja bila warnanya SAMA PERSIS
+     dengan ubinnya. Sampai v167 tiap layanan punya ubin berwarna sendiri lewat
+     kelas .k-* (hijau, amber, ungu); di atas ubin itu lubangnya akan tampak
+     sebagai bercak biru muda. Kelas .k-* TETAP dipakai chip di baris tiket —
+     yang berubah hanya: kelas itu tidak lagi dipasang pada ubin ikon.
+     Kalau suatu saat ubin ini diberi warna lain, KELIMA berkas SVG harus ikut
+     diubah warna lubangnya. */
+  .m-svc-ic{flex:0 0 44px;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+    background:#EEF4FF}
+  .m-svc-ic svg{width:26px;height:26px;display:block}
   .m-svc-tx{flex:1;min-width:0}
   .m-svc-tx b{display:block;font-size:calc(15px*var(--fz));font-weight:600;color:var(--m-ink);letter-spacing:-.3px}
   .m-svc-tx small{font-size:calc(12.5px*var(--fz));color:var(--m-mut)}
@@ -10580,16 +10593,41 @@ function mBannerInit(){
 }
 
 /* ── HALAMAN: LAYANAN GA (tombol + di bottom bar) ── */
+/* ══ IKON LAYANAN — glif pejal dua warna ═════════════════════════════════════
+   Menggantikan emoji (🎫 🏢 🚗 ⏱️ 🛒) yang dipakai sampai v167. Emoji digambar
+   ulang oleh tiap sistem operasi, jadi tampilannya berbeda-beda di Android,
+   iOS, dan Windows — dan tidak ada satu pun yang mengikuti warna merek AGAVA.
+
+   Empat warna saja di seluruh set: #0B2447 massa utama · #2563EB tepat satu
+   bagian yang menjelaskan aksinya · #EEF4FF lubang · #FFFFFF hanya untuk tanda
+   tambah di dalam lencana.
+
+   SUMBER DESAIN ADA DI icons/services/*.svg — yang di bawah ini salinannya.
+   Disalin sebaris, bukan dimuat lewat <img src>, karena AGAVA satu berkas dan
+   bekerja luring: lima berkas terpisah berarti lima permintaan jaringan yang
+   harus ikut didaftarkan di ASSETS sw.js, dan ikonnya berkedip kosong pada
+   muat pertama. Konsekuensinya: MENGUBAH BERKAS SVG SAJA TIDAK CUKUP —
+   salinan di sini harus ikut diubah. Keduanya tidak tersambung otomatis.
+
+   Warna lubang #EEF4FF terikat pada warna ubin .m-svc-ic. Kalau ubinnya
+   diganti, kelima glif ini harus ikut diganti. ══════════════════════════════ */
+const SVC_ICON={
+ complaint:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="13.4" y="1.7" width="9" height="7.7" rx="2.4" fill="#2563EB"/><path d="M3.6 14.6 L1.8 21.4 L8.2 16.8 Z" fill="#0B2447"/><rect x="1.9" y="5.4" width="15.6" height="11.8" rx="2.6" fill="#0B2447"/><rect x="8.4" y="8" width="2.6" height="4.8" rx="1.3" fill="#EEF4FF"/><circle cx="9.7" cy="14.6" r="1.35" fill="#EEF4FF"/></svg>',
+ room:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="6.2" y="1.6" width="2.7" height="4.4" rx="1.35" fill="#0B2447"/><rect x="15.1" y="1.6" width="2.7" height="4.4" rx="1.35" fill="#0B2447"/><rect x="2.4" y="3.6" width="19.2" height="9" rx="2.6" fill="#2563EB"/><rect x="2.4" y="7.6" width="19.2" height="14.8" rx="2.6" fill="#0B2447"/><rect x="5.2" y="11.4" width="5.2" height="4.6" rx="1.4" fill="#EEF4FF"/><path d="M12.8 12.6 H18.6" stroke="#EEF4FF" stroke-width="2.1" stroke-linecap="square"/><path d="M12.8 15.4 H18.6" stroke="#EEF4FF" stroke-width="2.1" stroke-linecap="square"/></svg>',
+ transport:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="6" y="6.2" width="11.6" height="6.4" rx="2" fill="#0B2447"/><rect x="2.2" y="11.4" width="19.6" height="5.8" rx="2" fill="#0B2447"/><rect x="7.6" y="7.8" width="8.4" height="3" rx="1.2" fill="#EEF4FF"/><circle cx="7.1" cy="18" r="2.8" fill="#2563EB"/><circle cx="16.9" cy="18" r="2.8" fill="#2563EB"/></svg>',
+ overtime:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.3" cy="10.3" r="8.3" fill="#0B2447"/><path d="M10.3 10.3 V5.6" stroke="#EEF4FF" stroke-width="2.1" stroke-linecap="square"/><path d="M10.3 10.3 H14.2" stroke="#EEF4FF" stroke-width="2.1" stroke-linecap="square"/><circle cx="18" cy="18" r="4.4" fill="#2563EB"/><path d="M18 15.8 V20.2" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="square"/><path d="M15.8 18 H20.2" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="square"/></svg>',
+ so:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="1.8" y="4.4" width="16.4" height="4.8" rx="1.7" fill="#0B2447"/><rect x="3.4" y="9.2" width="13.2" height="10" rx="1.8" fill="#0B2447"/><path d="M6 9.2 H14" stroke="#EEF4FF" stroke-width="2.1" stroke-linecap="square" opacity=".55"/><circle cx="18" cy="18" r="4.4" fill="#2563EB"/><path d="M18 15.8 V20.2" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="square"/><path d="M15.8 18 H20.2" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="square"/></svg>'
+};
 const M_LAYANAN=[
- {t:"Complaint Handling", s:"Lapor keluhan / kerusakan fasilitas", ic:"🎫", cls:"k-complaint", go:"createticket"},
- {t:"Room Reservation", s:"Pesan ruang meeting & aula", ic:"🏢", cls:"k-room", go:"roombook"},
- {t:"Transport Booking", s:"Pool car · Blue Bird · GoCorp", ic:"🚗", cls:"k-transport", go:"transport"},
- {t:"Overtime", s:"Perpanjangan AC & manpower lembur", ic:"⏱️", cls:"k-overtime", go:"overtime"}
+ {t:"Complaint Handling", s:"Lapor keluhan / kerusakan fasilitas", ic:SVC_ICON.complaint, go:"createticket"},
+ {t:"Room Reservation", s:"Pesan ruang meeting & aula", ic:SVC_ICON.room, go:"roombook"},
+ {t:"Transport Booking", s:"Pool car · Blue Bird · GoCorp", ic:SVC_ICON.transport, go:"transport"},
+ {t:"Overtime", s:"Perpanjangan AC & manpower lembur", ic:SVC_ICON.overtime, go:"overtime"}
 ];
 function renderLayanan(){
  var el=document.getElementById("page-layanan"); if(!el)return;
  var extra=mCanSO()?'<button class="m-svc" onclick="go(\'createso\')">'+
-   '<span class="m-svc-ic k-so">🛒</span><span class="m-svc-tx"><b>Create Supply Order</b>'+
+   '<span class="m-svc-ic">'+SVC_ICON.so+'</span><span class="m-svc-tx"><b>Create Supply Order</b>'+
    '<small>Ajukan permintaan pembelian ke Procurement</small></span>'+
    '<span class="m-svc-go">›</span></button>':'';
  el.innerHTML=
@@ -10598,7 +10636,7 @@ function renderLayanan(){
    '<div class="m-svc-list">'+
    M_LAYANAN.map(function(x){
      return '<button class="m-svc" onclick="go(\''+x.go+'\')">'+
-       '<span class="m-svc-ic '+x.cls+'">'+x.ic+'</span>'+
+       '<span class="m-svc-ic">'+x.ic+'</span>'+
        '<span class="m-svc-tx"><b>'+esc(x.t)+'</b><small>'+esc(x.s)+'</small></span>'+
        '<span class="m-svc-go">›</span></button>';
    }).join("")+extra+'</div>'+
@@ -16054,7 +16092,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-167";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-168";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║

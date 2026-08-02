@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <title>Room Reservation</title>
+  <rect x="6.2" y="1.6" width="2.7" height="4.4" rx="1.35" fill="#0B2447"/>
+  <rect x="15.1" y="1.6" width="2.7" height="4.4" rx="1.35" fill="#0B2447"/>
+  <rect x="2.4" y="3.6" width="19.2" height="9" rx="2.6" fill="#2563EB"/>
+  <rect x="2.4" y="7.6" width="19.2" height="14.8" rx="2.6" fill="#0B2447"/>
+  <rect x="5.2" y="11.4" width="5.2" height="4.6" rx="1.4" fill="#EEF4FF"/>
+  <path d="M12.8 12.6 H18.6" stroke="#EEF4FF" stroke-width="2.1" stroke-linecap="square"/>
+  <path d="M12.8 15.4 H18.6" stroke="#EEF4FF" stroke-width="2.1" stroke-linecap="square"/>
+</svg>
