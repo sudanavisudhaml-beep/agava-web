@@ -2522,11 +2522,17 @@ body.rg-open{overflow:hidden}
   /* Tab aktif — v3: sorotan pil biru muda + ikon & label biru.
      Biru, bukan navy: brand direction menetapkan "Electric Blue hanya untuk
      tindakan dan penanda aktif", navy untuk teks utama. */
-  /* :not(.mb-fab) — tombol + di tengah sudah punya lingkaran navy sendiri;
-     tanpa pengecualian ini ia dapat pil biru muda di belakangnya. */
+  /* :not(.mb-fab) WAJIB di KETIGA aturan ini, bukan cuma di latarnya.
+     Tombol + punya lingkaran berwarna sendiri; ikonnya harus tetap putih.
+     Tanpa pengecualian pada aturan stroke, `.mbot button.on span svg` (0,2,3)
+     mengalahkan `.mbot .mb-fab span svg` (0,2,2) — ikon + ikut menjadi biru,
+     warna yang sama persis dengan lingkarannya. Hasilnya bukan "tidak
+     berputar", melainkan ikon yang HILANG: putarannya tetap 45° tapi tak
+     terlihat sama sekali di atas latar sewarna. Ditemukan 3 Agt 2026, regresi
+     dari v164; gejalanya dilaporkan sebagai "tombolnya jadi bulat solid biru". */
   .mbot button.on:not(.mb-fab){background:rgba(37,99,235,.10);border-radius:999px}
-  .mbot button.on i{color:var(--m-blue);font-weight:700}
-  .mbot button.on span svg{stroke:var(--m-blue)}
+  .mbot button.on:not(.mb-fab) i{color:var(--m-blue);font-weight:700}
+  .mbot button.on:not(.mb-fab) span svg{stroke:var(--m-blue)}
   /* badge angka di ikon bottom bar */
   .mbot .mb-bdg{position:absolute;top:-4px;right:2px;min-width:15px;height:15px;border-radius:99px;background:#D92D20;
     color:#fff;font-size:calc(9px*var(--fz));font-weight:800;font-style:normal;display:grid;place-items:center;padding:0 3px;
@@ -16048,7 +16054,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-166";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-167";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
