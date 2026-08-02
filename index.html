@@ -255,11 +255,19 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 @keyframes lgUnder{0%,100%{transform:scaleX(.3);opacity:.5}50%{transform:scaleX(1);opacity:1}}
 .lb-hero p{font-size:calc(13px*var(--fz));line-height:1.6;color:#3f5a80;max-width:330px;margin:0}
 .lb-feats{margin-top:auto;padding-top:24px;display:flex;flex-direction:column;gap:13px;position:relative;z-index:2}
-.lb-feat{display:flex;gap:12px;align-items:center}
+/* align-items:flex-start — baris pendukung USP kini bisa dua baris, ikon
+   harus tetap sejajar judulnya, bukan melayang di tengah. */
+.lb-feat{display:flex;gap:12px;align-items:flex-start}
 .lb-fi{width:38px;height:38px;flex:0 0 38px;border-radius:11px;display:grid;place-items:center;font-size:calc(17px*var(--fz));
   background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.85);box-shadow:0 4px 14px rgba(10,124,255,.14)}
 .lb-feat b{display:block;font-size:calc(12.5px*var(--fz));color:#173a67;font-weight:700}
-.lb-feat small{font-size:calc(10.5px*var(--fz));color:#5a76a0}
+.lb-feat small{display:block;font-size:calc(10.5px*var(--fz));color:#5a76a0;line-height:1.5;margin-top:2px}
+.lb-feat small b{display:inline;font-size:inherit;color:#2c4f80;font-weight:700}
+/* Pembeda AGAVA — dipisahkan garis supaya terbaca sebagai pernyataan,
+   bukan poin keempat. */
+.lb-kicker{margin-top:4px;padding-top:13px;border-top:1px solid rgba(23,58,103,.14);
+  font-size:calc(10.5px*var(--fz));color:#5a76a0;line-height:1.55}
+.lb-kicker b{display:block;color:#173a67;font-weight:800;font-size:calc(11.5px*var(--fz));margin-top:2px}
 .lb-orb{position:absolute;top:82px;right:-72px;width:236px;height:236px;pointer-events:none;z-index:1}
 .lb-orb span{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(10,124,255,.26);animation:lgRing 4s ease-in-out infinite}
 .lb-orb span:nth-child(2){inset:32px;border-color:rgba(0,198,251,.34);animation-delay:-1.3s}
@@ -303,7 +311,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 @media(max-width:820px){
   .login-card{grid-template-columns:1fr;max-height:96vh}
   .login-brand{padding:24px 24px 18px}
-  .lb-hero,.lb-feats,.lb-orb{display:none}
+  .lb-hero,.lb-orb{display:none}
+  /* Di HP ketiga USP terlalu panjang — form login akan terdorong ke bawah
+     lipatan. Yang ditampilkan hanya baris pembedanya: pendek, dan justru
+     bagian yang paling menjual. */
+  .lb-feats{margin-top:14px;padding-top:0;gap:0}
+  .lb-feats .lb-feat{display:none}
+  .lb-kicker{margin-top:0;padding-top:12px}
   .login-form{padding:24px 22px}
 }
 .live-chip{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 13px;border:1px solid var(--line);background:#fff;border-radius:30px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:600;color:var(--muted);cursor:pointer;box-shadow:0 1px 2px rgba(16,32,54,.05);transition:.15s;white-space:nowrap}
@@ -3572,10 +3586,20 @@ html,body{max-width:100%}
         <h2>General Affairs,<br><span class="lb-grad">Reimagined.</span></h2>
         <p>Satu asisten untuk seluruh operasional GA Astra &mdash; semua terlihat, terukur, dan bertahan tanpa bergantung pada ingatan orang.</p>
       </div>
+      <!-- ── TIGA USP (31 Jul 2026) ────────────────────────────────────────
+           Versi lama berbicara tentang ARSITEKTUR ("Satu Sumber Data",
+           "CODEC → KPI Tahunan") — bahasa orang yang sudah paham AGAVA.
+           Pembacanya kepala Business Unit: ia membeli jawaban atas rasa
+           sakitnya, bukan arsitektur. Ketiganya kini dipetakan langsung ke
+           nyeri yang berulang di tiap BU: sistem & data terpisah · proses
+           terputus dan tidak tuntas · dampak bisnis tidak terlihat.
+           Baris penutup adalah pembeda yang tidak bisa diklaim produk
+           complaint handling mana pun. -->
       <div class="lb-feats">
-        <div class="lb-feat"><span class="lb-fi">&#128451;&#65039;</span><div><b>Satu Sumber Data</b><small>Input langsung di AGAVA, bukan rekap Excel</small></div></div>
-        <div class="lb-feat"><span class="lb-fi">&#128202;</span><div><b>CODEC &rarr; KPI Tahunan</b><small>Angka mengalir satu arah, tak direkap dua kali</small></div></div>
-        <div class="lb-feat"><span class="lb-fi">&#127807;</span><div><b>Live &amp; ESG Ready</b><small>Derive real-time &middot; siap CLA &amp; sustainability</small></div></div>
+        <div class="lb-feat"><span class="lb-fi">&#128451;&#65039;</span><div><b>Satu Sistem, Satu Data</b><small>15 modul GA &mdash; tiket, ruang, transport, pengadaan, pembayaran, vendor, energi, HSE &mdash; tanpa rekap penyambung</small></div></div>
+        <div class="lb-feat"><span class="lb-fi">&#129517;</span><div><b>End-to-End, Bukan Kanal Tiket</b><small>Dari permintaan masuk sampai benar-benar tuntas &mdash; seluruh jalurnya di dalam satu sistem, digerakkan <b>logic</b></small></div></div>
+        <div class="lb-feat"><span class="lb-fi">&#128200;</span><div><b>Efisiensi yang Bisa Dihitung</b><small>Tiap aktivitas bertanda <b>Rupiah &amp; jejak karbon</b>. Kerja administratif berulang dialihkan ke aktivitas strategis &amp; berdampak</small></div></div>
+        <div class="lb-kicker">Helpdesk diukur dari kecepatan menutup tiket.<b>AGAVA diukur dari tiket yang tak perlu dibuat.</b></div>
       </div>
     </div>
     <div class="login-form">
@@ -15874,7 +15898,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-160";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-161";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
