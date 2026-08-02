@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 538 186" role="img"
+     aria-label="AGAVA — Astra General Affair Virtual Assistant">
+  <title>AGAVA</title>
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       LOGO AGAVA — lockup resmi (generasi 2)
+       Huruf A dan V digambar sebagai CHEVRON tanpa palang: siluet daun AGAVE
+       yang berdiri tegak — makna namanya terbawa langsung oleh huruf-hurufnya.
+       Huruf G adalah lingkaran berpanah (siklus) — proses yang berputar dan
+       tuntas, bukan berhenti.
+       Warna diwarisi dari induknya lewat `currentColor`, jadi satu berkas ini
+       melayani versi putih (di atas navy) maupun navy (di atas terang).
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <g fill="none" stroke="currentColor" stroke-width="16"
+     stroke-linecap="butt" stroke-linejoin="miter">
+    <!-- A -->
+    <path d="M24 118 L61 24 L98 118"/>
+    <!-- G — lingkaran berpanah -->
+    <path d="M185.5 50.5 A29 29 0 1 0 194 71 L169 71"/>
+    <!-- A -->
+    <path d="M232 118 L269 24 L306 118"/>
+    <!-- V -->
+    <path d="M336 24 L373 118 L410 24"/>
+    <!-- A -->
+    <path d="M440 118 L477 24 L514 118"/>
+  </g>
+  <!-- kepala panah huruf G -->
+  <path d="M196.8 61.8 L173.5 56.9 L191.9 38.5 Z" fill="currentColor"/>
+
+  <!-- garis apit kiri & kanan tagline -->
+  <g stroke="currentColor" stroke-width="4" stroke-linecap="butt">
+    <path d="M24 152 L86 152"/>
+    <path d="M452 152 L514 152"/>
+  </g>
+  <text x="269" y="158" fill="currentColor" text-anchor="middle"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif"
+        font-size="17" font-weight="600" letter-spacing="2.6"
+    >ASTRA GENERAL AFFAIR VIRTUAL ASSISTANT</text>
+</svg>

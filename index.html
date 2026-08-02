@@ -264,13 +264,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   background:radial-gradient(circle at 40% 40%,rgba(75,155,255,.34) 0%,rgba(28,107,245,.14) 46%,rgba(11,36,71,0) 72%)}
 .lb-top{margin-bottom:22px}
 .lb-logo{position:relative;z-index:2}
-/* lockup: mark roset + wordmark */
-.lb-lock{display:flex;align-items:center;gap:15px}
-.lb-lmark{width:52px;height:52px;flex:0 0 52px;animation:lgMark 3s ease-in-out infinite}
-.lb-lmark svg{width:100%;height:100%;display:block}
-.lb-ltxt b{display:block;font-size:calc(31px*var(--fz));font-weight:800;letter-spacing:.085em;color:#fff;line-height:1}
-.lb-ltxt span{display:block;font-size:calc(10px*var(--fz));font-weight:600;letter-spacing:.13em;text-transform:uppercase;
-  color:#7FA3CC;margin-top:6px}
+/* lockup resmi (PNG retina) — denyut pendar lgMark dipertahankan dari versi
+   lama supaya logonya tetap "hidup" saat halaman login terbuka */
+.lb-lockup{width:298px;max-width:100%;height:auto;display:block;animation:lgMark 3s ease-in-out infinite}
 .lb-hero{margin-top:4px;position:relative;z-index:2}
 .lb-hero h2{font-size:calc(31px*var(--fz));line-height:1.1;font-weight:800;letter-spacing:-.028em;color:#fff;margin:0 0 16px}
 .lb-grad{background:linear-gradient(120deg,#7CC4FF,#4B9BFF 55%,#2563EB);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;position:relative}
@@ -347,9 +343,7 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
      tersisa justru kalimat yang paling menjual. */
   .login-brand{padding:22px 22px 18px}
   .lb-top{margin-bottom:16px}
-  .lb-lmark{width:40px;height:40px;flex-basis:40px}
-  .lb-ltxt b{font-size:calc(24px*var(--fz))}
-  .lb-ltxt span{font-size:calc(8.5px*var(--fz));letter-spacing:.11em;margin-top:4px}
+  .lb-lockup{width:212px}
   .lb-hero{margin-top:0}
   .lb-hero h2{font-size:calc(21px*var(--fz));margin:0}
   .lb-hero p{display:none}
@@ -3627,18 +3621,10 @@ html,body{max-width:100%}
       <div class="lb-glow" aria-hidden="true"></div>
       <div class="lb-top">
         <div class="lb-logo">
-          <div class="lb-lock">
-            <span class="lb-lmark"><svg viewBox="0 0 64 64" role="img" aria-label="Logo AGAVA">
-              <defs><linearGradient id="agvL" x1="0" y1="1" x2="1" y2="0">
-                <stop offset="0" stop-color="#2563EB"/><stop offset=".55" stop-color="#4B9BFF"/><stop offset="1" stop-color="#7CC4FF"/>
-              </linearGradient></defs>
-              <g fill="url(#agvL)">
-                <path d="M34 58 L6 27 L26 58 Z" opacity=".62"/><path d="M30 58 L58 27 L38 58 Z" opacity=".62"/>
-                <path d="M35 58 L18 9 L27 58 Z" opacity=".82"/><path d="M29 58 L46 9 L37 58 Z" opacity=".82"/>
-                <path d="M28 58 L32 3 L36 58 Z"/>
-              </g></svg></span>
-            <span class="lb-ltxt"><b>AGAVA</b><span>Astra General Affairs Virtual Assistant</span></span>
-          </div>
+          <!-- Lockup resmi generasi-2 dari AGAVA Visual Identity System.
+               Aset 1658×423 (retina) ditampilkan pada 298px sesuai desain. -->
+          <img class="lb-lockup" src="assets/agava-lockup-g2-white.png"
+               alt="AGAVA — Astra General Affair Virtual Assistant" width="298" height="76">
         </div>
       </div>
       <div class="lb-orb"><span></span><span></span><span></span></div>
@@ -15960,7 +15946,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-162";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-163";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
