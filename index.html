@@ -2535,12 +2535,18 @@ body.rg-open{overflow:hidden}
   .mbot .mb-fab{padding:0;justify-content:center}
   .mbot .mb-fab span{width:50px;height:50px;border-radius:999px;background:var(--m-navy);margin-top:-22px;
     box-shadow:0 8px 18px rgba(11,36,71,.35)}
-  .mbot .mb-fab span svg{width:22px;height:22px;stroke:#fff;stroke-width:2}
+  /* + berputar 45° menjadi × saat halaman Layanan GA sedang terbuka.
+     45°, bukan 20°: itu satu-satunya sudut yang membuat tanda plus jatuh
+     tepat sebagai silang. Di 20° hasilnya plus miring, bukan ×. */
+  .mbot .mb-fab span svg{width:22px;height:22px;stroke:#fff;stroke-width:2;
+    transition:transform .28s cubic-bezier(.32,.72,0,1)}
+  .mbot .mb-fab.on span svg{transform:rotate(45deg)}
   /* dulu gradien neon; brand direction melarang gradasi di luar app icon,
      sampul dokumen, dan jam topbar — jadi biru pejal. */
   .mbot .mb-fab.on span{background:var(--m-blue)}
   .mbot .mb-fab i{display:none}
   .mbot .mb-fab:active span{transform:scale(.94)}
+  @media(prefers-reduced-motion:reduce){ .mbot .mb-fab span svg{transition:none} }
 
   /* ── BANNER AWARENESS ASTRA (HSE · Safety · Sustainability) ── */
   .mh-bannerwrap{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
@@ -10254,7 +10260,7 @@ function mBotSync(){
    bar.innerHTML=
      mBotItem("home","mGoHome()","home","Beranda")+
      mBotItem("notif","go('notif')","bell","Notifikasi",notifN)+
-     '<button class="mb-fab" data-tab="layanan" onclick="go(\'layanan\')" title="Buat pengajuan layanan GA">'+
+     '<button class="mb-fab" data-tab="layanan" onclick="mFabTap()" title="Buat pengajuan layanan GA">'+
        '<span>'+micSvg("plus")+'</span><i>Layanan</i></button>'+
      mBotItem(inb.id,"go('"+inb.id+"')",inb.sv,inb.label,inb.n)+
      mBotItem("discover","go('discover')","compass","Discover");
@@ -10270,6 +10276,28 @@ function mBotActive(id){
  [].forEach.call(bar.querySelectorAll("button"),function(b){
    b.classList.toggle("on", b.getAttribute("data-tab")===tab);
  });
+ /* Tombol + berubah peran saat Layanan GA terbuka: ikonnya jadi ×, dan taruhannya
+    jadi "mundur". Judulnya ikut berubah supaya pembaca layar & tooltip tidak
+    menjanjikan hal yang salah. */
+ var fab=bar.querySelector(".mb-fab");
+ if(fab){
+   var tutup=fab.classList.contains("on");
+   fab.title=tutup?"Tutup — kembali ke halaman sebelumnya":"Buat pengajuan layanan GA";
+   fab.setAttribute("aria-label",fab.title);
+   fab.setAttribute("aria-expanded",tutup?"true":"false");
+ }
+}
+/* Ketuk tombol + di bottom bar.
+   Tertutup (+) → buka Layanan GA.  Terbuka (×) → mundur satu layar.
+   Sengaja memanggil mBack(), BUKAN go(mHomeId()) atau history.back(): mBack sudah
+   menjadi satu-satunya eksekutor mundur di HP — ia menutup overlay/dokumen SO yang
+   sedang terbuka lebih dulu, menangani kasus Chat, lalu memakai mStack. Membuat
+   jalur mundur kedua di sini akan melahirkan kembali bug pop-ganda yang dulu
+   melempar pengguna ke modul yang salah. */
+function mFabTap(){
+ var fab=document.querySelector("#mBot .mb-fab");
+ if(fab&&fab.classList.contains("on")){ mBack(); return; }
+ go("layanan");
 }
 function mTopSync(){
  if(!isMobile())return;
@@ -16020,7 +16048,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.02-165";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-166";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
