@@ -22,8 +22,11 @@
 :root{
   --navy:#0b2546; --navy2:#08203c; --ink:#0f2036; --text:#23344a; --muted:#6b7a90;
   --line:#e9edf3; --bg:#f5f7fb; --card:#fff;
-  --blue:#2563eb; --blue-s:#eef4ff; --red:#dc2626; --red-s:#fdecec;
-  --amber:#c2740a; --amber-s:#fdf3e3; --green:#15a34a; --green-s:#e9f8ef;
+  /* Warna semantik = nilai resmi "AGAVA Brand Direction" (2 Agt 2026). Lebih pekat &
+     lebih tenang dari versi lama; brand direction menegaskan warna semantik menandai
+     status, bukan mempercantik — jadi jangan dipakai dekoratif. */
+  --blue:#2563eb; --blue-s:#eef4ff; --red:#C22B45; --red-s:#fdecec;
+  --amber:#B0740B; --amber-s:#fdf3e3; --green:#0E7A55; --green-s:#e9f8ef;
   --logo-red:#e11d48;
   --r:14px; --ff:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","SF Pro Icons","Helvetica Neue","Segoe UI",Helvetica,Arial,sans-serif;
   --fz:1;   /* pengali ukuran huruf — desktop tetap 1, mobile dinaikkan di @media(max-width:820px) */
@@ -2239,7 +2242,33 @@ body.rg-open{overflow:hidden}
     --m-ink:#0F1728;     --m-sub:#344054;  --m-mut:#667085;  --m-fai:#98A2B3;
     --m-line:rgba(15,23,40,.06);           --m-bd:#E4E7EC;
     --m-navy:#0B2447;    --m-blue:#2563EB; --m-chipfg:#175CD3; --m-chipbg:#E7F0FD;
-    --m-sh:0 1px 2px rgba(15,23,40,.06);
+    /* ── REDESIGN v3 (2 Agt 2026) ──────────────────────────────────────────────
+       Bahasa visual App Store iOS versi terang. TIGA hal yang TIDAK ikut berubah:
+        1. Latar tetap abu, kartu tetap putih. "AGAVA Brand Direction" menyebut
+           tegas: "Light Grey adalah latar, putih adalah kartu. Satu tingkat saja."
+           Handoff v3 mengusulkan kebalikannya (halaman putih, kartu abu) — brand
+           direction yang menang, dan Sudana mengonfirmasi 2 Agt 2026.
+        2. Biru aksi tetap Electric Blue #2563EB (brand), bukan #0A6DFF (v3).
+        3. Ikon lipat, journey, dan logo sudah dikunci terpisah — jangan disentuh.
+
+       --m-sh SENGAJA bukan `none`: nilainya ikut di dalam daftar box-shadow
+       bersusun (mis. .m-notif-row.unseen "inset 0 0 0 1px …, var(--m-sh)").
+       `none` di tengah daftar = CSS tidak sah → SELURUH aturan itu gugur. Warna
+       transparan aman di posisi mana pun. */
+    --m-sh:0 0 0 0 rgba(0,0,0,0);
+    --m-sep:rgba(60,60,67,.13);       /* garis rambut pemisah antar baris */
+    --m-fill:rgba(60,60,67,.08);      /* isian netral: kolom isi, chip non-aktif */
+    --m-chev:#C7C7CC;                 /* panah kanan baris daftar */
+    --m-rc:20px;                      /* radius kartu grup */
+    --m-rt:16px;                      /* radius ubin & tombol dalam kartu */
+    --m-rh:22px;                      /* radius hero */
+    --m-rs:26px;                      /* radius sheet (sudut atas) */
+    --m-gut:16px;                     /* padding dalam kartu */
+    --m-inset:64px;                   /* inset pemisah utk baris berikon 44px */
+    /* status — turunan warna resmi brand direction */
+    --m-ok:#0E7A55;   --m-ok-bg:#E3F3EC;
+    --m-warn:#B0740B; --m-warn-bg:#FBEED7;
+    --m-bad:#C22B45;  --m-bad-bg:#FBE9EC;
   }
   html{background:var(--m-bg)}
   /* "html body" (bukan !important) supaya menang atas aturan body{background:gradient}
@@ -2363,36 +2392,52 @@ body.rg-open{overflow:hidden}
   .mh-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
   .mh-dots i{width:6px;height:6px;border-radius:50%;background:#D3D8E0;transition:.2s}
   .mh-dots i.on{width:18px;border-radius:4px;background:var(--m-navy)}
-  .mh-sec{margin-bottom:20px}
-  .mh-sh{display:flex;align-items:baseline;gap:8px;margin:0 2px 10px}
-  .mh-sh b{font-size:calc(15px*var(--fz));font-weight:700;color:var(--m-ink);letter-spacing:-.2px}
-  .mh-sh span{font-size:calc(12.5px*var(--fz));color:var(--m-mut)}
+  /* v3: jarak antar section dilebarkan (34px di spec) supaya tiap kelompok berdiri
+     sendiri — kepadatan turun tanpa satu pun baris dibuang. */
+  .mh-sec{margin-bottom:28px}
+  .mh-sh{display:flex;align-items:baseline;gap:8px;margin:0 2px 12px}
+  /* Judul section: 26px/800/-.8px di spec v3. Ditulis 23px karena --fz mobile 1.12
+     sudah mengalikannya jadi ±25,8px. Jangan tulis 26 mentah — hasilnya 29px. */
+  .mh-sh b{font-size:calc(23px*var(--fz));font-weight:800;color:var(--m-ink);letter-spacing:-.8px;line-height:1.15}
+  .mh-sh span{font-size:calc(13px*var(--fz));color:var(--m-mut);font-variant-numeric:tabular-nums}
   .mh-csv{margin-left:auto;border:none;background:transparent;color:var(--m-blue);
     font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:600;padding:2px 0;cursor:pointer}
   /* Daftar order & SO — tiap baris jadi kartu putih sendiri, seperti desain:
      nomor & tanggal di baris atas, judul tebal, lalu chip + keterangan + panah. */
-  .mh-list{display:flex;flex-direction:column;gap:8px}
+  /* v3 GROUPED CARD: baris-baris tidak lagi jadi kartu terpisah berjarak, tapi satu
+     kartu putih dengan garis rambut inset antar baris — idiom daftar iOS.
+     `overflow:hidden` merapikan sudut baris pertama & terakhir tanpa menyentuh HTML. */
+  .mh-list{display:flex;flex-direction:column;gap:0;background:var(--m-card);
+    border-radius:var(--m-rc);overflow:hidden}
   /* Beranda menampilkan 5 baris; sisanya di balik tombol. display:contents saat
      terbuka supaya baris tambahan ikut jarak flex induknya, bukan jadi blok
      terpisah — jadi tidak ada garis jahitan antara 5 pertama & sisanya. */
   .mh-sisa{display:none}
   .mh-sisa.on{display:contents}
-  .mh-more{display:block;width:100%;margin-top:8px;border:1px dashed #D8DEE8;background:transparent;
-    border-radius:16px;padding:11px;font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:600;
-    color:var(--m-blue);cursor:pointer}
-  .mh-more:active{background:#F4F7FB}
+  /* v3: garis putus-putus diganti isian netral — tombol pil, bukan kotak bergaris */
+  .mh-more{display:block;width:100%;margin-top:10px;border:none;background:var(--m-fill);
+    border-radius:999px;padding:12px;font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:600;
+    letter-spacing:-.2px;color:var(--m-blue);cursor:pointer}
+  .mh-more:active{opacity:.6}
   .mh-more i{font-style:normal;display:inline-block;transition:transform .2s}
   .mh-more.on i{transform:rotate(180deg)}
   .mh-batas{margin-top:8px;text-align:center;font-size:calc(11.5px*var(--fz));color:var(--m-mut);line-height:1.45}
-  .mh-row{display:block;padding:13px 14px;border-radius:16px;background:var(--m-card);
-    box-shadow:var(--m-sh);cursor:pointer}
-  .mh-row:active{transform:scale(.995);background:#FAFBFD}
+  /* Baris di dalam kartu grup: tanpa radius & bayangan sendiri, dipisah garis rambut.
+     Pemisah dipasang di SETIAP baris lalu dicabut dari anak pertama .mh-list —
+     bukan pakai `+`, karena baris ke-6 dst. bersarang di .mh-sisa (display:contents)
+     sehingga bukan saudara langsung. Cara ini justru membuat sambungan "lihat
+     selengkapnya" ikut bergaris, persis seperti yang diinginkan. */
+  .mh-row{display:block;padding:14px var(--m-gut);border-radius:0;background:transparent;
+    box-shadow:none;cursor:pointer;border-top:1px solid var(--m-sep)}
+  .mh-list>.mh-row:first-child{border-top:0}
+  .mh-row:active{background:var(--m-fill)}
   .mh-rpip{display:none}
   .mh-rhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:2px}
   .mh-rhead b{font-size:calc(11.5px*var(--fz));font-weight:600;color:var(--m-fai);font-variant-numeric:tabular-nums}
   .mh-rhead i{font-style:normal;font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--m-ink);
     font-variant-numeric:tabular-nums;white-space:nowrap}
-  .mh-rj{font-size:calc(14.5px*var(--fz));font-weight:600;color:var(--m-ink);letter-spacing:-.2px;
+  /* judul baris daftar — spec v3: 17px/600/-.3px (di sini 15 × --fz 1.12 ≈ 16,8px) */
+  .mh-rj{font-size:calc(15px*var(--fz));font-weight:600;color:var(--m-ink);letter-spacing:-.3px;
     line-height:1.35;margin-bottom:8px;overflow-wrap:anywhere}
   .mh-rfoot{display:flex;align-items:center;gap:8px}
   .mh-okind{flex:0 0 auto;font-size:calc(11px*var(--fz));font-weight:600;padding:3.5px 9px;border-radius:99px;white-space:nowrap}
@@ -2401,13 +2446,13 @@ body.rg-open{overflow:hidden}
   .k-so{background:var(--m-chipbg);color:var(--m-chipfg)}
   .mh-rd{flex:1;min-width:0;font-size:calc(12px*var(--fz));color:var(--m-mut);
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .mh-rchev{flex:0 0 7px;width:7px;height:12px;stroke:#C6CBD4;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .mh-rchev{flex:0 0 7px;width:7px;height:12px;stroke:var(--m-chev);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   /* pips 5 tahap SO di dalam kartu — beri jarak ke baris chip di bawahnya */
   .mh-row .mini{margin:0 0 9px}
   .mh-row .mini i{box-shadow:none}
   .mh-rright{display:none}
   .mh-empty{font-size:calc(13.5px*var(--fz));color:var(--m-fai);text-align:center;padding:40px 20px;
-    border-radius:16px;background:var(--m-card);box-shadow:var(--m-sh)}
+    border-radius:var(--m-rc);background:var(--m-card);box-shadow:var(--m-sh)}
   /* tag biaya sumber daya + jejak karbon per aktivitas */
   .mh-cost{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;font-size:calc(11.5px*var(--fz));font-weight:700;color:#0a7d5e;margin-bottom:8px}
   .mh-cost em{font-style:normal;font-weight:500;color:var(--m-fai);font-size:calc(10.5px*var(--fz))}
@@ -2447,10 +2492,20 @@ body.rg-open{overflow:hidden}
   /* ── BOTTOM BAR ──
      Kaca buram di atas latar, garis rambut di tepi atas, ikon garis. Tombol
      tengah diangkat jadi lingkaran navy — aksi utama (buat tiket Complaint). */
+  /* v3: bar jadi KAPSUL MELAYANG — tapi TETAP position:fixed di sini dan
+     TETAP dijadikan position:static oleh app-shell di ±baris 3610.
+     JANGAN ubah itu. Catatan 30 Jul: dengan bar fixed, top & bottom bar ikut
+     memantul saat overscroll rubber-band iOS; perbaikannya justru menjadikan
+     .mbot flex-item statis. Efek melayang di sini dicapai lewat MARGIN +
+     border-radius, bukan lewat mengubah posisi — jadi tampilannya kapsul
+     mengambang tanpa satu pun risiko tata letak itu kembali. */
   .mbot{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;position:fixed;left:0;right:0;bottom:0;z-index:70;
-    align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom));
-    background:rgba(249,250,252,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-    border-top:1px solid var(--m-line);box-shadow:none}
+    align-items:center;padding:8px 10px;
+    /* area aman ditaruh di MARGIN, bukan padding — kalau di padding, kapsulnya
+       yang memanjang ke bawah dan bentuk pilnya rusak di iPhone bernotch. */
+    margin:0 12px calc(10px + env(safe-area-inset-bottom));border-radius:999px;
+    background:rgba(255,255,255,.72);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid var(--m-sep);box-shadow:0 8px 30px rgba(15,23,40,.10)}
   .mbot button{display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:transparent;
     font-family:var(--ff);cursor:pointer;padding:4px 2px;border-radius:11px;position:relative}
   .mbot button:active{opacity:.6}
@@ -2458,19 +2513,26 @@ body.rg-open{overflow:hidden}
   .mbot span svg{width:22px;height:22px;stroke:var(--m-fai);fill:none;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round}
   .mbot i{font-style:normal;font-size:calc(9.5px*var(--fz));font-weight:600;color:var(--m-fai);white-space:nowrap}
-  /* tab aktif */
-  .mbot button.on i{color:var(--m-navy);font-weight:700}
-  .mbot button.on span svg{stroke:var(--m-navy)}
+  /* Tab aktif — v3: sorotan pil biru muda + ikon & label biru.
+     Biru, bukan navy: brand direction menetapkan "Electric Blue hanya untuk
+     tindakan dan penanda aktif", navy untuk teks utama. */
+  /* :not(.mb-fab) — tombol + di tengah sudah punya lingkaran navy sendiri;
+     tanpa pengecualian ini ia dapat pil biru muda di belakangnya. */
+  .mbot button.on:not(.mb-fab){background:rgba(37,99,235,.10);border-radius:999px}
+  .mbot button.on i{color:var(--m-blue);font-weight:700}
+  .mbot button.on span svg{stroke:var(--m-blue)}
   /* badge angka di ikon bottom bar */
   .mbot .mb-bdg{position:absolute;top:-4px;right:2px;min-width:15px;height:15px;border-radius:99px;background:#D92D20;
     color:#fff;font-size:calc(9px*var(--fz));font-weight:800;font-style:normal;display:grid;place-items:center;padding:0 3px;
-    border:1.5px solid rgba(249,250,252,.95)}
+    border:1.5px solid #fff}
   /* tombol utama yang menonjol di tengah */
   .mbot .mb-fab{padding:0;justify-content:center}
   .mbot .mb-fab span{width:50px;height:50px;border-radius:999px;background:var(--m-navy);margin-top:-22px;
     box-shadow:0 8px 18px rgba(11,36,71,.35)}
   .mbot .mb-fab span svg{width:22px;height:22px;stroke:#fff;stroke-width:2}
-  .mbot .mb-fab.on span{background:linear-gradient(135deg,#0a7cff,#00c6fb)}
+  /* dulu gradien neon; brand direction melarang gradasi di luar app icon,
+     sampul dokumen, dan jam topbar — jadi biru pejal. */
+  .mbot .mb-fab.on span{background:var(--m-blue)}
   .mbot .mb-fab i{display:none}
   .mbot .mb-fab:active span{transform:scale(.94)}
 
@@ -2493,20 +2555,26 @@ body.rg-open{overflow:hidden}
 
   /* ── HALAMAN LAYANAN / NOTIFIKASI / DISCOVER ── */
   .m-page-h{margin:2px 2px 16px}
-  .m-page-t{font-size:calc(22px*var(--fz));font-weight:800;letter-spacing:-.4px;color:var(--m-ink);display:flex;align-items:center;gap:8px}
-  .m-page-s{font-size:calc(12.5px*var(--fz));color:var(--m-mut);margin-top:3px}
+  /* judul halaman — spec v3 "large title" 34px/800/-1.1px; 26 × 1.12 ≈ 29px, ukuran
+     terbesar yang masih muat berdampingan dengan lencana di layar 375px. */
+  .m-page-t{font-size:calc(26px*var(--fz));font-weight:800;letter-spacing:-1px;color:var(--m-ink);display:flex;align-items:center;gap:8px;line-height:1.12}
+  .m-page-s{font-size:calc(13px*var(--fz));color:var(--m-mut);margin-top:5px}
   .m-new{font-size:calc(9.5px*var(--fz));font-weight:800;letter-spacing:.06em;color:#fff;background:#12805C;
     padding:3px 8px;border-radius:99px;vertical-align:middle}
   .m-page-note{font-size:calc(11.5px*var(--fz));color:var(--m-mut);line-height:1.55;margin-top:14px;text-align:center;padding:0 8px}
-  .m-svc-list{display:flex;flex-direction:column;gap:9px}
-  .m-svc{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:14px 15px;border:none;border-radius:16px;
-    background:var(--m-card);box-shadow:var(--m-sh);cursor:pointer;font-family:var(--ff)}
-  .m-svc:active{transform:scale(.99);background:#FAFBFD}
+  /* Daftar layanan — kartu grup v3. Pemisahnya INSET: mulai sejajar teks, bukan
+     dari tepi kartu, supaya kolom ikon terbaca sebagai satu jalur utuh. */
+  .m-svc-list{display:flex;flex-direction:column;gap:0;background:var(--m-card);
+    border-radius:var(--m-rc);overflow:hidden}
+  .m-svc{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:13px var(--m-gut);border:none;border-radius:0;
+    background:transparent;box-shadow:none;cursor:pointer;font-family:var(--ff);position:relative}
+  .m-svc+.m-svc::before{content:"";position:absolute;left:var(--m-inset);right:0;top:0;height:1px;background:var(--m-sep)}
+  .m-svc:active{background:var(--m-fill)}
   .m-svc-ic{flex:0 0 44px;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:calc(21px*var(--fz))}
   .m-svc-tx{flex:1;min-width:0}
-  .m-svc-tx b{display:block;font-size:calc(14.5px*var(--fz));font-weight:700;color:var(--m-ink);letter-spacing:-.2px}
-  .m-svc-tx small{font-size:calc(12px*var(--fz));color:var(--m-mut)}
-  .m-svc-go{flex:0 0 auto;font-size:calc(22px*var(--fz));color:#C6CBD4;font-weight:400}
+  .m-svc-tx b{display:block;font-size:calc(15px*var(--fz));font-weight:600;color:var(--m-ink);letter-spacing:-.3px}
+  .m-svc-tx small{font-size:calc(12.5px*var(--fz));color:var(--m-mut)}
+  .m-svc-go{flex:0 0 auto;font-size:calc(22px*var(--fz));color:var(--m-chev);font-weight:400}
   /* notifikasi */
   .m-notif-inbox{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:14px 15px;border:none;
     border-radius:16px;background:linear-gradient(135deg,#0b2447,#123b73);color:#fff;cursor:pointer;font-family:var(--ff);
@@ -2518,7 +2586,7 @@ body.rg-open{overflow:hidden}
   .m-ni-tx small{font-size:calc(11.5px*var(--fz));opacity:.85}
   .m-ni-badge{flex:0 0 auto;min-width:24px;height:24px;border-radius:99px;background:#D92D20;color:#fff;
     font-size:calc(12px*var(--fz));font-weight:800;display:grid;place-items:center;padding:0 7px}
-  .m-notif-row{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;border-radius:16px;background:var(--m-card);
+  .m-notif-row{display:flex;align-items:flex-start;gap:11px;padding:13px var(--m-gut);border-radius:var(--m-rt);background:var(--m-card);
     box-shadow:var(--m-sh);margin-bottom:8px}
   .m-notif-ic{flex:0 0 auto;font-size:calc(18px*var(--fz));line-height:1.2}
   .m-notif-tx{flex:1;min-width:0}
@@ -15946,7 +16014,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-163";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.02-164";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
