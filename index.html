@@ -2251,11 +2251,17 @@ body.rg-open{overflow:hidden}
         2. Biru aksi tetap Electric Blue #2563EB (brand), bukan #0A6DFF (v3).
         3. Ikon lipat, journey, dan logo sudah dikunci terpisah — jangan disentuh.
 
-       --m-sh SENGAJA bukan `none`: nilainya ikut di dalam daftar box-shadow
-       bersusun (mis. .m-notif-row.unseen "inset 0 0 0 1px …, var(--m-sh)").
-       `none` di tengah daftar = CSS tidak sah → SELURUH aturan itu gugur. Warna
-       transparan aman di posisi mana pun. */
-    --m-sh:0 0 0 0 rgba(0,0,0,0);
+       BAYANGAN KARTU DIPERTAHANKAN atas permintaan Sudana (2 Agt 2026): kartu
+       harus lebih terlihat dari latarnya. Spec v3 menghapusnya, tapi v3 memakai
+       halaman putih + kartu abu — di sana beda warnanya sudah cukup. AGAVA
+       memakai pasangan sebaliknya, jadi bayangan tetap perlu.
+       Sedikit dinaikkan dari versi lama: dua lapis (kontak tipis + sebaran
+       lembut) supaya tepi kartu terbaca tanpa terlihat mengambang.
+
+       Nilainya JANGAN diisi `none`: ia ikut di dalam daftar box-shadow bersusun
+       (mis. .m-notif-row.unseen "inset 0 0 0 1px …, var(--m-sh)"). `none` di
+       tengah daftar = CSS tidak sah → SELURUH aturan itu gugur. */
+    --m-sh:0 1px 2px rgba(15,23,40,.07), 0 5px 14px rgba(15,23,40,.06);
     --m-sep:rgba(60,60,67,.13);       /* garis rambut pemisah antar baris */
     --m-fill:rgba(60,60,67,.08);      /* isian netral: kolom isi, chip non-aktif */
     --m-chev:#C7C7CC;                 /* panah kanan baris daftar */
@@ -2408,7 +2414,7 @@ body.rg-open{overflow:hidden}
      kartu putih dengan garis rambut inset antar baris — idiom daftar iOS.
      `overflow:hidden` merapikan sudut baris pertama & terakhir tanpa menyentuh HTML. */
   .mh-list{display:flex;flex-direction:column;gap:0;background:var(--m-card);
-    border-radius:var(--m-rc);overflow:hidden}
+    border-radius:var(--m-rc);overflow:hidden;box-shadow:var(--m-sh)}
   /* Beranda menampilkan 5 baris; sisanya di balik tombol. display:contents saat
      terbuka supaya baris tambahan ikut jarak flex induknya, bukan jadi blok
      terpisah — jadi tidak ada garis jahitan antara 5 pertama & sisanya. */
@@ -2565,7 +2571,7 @@ body.rg-open{overflow:hidden}
   /* Daftar layanan — kartu grup v3. Pemisahnya INSET: mulai sejajar teks, bukan
      dari tepi kartu, supaya kolom ikon terbaca sebagai satu jalur utuh. */
   .m-svc-list{display:flex;flex-direction:column;gap:0;background:var(--m-card);
-    border-radius:var(--m-rc);overflow:hidden}
+    border-radius:var(--m-rc);overflow:hidden;box-shadow:var(--m-sh)}
   .m-svc{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:13px var(--m-gut);border:none;border-radius:0;
     background:transparent;box-shadow:none;cursor:pointer;font-family:var(--ff);position:relative}
   .m-svc+.m-svc::before{content:"";position:absolute;left:var(--m-inset);right:0;top:0;height:1px;background:var(--m-sep)}
@@ -16014,7 +16020,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.02-164";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.02-165";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
