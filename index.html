@@ -242,36 +242,67 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .ag-name{font-size:calc(28px*var(--fz));font-weight:800;letter-spacing:.05em;color:#0a4bb8;line-height:1}
 .ag-full{font-size:calc(11.5px*var(--fz));font-weight:600;letter-spacing:.03em;color:#4f6d97;margin-top:4px}
 /* --- left brand --- */
-.login-brand{position:relative;padding:38px 36px;display:flex;flex-direction:column;overflow:hidden;
-  background:linear-gradient(158deg,rgba(0,198,251,.16),rgba(10,124,255,.09) 52%,rgba(0,208,212,.15));
-  border-right:1px solid rgba(255,255,255,.6)}
-.lb-top{margin-bottom:14px}
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  PANEL KIRI LOGIN — identitas AGAVA baru (31 Jul 2026)                   ║
+   ║  Diselaraskan dengan "AGAVA Visual Identity System" dari Claude Design:  ║
+   ║  latar NAVY #0B2447 (dulu gradasi terang), aksen #4B9BFF, dan mark       ║
+   ║  roset daun AGAVE. Mark-nya dibangun sebagai SVG dari vektor milik       ║
+   ║  desain itu sendiri — bukan PNG — supaya tetap tajam dari favicon 16px   ║
+   ║  sampai spanduk, tanpa permintaan jaringan tambahan (jaringan Astra      ║
+   ║  sudah terbukti memblokir layanan Google tertentu).                      ║
+   ║  SELURUH ANIMASI LAMA DIPERTAHANKAN — cincin orb, sapuan garis bawah,    ║
+   ║  dan denyut mark — hanya diwarnai ulang agar hidup di atas navy.         ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+.login-brand{position:relative;padding:42px 40px 38px;display:flex;flex-direction:column;overflow:hidden;
+  background:#0B2447;border-right:0}
+/* roset daun AGAVE sebagai cap air + pendar sudut — dari desain identitasnya */
+.lb-leaf{position:absolute;right:-150px;bottom:-140px;width:440px;height:440px;opacity:.08;pointer-events:none;z-index:0;
+  animation:lgLeaf 14s ease-in-out infinite}
+.lb-leaf svg{width:100%;height:100%;display:block}
+@keyframes lgLeaf{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-14px) rotate(-1.6deg)}}
+.lb-glow{position:absolute;right:-90px;top:-70px;width:280px;height:280px;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 40% 40%,rgba(75,155,255,.34) 0%,rgba(28,107,245,.14) 46%,rgba(11,36,71,0) 72%)}
+.lb-top{margin-bottom:22px}
 .lb-logo{position:relative;z-index:2}
-.login-img{width:384px;max-width:100%;height:auto;display:block;filter:drop-shadow(0 8px 22px rgba(10,124,255,.16))}
+/* lockup: mark roset + wordmark */
+.lb-lock{display:flex;align-items:center;gap:15px}
+.lb-lmark{width:52px;height:52px;flex:0 0 52px;animation:lgMark 3s ease-in-out infinite}
+.lb-lmark svg{width:100%;height:100%;display:block}
+.lb-ltxt b{display:block;font-size:calc(31px*var(--fz));font-weight:800;letter-spacing:.085em;color:#fff;line-height:1}
+.lb-ltxt span{display:block;font-size:calc(10px*var(--fz));font-weight:600;letter-spacing:.13em;text-transform:uppercase;
+  color:#7FA3CC;margin-top:6px}
 .lb-hero{margin-top:4px;position:relative;z-index:2}
-.lb-hero h2{font-size:calc(29px*var(--fz));line-height:1.15;font-weight:800;letter-spacing:-.02em;color:#12335f;margin:0 0 14px}
-.lb-grad{background:linear-gradient(120deg,#00c6fb,#0a7cff 55%,#0059e8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;position:relative}
-.lb-grad::after{content:"";position:absolute;left:0;bottom:-6px;height:3px;width:100%;border-radius:3px;background:linear-gradient(90deg,#00c6fb,#0a7cff);transform-origin:left;animation:lgUnder 2.8s ease-in-out infinite}
+.lb-hero h2{font-size:calc(31px*var(--fz));line-height:1.1;font-weight:800;letter-spacing:-.028em;color:#fff;margin:0 0 16px}
+.lb-grad{background:linear-gradient(120deg,#7CC4FF,#4B9BFF 55%,#2563EB);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;position:relative}
+.lb-grad::after{content:"";position:absolute;left:0;bottom:-6px;height:3px;width:100%;border-radius:3px;background:linear-gradient(90deg,#4B9BFF,#2563EB);transform-origin:left;animation:lgUnder 2.8s ease-in-out infinite}
 @keyframes lgUnder{0%,100%{transform:scaleX(.3);opacity:.5}50%{transform:scaleX(1);opacity:1}}
-.lb-hero p{font-size:calc(13px*var(--fz));line-height:1.6;color:#3f5a80;max-width:330px;margin:0}
-.lb-feats{margin-top:auto;padding-top:24px;display:flex;flex-direction:column;gap:13px;position:relative;z-index:2}
+.lb-hero p{font-size:calc(13.5px*var(--fz));line-height:1.62;color:#A9BDD6;max-width:372px;margin:0}
+.lb-feats{margin-top:auto;padding-top:26px;display:flex;flex-direction:column;gap:15px;position:relative;z-index:2}
+/* muncul berurutan saat halaman login terbuka — halus, bukan atraksi */
+.lb-feat,.lb-kicker{animation:lgUp .5s cubic-bezier(.22,.9,.3,1) both}
+.lb-feat:nth-child(1){animation-delay:.06s}
+.lb-feat:nth-child(2){animation-delay:.14s}
+.lb-feat:nth-child(3){animation-delay:.22s}
+.lb-kicker{animation-delay:.32s}
+@keyframes lgUp{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
 /* align-items:flex-start — baris pendukung USP kini bisa dua baris, ikon
    harus tetap sejajar judulnya, bukan melayang di tengah. */
 .lb-feat{display:flex;gap:12px;align-items:flex-start}
-.lb-fi{width:38px;height:38px;flex:0 0 38px;border-radius:11px;display:grid;place-items:center;font-size:calc(17px*var(--fz));
-  background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.85);box-shadow:0 4px 14px rgba(10,124,255,.14)}
-.lb-feat b{display:block;font-size:calc(12.5px*var(--fz));color:#173a67;font-weight:700}
-.lb-feat small{display:block;font-size:calc(10.5px*var(--fz));color:#5a76a0;line-height:1.5;margin-top:2px}
-.lb-feat small b{display:inline;font-size:inherit;color:#2c4f80;font-weight:700}
+.lb-fi{width:38px;height:38px;flex:0 0 38px;border-radius:10px;display:grid;place-items:center;font-size:calc(16px*var(--fz));
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);box-shadow:none;transition:.2s}
+.lb-feat:hover .lb-fi{background:rgba(75,155,255,.18);border-color:rgba(75,155,255,.42)}
+.lb-feat b{display:block;font-size:calc(13px*var(--fz));color:#fff;font-weight:700}
+.lb-feat small{display:block;font-size:calc(11px*var(--fz));color:#8FA8C6;line-height:1.5;margin-top:3px}
+.lb-feat small b{display:inline;font-size:inherit;color:#BDD4EE;font-weight:700}
 /* Pembeda AGAVA — dipisahkan garis supaya terbaca sebagai pernyataan,
    bukan poin keempat. */
-.lb-kicker{margin-top:4px;padding-top:13px;border-top:1px solid rgba(23,58,103,.14);
-  font-size:calc(10.5px*var(--fz));color:#5a76a0;line-height:1.55}
-.lb-kicker b{display:block;color:#173a67;font-weight:800;font-size:calc(11.5px*var(--fz));margin-top:2px}
+.lb-kicker{margin-top:6px;padding-top:15px;border-top:1px solid rgba(255,255,255,.13);
+  font-size:calc(10.5px*var(--fz));color:#8FA8C6;line-height:1.55}
+.lb-kicker b{display:block;color:#fff;font-weight:800;font-size:calc(11.5px*var(--fz));margin-top:3px}
 .lb-orb{position:absolute;top:82px;right:-72px;width:236px;height:236px;pointer-events:none;z-index:1}
-.lb-orb span{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(10,124,255,.26);animation:lgRing 4s ease-in-out infinite}
-.lb-orb span:nth-child(2){inset:32px;border-color:rgba(0,198,251,.34);animation-delay:-1.3s}
-.lb-orb span:nth-child(3){inset:70px;border:none;background:radial-gradient(circle,rgba(10,124,255,.5),rgba(10,124,255,0) 70%);animation:lgPulse 3.4s ease-in-out infinite}
+.lb-orb span{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(75,155,255,.30);animation:lgRing 4s ease-in-out infinite}
+.lb-orb span:nth-child(2){inset:32px;border-color:rgba(124,196,255,.38);animation-delay:-1.3s}
+.lb-orb span:nth-child(3){inset:70px;border:none;background:radial-gradient(circle,rgba(75,155,255,.45),rgba(75,155,255,0) 70%);animation:lgPulse 3.4s ease-in-out infinite}
 @keyframes lgRing{0%,100%{transform:scale(.9);opacity:.5}50%{transform:scale(1.05);opacity:1}}
 @keyframes lgPulse{0%,100%{opacity:.4;transform:scale(.88)}50%{opacity:.85;transform:scale(1.1)}}
 /* --- right form --- */
@@ -310,15 +341,25 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .logo-wrap .ag-full{font-size:calc(9.5px*var(--fz))}
 @media(max-width:820px){
   .login-card{grid-template-columns:1fr;max-height:96vh}
-  .login-brand{padding:24px 24px 18px}
-  .lb-hero,.lb-orb{display:none}
-  /* Di HP ketiga USP terlalu panjang — form login akan terdorong ke bawah
-     lipatan. Yang ditampilkan hanya baris pembedanya: pendek, dan justru
-     bagian yang paling menjual. */
-  .lb-feats{margin-top:14px;padding-top:0;gap:0}
+  /* ── LOGIN HP — dirancang ulang, bukan versi desktop yang dipotong ──
+     Kepala navy ringkas: lockup + judul + baris pembeda. Tiga USP rinci
+     sengaja disembunyikan supaya form login tetap di atas lipatan; yang
+     tersisa justru kalimat yang paling menjual. */
+  .login-brand{padding:22px 22px 18px}
+  .lb-top{margin-bottom:16px}
+  .lb-lmark{width:40px;height:40px;flex-basis:40px}
+  .lb-ltxt b{font-size:calc(24px*var(--fz))}
+  .lb-ltxt span{font-size:calc(8.5px*var(--fz));letter-spacing:.11em;margin-top:4px}
+  .lb-hero{margin-top:0}
+  .lb-hero h2{font-size:calc(21px*var(--fz));margin:0}
+  .lb-hero p{display:none}
+  .lb-orb{display:none}
+  .lb-leaf{right:-120px;bottom:-120px;width:300px;height:300px;opacity:.07}
+  .lb-glow{right:-70px;top:-60px;width:190px;height:190px}
+  .lb-feats{margin-top:16px;padding-top:0;gap:0}
   .lb-feats .lb-feat{display:none}
-  .lb-kicker{margin-top:0;padding-top:12px}
-  .login-form{padding:24px 22px}
+  .lb-kicker{margin-top:0;padding-top:14px}
+  .login-form{padding:24px 22px;background:#fff}
 }
 .live-chip{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 13px;border:1px solid var(--line);background:#fff;border-radius:30px;font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:600;color:var(--muted);cursor:pointer;box-shadow:0 1px 2px rgba(16,32,54,.05);transition:.15s;white-space:nowrap}
 .live-chip:hover{border-color:#cfdaeb;color:var(--text)}
@@ -3578,8 +3619,27 @@ html,body{max-width:100%}
 <div id="login" class="login-screen">
   <div class="login-card">
     <div class="login-brand">
+      <!-- roset daun AGAVE — vektor dari AGAVA Visual Identity System -->
+      <div class="lb-leaf" aria-hidden="true"><svg viewBox="0 0 64 64"><g fill="#FFFFFF">
+        <path d="M34 58 L6 27 L26 58 Z"/><path d="M30 58 L58 27 L38 58 Z"/>
+        <path d="M35 58 L18 9 L27 58 Z"/><path d="M29 58 L46 9 L37 58 Z"/><path d="M28 58 L32 3 L36 58 Z"/>
+      </g></svg></div>
+      <div class="lb-glow" aria-hidden="true"></div>
       <div class="lb-top">
-        <div class="lb-logo"><img class="login-img" alt="AGAVA — Astra General Affair Virtual Assistant"/></div>
+        <div class="lb-logo">
+          <div class="lb-lock">
+            <span class="lb-lmark"><svg viewBox="0 0 64 64" role="img" aria-label="Logo AGAVA">
+              <defs><linearGradient id="agvL" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0" stop-color="#2563EB"/><stop offset=".55" stop-color="#4B9BFF"/><stop offset="1" stop-color="#7CC4FF"/>
+              </linearGradient></defs>
+              <g fill="url(#agvL)">
+                <path d="M34 58 L6 27 L26 58 Z" opacity=".62"/><path d="M30 58 L58 27 L38 58 Z" opacity=".62"/>
+                <path d="M35 58 L18 9 L27 58 Z" opacity=".82"/><path d="M29 58 L46 9 L37 58 Z" opacity=".82"/>
+                <path d="M28 58 L32 3 L36 58 Z"/>
+              </g></svg></span>
+            <span class="lb-ltxt"><b>AGAVA</b><span>Astra General Affairs Virtual Assistant</span></span>
+          </div>
+        </div>
       </div>
       <div class="lb-orb"><span></span><span></span><span></span></div>
       <div class="lb-hero">
@@ -15893,12 +15953,14 @@ function liveStatus(state,name){
 }
 
 /* init */
-(function(){var li=document.querySelector('.login-img'),si=document.querySelector('.logo-img');if(li&&si&&si.src)li.src=si.src;})();
+/* Dulu logo login disalin dari <img> sidebar (.login-img ← .logo-img).
+   Sejak v162 lockup login digambar sebagai SVG inline (mark roset AGAVE +
+   wordmark), jadi penyalinan itu tidak punya sasaran lagi dan dibuang. */
 /* ===================== AGAVA DATABASE — Firebase Firestore =====================
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.07.31-161";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.07.31-162";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
