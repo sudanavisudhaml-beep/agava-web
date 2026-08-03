@@ -3967,7 +3967,9 @@ html,body{max-width:100%}
      halaman Login pun tak terjangkau. Aturan itu dikunci sejak insiden overlay. -->
 <div id="agavaSplash" class="splash">
   <div class="splash-in">
-    <img src="assets/agava-lockup-g2-white.png" alt="AGAVA" width="238" height="61">
+    <!-- SVG induk dari brand project, bukan PNG: tajam di kerapatan piksel mana
+         pun (iPad Retina, cetak), 8 KB vs 85 KB, dan G hasil redesign persis. -->
+    <img src="logo/AGAVA-Logo-white.svg" alt="AGAVA" width="238" height="61">
     <div class="splash-bar"><i></i></div>
   </div>
 </div>
@@ -4003,9 +4005,11 @@ html,body{max-width:100%}
       <div class="lb-glow" aria-hidden="true"></div>
       <div class="lb-top">
         <div class="lb-logo">
-          <!-- Lockup resmi generasi-2 dari AGAVA Visual Identity System.
-               Aset 1658×423 (retina) ditampilkan pada 298px sesuai desain. -->
-          <img class="lb-lockup" src="assets/agava-lockup-g2-white.png"
+          <!-- Berkas INDUK dari logo/ (AGAVA Visual Identity System), bukan PNG.
+               README brand: "jangan mengetik ulang wordmark, jangan menggambar
+               ulang marknya" — pakai berkas ini apa adanya.
+               Ukuran minimum lockup penuh 120px; 298px aman jauh di atasnya. -->
+          <img class="lb-lockup" src="logo/AGAVA-Logo-white.svg"
                alt="AGAVA — Astra General Affair Virtual Assistant" width="298" height="76">
         </div>
       </div>
@@ -16788,7 +16792,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-181";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-182";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║

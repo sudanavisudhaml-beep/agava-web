@@ -16,12 +16,16 @@
      3. Ada pintu PURGE lewat postMessage, dipakai tombol "Perbarui sekarang"
         di aplikasi untuk membersihkan semuanya tanpa menunggu iOS berbaik hati.
    ══════════════════════════════════════════════════════════════════════════ */
-const BUILD = 'v2026.08.04-181';
+const BUILD = 'v2026.08.04-182';
 const CACHE = 'agava-' + BUILD;          /* WAJIB ikut naik tiap deploy */
 const ASSETS = [
   './', './index.html',
   './icon-192.png', './icon-512.png', './icon-180.png',
   /* lockup resmi halaman login — ikut di-cache supaya login tetap berlogo saat offline */
+  /* SVG induk — dipakai halaman Login & bumper. PNG lama tetap di-cache
+     sementara supaya perangkat yang masih memegang HTML lawas tidak kehilangan
+     logonya di tengah peralihan build. */
+  './logo/AGAVA-Logo-white.svg', './logo/AGAVA-Mark.svg',
   './assets/agava-lockup-g2-white.png', './agava-logo.svg',
   './glass.mp3', './xlsx.full.min.js', './html2canvas.min.js', './jspdf.umd.min.js',
   /* pdf.js — dipakai pratinjau halaman lampiran PDF di Dokumen SO (dimuat saat dibutuhkan) */
