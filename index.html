@@ -865,7 +865,8 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   font-family:var(--ff);font-size:calc(12.5px*var(--fz));font-weight:800;
   background:linear-gradient(135deg,#00c6fb,#0a7cff);color:#fff}
 #agavaVersiBar button.nanti{background:rgba(255,255,255,.16);font-weight:700;padding:8px 11px}
-@media(max-width:820px){ #agavaVersiBar{bottom:calc(74px + env(safe-area-inset-bottom))} }
+/* di atas kapsul bottom bar yang melayang (kapsul ±66px + jarak 22px) */
+@media(max-width:820px){ #agavaVersiBar{bottom:calc(96px + env(safe-area-inset-bottom))} }
 /* ══ SOURCING — pembanding 3 rekanan (seperti membandingkan varian ponsel) ══ */
 .vb-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
 .vb-slot{position:relative;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px 15px 12px;min-height:150px}
@@ -2560,13 +2561,13 @@ body.rg-open{overflow:hidden}
   /* ── BOTTOM BAR ──
      Kaca buram di atas latar, garis rambut di tepi atas, ikon garis. Tombol
      tengah diangkat jadi lingkaran navy — aksi utama (buat tiket Complaint). */
-  /* v3: bar jadi KAPSUL MELAYANG — tapi TETAP position:fixed di sini dan
-     TETAP dijadikan position:static oleh app-shell di ±baris 3610.
-     JANGAN ubah itu. Catatan 30 Jul: dengan bar fixed, top & bottom bar ikut
-     memantul saat overscroll rubber-band iOS; perbaikannya justru menjadikan
-     .mbot flex-item statis. Efek melayang di sini dicapai lewat MARGIN +
-     border-radius, bukan lewat mengubah posisi — jadi tampilannya kapsul
-     mengambang tanpa satu pun risiko tata letak itu kembali. */
+  /* v3: bar jadi KAPSUL MELAYANG. position:fixed, dan sejak 3 Agu 2026 app-shell
+     TIDAK LAGI menjadikannya statis — konten mengalir di belakang kacanya.
+     Kenapa aman padahal catatan 30 Jul melarangnya? Karena bug memantul itu
+     lahir dari BODY yang men-scroll. App-shell mengunci body (overflow:hidden)
+     dan memindahkan scroll ke .app yang ber-overscroll-behavior:contain, jadi
+     tidak ada lagi rubber-band yang bisa menyeret bar.
+     Bentuk kapsulnya dari MARGIN + border-radius, bukan dari inset. */
   .mbot{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;position:fixed;left:0;right:0;bottom:0;z-index:70;
     align-items:center;padding:8px 10px;
     /* area aman ditaruh di MARGIN, bukan padding — kalau di padding, kapsulnya
@@ -3741,24 +3742,48 @@ button:focus-visible,a:focus-visible{outline:2px solid rgba(10,124,255,.5);outli
    diskalakan, baris tiket fit). */
 html,body{max-width:100%}
 /* ═══════════ APP-SHELL TETAP (mobile ≤820px) ═══════════
-   Bug: dengan body-scroll, top bar (sticky) & bottom bar (fixed) IKUT memantul saat
-   overscroll rubber-band iOS. Fix: kunci viewport, body jadi flex-column, HANYA .app
-   (konten) yang scroll; .mtop & .mbot jadi flex-item statis yang tak pernah ikut scroll. */
+   Bug (30 Jul 2026): dengan body-scroll, top bar (sticky) & bottom bar (fixed)
+   IKUT memantul saat overscroll rubber-band iOS. Fix: kunci viewport, body jadi
+   flex-column, HANYA .app (konten) yang scroll.
+
+   ══ 3 Agu 2026 — BOTTOM BAR KEMBALI MELAYANG DI ATAS KONTEN ══
+   Keluhan Sudana: "dibagian bawahnya menyisakan blok warna… apakah bisa bottom
+   bar yang terkunci dan floating tapi bagian bawahnya tetap ikut layar utama
+   jadi tetap terlihat scrolling."
+   Betul — dulu .mbot dijadikan flex-item STATIS, jadi ia memakan ±88px ruang
+   nyata yang tidak bisa diisi apa pun, dan .wrap masih menyisakan 86px padding
+   di atasnya: ±174px mati. Lebih dari itu, karena statis TIDAK ADA konten yang
+   bisa lewat di belakangnya — efek kaca buramnya jadi sia-sia, yang terlihat
+   cuma pita abu.
+
+   Kini .mbot dikembalikan ke position:fixed. AMAN, dan justru karena app-shell
+   ini ada: bug memantul dulu lahir dari BODY yang men-scroll, sedangkan di sini
+   body dikunci (overflow:hidden) dan yang men-scroll hanya .app — yang sudah
+   ber-overscroll-behavior:contain. Jadi tidak ada lagi rubber-band yang bisa
+   menyeret bar. .mtop TETAP statis: ia memang harus mendorong konten, bukan
+   menutupinya. */
 @media(max-width:820px){
   html,body{height:100%;height:100dvh;overflow:hidden;overscroll-behavior:none}
   body{display:flex;flex-direction:column}
   .mtop{position:static;flex:0 0 auto}
   .app{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-  .mbot{position:static;flex:0 0 auto}
-  .wrap{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  /* melayang di atas konten — konten mengalir & terlihat di balik kacanya */
+  .mbot{position:fixed;left:0;right:0;bottom:0;flex:0 0 auto}
+  /* 116px = tinggi kapsul (±66) + jarak bawahnya (±22) + napas 28px, sesuai
+     CLAUDE-AGAVA-LAYOUT-RULES.md §6. Tanpa ini baris terakhir tertutup bar. */
+  .wrap{padding-bottom:calc(116px + env(safe-area-inset-bottom))}
 }
 /* aman dari notch / gesture bar (Android & iOS) */
 .side{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 @media (max-width:820px){
   .top{padding-top:calc(9px + env(safe-area-inset-top))}
-  /* sisa bawah = tinggi bottom bar + area aman, supaya konten terakhir tidak tertutup */
-  .wrap{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
-  #dbPill{bottom:calc(7px + env(safe-area-inset-bottom))}
+  /* sisa bawah = tinggi bottom bar melayang + area aman, supaya baris terakhir
+     tidak tertutup kapsul. Aturan ini datang SETELAH app-shell, jadi ia yang
+     menang — kalau salah satunya lupa dinaikkan, baris terakhir akan tertimbun
+     tanpa gejala lain. Keduanya harus 116px. */
+  .wrap{padding-bottom:calc(116px + env(safe-area-inset-bottom))}
+  /* dinaikkan ke atas kapsul melayang — dulu 7px, tepat di belakang bar */
+  #dbPill{bottom:calc(96px + env(safe-area-inset-bottom))}
   /* Dokumen SO: bar tetap muat, halaman diskalakan (lihat soDocFit) */
   .sodoc-bar{padding:calc(9px + env(safe-area-inset-top)) 12px 9px;gap:8px;flex-wrap:nowrap}
   .sodoc-btn{padding:9px 12px;font-size:calc(12px*var(--fz));white-space:nowrap;flex:0 0 auto}
@@ -16371,7 +16396,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-176";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-177";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
