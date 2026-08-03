@@ -2251,17 +2251,21 @@ body.rg-open{overflow:hidden}
         2. Biru aksi tetap Electric Blue #2563EB (brand), bukan #0A6DFF (v3).
         3. Ikon lipat, journey, dan logo sudah dikunci terpisah — jangan disentuh.
 
-       BAYANGAN KARTU DIPERTAHANKAN atas permintaan Sudana (2 Agt 2026): kartu
-       harus lebih terlihat dari latarnya. Spec v3 menghapusnya, tapi v3 memakai
-       halaman putih + kartu abu — di sana beda warnanya sudah cukup. AGAVA
-       memakai pasangan sebaliknya, jadi bayangan tetap perlu.
-       Sedikit dinaikkan dari versi lama: dua lapis (kontak tipis + sebaran
-       lembut) supaya tepi kartu terbaca tanpa terlihat mengambang.
+       BAYANGAN KARTU DIMATIKAN — keputusan Sudana 2 Agt 2026, setelah sempat
+       dicoba dihidupkan di v165. Kedalaman datang dari beda putih vs abu saja,
+       sesuai spec v3. Kartu tetap terbaca karena latarnya #F2F3F7, bukan putih.
+
+       SATU TUAS: seluruh permukaan mobile memanggil var(--m-sh) — kartu grup,
+       daftar layanan, empty state, notifikasi, house rules, kartu kalender.
+       Menghidupkan bayangan lagi = ganti nilai di baris ini saja, tidak perlu
+       menyentuh satu pun aturan komponen. (Berguna nanti saat tema terang/gelap
+       jadi setelan per akun.)
 
        Nilainya JANGAN diisi `none`: ia ikut di dalam daftar box-shadow bersusun
        (mis. .m-notif-row.unseen "inset 0 0 0 1px …, var(--m-sh)"). `none` di
-       tengah daftar = CSS tidak sah → SELURUH aturan itu gugur. */
-    --m-sh:0 1px 2px rgba(15,23,40,.07), 0 5px 14px rgba(15,23,40,.06);
+       tengah daftar = CSS tidak sah → SELURUH aturan itu gugur, dan cincin merah
+       notifikasi belum dibaca lenyap diam-diam. Warna transparan aman. */
+    --m-sh:0 0 0 0 rgba(0,0,0,0);
     --m-sep:rgba(60,60,67,.13);       /* garis rambut pemisah antar baris */
     --m-fill:rgba(60,60,67,.08);      /* isian netral: kolom isi, chip non-aktif */
     --m-chev:#C7C7CC;                 /* panah kanan baris daftar */
@@ -16092,7 +16096,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-168";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-169";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
