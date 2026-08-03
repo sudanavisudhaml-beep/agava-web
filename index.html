@@ -1495,7 +1495,11 @@ html,body{overscroll-behavior-y:contain}
   color:#fff;font-family:var(--ff);font-size:calc(24px*var(--fz));font-weight:500;letter-spacing:.5px;cursor:pointer;
   font-variant-numeric:tabular-nums;display:grid;place-items:center;
   transition:background .12s,transform .08s;-webkit-tap-highlight-color:transparent}
-.pin-k:active{background:rgba(255,255,255,.22);transform:scale(.94)}
+.pin-k:active,.pin-k.tekan{background:rgba(255,255,255,.22);transform:scale(.94)}
+/* Petunjuk bahwa PIN bisa diketik — hanya di layar berpapan-ketik (pointer
+   presisi). Di HP tidak ditampilkan karena di sana memang tidak berlaku. */
+.pin-tip{display:none;font-size:calc(11px*var(--fz));color:rgba(255,255,255,.34);margin-top:2px}
+@media (pointer:fine){ .pin-tip{display:block} }
 .pin-k.hapus{background:transparent}
 .pin-k.hapus svg{width:25px;height:25px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .pin-k.kosong{background:none;pointer-events:none}
@@ -4059,6 +4063,7 @@ html,body{max-width:100%}
       <button type="button" class="pin-lain abu" onclick="pinKeluarAkun()">Keluar akun</button>
     </div>
     <div class="pin-email" id="pinEmail"></div>
+    <div class="pin-tip">Bisa juga langsung diketik dari papan ketik · Backspace untuk menghapus</div>
   </div>
 </div>
 <div id="login" class="login-screen">
@@ -16859,7 +16864,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-183";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-184";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -18687,8 +18692,39 @@ function pinTampil(mode,u,uid){
  pinPesan(PIN_MODE==="buka"?"":"PIN hanya berlaku di perangkat ini.");
  pinDotsGambar(); pinPadGambar();
  s.classList.add("show");
+ /* Dipasang saat layar tampil & dilepas saat ditutup (lihat pinTutup) — kalau
+    dibiarkan menempel, angka yang diketik di layar lain akan tetap tertangkap. */
+ document.removeEventListener("keydown",pinPapanKetik,true);
+ document.addEventListener("keydown",pinPapanKetik,true);
 }
-function pinTutup(){ var s=document.getElementById("pinScreen"); if(s)s.classList.remove("show"); PIN_ISI=""; }
+/* ── PAPAN KETIK FISIK (4 Agu 2026) ────────────────────────────────────────
+   Sudana: di desktop, PIN harus bisa diketik langsung — bukan cuma diklik.
+   Dua jalur masuk ke fungsi yang SAMA (pinKetik), jadi tidak ada logika ganda
+   yang bisa berbeda perilaku; angka dari papan ketik memantulkan tombol
+   layarnya sebentar supaya jelas ketukannya terbaca. */
+function pinPapanKetik(e){
+ var s=document.getElementById("pinScreen");
+ if(!s||!s.classList.contains("show")) return;
+ var t=e.target, tag=t&&t.tagName;
+ if(tag==="INPUT"||tag==="TEXTAREA"||(t&&t.isContentEditable)) return;   // jangan rebut ketikan dari kolom isian
+ if(e.ctrlKey||e.metaKey||e.altKey) return;                              // biarkan pintasan sistem lewat
+ var k=e.key;
+ if(k>="0"&&k<="9"&&k.length===1){ e.preventDefault(); pinKetik(k); pinKilat(k); return; }
+ if(k==="Backspace"||k==="Delete"){ e.preventDefault(); pinKetik("←"); pinKilat("←"); return; }
+ if(k==="Escape"){ e.preventDefault(); pinKeluar(); }
+}
+/* pantulan singkat pada tombol layar yang setara — umpan balik untuk mata */
+function pinKilat(k){
+ var s=document.getElementById("pinScreen"); if(!s)return;
+ var tb=[...s.querySelectorAll(".pin-k")].find(function(b){
+   return k==="←" ? b.classList.contains("hapus") : b.textContent.trim()===k; });
+ if(!tb)return;
+ tb.classList.add("tekan"); setTimeout(function(){ tb.classList.remove("tekan"); },130);
+}
+function pinTutup(){
+ var s=document.getElementById("pinScreen"); if(s)s.classList.remove("show"); PIN_ISI="";
+ document.removeEventListener("keydown",pinPapanKetik,true);
+}
 /* "Lupa PIN" saat membuka, atau "Nanti saja" saat memasang */
 function pinKeluar(){
  if(PIN_MODE!=="buka"){ pinTutup(); return; }
