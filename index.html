@@ -2519,20 +2519,25 @@ body.rg-open{overflow:hidden}
      Hemat nyata: Services ±220px, Procurement ±300px. */
   .sfr{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .sfr::-webkit-scrollbar{display:none}
-  .sfr-t{flex:0 0 auto;min-width:96px;border-radius:15px;padding:8px 13px 9px;background:var(--m-card);
+  /* padding atas-bawah dipangkas 1px dari 8/9 — batang membuat ubin sedikit
+     lebih tinggi dari versi bertitik, dan rail sempat 71px; batas aturannya 70. */
+  .sfr-t{flex:0 0 auto;min-width:96px;border-radius:15px;padding:7px 13px 8px 10px;background:var(--m-card);
     border:1px solid rgba(15,23,40,.07);font-family:var(--ff);text-align:left;cursor:pointer;
-    display:block;transition:background .15s,border-color .15s}
+    display:flex;align-items:stretch;gap:9px;transition:background .15s,border-color .15s}
   .sfr-t:active{transform:scale(.97)}
   .sfr-t.on{background:var(--m-navy);border-color:var(--m-navy)}
-  .sfr-n{display:flex;align-items:center;gap:6px;margin-bottom:3px}
-  .sfr-n i{width:6px;height:6px;border-radius:99px;flex:0 0 6px;display:block}
+  /* kembar dengan .tkc-bar di kartu tiket: 3px, radius penuh, tepi kiri */
+  .sfr-bar{flex:0 0 3px;width:3px;border-radius:99px;align-self:stretch;min-height:32px;display:block}
+  .sfr-isi{display:block;min-width:0}
   /* 18 & 10.5 (bukan 20 & 11.5) karena --fz mobile 1.12 sudah mengalikannya
      menjadi ±20px & ±11.8px sesuai spesifikasi. */
-  .sfr-n b{font-size:calc(18px*var(--fz));font-weight:800;letter-spacing:-.6px;color:var(--m-ink);
-    line-height:1;font-variant-numeric:tabular-nums}
-  .sfr-l{font-size:calc(10.5px*var(--fz));font-weight:600;color:var(--m-mut);white-space:nowrap;display:block}
-  .sfr-t.on .sfr-n b{color:#fff}
-  .sfr-t.on .sfr-n i{background:#fff!important}
+  .sfr-isi b{display:block;font-size:calc(18px*var(--fz));font-weight:800;letter-spacing:-.6px;color:var(--m-ink);
+    line-height:1.1;font-variant-numeric:tabular-nums}
+  .sfr-l{font-size:calc(10.5px*var(--fz));font-weight:600;color:var(--m-mut);white-space:nowrap;display:block;margin-top:2px}
+  .sfr-t.on .sfr-isi b{color:#fff}
+  /* Di ubin aktif latar berubah navy — batang berwarna kelompok akan tenggelam
+     di sana, jadi diputihkan supaya tetap terbaca. Bentuk & posisinya tetap. */
+  .sfr-t.on .sfr-bar{background:#fff!important}
   .sfr-t.on .sfr-l{color:rgba(255,255,255,.7)}
   /* Digantikan rail — angkanya sudah ada di sana (no double surface). */
   .svc-status,.svc-pills,.proc-tabs,.funnel{display:none!important}
@@ -8369,10 +8374,18 @@ function hariSemua(modul,tutup){
    satu baris, discroll ke samping — tidak pernah wrap.
    Hanya untuk HP; di desktop rail disembunyikan dan tampilan lama tetap utuh. */
 function sfrHTML(items){
+ /* LAMBANG KELOMPOK = BATANG DI TEPI KIRI, bukan titik (4 Agu 2026).
+    Sudana: "pada score card dilambangkan titik berwarna sedangkan pada preview
+    tiket dengan batang berwarna… saya pilih batang saja, supaya mudah dinalar."
+    Betul — dua bentuk berbeda untuk arti yang sama memaksa orang menerjemahkan
+    dua kali. Batangnya sengaja dibuat sama persis dengan .tkc-bar di kartu:
+    lebar 3px, radius penuh, menempel di TEPI KIRI, setinggi isinya. Warna,
+    bentuk, dan posisinya kini sama di kedua tempat. */
  return '<div class="sfr">'+items.map(function(it){
    return '<button type="button" class="sfr-t'+(it.on?' on':'')+'" onclick="'+it.act+'">'+
-     '<span class="sfr-n"><i style="background:'+(it.dot||'#98A2B3')+'"></i><b>'+(it.n===""||it.n==null?'—':it.n)+'</b></span>'+
-     '<span class="sfr-l">'+esc(it.label)+'</span></button>';
+     '<span class="sfr-bar" style="background:'+(it.dot||'#98A2B3')+'"></span>'+
+     '<span class="sfr-isi"><b>'+(it.n===""||it.n==null?'—':it.n)+'</b>'+
+     '<span class="sfr-l">'+esc(it.label)+'</span></span></button>';
  }).join("")+'</div>';
 }
 function hariSepHTML(modul,g,satuan,pakaiTR,kolom){
@@ -8521,7 +8534,8 @@ function renderProc(){
  </div>
 
  ${sfrHTML([
-   {label:"Semua",        n:base.filter(x=>!macet(x)).length,                                 dot:"#2563EB", on:procFilter==='all',  act:"procFilter='all';renderProc()"},
+   /* abu-abu — "Semua" bukan sebuah tahap; biru sudah dipakai SO & Sourcing */
+   {label:"Semua",        n:base.filter(x=>!macet(x)).length,                                 dot:"#98A2B3", on:procFilter==='all',  act:"procFilter='all';renderProc()"},
    {label:"SO & Sourcing",n:base.filter(s=>!macet(s)&&(!ap(s)||s.wstep<2)).length,             dot:"#2563EB", on:procFilter==='pre',  act:"procFilter='pre';renderProc()"},
    {label:"UPR Stage",    n:base.filter(s=>!macet(s)&&ap(s)&&s.wstep>=2&&s.wstep<3).length,   dot:"#7A5AF8", on:procFilter==='upr',  act:"procFilter='upr';renderProc()"},
    {label:"SPK & Execution",n:base.filter(s=>!macet(s)&&ap(s)&&s.wstep===3).length,            dot:"#F79009", on:procFilter==='spk',  act:"procFilter='spk';renderProc()"},
@@ -11907,7 +11921,11 @@ function renderService(){
       ?'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Pantau Tiket GA <span style="font-weight:400;color:var(--muted)">— seluruh tiket layanan, hanya untuk dipantau · status &amp; perjalanan terupdate realtime</span></div></div>'
       :'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Tiket Saya <span style="font-weight:400;color:var(--muted)">— hanya tiket yang Anda buat · status &amp; perjalanan terupdate realtime</span></div></div>')}
     ${sfrHTML([
-      {label:sup?'Semua':'Tiket saya', n:total,    dot:"#2563EB", on:svcFilter==='all',      act:"svcFilter='all';renderService()"},
+      /* "Semua" ABU-ABU, bukan biru. Biru di kartu berarti "Baru"; kalau ubin
+         Semua juga biru, satu warna punya dua arti dan tally-nya justru rusak.
+         Warna kelompok di bawah ini SAMA PERSIS dengan tkGrup() — satu sumber
+         makna untuk rail dan kartu. */
+      {label:sup?'Semua':'Tiket saya', n:total,    dot:"#98A2B3", on:svcFilter==='all',      act:"svcFilter='all';renderService()"},
       {label:'Berjalan',               n:ongoing,  dot:"#F79009", on:svcFilter==='open',     act:"svcFilter='open';renderService()"},
       {label:'Eskalasi',               n:esc,      dot:"#F04438", on:svcFilter==='esc',      act:"svcFilter='esc';renderService()"},
       {label:'Selesai',                n:resolved, dot:"#12B76A", on:svcFilter==='resolved', act:"svcFilter='resolved';renderService()"}
@@ -16869,7 +16887,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-185";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-186";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
