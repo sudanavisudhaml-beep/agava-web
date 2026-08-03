@@ -848,6 +848,12 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .so-acts{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap}
 /* SO PDF turun ke kolom Item — kolom Stage dulu jadi bertumpuk badge + tombol */
 .so-pdf-item{margin-top:8px}
+/* Kolom PIC & Dokumen — sejak 4 Agu 2026 kolom Approver & Status dibuang dari
+   preview (keduanya sudah terbaca dari badge di baris nomor SO), jadi PIC,
+   tombol SO PDF, Revisi, dan Hapus berbagi satu kolom yang menumpuk ke bawah. */
+.so-pic-cell{display:flex;flex-direction:column;align-items:flex-start;gap:6px;font-size:calc(12.5px*var(--fz))}
+.so-pic-cell .so-pdf{margin-top:0}
+.so-no-sm .badge{margin-left:6px;vertical-align:middle}
 /* Kolom Status: badge aging, tombol hapus menempel di ujung kanan */
 .so-status-cell{display:flex;align-items:center;gap:8px;justify-content:space-between;white-space:nowrap}
 /* Penanda akun pemantau (pantau:true) — Field Ops tanpa tombol aksi */
@@ -1283,6 +1289,52 @@ html,body{overscroll-behavior-y:contain}
 .svc-resp b{font-size:calc(13.5px*var(--fz));color:var(--ink)}
 .svc-pic{font-size:calc(12.5px*var(--fz));color:var(--ink);display:flex;align-items:center}
 .svc-list{max-height:520px;overflow:auto}
+/* ╔══ KARTU PREVIEW TIKET (4 Agu 2026) ══════════════════════════════════════╗
+   4 baris × 2 kolom. Kolom kiri 80% / kanan 20% lewat 4fr:1fr — pembagian ini
+   ikut mengecil bersama layar, tidak seperti lebar tetap yang menghimpit judul
+   di layar sempit. */
+.tkc{display:grid;grid-template-columns:3px minmax(0,4fr) minmax(0,1fr) 10px;align-items:center;
+  gap:11px;padding:11px 14px;cursor:pointer;position:relative;background:#fff;transition:background .12s}
+.tkc:hover{background:#f8fafd}
+.tkc:active{background:#f2f5fa}
+/* Pemisah antar tiket sengaja LEBIH TEGAS dari hairline biasa (.07 → .13) atas
+   permintaan Sudana; inset sejajar teks, bukan full-bleed. */
+.tkc+.tkc{border-top:1px solid rgba(15,23,40,.13)}
+.tkc-bar{align-self:stretch;width:3px;border-radius:99px;min-height:44px}
+.tkc-main{min-width:0}
+.tkc-r1{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:2px}
+.tkc-no{font-size:calc(10.5px*var(--fz));font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.tkc-chip{font-size:calc(10.5px*var(--fz));font-weight:700;padding:2.5px 7px;border-radius:6px;white-space:nowrap}
+.tkc-age{font-size:calc(10.5px*var(--fz));font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tkc-r2{font-size:calc(15px*var(--fz));font-weight:600;color:var(--ink);letter-spacing:-.25px;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tkc-r3{font-size:calc(11.5px*var(--fz));color:#98A2B3;margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tkc-r4{display:flex;align-items:center;gap:8px;margin-top:5px;min-width:0}
+.tkc-step{display:inline-flex;gap:3px;flex:0 0 auto}
+.tkc-step i{width:14px;height:3px;border-radius:99px;background:rgba(15,23,40,.12);display:block}
+.tkc-step i.on{background:var(--st,#2563EB)}
+.tkc-op{font-size:calc(11.5px*var(--fz));font-weight:600;color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.tkc-op em{font-style:normal;font-weight:400;color:#B0B0B5}
+.tkc-time{font-size:calc(11px*var(--fz));font-weight:700;color:#98A2B3;font-variant-numeric:tabular-nums;flex:0 0 auto}
+.tkc-time.lewat{color:var(--red)}
+.tkc-side{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0}
+.tkc-thumb{position:relative;width:100%;max-width:56px;aspect-ratio:1;border-radius:9px;overflow:hidden;
+  background:#eef2f7;border:1px solid var(--line)}
+.tkc-thumb img,.tkc-thumb video{width:100%;height:100%;object-fit:cover;display:block}
+.tkc-play{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:15px;
+  text-shadow:0 1px 5px rgba(0,0,0,.6);pointer-events:none}
+.tkc-more{position:absolute;right:2px;bottom:2px;background:rgba(15,23,40,.72);color:#fff;
+  font-size:calc(9px*var(--fz));font-weight:700;border-radius:5px;padding:1px 4px}
+.tkc-nofoto{width:100%;max-width:56px;aspect-ratio:1;border-radius:9px;background:#f4f6fa;
+  border:1px dashed #dfe5ee}
+.tkc-stars{display:flex;gap:1px;line-height:1}
+.tkc-stars i{font-style:normal;font-size:calc(10px*var(--fz));color:#dfe5ee}
+.tkc-stars i.on{color:#f5a623}
+.tkc-stars.belum i{color:#e3e8f0}
+.tkc-stars-kosong{height:calc(10px*var(--fz))}
+.tkc-chev{width:7px;height:12px;color:#C6CBD4;flex:0 0 auto}
 .svc-head{display:grid;grid-template-columns:9px 1fr 92px 150px 116px;gap:14px;padding:10px 16px;font-size:calc(10.5px*var(--fz));text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:2}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:calc(12px*var(--fz));color:var(--muted);font-weight:600;margin-bottom:6px}
@@ -8230,18 +8282,18 @@ function renderProc(){
  ${hariBarHTML("proc",hariP)}
  <div class="card" style="overflow-x:auto">
    <table><thead><tr>
-     <th>Item</th><th>PIC</th><th>Value</th><th>Approver</th><th>Stage</th><th>Status</th>
+     <th>Item</th><th>PIC &amp; Dokumen</th><th>Value</th>
    </tr></thead><tbody>
-   ${hariP.map(G=>hariSepHTML("proc",G,"SO",true,6)+(hariTutup("proc",G.key)?"":G.rows.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;return `<tr onclick="openDrawer('${s.no}')">
-     <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0"><div class="so-no-sm">${s.no}${s.rev?`<span class="so-rev-badge">REV.${s.rev}</span>`:''}</div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span><span style="color:#9aa7b8">🕒 dibuat ${recCreatedLabel(s)}</span>
-        ${soMiniPips(s)}
-        <button class="so-pdf so-pdf-item" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button></div></div></td>
-     <td>${pic?`<span class="avt">${ini(pic)}</span>`:''}${pic||'<span class="muted">—</span>'}</td>
+   ${hariP.map(G=>hariSepHTML("proc",G,"SO",true,3)+(hariTutup("proc",G.key)?"":G.rows.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;const ag=agingBadge(s.aging);return `<tr onclick="openDrawer('${s.no}')">
+     <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0">
+        <div class="so-no-sm">${s.no}${s.rev?`<span class="so-rev-badge">REV.${s.rev}</span>`:''}${ag}<span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span></div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span><span style="color:#9aa7b8">🕒 dibuat ${recCreatedLabel(s)}</span>
+        ${soMiniPips(s)}</div></div></td>
+     <td><div class="so-pic-cell">${pic?`<span class="avt">${ini(pic)}</span>${pic}`:'<span class="muted">—</span>'}
+        <button class="so-pdf so-pdf-item" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>
+        ${(soDitolak(s)&&soBolehRevisi(s))?`<button class="so-pdf so-rev" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama, rantai approval dilanjutkan">${soRevisiLabel(s)}</button>`:''}
+        ${soBolehHapus(s)?`<button class="so-pdf so-del" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini — wewenang Owner" aria-label="Hapus SO">🗑</button>`:''}</div></td>
      <td class="nilai">${soNilaiTeks(s)}</td>
-     <td><span class="badge bd-neu">${tier(s)}</span></td>
-     <td><div class="so-stage"><span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span>${soBolehRevisi(s)?`<button class="so-pdf so-rev" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama, rantai approval diputar ulang">${soRevisiLabel(s)}</button>`:''}</div></td>
-     <td><div class="so-status-cell">${agingBadge(s.aging)}${soBolehHapus(s)?`<button class="so-pdf so-del" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini — wewenang Owner" aria-label="Hapus SO">🗑</button>`:''}</div></td>
-   </tr>`}).join(""))).join("")||`<tr><td colspan="6" class="muted small" style="text-align:center;padding:34px">${qP?cariKosongHTML(qP,'SO'):(SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.')}</td></tr>`}
+   </tr>`}).join(""))).join("")||`<tr><td colspan="3" class="muted small" style="text-align:center;padding:34px">${qP?cariKosongHTML(qP,'SO'):(SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.')}</td></tr>`}
    </tbody></table>
  </div>
  <div style="display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap">
@@ -9269,7 +9321,60 @@ function tkDetail(no){
   '</div>';
  document.getElementById("ovl").classList.add("show");
 }
+/* ╔══ KARTU PREVIEW TIKET — gaya daftar App Store (4 Agu 2026) ══════════════╗
+   Permintaan Sudana: 4 baris × 2 kolom, kolom kiri 80% kolom kanan 20%.
+     kiri  b1 nomor tiket + status/aging   b2 judul (lebih besar)
+           b3 lokasi · tanggal · pemohon   b4 status bar · operator · waktu
+     kanan b-tengah thumbnail foto PERTAMA saja   b-bawah bintang rating
+   Detail lengkap tetap lewat chevron. Tiap kartu diberi pita warna kiri sesuai
+   KELOMPOK FILTER-nya, jadi warna di kartu selalu sama artinya dengan warna di
+   Stat-Filter Rail — mata belajar sekali, berlaku di dua tempat. */
+function tkGrup(t){
+ if(t.status==="Resolved")            return {k:"selesai", c:"#12B76A", t:"Selesai",  cc:"#027A48", cb:"#E4F5EE"};
+ if(t.esc)                            return {k:"eskalasi",c:"#F04438", t:"Eskalasi", cc:"#B42318", cb:"#FEECEB"};
+ if((t.stg||0)>=1)                    return {k:"berjalan",c:"#F79009", t:"Berjalan", cc:"#B54708", cb:"#FFF4E5"};
+ return                                      {k:"baru",    c:"#2563EB", t:"Baru",     cc:"#175CD3", cb:"#E7F0FF"};
+}
+function tkThumb(t){
+ var p=(t.proof||[]).filter(function(m){ return m&&m.url; })[0];
+ if(!p) return '<div class="tkc-nofoto" aria-hidden="true"></div>';
+ var n=(t.proof||[]).length;
+ return '<div class="tkc-thumb">'+(mdIsVideo(p)
+     ? '<video src="'+p.url+'" muted playsinline preload="metadata"></video><span class="tkc-play">▶</span>'
+     : '<img src="'+p.url+'" alt="" loading="lazy">')+
+   (n>1?'<span class="tkc-more">+'+(n-1)+'</span>':'')+'</div>';
+}
+function tkStars(t){
+ var r=+t.rating||0;
+ /* Belum selesai → belum waktunya dinilai, jangan tampilkan apa pun.
+    Sudah selesai tapi belum dinilai → bintang kosong sebagai pengingat halus. */
+ if(!r && t.status!=="Resolved") return '<div class="tkc-stars-kosong"></div>';
+ var s=""; for(var i=1;i<=5;i++) s+='<i class="'+(i<=r?'on':'')+'">★</i>';
+ return '<div class="tkc-stars'+(r?'':' belum')+'" title="'+(r?r+' dari 5':'Belum dinilai pemohon')+'">'+s+'</div>';
+}
 function ticketRow(t){
+ var g=tkGrup(t), sla=ticketSLA(t), ag=ticketAging(t);
+ var meta=[t.lokasi, recCreatedLabel(t), ticketReqName(t)].filter(Boolean).map(esc).join(" · ");
+ var langkah=[0,1,2,3].map(function(i){ return '<i class="'+((t.stg||0)>=i?'on':'')+'"></i>'; }).join("");
+ return '<div class="tkc" onclick="openTicket(\''+esc(t.no)+'\')">'+
+   '<span class="tkc-bar" style="background:'+g.c+'"></span>'+
+   '<div class="tkc-main">'+
+     '<div class="tkc-r1"><span class="tkc-no">'+esc(t.no)+'</span>'+
+       '<span class="tkc-chip" style="color:'+g.cc+';background:'+g.cb+'">'+g.t+'</span>'+
+       (ag.t?'<span class="tkc-age" style="color:'+ag.c+'">'+esc(ag.t)+'</span>':'')+'</div>'+
+     '<div class="tkc-r2">'+esc(t.judul||"")+'</div>'+
+     '<div class="tkc-r3">'+meta+'</div>'+
+     '<div class="tkc-r4">'+
+       '<span class="tkc-step" style="--st:'+g.c+'">'+langkah+'</span>'+
+       '<span class="tkc-op">'+(t.pic?esc(t.pic):'<em>Belum ada operator</em>')+'</span>'+
+       '<span class="tkc-time'+(sla.respBreach?' lewat':'')+'">'+fmtDur(sla.respMin)+'</span>'+
+     '</div>'+
+   '</div>'+
+   '<div class="tkc-side">'+tkThumb(t)+tkStars(t)+'</div>'+
+   '<svg class="tkc-chev" viewBox="0 0 8 14" fill="none" aria-hidden="true"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+ '</div>';
+}
+function ticketRowLama(t){
  const bar=[0,1,2,3].map(i=>`<i class="${t.stg>=i?'on':''}"></i>`).join("");
  const sla=ticketSLA(t);
  return `<div class="svc-row" onclick="openTicket('${t.no}')" style="cursor:pointer">
@@ -11741,7 +11846,34 @@ function nextTicketNo(){
  ticketSeq=n-1;
  return no;
 }
-function soSeq(){ const nums=SO.map(s=>parseInt((String(s.no).match(/(\d+)$/)||["0"])[0],10)).filter(n=>!isNaN(n)); return "SO-202606-"+String(Math.max(0,...nums)+1).padStart(4,"0"); }
+/* ╔══ NOMOR SO MEMBAWA NOMOR TIKET (4 Agu 2026) ═════════════════════════════╗
+   Keputusan arsitektur Sudana: "no SO masih memuat informasi No Tiket… di
+   paling belakang ditambahkan digit nomor tiket, ini berguna ketika tracking.
+   Kalau SO yang dibuat bukan dari Tiket biarkan nomor id nya 000."
+   Format: SO-202606-0048-0206  ← empat digit terakhir = nomor urut tiket asal
+           SO-202606-0049-0000  ← bukan dari tiket
+   Berlaku untuk SO BARU saja (dikonfirmasi Sudana). 47 SO lama tetap memakai
+   format lamanya — nomor SO adalah ID DOKUMEN Firestore dan dirujuk t.soNo,
+   Record Log, serta audit; mengganti massal berarti migrasi berisiko tanpa
+   manfaat sepadan. Kedua format hidup berdampingan, dan semua kode yang
+   membaca nomor harus tahan terhadap keduanya.
+
+   PENTING — soSeq() dulu mengambil "kelompok angka TERAKHIR" untuk mencari
+   nomor urut tertinggi. Dengan akhiran baru, "0206" akan terbaca sebagai nomor
+   urut dan penomoran langsung kacau. Karena itu polanya sekarang mengunci
+   posisi: SO-<6 digit>-<4 digit urut>, sisanya diabaikan. */
+function soTiketDigit(tno){
+ var m=String(tno||"").match(/(\d{1,6})\s*$/);      // GA-202607-0206 → 0206
+ return m ? m[1].slice(-4).padStart(4,"0") : "0000";
+}
+function soSeqNum(no){
+ var m=String(no||"").match(/^SO-\d{6}-(\d{4})/);   // BUKAN /(\d+)$/ — lihat catatan di atas
+ return m ? parseInt(m[1],10) : NaN;
+}
+function soSeq(tiketNo){
+ const nums=SO.map(s=>soSeqNum(s.no)).filter(n=>!isNaN(n));
+ return "SO-202606-"+String(Math.max(0,...nums)+1).padStart(4,"0")+"-"+soTiketDigit(tiketNo);
+}
 
 /* Room & Event (Service module) — usage schedule fed from Excel ("Rooms" sheet) via Connect */
 let ROOM_BOOKINGS=[
@@ -13074,7 +13206,10 @@ async function submitSO(){
  let att=await soReadAttachments();   // {images, pdfs} — foto utk grid Lampiran, PDF dijahit ke Dokumen SO
  // Create in-app, then trigger the Power Automate flow for Procurement
  const res=await triggerFlow("createSO",{items:rows,lokasi,kategori:kat,budget,nilai,requester:req})||{};
- const no=res.no||soSeq();
+ /* window._soFromTicket diisi saat SO dilahirkan dari eskalasi tiket; dibaca di
+    sini (BUKAN dikosongkan) karena beberapa baris di bawah masih memakainya
+    untuk menautkan balik tiketnya. */
+ const no=res.no||soSeq(window._soFromTicket);
  /* Unggah lampiran ke Storage SETELAH nomor SO ada, supaya berkasnya rapi per SO
     dan URL-nya (bukan base64) yang tersimpan → approver mana pun bisa melihat. */
  att=await soUploadAttachments(att,no);
@@ -15220,7 +15355,7 @@ async function testFlow(name){
 }
 function simulateFlow(name,payload){
   if(name==="createTicket") return { ticketNo:nextTicketNo(), status:"Submitted", stg:0 };
-  if(name==="createSO")     return { no: soSeq(), status:"Submitted" };
+  if(name==="createSO")     return { no: soSeq(payload&&payload.fromTicket), status:"Submitted" };
   return { ok:true };
 }
 function payloadBrief(o){ try{ return Object.entries(o||{}).slice(0,3).map(([k,v])=>k+":"+(typeof v==="object"?"…":String(v).slice(0,18))).join(" · "); }catch(e){ return ""; } }
@@ -16472,7 +16607,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-178";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-179";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
