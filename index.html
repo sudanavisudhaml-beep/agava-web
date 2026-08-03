@@ -1464,7 +1464,9 @@ html,body{overscroll-behavior-y:contain}
   background:radial-gradient(circle,rgba(10,109,255,.2),rgba(8,24,47,0) 70%)}
 @keyframes pinGlow{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:.85;transform:scale(1.12)}}
 @keyframes pinUp{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
-@keyframes pinDot{from{transform:scale(.4);opacity:.4}to{transform:scale(1);opacity:1}}
+/* mulai dari .55 (bukan .4) dan TANPA opacity: titik langsung terlihat penuh
+   di frame pertama, pantulannya hanya bonus — bukan syarat agar terbaca */
+@keyframes pinDot{from{transform:scale(.55)}to{transform:scale(1)}}
 @keyframes pinShake{0%,100%{transform:translateX(0)}18%{transform:translateX(-9px)}36%{transform:translateX(8px)}
   54%{transform:translateX(-6px)}72%{transform:translateX(4px)}}
 .pin-box{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;
@@ -1479,9 +1481,12 @@ html,body{overscroll-behavior-y:contain}
   animation:pinUp .5s cubic-bezier(.2,.8,.2,1) .15s both}
 .pin-dots{display:flex;gap:15px;margin:32px 0 0}
 .pin-dots.salah{animation:pinShake .5s cubic-bezier(.3,.1,.3,1)}
+/* Tanpa transition: isian titik harus SEKETIKA. Transisi 120ms terasa seperti
+   jeda saat mengetik cepat — pantulan skala di bawah sudah cukup sebagai
+   umpan balik, dan itu tidak menunda warnanya. */
 .pin-dots i{width:13px;height:13px;border-radius:999px;background:transparent;
-  border:1.5px solid rgba(255,255,255,.3);transition:background .12s,border-color .12s}
-.pin-dots i.on{background:#fff;border-color:#fff;animation:pinDot .22s cubic-bezier(.2,1.1,.3,1) both}
+  border:1.5px solid rgba(255,255,255,.3);will-change:transform}
+.pin-dots i.on{background:#fff;border-color:#fff;animation:pinDot .16s cubic-bezier(.2,1.1,.3,1)}
 /* ditulis eksplisit termasuk varian .on — kalau hanya `.pin-dots.salah i`,
    kekhususannya seri dengan `.pin-dots i.on` dan titik yang terisi tidak
    ikut memerah. Merah harus menang di kedua keadaan. */
@@ -16864,7 +16869,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-184";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-185";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -18587,10 +18592,22 @@ document.addEventListener("input",function(e){
    ══════════════════════════════════════════════════════════════════════════ */
 let PIN_ISI="", PIN_UID="", PIN_USER=null, PIN_MODE="buka";   // buka | pasang | ulangi
 let PIN_PASANG1="";
+/* ── KENAPA BUKAN innerHTML (4 Agu 2026) ───────────────────────────────────
+   Laporan Sudana: "ada sedikit delay antara ketikan dengan titik menyala,
+   menyebabkan saya salah input."
+   Penyebabnya di sini: dulu SETIAP ketukan menulis ulang innerHTML — keenam
+   titik dibongkar dan dibuat ulang, memaksa parse HTML + buang & pasang node +
+   hitung tata letak seluruh baris, dan setiap titik yang sudah menyala
+   MENGULANG animasi kemunculannya dari awal. Terasa seperti tertinggal
+   setengah ketukan; saat mengetik cepat, digitnya jadi kacau.
+   Kini node dibuat SEKALI, ketukan berikutnya hanya menyalakan kelas. */
 function pinDotsGambar(){
  var d=document.getElementById("pinDots"); if(!d)return;
- var s=""; for(var i=0;i<PIN_PANJANG;i++) s+='<i class="'+(i<PIN_ISI.length?'on':'')+'"></i>';
- d.innerHTML=s;
+ if(d.children.length!==PIN_PANJANG){
+   var s=""; for(var i=0;i<PIN_PANJANG;i++) s+="<i></i>";
+   d.innerHTML=s;
+ }
+ for(var j=0;j<d.children.length;j++) d.children[j].classList.toggle("on", j<PIN_ISI.length);
 }
 function pinPadGambar(){
  var p=document.getElementById("pinPad"); if(!p)return;
