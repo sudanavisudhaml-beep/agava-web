@@ -4814,6 +4814,20 @@ function pjCloudSave(list){
    if(!Array.isArray(list))return;
    PJ_CLOUD=list;
    if(AGDB.ro||!AGDB.on||!AGDB.db)return;                       // uji coba / offline → cukup lokal
+   /* PAGAR LOGIN (audit 3 Agu 2026) — tanpa identitas, tanpa hak tulis.
+      Dulu bidang `by` bisa terkirim kosong; penulis anonim = tidak bisa dilacak. */
+   if(!gUser||!gUser.name){ console.warn("Proyek: tulis cloud DITOLAK — belum login"); return; }
+   /* PAGAR MENYUSUT — dokumen ini menyimpan SELURUH daftar proyek sekaligus,
+      jadi satu penulisan dari salinan basi bisa menghapus proyek orang lain.
+      Kalau daftar yang mau ditulis lebih SEDIKIT dari salinan cloud terakhir,
+      tahan: hampir pasti salinan basi, bukan penghapusan yang disengaja.
+      (Menghapus proyek betulan → muat ulang halaman dulu, lalu hapus.) */
+   var pc=AGDB.pjCloud;
+   if(Array.isArray(pc)&&list.length<pc.length){
+     console.warn("Proyek: tulis DITAHAN — "+list.length+" proyek vs "+pc.length+" di cloud");
+     try{ auditLog("project-tahan-menyusut", list.length+" proyek akan menimpa "+pc.length+" di cloud — salinan basi"); }catch(e){}
+     try{ alert("⚠️ Penyimpanan ditahan.\n\nPerangkat ini memegang "+list.length+" proyek, sementara di cloud ada "+pc.length+". Data Anda kemungkinan tertinggal.\n\nMuat ulang halaman dulu, baru simpan lagi."); }catch(e){}
+     return; }
    var j=JSON.stringify(list);
    /* PAGAR 1 MB — dan yang terpenting: TIDAK PERNAH GAGAL DIAM-DIAM.
       Bila masih ada foto data URL yang membuat muatan >900 KB (Storage
@@ -16153,7 +16167,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-171";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-172";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -16394,6 +16408,10 @@ function dbInit(){
     let list; try{ list=JSON.parse(d.list); }catch(e){ return; }
     if(!Array.isArray(list)||!list.length)return;
     const j=JSON.stringify(list);
+    /* salinan cloud terakhir — pembanding pagar menyusut di pjCloudSave.
+       Direkam SEBELUM cek gema, supaya tetap terisi walau perubahannya berasal
+       dari perangkat ini sendiri. */
+    AGDB.pjCloud=list;
     if(j===AGDB.pjEcho)return;                  // gema dari simpanan kita sendiri
     AGDB.pjEcho=j; PJ_CLOUD=list;
     try{ pjPushToFrame(); }catch(e){}
