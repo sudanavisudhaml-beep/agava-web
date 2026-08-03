@@ -16167,7 +16167,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-172";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-173";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -17038,9 +17038,51 @@ function agavaGoLiveCutoff(){
  });
 }
 /* Lihat isi Record Log (data pra-live) — hanya baca, tidak mengubah apa pun. */
+/* ╔══ SO PRA-LIVE YANG MASIH MENGGANTUNG (3 Agu 2026) ════════════════════════╗
+   SO-202606-0047 (Alma Tasya) dibuat 27/07 10:03 — TUJUH MENIT sebelum cutoff
+   go-live. Akibatnya: masih ada di koleksi agava_so, tapi disaring keluar dari
+   SELURUH layar oleh goLivePre(), dan tidak ikut ke Record Log karena tidak
+   pernah dipindahkan. Statusnya "Ditolak Dept Head" tanpa catatan alasan —
+   pemohonnya menunggu selamanya tanpa pernah bisa melihat SO-nya.
+   Dokumen yang tak terlihat = dokumen yang tak bisa diurus. Bagian ini
+   memunculkannya kembali dan memberi Owner jalan untuk membersihkannya. */
+function rlPraLiveSO(){
+ if(!AGDB.on||!AGDB.db) return Promise.resolve([]);
+ return AGDB.db.collection("agava_so").limit(400).get().then(function(sn){
+   var out=[]; sn.forEach(function(d){ var s=d.data()||{}; s.no=s.no||d.id;
+     if(goLivePre(s)) out.push(s); });
+   return out;
+ }).catch(function(){ return []; });
+}
+async function rlPraLiveHapus(no){
+ if(!isOwner()){ alert("⛔ Hanya akun Owner yang dapat menghapus Supply Order."); return; }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — penghapusan cloud diblokir.\nJalankan dari situs AGAVA yang asli."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung."); return; }
+ var d;
+ try{ d=await AGDB.db.collection("agava_so").doc(String(no)).get(); }
+ catch(e){ alert("⚠️ Gagal membaca "+no+": "+((e&&e.code)||e)); return; }
+ if(!d.exists){ alert("SO "+no+" sudah tidak ada."); return; }
+ var s=d.data()||{};
+ if(!confirm("🗑 HAPUS SUPPLY ORDER PRA-LIVE?\n\n"+no+"\n"+String(s.item||"").slice(0,70)+
+   "\nPemohon: "+(s.requester||"—")+"\nDibuat: "+((s.ts&&s.ts.created)||"?")+" (sebelum "+AGAVA_GOLIVE_LABEL+")\n\n"+
+   "Salinan lengkapnya tetap tersimpan di Record Log.\nLanjutkan?")) return;
+ var salinan=JSON.parse(JSON.stringify(s));
+ salinan._archivedAt=new Date().toISOString(); salinan._src="agava_so";
+ salinan._cutoff="dihapus Owner — pra-live menggantung";
+ salinan._deletedBy=(gUser&&gUser.name)||""; salinan._deletedAt=nowStamp();
+ try{
+   await AGDB.db.collection("agava_recordlog").doc("so_"+no).set(salinan,{merge:true});
+   await AGDB.db.collection("agava_so").doc(String(no)).delete();
+   try{ delete AGDB.soEcho[no]; }catch(e){}
+   auditLog("so-hapus-pralive", no+" · "+String(s.item||"").slice(0,60)+" · pemohon "+(s.requester||"—"));
+   alert("🗑 "+no+" dihapus.\n\nSalinannya tersimpan di Record Log.");
+   agavaRecordLogView();
+ }catch(e){ alert("⚠️ Gagal menghapus: "+((e&&(e.code||e.message))||e)+"\n\nSO TIDAK jadi dihapus."); }
+}
 function agavaRecordLogView(){
  if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung — Record Log tidak bisa dibaca."); return; }
- AGDB.db.collection("agava_recordlog").limit(400).get().then(function(snap){
+ Promise.all([AGDB.db.collection("agava_recordlog").limit(400).get(), rlPraLiveSO()]).then(function(hasil){
+   var snap=hasil[0], gantung=hasil[1]||[];
    var rows=snap.docs.map(function(d){ return d.data()||{}; });
    var grp={tk:[],so:[],wp:[]};
    rows.forEach(function(r){ var s=r._src||""; if(/tickets/.test(s))grp.tk.push(r); else if(/_so/.test(s))grp.so.push(r); else grp.wp.push(r); });
@@ -17048,11 +17090,23 @@ function agavaRecordLogView(){
      (arr.length?arr.map(function(r){ return '<div class="cl-aud"><div class="cl-aud-h"><b>'+esc(r.no||"—")+'</b><span>'+esc((r._archivedAt||"").slice(0,10))+'</span></div>'+
        '<div class="muted small">'+esc(String(r.judul||r.item||"").slice(0,70))+'</div></div>'; }).join("")
       :'<div class="muted small" style="padding:10px">—</div>'); };
+   /* SO pra-live yang MASIH di agava_so — tak terlihat di modul mana pun, tapi
+      nyata: berstatus, punya pemohon, dan bisa membuat orang menunggu percuma. */
+   var lbl=function(s){ return (s.apprSection==="Rejected"||s.apprDept==="Rejected")?"⛔ Ditolak"
+     :(s.apprDept==="Approved"?"✅ Tuntas":"⏳ "+(s.apprSection!=="Approved"?"Menunggu Section":"Berjalan")); };
+   var secGantung=gantung.length ? (
+     '<div class="panel-t" style="margin:18px 0 6px;color:#b42318">⚠️ SO pra-live yang masih menggantung · '+gantung.length+'</div>'+
+     '<div class="muted small" style="margin-bottom:8px;line-height:1.6">Dibuat sebelum '+AGAVA_GOLIVE_LABEL+' sehingga <b>disembunyikan dari seluruh modul</b>, tapi dokumennya masih hidup di <code>agava_so</code>. Pemohonnya tidak bisa melihat maupun merevisi. Bersihkan bila memang tidak dilanjutkan.</div>'+
+     gantung.map(function(s){ return '<div class="cl-aud"><div class="cl-aud-h"><b>'+esc(s.no)+'</b><span>'+esc(lbl(s))+'</span></div>'+
+       '<div class="muted small">'+esc(String(s.item||"").slice(0,64))+' · '+esc(s.requester||"—")+' · dibuat '+esc((s.ts&&s.ts.created)||"?")+
+       ((s.apprSection==="Rejected"||s.apprDept==="Rejected")&&!s.reject?' · <b style="color:#b42318">ditolak tanpa alasan</b>':'')+'</div>'+
+       (isOwner()?'<button class="btn-out" style="width:100%;margin-top:8px;border-color:#f3b4ad;color:#b42318;font-weight:700" onclick="rlPraLiveHapus(\''+esc(s.no)+'\')">🗑 Hapus '+esc(s.no)+'</button>':'')+
+       '</div>'; }).join("")) : '';
    document.getElementById("drawer").innerHTML=
     '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
      '<div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">🗄️ Record Log — Data Pra-Live</div>'+
      '<div class="muted small" style="margin-top:4px">'+rows.length+' data sebelum '+AGAVA_GOLIVE_LABEL+' · tersimpan di cloud, tidak ditampilkan di modul</div></div>'+
-    '<div class="db">'+sec("🎫 Tiket",grp.tk)+sec("📋 Supply Order",grp.so)+sec("🦺 Work Permit",grp.wp)+'</div>';
+    '<div class="db">'+secGantung+sec("🎫 Tiket",grp.tk)+sec("📋 Supply Order",grp.so)+sec("🦺 Work Permit",grp.wp)+'</div>';
    document.getElementById("ovl").classList.add("show");
  }).catch(function(e){ alert("⚠️ Gagal membaca Record Log: "+((e&&(e.code||e.message))||e)); });
 }
