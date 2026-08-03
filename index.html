@@ -11520,6 +11520,7 @@ function selfCareLoad(){ try{ var r=localStorage.getItem(SELFCARE_STORE); if(r){
 function selfCarePersist(){ try{ localStorage.setItem(SELFCARE_STORE,JSON.stringify(SELFCARE.slice(-500))); }catch(e){} }
 function selfCareSave(x){
  if(AGDB.ro||!AGDB.on||!AGDB.db||!x||!x.id)return;
+ if(!gUser||!gUser.name){ console.warn("SelfCare: tulis DITOLAK — belum login"); return; }
  try{ AGDB.db.collection("agava_selfcare").doc(String(x.id)).set(x,{merge:true}); }catch(e){ console.warn("selfcare save:",e); }
 }
 /* Kata yang menandakan RISIKO — begitu salah satunya muncul, panel "ringan"
@@ -12299,6 +12300,16 @@ function dbSaveOT(){
  if(!gUser||!gUser.name) return;                     // pagar data bersama: tanpa login, tanpa hak tulis
  OVERTIME_REQ.forEach(function(o){
    if(!o||!o.no)return;
+   /* PAGAR MUNDUR LEMBUR (audit 3 Agu 2026) — dbSaveOT menulis SELURUH koleksi,
+      dan otAutoCek memicunya tiap 20 detik dari SETIAP perangkat yang terbuka.
+      Bentuknya sama persis dengan penyakit dbSaveSOAll: salinan basi
+      mengembalikan permintaan yang sudah diputuskan menjadi "Diajukan" lagi. */
+   var oc=(AGDB.otCloud||{})[o.no];
+   if(oc&&oc.status&&oc.status!=="Diajukan"&&o.status==="Diajukan"){
+     console.warn("Lembur "+o.no+": unggah DITAHAN — cloud sudah '"+oc.status+"', lokal masih 'Diajukan'");
+     try{ AGDB._otTahan=AGDB._otTahan||{}; if(!AGDB._otTahan[o.no]){ AGDB._otTahan[o.no]=1;
+       auditLog("lembur-tahan-mundur", o.no+" · cloud "+oc.status+" · lokal Diajukan"); } }catch(e){}
+     return; }
    var j=JSON.stringify(o);
    AGDB.otEcho=AGDB.otEcho||{};
    if(AGDB.otEcho[o.no]===j)return;                  // tidak berubah → jangan tulis ulang
@@ -15973,7 +15984,7 @@ function wpAct(i,st){
   alert((st==="Disetujui"?"✅ ":st==="Ditolak"?"⛔ ":"🏁 ")+w.no+" — "+st);
 }
 /* Firestore: pengajuan dari luar (QR) & internal disimpan di koleksi yang sama */
-function wpDbSave(w){ if(AGDB.ro||!AGDB.on||!AGDB.db||!w||!w.no)return; try{ AGDB.db.collection("agava_workpermits").doc(String(w.no)).set(JSON.parse(JSON.stringify(w)),{merge:true}); }catch(e){ console.warn("WP save:",e); } }
+function wpDbSave(w){ if(AGDB.ro||!AGDB.on||!AGDB.db||!w||!w.no)return; if(!gUser||!gUser.name){ console.warn("WP: tulis DITOLAK — belum login"); return; } try{ AGDB.db.collection("agava_workpermits").doc(String(w.no)).set(JSON.parse(JSON.stringify(w)),{merge:true}); }catch(e){ console.warn("WP save:",e); } }
 function wpShowQR(){
   const url=wpUrl();
   const qr="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data="+encodeURIComponent(url);
@@ -16142,7 +16153,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-170";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-171";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -16259,8 +16270,11 @@ function dbInit(){
   AGDB.db.collection("agava_tickets").orderBy("created","desc").limit(300).onSnapshot(snap=>{
     AGDB.on=true; dbPill("Database: Firebase live · "+snap.size+" tiket",true);
     let changed=false, arrivals=[];
+    AGDB.tickCloud=AGDB.tickCloud||{};
     snap.docChanges().forEach(ch=>{
       const d=ch.doc.data(); d.no=d.no||ch.doc.id;
+      /* salinan cloud terakhir — pembanding pagar hapus-diam-diam (tkHapusDiamDiam) */
+      if(ch.type==="removed") delete AGDB.tickCloud[d.no]; else AGDB.tickCloud[d.no]=JSON.parse(JSON.stringify(d));
       const i=TICKETS.findIndex(t=>t.no===d.no);
       if(ch.type==="removed"){ if(i>=0){TICKETS.splice(i,1);changed=true;} }
       else if(i>=0){ Object.assign(TICKETS[i],d); syncTicketStage(TICKETS[i],d); rateHeal(TICKETS[i]); changed=true; }
@@ -16295,6 +16309,9 @@ function dbInit(){
     let ubah=false;
     snap.docChanges().forEach(ch=>{
       const d=ch.doc.data(); d.no=d.no||ch.doc.id;
+      /* salinan cloud terakhir — pembanding pagar mundur di dbSaveOT */
+      AGDB.otCloud=AGDB.otCloud||{};
+      if(ch.type==="removed") delete AGDB.otCloud[d.no]; else AGDB.otCloud[d.no]=JSON.parse(JSON.stringify(d));
       const i=OVERTIME_REQ.findIndex(o=>o.no===d.no);
       if(ch.type==="removed"){ if(i>=0){OVERTIME_REQ.splice(i,1);ubah=true;} }
       else if(i>=0){ Object.assign(OVERTIME_REQ[i],d); ubah=true; }
@@ -16347,7 +16364,7 @@ function dbInit(){
   },err=>{ console.warn("SO rules/err:",err&&err.code); });
   /* KPI + review PDCA bulanan — satu dokumen bersama */
   AGDB.db.collection("agava_config").doc("kpi").onSnapshot(doc=>{
-    if(!doc.exists){ dbSaveKPI("seed-cloud-kosong"); return; }   // cloud kosong → seed (hanya jalan bila sudah login)
+    if(!doc.exists){ if(!doc.metadata.fromCache) dbSaveKPI("seed-cloud-kosong"); return; }   // cloud kosong → seed (hanya jalan bila sudah login)
     const d=doc.data(); if(!d||!Array.isArray(d.cla)||!d.cla.length)return;
     AGDB.kpiCloud=d;                            // simpan utk re-apply bila loadDataFiles menimpa belakangan
     const j=JSON.stringify(d.cla);
@@ -16400,7 +16417,7 @@ function dbInit(){
   },err=>{ console.warn("Projects rules/err:",err&&err.code); });
   /* Master data (STNK/PBB/Izin/Kontrak/Maintenance) — satu dokumen bersama */
   AGDB.db.collection("agava_config").doc("master").onSnapshot(doc=>{
-    if(!doc.exists){ dbSaveMaster(); return; }
+    if(!doc.exists){ if(!doc.metadata.fromCache) dbSaveMaster(); return; }
     const d=doc.data(); if(!d||!d.sets)return;
     const j=JSON.stringify(d.sets);
     if(j===AGDB.masterEcho)return;
@@ -16411,7 +16428,7 @@ function dbInit(){
   },err=>{ console.warn("Master rules/err:",err&&err.code); });
   /* Konfigurasi endpoint Power Automate — ikut pindah antar perangkat */
   AGDB.db.collection("agava_config").doc("flow").onSnapshot(doc=>{
-    if(!doc.exists){ dbSaveFlow(); return; }
+    if(!doc.exists){ if(!doc.metadata.fromCache) dbSaveFlow(); return; }
     const d=doc.data(); if(!d||!d.endpoints)return;
     const j=JSON.stringify(d.endpoints);
     if(j===AGDB.flowEcho)return;
@@ -16420,7 +16437,7 @@ function dbInit(){
   },err=>{ console.warn("Flow rules/err:",err&&err.code); });
   /* Master parameter & koefisien biaya — sumber tunggal angka turunan AGAVA */
   AGDB.db.collection("agava_config").doc("params").onSnapshot(doc=>{
-    if(!doc.exists){ dbSaveParam(); return; }
+    if(!doc.exists){ if(!doc.metadata.fromCache) dbSaveParam(); return; }
     const d=doc.data(); if(!d||!d.param)return;
     const j=JSON.stringify(d.param);
     if(j===AGDB.paramEcho)return;
@@ -16474,7 +16491,33 @@ function dbStripTicket(t){
  buang("photos"); buang("proof");
  return c;
 }
-function dbSaveTicket(t){ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no)return; try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(dbStripTicket(t),{merge:true}); }catch(e){ console.warn("AGDB save:",e); } }
+/* ── PAGAR HAPUS-DIAM-DIAM (audit 3 Agu 2026) ───────────────────────────────
+   dbSaveTicket mengirim SELURUH tiket. Kalau salinan lokalnya basi, bidang yang
+   sudah diisi orang lain (diambil siapa, tahap berapa, rating, nomor SO) ikut
+   terkosongkan — persis insiden GA-202607-0144. Merge Firestore tidak menolong:
+   bidang skalar tetap tertimpa.
+   Pagar ini membandingkan dengan salinan cloud terakhir yang kita lihat; kalau
+   penulisan akan MENGOSONGKAN bidang yang di cloud sudah terisi, tulisan itu
+   DITAHAN. Menambah/mengubah isi tetap bebas — yang dilarang hanya menghapus. */
+const TK_LINDUNG=["pic","stg","pickBy","rate","rating","closedBy","soNo","escTo","toProc","bukti"];
+function tkHapusDiamDiam(t){
+ var c=(AGDB.tickCloud||{})[t.no]; if(!c) return null;
+ var kosong=function(v){ return v===undefined||v===null||v===""||v===0||(Array.isArray(v)&&!v.length); };
+ for(var i=0;i<TK_LINDUNG.length;i++){ var k=TK_LINDUNG[i];
+   if(!kosong(c[k]) && kosong(t[k])) return k; }
+ return null;
+}
+function dbSaveTicket(t){
+ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no)return;
+ /* pagar data bersama — pelajaran insiden KPI 30 Jul: tanpa identitas, tanpa hak tulis */
+ if(!gUser||!gUser.name){ console.warn("Tiket: tulis cloud DITOLAK — belum login"); return; }
+ var hilang=tkHapusDiamDiam(t);
+ if(hilang){ console.warn("Tiket "+t.no+": tulis DITAHAN — akan mengosongkan '"+hilang+"' yang di cloud sudah terisi");
+   try{ AGDB._tkTahan=AGDB._tkTahan||{}; if(!AGDB._tkTahan[t.no]){ AGDB._tkTahan[t.no]=1;
+     auditLog("tiket-tahan-hapus", t.no+" · bidang "+hilang+" · salinan basi tidak diunggah"); } }catch(e){}
+   return; }
+ try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(dbStripTicket(t),{merge:true}); }catch(e){ console.warn("AGDB save:",e); }
+}
 /* ── Tulis HANYA bidang yang berubah ────────────────────────────────────────
    Pelajaran 28 Jul 2026 (GA-202607-0144): proses latar yang cuma perlu menandai
    SATU bidang dulu memanggil dbSaveTicket(), yang mengirim SELURUH tiket versi
@@ -16490,6 +16533,7 @@ function dbSaveTicket(t){ if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no)return; try{
    langsung oleh pemegang tiket). */
 function dbPatchTicket(t,fields){
  if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no||!fields)return;
+ if(!gUser||!gUser.name){ console.warn("Tiket: patch DITOLAK — belum login"); return; }
  try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(fields,{merge:true}); }
  catch(e){ console.warn("AGDB patch:",e); }
 }
@@ -16631,6 +16675,11 @@ async function soDocLampiranCek(s){
 }
 function dbSaveSOAll(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
+ /* Pagar login (audit 3 Agu 2026) — jejak agava_audit membuktikan pagar mundur
+    sempat memblokir unggahan dengan user KOSONG, artinya jalur ini benar-benar
+    jalan SEBELUM login. dbSaveKPI/Master/Flow/Param sudah dipagari sejak 31 Jul;
+    SO & tiket terlewat. Tanpa identitas, tidak ada hak tulis. */
+ if(!gUser||!gUser.name){ console.warn("SO: tulis cloud DITOLAK — belum login"); return; }
  AGDB.soEcho=AGDB.soEcho||{};
  SO.forEach(function(s){ if(!s||!s.no)return;
    if(goLivePre(s))return;                       // pra-live → sudah di Record Log, JANGAN unggah balik
