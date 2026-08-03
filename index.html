@@ -9475,6 +9475,7 @@ function agavaMediaTutup(){
  ov.classList.remove("show"); ov.innerHTML="";
  document.body.style.overflow=ov._bodyOv||"";        // kembalikan scroll halaman
  if(ov._esc){ document.removeEventListener("keydown",ov._esc,true); ov._esc=null; }
+ try{ mOvlDisarm(); }catch(e){}
 }
 function agavaMediaView(list,i,capHTML){
  list=list||[]; var m=list[i]; if(!m)return;
@@ -9503,6 +9504,7 @@ function agavaMediaView(list,i,capHTML){
  ov._esc=function(e){ if(e.key==="Escape"||e.key==="Esc"){ e.preventDefault(); agavaMediaTutup(); } };
  document.addEventListener("keydown",ov._esc,true);
  ov.classList.add("show");
+ try{ mOvlArm(); }catch(e){}      // back HP menutup foto dulu, bukan detail di belakangnya
 }
 function tkPhotos(t){ return (t&&t.photos&&t.photos.length)?t.photos:[]; }
 function tkPhotoView(no,i){
@@ -10631,6 +10633,38 @@ function mGoHome(){ mNavBack=true; go(mHomeId()); mNavBack=false; mStack.length=
    (mGoHome menolkan penghitung padahal entri browser masih ada) → sisa entri itu
    memicu satu langkah mundur TAMBAHAN, sehingga terasa "mundur 2 halaman". */
 function mArm(){ try{ history.pushState({agava:window._curPage||"home"},""); }catch(e){} }
+/* ╔══ SETIAP OVERLAY MEMEGANG SATU ENTRI RIWAYAT SENDIRI (4 Agu 2026) ═══════╗
+   Keluhan Sudana: dari detail tiket, tombol back HP "malah kembali ke Menu
+   Utama" — bukan menutup detailnya.
+
+   Penyebabnya bukan mInterceptBack (itu sudah benar), melainkan ENTRI yang
+   dikonsumsinya. Detail tiket dulu tidak pernah memasang entri riwayat sendiri;
+   ia menumpang "perangkap" sisa perpindahan halaman. Perangkap itu tidak selalu
+   ada — go() hanya memasangnya saat halaman BERGANTI, dan applyLogin() menolkan
+   _curPage, jadi Beranda sesudah login berdiri tanpa satu pun entri. Membuka
+   tiket dari sana lalu menekan back = tidak ada entri untuk dimakan overlay,
+   sehingga tekanan itu jatuh ke cabang terakhir popstate: "pulang ke Beranda".
+   Itulah Menu Utama yang muncul.
+
+   Sekarang overlay memasang entrinya sendiri saat terbuka. Selalu ada tepat satu
+   yang bisa dikonsumsi, apa pun jalan masuknya.                                */
+let mOvlDepth=0;                 // entri riwayat yang sedang dipegang overlay
+function mOvlArm(){ if(!isMobile())return; mOvlDepth++; try{ history.pushState({agava:"overlay"},""); }catch(e){} }
+function mOvlDisarm(){ if(mOvlDepth>0) mOvlDepth--; }
+/* Kelas .show di #ovl diamati dari SATU tempat ini — melayani seluruh pemanggil
+   openDrawer/openTicket/orderOpen/… (30+ titik) sekaligus, jadi tidak ada satu
+   pun yang bisa lupa memasang entrinya sendiri saat kelak ditambah. */
+function mOvlWatch(){
+ var el=document.getElementById("ovl");
+ if(!el||typeof MutationObserver!=="function")return;
+ var dulu=el.classList.contains("show");
+ new MutationObserver(function(){
+   var kini=el.classList.contains("show");
+   if(kini===dulu)return;                    // mutasi kelas lain — abaikan
+   dulu=kini;
+   if(kini) mOvlArm(); else mOvlDisarm();
+ }).observe(el,{attributes:true,attributeFilter:["class"]});
+}
 /* ══════════════════════════════════════════════════════════════════════════
    TARIK-UNTUK-SEGARKAN (HP) — di posisi paling atas, tarik ke bawah → muat ulang.
    Muat ulang penuh dipakai supaya versi build terbaru & data terbaru ikut terambil.
@@ -10785,19 +10819,42 @@ function draftRowsMobile(){
 let mStack=[];            // riwayat halaman (ancestor; halaman aktif TIDAK disimpan)
 let mNavBack=false;       // penanda supaya go() tidak menumpuk saat kembali
 let mHistDepth=0;         // jumlah entri history yang kita push di mobile — jaga back konsisten
+let mPopHold=0;           // stempel waktu langkah mundur terakhir yang dimakan overlay
 /* Tutup overlay / sub-state sebelum pindah halaman. rearm=true → kembalikan satu entri
    history (dipakai jalur swipe/popstate yang sudah terlanjur mengonsumsi 1 entri). */
 function mInterceptBack(rearm){
  function rea(){ if(rearm){ try{ history.pushState({agava:window._curPage},""); }catch(e){} } }
+ /* Ditutup = satu langkah mundur SUDAH terpakai. Distempel di sini, bukan di
+    pemanggilnya, supaya jalur mana pun (tombol back HP, usapan tepi, tombol di
+    layar) sama-sama tercatat — lihat pagar 450 ms di mHistoryInit. */
+ function makan(){ mPopHold=Date.now(); rea(); return true; }
+ /* URUTAN = urutan tumpukan di layar: yang paling atas ditutup lebih dulu.
+    Kalau tidak, menekan back saat foto bukti terbuka akan menutup detail di
+    BELAKANGNYA sementara fotonya tetap menggantung menutupi layar. */
+ var foto=document.getElementById("proofOvl");
+ if(foto&&foto.classList.contains("show")){ agavaMediaTutup(); return makan(); }
+ /* Kartu rating adalah GERBANG, bukan overlay biasa — memang tidak boleh
+    ditutup dengan back. Ditelan di sini supaya halaman di belakangnya tidak
+    diam-diam berpindah sementara gerbangnya masih menutupi layar. */
+ var gate=document.getElementById("rateGate");
+ if(gate&&gate.classList.contains("show")) return makan();
  var ovl=document.getElementById("ovl");
- if(ovl&&ovl.classList.contains("show")){ closeDrawer(); rea(); return true; }
+ if(ovl&&ovl.classList.contains("show")){ closeDrawer(); return makan(); }
  var doc=document.getElementById("soDoc");
- if(doc&&!doc.classList.contains("hide")){ soDocClose(); rea(); return true; }
+ if(doc&&!doc.classList.contains("hide")){ soDocClose(); return makan(); }
  /* halaman Overtime langkah 2 → mundur ke pilihan jenis dulu */
  if(active==="service"&&!document.getElementById("page-overtime").classList.contains("hide")&&otPick){
-   otPick=null; renderOvertime(); rea(); return true;
+   otPick=null; renderOvertime(); return makan();
  }
  return false;
+}
+/* Ada sesuatu yang menutupi halaman? Dipakai jalur usapan tepi supaya usapan
+   saat detail terbuka berarti "tutup detail", bukan "pindah halaman". */
+function mOvlTerbuka(){
+ var a=document.getElementById("proofOvl"), b=document.getElementById("ovl"),
+     c=document.getElementById("soDoc"),     d=document.getElementById("rateGate");
+ return !!((a&&a.classList.contains("show"))||(b&&b.classList.contains("show"))||
+           (c&&!c.classList.contains("hide"))||(d&&d.classList.contains("show")));
 }
 /* Eksekutor tunggal "mundur satu layar" — dipanggil HANYA oleh popstate (swipe/HP)
    dan oleh mBack saat tak ada entri history untuk dikonsumsi. */
@@ -10848,7 +10905,10 @@ function mSwipeInit(){
  document.addEventListener("touchstart",function(e){
    if(!isMobile())return;
    var t=e.touches[0];
-   aktif=(t.clientX<=28)&&!document.getElementById("ovl").classList.contains("show");
+   /* Dulu usapan DIMATIKAN saat detail terbuka, jadi gestur yang orang anggap
+      "back" tidak melakukan apa-apa di layar yang justru paling sering ingin
+      ditutup. Sekarang ia ikut menutup detail — sama seperti tombol back HP. */
+   aktif=(t.clientX<=28);
    if(!aktif)return;
    x0=t.clientX; y0=t.clientY; t0=Date.now();
  },{passive:true});
@@ -10861,13 +10921,14 @@ function mSwipeInit(){
    if(!aktif||x0===null){ x0=null; return; }
    var t=e.changedTouches[0], dx=t.clientX-x0, dy=Math.abs(t.clientY-y0), dt=Date.now()-t0;
    if(hint){ hint.style.opacity=0; hint.style.transform="translateX(0)"; }
-   if(dx>70&&dy<60&&dt<800 && active!==mHomeId()) mBack();
+   if(dx>70&&dy<60&&dt<800 && (mOvlTerbuka()||active!==mHomeId())) mBack();
    x0=null; aktif=false;
  },{passive:true});
 }
 /* Tombol back bawaan HP / browser */
 function mHistoryInit(){
  try{ history.replaceState({agava:"home"},""); }catch(e){}
+ mOvlWatch();                                 // overlay memasang entri riwayatnya sendiri
  window.addEventListener("popstate",function(){
    /* Perangkap dipasang LEBIH DULU dan TANPA SYARAT. Kalau tidak, sekali saja
       handler ini keluar lebih awal (mis. bukan mode HP), tombol back HP akan
@@ -10876,6 +10937,16 @@ function mHistoryInit(){
    mArm();
    if(!isMobile())return;                     // desktop: perangkap tetap terpasang, sisanya diabaikan
    if(mInterceptBack(false))return;           // overlay terbuka → cukup ditutup
+   /* Sebagian HP bernavigasi-gestur melepas DUA popstate untuk SATU usapan, dan
+      usapan tepi AGAVA sendiri bisa berbarengan dengan back bawaan sistem. Tanpa
+      pagar ini yang pertama menutup detail dan yang kedua langsung melempar ke
+      Beranda — satu gerakan, dua langkah mundur. Stempelnya dipasang di
+      mInterceptBack, jadi berlaku untuk semua jalur penutupan.
+      200 ms dipilih dengan sengaja: pelepasan ganda semacam itu datang < 120 ms,
+      sedangkan orang yang menekan back berkali-kali paling cepat ± 250 ms sekali
+      tekan. Terlalu lebar (450 ms sempat dicoba) justru memakan tekanan kedua
+      yang memang disengaja. */
+   if(Date.now()-mPopHold<200) return;
    /* Sudah di Beranda → Beranda adalah akar: tetap di sini, jangan mundur lagi. */
    if(active===mHomeId()||!mStack.length){ if(active!==mHomeId()) go(mHomeId()); return; }
    mNavConsumeBack();                         // mundur TEPAT satu layar
@@ -16887,7 +16958,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-186";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-187";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
