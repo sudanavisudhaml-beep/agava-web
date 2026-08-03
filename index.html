@@ -1345,6 +1345,27 @@ html,body{overscroll-behavior-y:contain}
 .tkc-stars.belum i{color:#e3e8f0}
 .tkc-stars-kosong{height:calc(10px*var(--fz))}
 .tkc-chev{width:7px;height:12px;color:#C6CBD4;flex:0 0 auto}
+/* ╔══ KARTU PREVIEW SO (4 Agu 2026) ═════════════════════════════════════════╗
+   Permintaan Sudana: "komposisi, style dan elemen yang sama seperti preview
+   tiket". Maka kelas .tkc dipakai ULANG apa adanya — bukan disalin menjadi
+   keluarga kedua yang setahun lagi melenceng sendiri saat salah satunya
+   disentuh. Yang benar-benar berbeda cuma isi kolom kanan: tiket memuat foto
+   (kotak, jadi 1fr pas), SO memuat rupiah (teks, butuh lebar yang bisa
+   ditebak) — karena itu hanya kolom itu yang ditimpa. */
+.tkc.soc{grid-template-columns:3px minmax(0,1fr) 72px 10px}
+.tkc-rp{display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:0}
+.tkc-rp b{font-size:calc(12.5px*var(--fz));font-weight:700;color:var(--ink);letter-spacing:-.2px;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.tkc-rp b.belum{color:#C6CBD4;font-weight:600}
+.tkc-rp b.kira{color:#98A2B3}
+.tkc-rp span{font-size:calc(9.5px*var(--fz));font-weight:600;color:#98A2B3;white-space:nowrap}
+.tkc-st{font-size:calc(11.5px*var(--fz));font-weight:600;color:var(--text);flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tkc-pic{font-size:calc(11px*var(--fz));font-weight:700;color:#98A2B3;white-space:nowrap;flex:0 0 auto}
+/* "On Track" adalah kabar bahwa TIDAK ADA kabar. Di layar HP ia hanya memenuhi
+   baris pertama yang sudah padat, jadi disembunyikan persis seperti diminta;
+   Warning & Needs Attention — yang memang perlu dilihat — tetap tampil. */
+@media(max-width:820px){ .tkc-age.ontrack{display:none} }
 .svc-head{display:grid;grid-template-columns:9px 1fr 92px 150px 116px;gap:14px;padding:10px 16px;font-size:calc(10.5px*var(--fz));text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:2}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:calc(12px*var(--fz));color:var(--muted);font-weight:600;margin-bottom:6px}
@@ -8556,21 +8577,8 @@ function renderProc(){
  ${cariBoxHTML("procCariBox",procCari,"Cari SO — nomor, item, vendor, lokasi, pemohon…","procSetCari")}
  ${bulanStripHTML(grup,selB,"procSetBulan")}
  ${hariBarHTML("proc",hariP)}
- <div class="card" style="overflow-x:auto">
-   <table><thead><tr>
-     <th>Item</th><th>PIC &amp; Dokumen</th><th>Value</th>
-   </tr></thead><tbody>
-   ${hariP.map(G=>hariSepHTML("proc",G,"SO",true,3)+(hariTutup("proc",G.key)?"":G.rows.map((s)=>{const st=soStatusLabel(s);const pic=s.staffPIC||s.pic;const ag=agingBadge(s.aging);return `<tr onclick="openDrawer('${s.no}')">
-     <td class="it"><div style="display:flex;gap:10px;align-items:center"><span class="so-dot" style="background:${soPip(s)}"></span><div style="flex:1;min-width:0">
-        <div class="so-no-sm">${s.no}${s.rev?`<span class="so-rev-badge">REV.${s.rev}</span>`:''}${ag}<span class="badge ${st.c}">${s.batal?'Dibatalkan':st.t}</span></div><b>${s.item}</b><span>${s.jenis}${s.lokasi?' · '+s.lokasi:''}${s.vendor?' · '+s.vendor:''}</span><span style="color:#9aa7b8">🕒 dibuat ${recCreatedLabel(s)}</span>
-        ${soMiniPips(s)}</div></div></td>
-     <td><div class="so-pic-cell">${pic?`<span class="avt">${ini(pic)}</span>${pic}`:'<span class="muted">—</span>'}
-        <button class="so-pdf so-pdf-item" onclick="event.stopPropagation();soDocShow('${s.no}')" title="${s.apprDept==="Approved"?"Dokumen Supply Order (sah) — cetak / simpan PDF":"Dokumen Supply Order (belum disahkan) — lampiran sudah terjahit"}">📄 SO PDF</button>
-        ${(soDitolak(s)&&soBolehRevisi(s))?`<button class="so-pdf so-rev" onclick="event.stopPropagation();soRevisiMulai('${s.no}')" title="Perbaiki lalu kirim ulang — nomor SO tetap sama, rantai approval dilanjutkan">${soRevisiLabel(s)}</button>`:''}
-        ${soBolehHapus(s)?`<button class="so-pdf so-del" onclick="event.stopPropagation();soHapus('${s.no}')" title="Hapus SO ini — wewenang Owner" aria-label="Hapus SO">🗑</button>`:''}</div></td>
-     <td class="nilai">${soNilaiTeks(s)}</td>
-   </tr>`}).join(""))).join("")||`<tr><td colspan="3" class="muted small" style="text-align:center;padding:34px">${qP?cariKosongHTML(qP,'SO'):(SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.')}</td></tr>`}
-   </tbody></table>
+ <div class="card svc-card">
+   <div class="svc-list">${hariP.length?hariP.map(G=>hariSepHTML("proc",G,"SO")+(hariTutup("proc",G.key)?"":G.rows.map(soRow).join(""))).join(""):('<div class="muted small" style="padding:30px;text-align:center">'+(qP?cariKosongHTML(qP,'SO'):(SO.length?'Tidak ada SO pada filter ini.':'Belum ada Supply Order. Klik <b>+ Create SO</b> untuk membuat yang pertama.'))+'</div>')}</div>
  </div>
  <div style="display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap">
    <span style="font-size:calc(12px*var(--fz));color:var(--muted)">Click a row to see the full lifecycle journey →</span>
@@ -9649,6 +9657,81 @@ function ticketRow(t){
      '</div>'+
    '</div>'+
    '<div class="tkc-side">'+tkThumb(t)+tkStars(t)+'</div>'+
+   '<svg class="tkc-chev" viewBox="0 0 8 14" fill="none" aria-hidden="true"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+ '</div>';
+}
+/* ╔══ KARTU PREVIEW SO — kembaran ticketRow() (4 Agu 2026) ══════════════════╗
+   Dulu daftar SO adalah TABEL 3 kolom selebar 640px di dalam kartu 352px, jadi
+   di HP ia harus digeser ke kiri-kanan untuk dibaca — 288px tersembunyi. Baris
+   ini menggantikannya dengan kartu yang sama persis dengan preview tiket.
+   Tombol baris (SO PDF · Revisi · Hapus) sengaja TIDAK ikut: ketiganya sudah
+   ada di dalam drawer, dan kartu tiket pun tidak memuat tombol — aksi tinggal
+   di detail, daftar cukup untuk membaca.                                      */
+function soGrup(s){
+ /* Warna = warna Stat-Filter Rail di atasnya. Satu warna berarti satu hal di
+    dua tempat; mata belajar sekali (aturan yang sama sudah dipakai kartu tiket). */
+ if(s.batal)      return {k:"batal",c:"#F04438",t:"Dibatalkan",     cc:"#B42318",cb:"#FEECEB"};
+ if(soDitolak(s)) return {k:"tolak",c:"#F04438",t:"Ditolak",        cc:"#B42318",cb:"#FEECEB"};
+ var ap=s.apprDept==="Approved", w=s.wstep||0;
+ if(ap&&w>=4)     return {k:"bast", c:"#12B76A",t:"BAST & Invoice", cc:"#027A48",cb:"#E4F5EE"};
+ if(ap&&w===3)    return {k:"spk",  c:"#F79009",t:"SPK & Execution",cc:"#B54708",cb:"#FFF4E5"};
+ if(ap&&w>=2)     return {k:"upr",  c:"#7A5AF8",t:"UPR Stage",      cc:"#5925DC",cb:"#F0EBFF"};
+ return                  {k:"pre",  c:"#2563EB",t:"SO & Sourcing",  cc:"#175CD3",cb:"#E7F0FF"};
+}
+/* Rupiah ringkas untuk kolom sempit. "Rp 12.500.000" tidak muat di 88px dan
+   memaksa daftar digeser lagi — persoalan yang sedang diperbaiki. Angka utuhnya
+   tetap ada di drawer, dokumen SO, dan CSV, jadi tidak ada yang hilang. */
+function rpRingkas(n){
+ n=Math.round(parseFloat(n)||0);
+ if(!n) return "—";
+ var f=function(x){ return x.toLocaleString("id-ID",{maximumFractionDigits:1}); };
+ if(n>=1e12) return "Rp "+f(n/1e12)+" T";
+ if(n>=1e9)  return "Rp "+f(n/1e9)+" M";
+ if(n>=1e6)  return "Rp "+f(n/1e6)+" jt";
+ if(n>=1e3)  return "Rp "+f(Math.round(n/1e3))+" rb";
+ return "Rp "+rpFmt(n);
+}
+/* KOLOM PALING KANAN — Sudana: "menampilkan Rupiah tapi itu akan tergenerate
+   otomatis setelah ada SPK".
+   Sebelum SPK, yang ada baru perkiraan pemohon. Angka itu TIDAK disembunyikan
+   (ia yang menentukan jenjang approval — menghilangkannya membuat kolom UPR
+   Approver tak bisa dinalar) tapi juga tidak boleh tampil seolah sudah pasti:
+   ditulis pucat dengan label "estimasi". Begitu SPK terbit ia menjadi nilai
+   kontrak — tegas, gelap, tanpa label peringatan. */
+function soRpSel(s){
+ var sudahSPK=(s.apprDept==="Approved")&&((s.wstep||0)>=3);
+ var n=soNilaiRp(s);
+ if(sudahSPK) return '<div class="tkc-rp"><b>'+rpRingkas(n)+'</b><span>nilai SPK</span></div>';
+ if(n>0)      return '<div class="tkc-rp"><b class="kira">'+rpRingkas(n)+'</b><span>estimasi</span></div>';
+ return            '<div class="tkc-rp"><b class="belum">—</b><span>belum SPK</span></div>';
+}
+function soRow(s){
+ var g=soGrup(s), st=soStatusLabel(s), pic=s.staffPIC||s.pic;
+ var ag=s.aging||"On Track";
+ var agC=(ag==="Needs Attention")?"#F04438":(ag==="Warning")?"#F79009":"#12B76A";
+ var agK=(ag==="On Track")?" ontrack":"";
+ /* Lima batang = lima kelompok SO, digambar dengan gaya batang yang sama dengan
+    kartu tiket (yang punya empat) — jadi "seberapa jauh" terbaca dengan cara
+    yang sama di kedua daftar. */
+ var gst=soGroupState(s);
+ var langkah=gst.map(function(x){ return '<i class="'+((x==="done"||x==="active")?"on":"")+'"></i>'; }).join("");
+ var meta=[s.jenis, s.lokasi, s.vendor, recCreatedLabel(s), soPemohon(s)].filter(Boolean).map(esc).join(" · ");
+ return '<div class="tkc soc" onclick="openDrawer(\''+esc(s.no)+'\')">'+
+   '<span class="tkc-bar" style="background:'+g.c+'"></span>'+
+   '<div class="tkc-main">'+
+     '<div class="tkc-r1"><span class="tkc-no">'+esc(s.no)+'</span>'+
+       (s.rev?'<span class="so-rev-badge">REV.'+s.rev+'</span>':'')+
+       '<span class="tkc-chip" style="color:'+g.cc+';background:'+g.cb+'">'+g.t+'</span>'+
+       '<span class="tkc-age'+agK+'" style="color:'+agC+'">'+esc(ag)+'</span></div>'+
+     '<div class="tkc-r2">'+esc(s.item||"")+'</div>'+
+     '<div class="tkc-r3">'+meta+'</div>'+
+     '<div class="tkc-r4">'+
+       '<span class="tkc-step" style="--st:'+g.c+'">'+langkah+'</span>'+
+       '<span class="tkc-st">'+esc(s.batal?"Dibatalkan":st.t)+'</span>'+
+       (pic?'<span class="tkc-pic">'+esc(pic)+'</span>':'')+
+     '</div>'+
+   '</div>'+
+   '<div class="tkc-side">'+soRpSel(s)+'</div>'+
    '<svg class="tkc-chev" viewBox="0 0 8 14" fill="none" aria-hidden="true"><path d="M1 1l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
  '</div>';
 }
@@ -16958,7 +17041,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-187";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-188";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
