@@ -1332,6 +1332,32 @@ html,body{overscroll-behavior-y:contain}
 /* Stat-Filter Rail hanya untuk HP — di desktop funnel & tab lama tetap dipakai
    karena ruangnya memang cukup. Aturannya di CLAUDE-AGAVA-LAYOUT-RULES.md. */
 .sfr{display:none}
+/* ╔══ SECTION-TABS: satu modul, beberapa "halaman" ══════════════════════════╗
+   Sudana: "supaya tidak menumpuk kebawah, tiap section kamu buat jadi page
+   baru saja didalam module, tinggal kamu buatkan button untuk berpindah."
+   Pola ini SENGAJA dibuat umum (.svc-tabs/.svc-sec dipakai lewat data-sec di
+   elemen halaman) supaya modul lain bisa memakainya tanpa menulis ulang.
+   SATU BARIS, discroll ke samping — tidak pernah wrap, sama seperti aturan
+   Stat-Filter Rail. */
+.svc-tabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;
+  padding:0 0 14px;margin:0}
+.svc-tabs::-webkit-scrollbar{display:none}
+.svc-tab{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);
+  background:#fff;color:var(--text);border-radius:999px;padding:9px 15px;cursor:pointer;
+  font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:600;letter-spacing:-.2px;
+  white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.svc-tab:active{transform:scale(.97)}
+.svc-tab .svc-tab-ic{font-size:calc(14px*var(--fz));line-height:1}
+.svc-tab b{font-weight:700;font-size:calc(11.5px*var(--fz));opacity:.6;font-variant-numeric:tabular-nums}
+.svc-tab.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.svc-tab.on b{opacity:.75}
+/* Hanya section aktif yang tampil — sisanya tetap di DOM supaya berpindah tab
+   tidak perlu render ulang (posisi scroll & isi kotak cari terjaga). */
+.svc-sec{display:none}
+#page-service[data-sec="tiket"] .svc-sec-tiket,
+#page-service[data-sec="rating"] .svc-sec-rating,
+#page-service[data-sec="room"] .svc-sec-room,
+#page-service[data-sec="vendor"] .svc-sec-vendor{display:block}
 .ptab{font-size:calc(13px*var(--fz));color:var(--muted);background:#fff;border:1px solid var(--line);padding:8px 16px;
   border-radius:9px;cursor:pointer;font-weight:600;transition:.15s}
 .ptab.on{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -2324,12 +2350,19 @@ body.rg-open{overflow:hidden}
   .sfr-t.on .sfr-l{color:rgba(255,255,255,.7)}
   /* Digantikan rail — angkanya sudah ada di sana (no double surface). */
   .svc-status,.svc-pills,.proc-tabs,.funnel{display:none!important}
-  /* ── URUTAN HALAMAN SERVICES DI HP (3 Agu 2026) ──
-     Sudana: "Section List Tiket tarik paling atas sesudah box Sumber Daya
-     Terpakai." Diatur lewat `order`, BUKAN dengan memindahkan DOM — desktop
-     memakai urutan DOM apa adanya sehingga tampilannya tidak ikut berubah. */
-  #page-service{display:flex;flex-direction:column}
-  .svc-btns{order:1} .svc-opex{order:2} .svc-card{order:3} .svc-esc{order:4} .svc-lain{order:5}
+  /* ── URUTAN DI DALAM SECTION TIKET (HP) ──
+     Sudana: "Section List Tiket tarik paling atas". Sejak modul dipecah jadi
+     empat section, yang perlu diurutkan tinggal isi section Tiket saja:
+     daftar tiket dulu, baru antrean eskalasi, baru panel tombol layanan —
+     membuat tiket tetap satu ketukan lewat tombol + di bottom bar.
+     Dipakai `order` supaya urutan DOM (dan tampilan desktop) tidak berubah. */
+  #page-service[data-sec="tiket"] .svc-sec-tiket{display:flex;flex-direction:column}
+  .svc-card{order:1} .svc-esc{order:2} .svc-btns{order:3}
+  /* tab section menempel di atas saat daftar digulung — selalu terjangkau */
+  .svc-tabs{position:sticky;top:0;z-index:6;background:var(--m-bg);padding-top:6px;margin:0 -11px;
+    padding-left:11px;padding-right:11px}
+  /* target sentuh minimal 44px — checklist CLAUDE-AGAVA-LAYOUT-RULES.md */
+  .svc-tab{min-height:44px;padding:0 16px}
   /* Aksi Mandiri disembunyikan atas permintaan Sudana — "dihapus dulu, simpan
      untuk nanti". Datanya, fungsinya, dan panel desktopnya TIDAK dibuang:
      cukup hapus baris ini untuk memunculkannya kembali. */
@@ -8876,6 +8909,10 @@ function renderErsus(){
 
 /* ============ SERVICE PAGE ============ */
 let svcFilter="all";
+/* Section aktif di modul Services — "tiket" | "rating" | "room" | "vendor".
+   Sengaja BUKAN di localStorage: tiap kali modul dibuka, orang mengharapkan
+   daftar tiketnya, bukan tab terakhir yang tak sengaja tertinggal kemarin. */
+let svcSec="tiket";
 let svcBulan=null;                                   /* null = belum dipilih → bulan terbaru */
 function svcSetBulan(k){ svcBulan=k; renderService(); }
 let svcCari="";
@@ -11446,10 +11483,15 @@ function renderService(){
     Yang punya modul Approvals tetap menanganinya di sana, supaya tidak dobel. */
  const eskalasi=(myMenus().indexOf("approvals")<0)?escalatedTickets():[];
  const el=document.getElementById("page-service");
- let head="";
+ /* ── DIPECAH JADI EMPAT SECTION (3 Agu 2026) ──
+    Sudana: "supaya tidak menumpuk kebawah, tiap section kamu buat jadi page
+    baru saja didalam module service". Blok-blok ini dulu satu untaian panjang
+    (`head`); kini masing-masing berdiri sendiri supaya bisa ditaruh di
+    section-nya masing-masing. */
+ let blokRating="", blokVendor="", blokRoom="";
  if(sup){
    const r=svcRating(); const full=Math.round(r.avg); const stars='★'.repeat(full)+'☆'.repeat(5-full);
-   head=`
+   blokRating=`
   <div style="margin-bottom:18px">
     <div class="card pad">
       <div class="panel-t">⭐ Service Rating · last ${r.n} closed tickets</div>
@@ -11459,24 +11501,40 @@ function renderService(){
       </div>
       ${r.list.map(t=>`<div class="trow" style="padding:7px 0"><div class="tj" style="font-size:calc(12.5px*var(--fz))">${t.no} · ${t.judul}</div><span style="color:#f5a623;white-space:nowrap">${'★'.repeat(t.rating)}${'☆'.repeat(5-t.rating)}</span></div>`).join("")}
     </div>
-  </div>
+  </div>`;
+   blokVendor=`
   <div class="card pad" style="margin-bottom:18px">
     <div class="panel-t">Vendor Performance by Site <span style="font-weight:400;color:var(--muted)">(Housekeeping & BM · 0–3)</span></div>
     <div class="vp-note">Tier: Silver &lt; 2.2 · Gold 2.2–2.5 · Platinum ≥ 2.6</div>
     <div class="boxes" style="grid-template-columns:repeat(4,1fr)">${VENDOR_PERF.map(vendorCard).join("")}</div>
-  </div>
-  ${roomEventCard()}`;
+  </div>`;
+   blokRoom=roomEventCard();
  }
- /* Tiap blok dibungkus supaya URUTANNYA bisa diatur ulang di HP lewat CSS
-    `order` — tanpa menyentuh urutan DOM, jadi tampilan desktop tetap persis
-    seperti semula. Permintaan Sudana: daftar tiket ditarik ke atas, tepat
-    setelah kotak Sumber Daya Terpakai. */
- el.innerHTML=`
-  <div class="svc-btns">${gaServiceButtons()}</div>
-  <div class="svc-mandiri">${selfCarePanelHTML()}</div>
-  <div class="svc-esc">${escPanelHTML(eskalasi)}${draftListHTML()}</div>
-  <div class="svc-opex">${gaOpexHTML("all")}</div>
-  <div class="svc-lain">${head}</div>
+ /* ── EMPAT SECTION, SATU HALAMAN ──
+    Section hanya ditawarkan bila isinya memang ada: akun non-SUPER tidak punya
+    Rating, Room & Event, maupun Vendor Performance, jadi tabnya pun tidak
+    muncul — bukan tab kosong yang mengecewakan saat ditekan. Kalau cuma satu
+    section yang tersedia, tab bar disembunyikan sama sekali.
+    Box Biaya (Sumber Daya Terpakai) ditaruh PALING ATAS di section Room &
+    Event sesuai permintaan Sudana. */
+ const secs=[{k:"tiket",ic:"🎫",t:"Service Ticket",n:total}]
+   .concat(sup?[{k:"rating",ic:"⭐",t:"Service Rating",n:""},
+                {k:"room",  ic:"🏢",t:"Room & Event",n:""},
+                {k:"vendor",ic:"🏅",t:"Vendor Performance",n:""}]:[]);
+ if(!secs.some(s=>s.k===svcSec)) svcSec="tiket";      // section tak tersedia utk akun ini → balik ke Tiket
+ const tabs=secs.length>1 ? '<div class="svc-tabs">'+secs.map(s=>
+   '<button type="button" class="svc-tab'+(svcSec===s.k?' on':'')+'" data-sec="'+s.k+'" onclick="svcGoSec(\''+s.k+'\')">'+
+   /* JANGAN panggil esc() di sini: di dalam renderService ada const lokal
+      bernama `esc` (jumlah tiket eskalasi) yang menutupi fungsi global esc().
+      Judul section adalah string tetap milik kode, bukan masukan pengguna. */
+   '<span class="svc-tab-ic">'+s.ic+'</span>'+s.t+
+   (s.n!==""&&s.n!=null?'<b>'+s.n+'</b>':'')+'</button>').join("")+'</div>' : '';
+ el.setAttribute("data-sec",svcSec);
+ el.innerHTML=tabs+`
+  <div class="svc-sec svc-sec-tiket">
+    <div class="svc-btns">${gaServiceButtons()}</div>
+    <div class="svc-mandiri">${selfCarePanelHTML()}</div>
+    <div class="svc-esc">${escPanelHTML(eskalasi)}${draftListHTML()}</div>
   <div class="card svc-card">
     ${sup?'':(isPantau()
       ?'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Pantau Tiket GA <span style="font-weight:400;color:var(--muted)">— seluruh tiket layanan, hanya untuk dipantau · status &amp; perjalanan terupdate realtime</span></div></div>'
@@ -11500,7 +11558,25 @@ function renderService(){
     ${hariS.length?`<div style="padding:0 16px 12px">${hariBarHTML("svc",hariS)}</div>`:''}
     <div class="svc-head"><span></span><span>Ticket</span><span style="text-align:center">Response</span><span>PIC</span><span>Status</span></div>
     <div class="svc-list">${list.length?hariS.map(G=>hariSepHTML("svc",G,"tiket")+(hariTutup("svc",G.key)?"":G.rows.map(ticketRow).join(""))).join(""):('<div class="muted small" style="padding:30px;text-align:center">'+(qS?cariKosongHTML(qS,'tiket'):(sup?'No tickets in this filter.':'Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.'))+'</div>')}</div>
-  </div>`;
+  </div>
+  </div>
+  <div class="svc-sec svc-sec-rating">${blokRating}</div>
+  <div class="svc-sec svc-sec-room">${gaOpexHTML("all")}${blokRoom}</div>
+  <div class="svc-sec svc-sec-vendor">${blokVendor}</div>`;
+ try{ cariFokusPulih(); }catch(e){}
+}
+/* Pindah section — tanpa render ulang: cukup tukar atribut & kelas, jadi posisi
+   scroll daftar, isi kotak cari, dan lipatan hari tidak ikut hilang. */
+function svcGoSec(k){
+ svcSec=k;
+ var el=document.getElementById("page-service"); if(!el)return;
+ el.setAttribute("data-sec",k);
+ el.querySelectorAll(".svc-tab").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-sec")===k); });
+ /* tiap section adalah "halaman" sendiri — mulai dari atas, bukan melanjutkan
+    posisi scroll halaman sebelumnya */
+ var app=document.querySelector(".app");
+ if(app&&app.scrollHeight>app.clientHeight) app.scrollTop=0; else window.scrollTo(0,0);
+ var t=el.querySelector(".svc-tab.on"); if(t&&t.scrollIntoView) try{ t.scrollIntoView({block:"nearest",inline:"nearest"}); }catch(e){}
 }
 let ticketSeq=143;
 /* ══════════════════════════════════════════════════════════════════════════
@@ -16396,7 +16472,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-177";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-178";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
