@@ -744,7 +744,19 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .svc-proof-lb{font-size:calc(9.5px*var(--fz));font-weight:700;color:#0a7cff;background:rgba(10,124,255,.09);border-radius:20px;padding:2px 8px}
 .proof-ovl{position:fixed;inset:0;z-index:120;background:rgba(8,18,36,.86);display:none;place-items:center;padding:20px;cursor:zoom-out}
 .proof-ovl.show{display:grid}
-.proof-box{max-width:min(94vw,760px);max-height:90vh;display:flex;flex-direction:column;gap:10px}
+.proof-box{position:relative;max-width:min(94vw,760px);max-height:90vh;display:flex;flex-direction:column;gap:10px;cursor:default}
+/* ✕ menempel di pojok kanan atas kotak — selalu terjangkau walau foto memenuhi layar */
+.proof-x{position:absolute;top:-6px;right:-6px;z-index:2;width:38px;height:38px;border-radius:999px;border:none;
+  background:rgba(255,255,255,.94);color:#0f2036;font-size:19px;font-weight:700;line-height:1;cursor:pointer;
+  box-shadow:0 4px 14px rgba(0,0,0,.4);display:grid;place-items:center}
+.proof-x:active{transform:scale(.92)}
+.proof-stage{position:relative;display:grid;place-items:center;min-height:120px}
+.proof-load{position:absolute;color:#cfe0f5;font-size:calc(12.5px*var(--fz));text-align:center;line-height:1.6;padding:0 16px;pointer-events:none}
+.proof-load .muted{color:#93aac9}
+/* tombol tutup kedua di bawah — untuk jempol, tidak perlu meraih pojok atas */
+.proof-close{align-self:center;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.10);color:#eaf3ff;
+  border-radius:999px;padding:9px 26px;font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:600;cursor:pointer}
+.proof-close:active{background:rgba(255,255,255,.2)}
 .proof-box img{max-width:100%;max-height:74vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .proof-cap{color:#e8f2ff;font-size:calc(12.5px*var(--fz));line-height:1.6;text-align:center}
 .proof-cap .muted{color:#9db5d4}
@@ -8941,18 +8953,72 @@ function mdThumbHTML(m,i,onclick,judul){
    (vid?'<i class="md-play">▶</i>'+(m.dur?'<em class="md-dur">'+mdDur(m.dur)+'</em>':''):'')+'</span>';
 }
 /* Satu penonton untuk SEMUA lampiran — foto dizoom, video diputar dengan kontrol */
+/* ── PENUTUP LAMPIRAN (perbaikan 3 Agu 2026) ────────────────────────────────
+   Laporan Sudana: "membuka lampiran foto pada tiket terjadi hang, dan tidak ada
+   button close". Bukan hang sungguhan — layarnya memang tidak punya jalan
+   keluar. Dulu penutupnya HANYA klik tepat di latar (ev.target===ov), padahal
+   di HP fotonya nyaris memenuhi layar sehingga hampir mustahil kena latar; dan
+   kalau berkasnya lambat/gagal dimuat, yang terlihat cuma layar gelap kosong
+   tanpa keterangan apa pun — persis rasanya seperti aplikasi menggantung.
+   Sekarang ada EMPAT jalan keluar: tombol ✕, tombol "Tutup", tombol Esc, dan
+   klik latar. Plus penanda "memuat…" dan pesan bila gambar gagal dimuat. */
+/* ── HINT TEKS PENUH DI KOTAK SEMPIT (3 Agu 2026) ───────────────────────────
+   Laporan Sudana: kolom Item di form SO & tiket sempit, teks panjang terpotong
+   dan tidak bisa dibaca utuh. Dipasang menyeluruh lewat delegasi — satu aturan
+   untuk SEMUA kotak isian, bukan ditempel satu per satu di tiap field (form SO
+   punya 6 kolom × 5 baris; menempel manual pasti ada yang terlewat, dan baris
+   yang ditambah lewat "+ Tambah Item" tidak akan kebagian).
+   `title` hanya dipasang bila teksnya MEMANG terpotong, supaya tidak muncul
+   tooltip mengganggu di kotak yang isinya sudah terbaca penuh. */
+function agavaHintPenuh(el){
+ if(!el||!el.tagName)return;
+ var t=el.tagName;
+ if(t!=="INPUT"&&t!=="TEXTAREA")return;
+ var tipe=(el.getAttribute("type")||"text").toLowerCase();
+ if(["password","file","checkbox","radio","range","color","hidden","submit","button"].indexOf(tipe)>=0)return;
+ var v=el.value||"";
+ /* terpotong mendatar (input) atau menurun (textarea) */
+ var potong = (el.scrollWidth>el.clientWidth+2) || (t==="TEXTAREA"&&el.scrollHeight>el.clientHeight+2);
+ if(v&&potong) el.title=v; else if(el.title) el.removeAttribute("title");
+}
+document.addEventListener("input",function(e){ agavaHintPenuh(e.target); },true);
+/* mouseover: baris yang digambar ulang (mis. hasil revisi SO) sudah terisi
+   nilainya tanpa pernah melewati event input — jadi hint-nya disiapkan saat
+   kursor pertama kali mendekat. */
+document.addEventListener("mouseover",function(e){ agavaHintPenuh(e.target); },true);
+function agavaMediaTutup(){
+ var ov=document.getElementById("proofOvl"); if(!ov)return;
+ try{ var v=ov.querySelector("video"); if(v){ v.pause(); } }catch(e){}
+ ov.classList.remove("show"); ov.innerHTML="";
+ document.body.style.overflow=ov._bodyOv||"";        // kembalikan scroll halaman
+ if(ov._esc){ document.removeEventListener("keydown",ov._esc,true); ov._esc=null; }
+}
 function agavaMediaView(list,i,capHTML){
  list=list||[]; var m=list[i]; if(!m)return;
  var u=m.url||"";
  if(!u){ alert("📷 Lampiran ini belum tersinkron dari perangkat pengirimnya."); return; }
  var ov=document.getElementById("proofOvl");
  if(!ov){ ov=document.createElement("div"); ov.id="proofOvl"; ov.className="proof-ovl";
-   ov.onclick=function(ev){ if(ev.target===ov){ ov.classList.remove("show"); ov.innerHTML=""; } };
    document.body.appendChild(ov); }
+ /* klik latar menutup — tapi klik DI DALAM kotak tidak, supaya kontrol video
+    (play/pause/geser) tetap bisa dipakai tanpa layarnya keburu tertutup. */
+ ov.onclick=function(ev){ if(ev.target===ov) agavaMediaTutup(); };
  var isi = mdIsVideo(m)
    ? '<video src="'+u+'" controls autoplay playsinline'+(m.poster?' poster="'+m.poster+'"':'')+'></video>'
-   : '<img src="'+u+'"/>';
- ov.innerHTML='<div class="proof-box">'+isi+'<div class="proof-cap">'+(capHTML||"")+'</div></div>';
+   : '<img src="'+u+'" alt="Lampiran" '+
+     'onload="var s=this.parentNode.querySelector(\'.proof-load\'); if(s)s.remove();" '+
+     'onerror="this.style.display=\'none\'; var b=this.parentNode.querySelector(\'.proof-load\'); '+
+       'if(b)b.innerHTML=\'⚠️ Gambar gagal dimuat.<br><span class=&quot;muted&quot;>Berkasnya mungkin belum selesai diunggah dari perangkat pengirim, atau koneksi terputus.</span>\';"/>';
+ ov.innerHTML='<div class="proof-box">'+
+   '<button type="button" class="proof-x" onclick="agavaMediaTutup()" aria-label="Tutup lampiran">✕</button>'+
+   '<div class="proof-stage">'+isi+'<div class="proof-load">Memuat lampiran…</div></div>'+
+   '<div class="proof-cap">'+(capHTML||"")+'</div>'+
+   '<button type="button" class="proof-close" onclick="agavaMediaTutup()">Tutup</button>'+
+ '</div>';
+ ov._bodyOv=document.body.style.overflow||"";
+ document.body.style.overflow="hidden";              // latar tidak ikut ter-scroll
+ ov._esc=function(e){ if(e.key==="Escape"||e.key==="Esc"){ e.preventDefault(); agavaMediaTutup(); } };
+ document.addEventListener("keydown",ov._esc,true);
  ov.classList.add("show");
 }
 function tkPhotos(t){ return (t&&t.photos&&t.photos.length)?t.photos:[]; }
@@ -15508,20 +15574,56 @@ function hseIzinRow(o){
 /* Tandai izin sudah diperpanjang: catat tanggal Close, lalu majukan uji berkala
    satu tahun. Masa berlaku TIDAK ikut digeser — dokumen barunya bisa beda
    tanggal, jadi diserahkan ke master data supaya tidak salah catat. */
+/* ── CLOSE IZIN → ISI TANGGAL PERPANJANGAN (3 Agu 2026) ──────────────────────
+   Dulu tanggal berikutnya DIPUTUSKAN SENDIRI oleh aplikasi (due + 1 tahun) dan
+   pengguna cuma bisa OK/Batal. Masalahnya masa berlaku izin tidak selalu satu
+   tahun — SLO bisa 5 tahun, SLF bisa 20 tahun, dan tanggal terbit sertifikat
+   yang baru jarang persis setahun dari yang lama. Akibatnya status di HSE ikut
+   salah dan izin tampak Overdue padahal sudah diperpanjang.
+   Sekarang: satu tahun ke depan hanya USULAN yang sudah terisi; tanggalnya
+   boleh diubah, dan nomor izin barunya bisa sekalian dicatat. */
 function hseCloseIzin(nama){
  if(!dbCanEdit()){ alert("Anda tidak punya akses mengubah data izin."); return; }
  var p=PERMITS.find(function(x){ return x.name===nama; });
  if(!p){ alert("Izin tidak ditemukan: "+nama); return; }
- var baru=ujiTahunDepan(p.due);
- if(!baru){ alert("Izin ini belum punya tanggal uji berkala — isi dulu di master data."); return; }
- if(!confirm("Tandai \""+p.name+"\" sudah diperpanjang?\n\n"+
-   "Uji berkala: "+fmtDay(p.due)+" "+p.due.slice(0,4)+"  →  "+fmtDay(baru)+" "+baru.slice(0,4)+"\n"+
-   "Tanggal close dicatat: "+fmtDay(TODAY_STR)+" "+TODAY_STR.slice(0,4))) return;
+ var usul=ujiTahunDepan(p.due)||ujiTahunDepan(TODAY_STR)||"";
+ var lewat=(function(){ var d=dueDays(p.due); return d!==null&&d<0?Math.abs(d):0; })();
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">📄 Perpanjangan Izin</div>'+
+   '<div class="muted small" style="margin-top:4px">'+esc(p.name)+' · '+esc(p.area||"")+'</div></div>'+
+  '<div class="db">'+
+   '<div class="card pad" style="background:#f8fafd;font-size:calc(12.5px*var(--fz));line-height:1.7">'+
+     '<div>Berlaku sekarang: <b>'+esc(fmtDay(p.due)+" "+String(p.due||"").slice(0,4))+'</b>'+
+       (lewat?' <span style="color:var(--red);font-weight:700">· lewat '+lewat+' hari</span>':'')+'</div>'+
+     (p.noIzin?'<div class="muted">No. izin lama: '+esc(p.noIzin)+'</div>':'')+
+   '</div>'+
+   '<div class="field" style="margin-top:12px"><label>Berlaku sampai (tanggal perpanjangan) <span class="muted small">wajib</span></label>'+
+     '<input type="date" id="izinDueBaru" value="'+esc(usul)+'"/></div>'+
+   '<div class="muted small" style="margin:-4px 0 12px;line-height:1.6">Terisi otomatis satu tahun ke depan — <b>ubah bila masa berlakunya berbeda</b> (SLO & SLF biasanya lebih panjang).</div>'+
+   '<div class="field"><label>Nomor izin baru <span class="muted small">(opsional)</span></label>'+
+     '<input type="text" id="izinNoBaru" placeholder="'+esc(p.noIzin||"mis. 566/SLO/2027")+'"/></div>'+
+   '<button class="btn-act" style="width:100%;margin-top:6px" onclick="hseCloseIzinSimpan(\''+esc(nama).replace(/'/g,"\\'")+'\')">✅ Simpan Perpanjangan</button>'+
+   '<button class="btn-out" style="width:100%;margin-top:8px" onclick="closeDrawer()">Batal</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+}
+function hseCloseIzinSimpan(nama){
+ var p=PERMITS.find(function(x){ return x.name===nama; });
+ if(!p){ alert("Izin tidak ditemukan: "+nama); return; }
+ var baru=(document.getElementById("izinDueBaru")||{}).value||"";
+ var noBaru=((document.getElementById("izinNoBaru")||{}).value||"").trim();
+ if(!baru){ alert("Isi dulu tanggal berlaku berikutnya."); return; }
+ if(baru<=TODAY_STR && !confirm("Tanggal yang Anda isi ("+fmtDay(baru)+" "+baru.slice(0,4)+") sudah lewat atau hari ini.\n\nIzin akan tetap tampil sebagai lewat tempo. Lanjutkan?")) return;
  var lama=p.due;
  p.closedAt=TODAY_STR; p.due=baru; p.uji=ujiLabel(baru);
+ if(noBaru) p.noIzin=noBaru;
  try{ dbPersist(); }catch(e){}
- try{ auditLog("izin-close", p.name+" · uji berkala "+lama+" → "+baru); }catch(e){}
- renderHSE();
+ try{ auditLog("izin-close", p.name+" · berlaku "+lama+" → "+baru+(noBaru?" · no "+noBaru:"")); }catch(e){}
+ closeDrawer(); renderHSE();
+ try{ renderReminder(); renderOverview(); }catch(e){}
+ alert("✅ "+p.name+"\n\nBerlaku sampai "+fmtDay(baru)+" "+baru.slice(0,4)+(noBaru?"\nNo. izin: "+noBaru:"")+
+   "\nDicatat diperpanjang: "+fmtDay(TODAY_STR)+" "+TODAY_STR.slice(0,4));
 }
 function hseIzinBlok(judul,ic,rows,items,catatan,kolom){
  var urg=items.filter(function(x){return permitNextAction(x.due).urgent;}).length;
@@ -16167,7 +16269,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-173";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-174";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
