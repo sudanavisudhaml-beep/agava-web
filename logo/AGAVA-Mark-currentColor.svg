@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="76 10 310 302">
+  <title>AGAVA — mark (mewarisi currentColor)</title>
+  <!-- Varian tambahan buatan AGAVA-Web, BUKAN berkas induk dari brand.
+       Sama persis dengan AGAVA-Mark.svg, hanya warnanya mewarisi `currentColor`
+       sehingga satu berkas melayani latar terang maupun gelap tanpa menambah
+       varian baru. Untuk materi resmi & cetak, pakai AGAVA-Mark.svg (navy
+       #003F7F) atau AGAVA-Mark-white.svg. -->
+  <path d="M101.5 294.8L231 39L360.5 294.8" fill="none" stroke-width="44" stroke-linecap="butt" stroke-linejoin="round" stroke="currentColor"></path>
+</svg>
