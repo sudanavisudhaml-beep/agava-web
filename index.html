@@ -1328,6 +1328,9 @@ html,body{overscroll-behavior-y:contain}
 .fstep.c3 .accent{background:#b06bff} .fstep.c4 .accent{background:var(--green)}
 
 .proc-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+/* Stat-Filter Rail hanya untuk HP — di desktop funnel & tab lama tetap dipakai
+   karena ruangnya memang cukup. Aturannya di CLAUDE-AGAVA-LAYOUT-RULES.md. */
+.sfr{display:none}
 .ptab{font-size:calc(13px*var(--fz));color:var(--muted);background:#fff;border:1px solid var(--line);padding:8px 16px;
   border-radius:9px;cursor:pointer;font-weight:600;transition:.15s}
 .ptab.on{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -2296,6 +2299,36 @@ body.rg-open{overflow:hidden}
   /* "html body" (bukan !important) supaya menang atas aturan body{background:gradient}
      yang letaknya jauh di bawah — di mobile latarnya harus rata, tanpa kilau biru. */
   html body{background:var(--m-bg)}
+  /* ══ LAYOUT COMPACT — aturan CLAUDE-AGAVA-LAYOUT-RULES.md (3 Agu 2026) ══
+     Sasarannya satu: baris data pertama harus terlihat TANPA scroll. Caranya
+     bukan mengecilkan huruf, tapi MEMBUANG PENGULANGAN — angka yang sudah ada
+     di rail tidak perlu muncul lagi sebagai scorecard maupun chip.
+     Hemat nyata: Services ±220px, Procurement ±300px. */
+  .sfr{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .sfr::-webkit-scrollbar{display:none}
+  .sfr-t{flex:0 0 auto;min-width:96px;border-radius:15px;padding:8px 13px 9px;background:var(--m-card);
+    border:1px solid rgba(15,23,40,.07);font-family:var(--ff);text-align:left;cursor:pointer;
+    display:block;transition:background .15s,border-color .15s}
+  .sfr-t:active{transform:scale(.97)}
+  .sfr-t.on{background:var(--m-navy);border-color:var(--m-navy)}
+  .sfr-n{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+  .sfr-n i{width:6px;height:6px;border-radius:99px;flex:0 0 6px;display:block}
+  /* 18 & 10.5 (bukan 20 & 11.5) karena --fz mobile 1.12 sudah mengalikannya
+     menjadi ±20px & ±11.8px sesuai spesifikasi. */
+  .sfr-n b{font-size:calc(18px*var(--fz));font-weight:800;letter-spacing:-.6px;color:var(--m-ink);
+    line-height:1;font-variant-numeric:tabular-nums}
+  .sfr-l{font-size:calc(10.5px*var(--fz));font-weight:600;color:var(--m-mut);white-space:nowrap;display:block}
+  .sfr-t.on .sfr-n b{color:#fff}
+  .sfr-t.on .sfr-n i{background:#fff!important}
+  .sfr-t.on .sfr-l{color:rgba(255,255,255,.7)}
+  /* Digantikan rail — angkanya sudah ada di sana (no double surface). */
+  .svc-status,.svc-pills,.proc-tabs,.funnel{display:none!important}
+  /* Header kolom tabel: milik tampilan desktop, di HP barisnya berbentuk kartu. */
+  .svc-head{display:none!important}
+  /* Callout "SO ditolak" dipendekkan — dulu 5 baris selalu terbuka dan
+     mendorong daftar keluar layar tiap kali muncul. */
+  .so-perbaiki{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    font-size:calc(12.5px*var(--fz));line-height:1.45;padding:10px 13px;margin-bottom:10px!important}
   /* sidebar & hamburger DIHILANGKAN di HP — navigasi lewat ikon modul + bottom bar */
   .side,#mobBackdrop,.mob-menu{display:none!important}
   /* tombol "← Back to X" dalam halaman hanya utk DESKTOP; di HP navigasi back
@@ -7917,6 +7950,25 @@ function hariSemua(modul,tutup){
  hariSimpan(); hariRender(modul);
 }
 /* satu kepala hari — dipakai baris tabel (SO) maupun div (tiket) */
+/* ╔══ STAT-FILTER RAIL (3 Agu 2026) ══════════════════════════════════════════╗
+   Keluhan Sudana: "score card, kotak search, button filter saja sudah memakan
+   70% tampilan, sehingga list tiket tampil kecil dibawah dan sulit scrolling."
+   Betul: di HP, Services menumpuk 4 scorecard (grid 2×2 ≈140px) LALU 4 chip
+   filter yang membawa ANGKA YANG SAMA (≈80px, wrap 2 baris) lalu search, strip
+   bulan, strip hari, dan header kolom tabel. ±380px habis sebelum satu tiket
+   pun terlihat. Procurement lebih parah lagi: funnel 4 kartu + 6 tab.
+   Aturan Sudana (AGAVA-Vault/CLAUDE-AGAVA-LAYOUT-RULES.md) menamainya
+   "no double surface" — satu angka satu tempat. Rail ini MENGGABUNG keduanya:
+   tiap ubin menampilkan angka SEKALIGUS menjadi tombol filter. Tinggi ≤70px,
+   satu baris, discroll ke samping — tidak pernah wrap.
+   Hanya untuk HP; di desktop rail disembunyikan dan tampilan lama tetap utuh. */
+function sfrHTML(items){
+ return '<div class="sfr">'+items.map(function(it){
+   return '<button type="button" class="sfr-t'+(it.on?' on':'')+'" onclick="'+it.act+'">'+
+     '<span class="sfr-n"><i style="background:'+(it.dot||'#98A2B3')+'"></i><b>'+(it.n===""||it.n==null?'—':it.n)+'</b></span>'+
+     '<span class="sfr-l">'+esc(it.label)+'</span></button>';
+ }).join("")+'</div>';
+}
 function hariSepHTML(modul,g,satuan,pakaiTR,kolom){
  var tutup=hariTutup(modul,g.key);
  var isi='<button class="hr-sep'+(tutup?' tutup':'')+'" onclick="event.stopPropagation();hariToggle(\''+modul+'\',\''+g.key+'\')" '+
@@ -8062,6 +8114,13 @@ function renderProc(){
    <div class="fstep c4"><div class="accent"></div><div class="v">${bast}</div><div class="l">BAST Done</div><div class="s">work handover</div></div>
  </div>
 
+ ${sfrHTML([
+   {label:"Semua",        n:base.filter(x=>!macet(x)).length,                                 dot:"#2563EB", on:procFilter==='all',  act:"procFilter='all';renderProc()"},
+   {label:"SO & Sourcing",n:base.filter(s=>!macet(s)&&(!ap(s)||s.wstep<2)).length,             dot:"#2563EB", on:procFilter==='pre',  act:"procFilter='pre';renderProc()"},
+   {label:"UPR Stage",    n:base.filter(s=>!macet(s)&&ap(s)&&s.wstep>=2&&s.wstep<3).length,   dot:"#7A5AF8", on:procFilter==='upr',  act:"procFilter='upr';renderProc()"},
+   {label:"SPK & Execution",n:base.filter(s=>!macet(s)&&ap(s)&&s.wstep===3).length,            dot:"#F79009", on:procFilter==='spk',  act:"procFilter='spk';renderProc()"},
+   {label:"BAST & Invoice",n:base.filter(s=>!macet(s)&&ap(s)&&s.wstep>=4).length,              dot:"#12B76A", on:procFilter==='bast', act:"procFilter='bast';renderProc()"}
+ ].concat(nMacet?[{label:"Ditolak & Batal",n:nMacet,dot:"#F04438",on:procFilter==='tolak',act:"procFilter='tolak';renderProc()"}]:[]))}
  <div class="proc-tabs">
    <div class="ptab ${procFilter==='all'?'on':''}" onclick="procFilter='all';renderProc()">All <b>${base.filter(x=>!macet(x)).length}</b></div>
    <div class="ptab ${procFilter==='pre'?'on':''}" onclick="procFilter='pre';renderProc()">SO & Sourcing</div>
@@ -11360,13 +11419,19 @@ function renderService(){
     ${sup?'':(isPantau()
       ?'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Pantau Tiket GA <span style="font-weight:400;color:var(--muted)">— seluruh tiket layanan, hanya untuk dipantau · status &amp; perjalanan terupdate realtime</span></div></div>'
       :'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Tiket Saya <span style="font-weight:400;color:var(--muted)">— hanya tiket yang Anda buat · status &amp; perjalanan terupdate realtime</span></div></div>')}
+    ${sfrHTML([
+      {label:sup?'Semua':'Tiket saya', n:total,    dot:"#2563EB", on:svcFilter==='all',      act:"svcFilter='all';renderService()"},
+      {label:'Berjalan',               n:ongoing,  dot:"#F79009", on:svcFilter==='open',     act:"svcFilter='open';renderService()"},
+      {label:'Eskalasi',               n:esc,      dot:"#F04438", on:svcFilter==='esc',      act:"svcFilter='esc';renderService()"},
+      {label:'Selesai',                n:resolved, dot:"#12B76A", on:svcFilter==='resolved', act:"svcFilter='resolved';renderService()"}
+    ])}
     <div class="svc-status">
       <div class="svc-st-i"><div class="l">${sup?'Total tickets':'Tiket saya'}</div><div class="v">${total}</div></div>
       <div class="svc-st-i"><div class="l">Ongoing</div><div class="v" style="color:var(--blue)">${ongoing}</div></div>
       <div class="svc-st-i"><div class="l">Escalated</div><div class="v" style="color:var(--red)">${esc}</div></div>
       <div class="svc-st-i"><div class="l">Resolved</div><div class="v" style="color:var(--green)">${resolved}</div></div>
     </div>
-    <div style="padding:16px 16px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${pills.map(p=>`<div class="ptab ${svcFilter===p[0]?'on':''}" onclick="svcFilter='${p[0]}';renderService()">${p[1]} <b style="opacity:.7">${p[2]}</b></div>`).join("")}
+    <div class="svc-pills" style="padding:16px 16px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${pills.map(p=>`<div class="ptab ${svcFilter===p[0]?'on':''}" onclick="svcFilter='${p[0]}';renderService()">${p[1]} <b style="opacity:.7">${p[2]}</b></div>`).join("")}
       <button class="btn-out" style="margin-left:auto;padding:6px 11px;font-size:calc(12px*var(--fz))" onclick="exportLog('ticket')" title="Unduh log tiket (CSV/Excel)">⬇ CSV</button></div>
     <div style="padding:0 16px 12px">${cariBoxHTML("svcCariBox",svcCari,"Cari tiket — nomor, judul, kategori, lokasi, pemohon, PIC…","svcSetCari")}</div>
     ${grup.length>1?`<div style="padding:0 16px 12px">${bulanStripHTML(grup,selB,"svcSetBulan")}</div>`:''}
@@ -16269,7 +16334,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-174";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-175";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
