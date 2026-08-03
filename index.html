@@ -2323,6 +2323,19 @@ body.rg-open{overflow:hidden}
   .sfr-t.on .sfr-l{color:rgba(255,255,255,.7)}
   /* Digantikan rail — angkanya sudah ada di sana (no double surface). */
   .svc-status,.svc-pills,.proc-tabs,.funnel{display:none!important}
+  /* ── URUTAN HALAMAN SERVICES DI HP (3 Agu 2026) ──
+     Sudana: "Section List Tiket tarik paling atas sesudah box Sumber Daya
+     Terpakai." Diatur lewat `order`, BUKAN dengan memindahkan DOM — desktop
+     memakai urutan DOM apa adanya sehingga tampilannya tidak ikut berubah. */
+  #page-service{display:flex;flex-direction:column}
+  .svc-btns{order:1} .svc-opex{order:2} .svc-card{order:3} .svc-esc{order:4} .svc-lain{order:5}
+  /* Aksi Mandiri disembunyikan atas permintaan Sudana — "dihapus dulu, simpan
+     untuk nanti". Datanya, fungsinya, dan panel desktopnya TIDAK dibuang:
+     cukup hapus baris ini untuk memunculkannya kembali. */
+  .svc-mandiri{display:none!important}
+  /* Tombol "Tutup semua / Buka semua" tidak lagi perlu di HP: sejak v176
+     hanya hari ini yang terbuka secara default, sisanya sudah terlipat. */
+  .hr-bar{display:none!important}
   /* Header kolom tabel: milik tampilan desktop, di HP barisnya berbentuk kartu. */
   .svc-head{display:none!important}
   /* Callout "SO ditolak" dipendekkan — dulu 5 baris selalu terbuka dan
@@ -7932,21 +7945,42 @@ const HARI_TUTUP_STORE="agava_hari_tutup_v1";
 let HARI_TUTUP=(function(){ try{ return JSON.parse(localStorage.getItem(HARI_TUTUP_STORE))||{}; }catch(e){ return {}; } })();
 let HARI_KEYS={proc:[],svc:[],ot:[]};           // kunci hari yang sedang tampil per modul
 function hariSimpan(){ try{ localStorage.setItem(HARI_TUTUP_STORE,JSON.stringify(HARI_TUTUP)); }catch(e){} }
-function hariTutup(modul,k){ return !!HARI_TUTUP[modul+":"+k]; }
+/* ── DEFAULT: HANYA HARI INI YANG TERBUKA (3 Agu 2026) ──────────────────────
+   Permintaan Sudana: "Halaman terbuka hanya tiket di tanggal Hari ini, tanggal
+   lainnya terlipat ke atas, baru dibuka ketika user meng-klik icon buka."
+   Dulu semua hari terbuka, jadi membuka Services berarti langsung berhadapan
+   dengan seratus baris dan tanggal hari ini justru tenggelam.
+
+   HARI_TUTUP kini bernilai TIGA keadaan, bukan dua — inilah kuncinya:
+     tidak ada kuncinya → ikut default (hari ini terbuka, lainnya terlipat)
+     1                  → dilipat manual oleh user
+     0                  → DIBUKA manual oleh user
+   Tanpa keadaan ketiga itu, tiap kali user membuka tanggal lama, render
+   berikutnya akan melipatnya lagi karena "tidak tercatat" = "pakai default". */
+function hariTutup(modul,k){
+ var v=HARI_TUTUP[modul+":"+k];
+ if(v===1||v===true) return true;      // dilipat manual
+ if(v===0) return false;               // dibuka manual — hormati, jangan dilipat lagi
+ /* Default terlipat HANYA di HP — Sudana menyebut "mobile app", dan di desktop
+    ruangnya memang cukup untuk menampilkan semua hari sekaligus. Dibaca saat
+    render, jadi mengubah ukuran jendela langsung mengikuti. */
+ if(window.innerWidth>820) return false;
+ return String(k)!==String(TODAY_STR); // HP: selain hari ini, terlipat
+}
 function hariRender(modul){
  if(modul==="proc"){ renderProc(); return; }
  if(modul==="ot"){ agavaRenderAman(["renderFieldOps","renderMobileHome"]); return; }
  renderService();
 }
 function hariToggle(modul,k){
- var id=modul+":"+k;
- if(HARI_TUTUP[id]) delete HARI_TUTUP[id]; else HARI_TUTUP[id]=1;
+ /* Simpan keputusan user secara EKSPLISIT (0 atau 1), bukan menghapus kuncinya
+    — menghapus berarti kembali ke default, dan tanggal lama akan terlipat lagi
+    tepat setelah user membukanya. */
+ HARI_TUTUP[modul+":"+k] = hariTutup(modul,k) ? 0 : 1;
  hariSimpan(); hariRender(modul);
 }
 function hariSemua(modul,tutup){
- (HARI_KEYS[modul]||[]).forEach(function(k){
-   var id=modul+":"+k; if(tutup)HARI_TUTUP[id]=1; else delete HARI_TUTUP[id];
- });
+ (HARI_KEYS[modul]||[]).forEach(function(k){ HARI_TUTUP[modul+":"+k] = tutup?1:0; });
  hariSimpan(); hariRender(modul);
 }
 /* satu kepala hari — dipakai baris tabel (SO) maupun div (tiket) */
@@ -11408,13 +11442,16 @@ function renderService(){
   </div>
   ${roomEventCard()}`;
  }
+ /* Tiap blok dibungkus supaya URUTANNYA bisa diatur ulang di HP lewat CSS
+    `order` — tanpa menyentuh urutan DOM, jadi tampilan desktop tetap persis
+    seperti semula. Permintaan Sudana: daftar tiket ditarik ke atas, tepat
+    setelah kotak Sumber Daya Terpakai. */
  el.innerHTML=`
-  ${gaServiceButtons()}
-  ${selfCarePanelHTML()}
-  ${escPanelHTML(eskalasi)}
-  ${draftListHTML()}
-  ${gaOpexHTML("all")}
-  ${head}
+  <div class="svc-btns">${gaServiceButtons()}</div>
+  <div class="svc-mandiri">${selfCarePanelHTML()}</div>
+  <div class="svc-esc">${escPanelHTML(eskalasi)}${draftListHTML()}</div>
+  <div class="svc-opex">${gaOpexHTML("all")}</div>
+  <div class="svc-lain">${head}</div>
   <div class="card svc-card">
     ${sup?'':(isPantau()
       ?'<div style="padding:14px 16px 0"><div class="panel-t" style="margin:0">Pantau Tiket GA <span style="font-weight:400;color:var(--muted)">— seluruh tiket layanan, hanya untuk dipantau · status &amp; perjalanan terupdate realtime</span></div></div>'
@@ -16334,7 +16371,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-175";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-176";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
