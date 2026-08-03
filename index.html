@@ -7413,7 +7413,39 @@ function normalizeSO(){SO.forEach(s=>{
 });}
 /* Persistensi SO — SO yang dibuat/di-approve di aplikasi tersimpan agar tidak hilang saat refresh */
 const SO_STORE="agava_so_v1";
-function soPersist(){ try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){ console.warn("SO persist:",e.message); } try{ dbSaveSOAll(); }catch(e){} }
+function soPersistLokal(){ try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){ console.warn("SO persist:",e.message); } }
+function soPersist(){ soPersistLokal(); try{ dbSaveSOAll(); }catch(e){} }
+/* ── PATCH SATU SO, FIELD YANG BERUBAH SAJA (3 Agu 2026) ─────────────────────
+   Insiden "approval Elok hilang": soPersist → dbSaveSOAll menulis SELURUH SO
+   dari salinan lokal tiap ada satu perubahan. set(merge:true) menggabung map
+   (ts/aktor selamat) tapi MENIMPA skalar (apprSection dkk) — perangkat basi
+   mengembalikan 17 SO ke Pending padahal sudah di-approve. Approval kini
+   ditulis lewat sini: satu dokumen, field bertitik, tidak menyentuh yang lain.
+   Pola yang sama dengan dbPatchTicket (insiden pic/stg tiket). */
+function dbPatchSO(no,fields){
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return;
+ if(!gUser||!gUser.name){ console.warn("SO: patch DITOLAK — belum login (pagar data bersama)"); return; }
+ var s=SO.find(function(x){return x.no===no;});
+ /* echo disamakan supaya dbSaveSOAll berikutnya tidak menulis ulang dokumen ini */
+ if(s){ AGDB.soEcho=AGDB.soEcho||{}; AGDB.soEcho[no]=JSON.stringify(dbStripSO(s)); }
+ AGDB.db.collection("agava_so").doc(String(no)).update(fields).catch(function(e){
+   /* dokumen belum pernah sampai cloud (dibuat saat offline) → tulis utuh sekali */
+   if(e&&e.code==="not-found"&&s){ AGDB.db.collection("agava_so").doc(String(no)).set(dbStripSO(s),{merge:true}).catch(function(){}); }
+   else console.warn("SO patch:",e&&e.code);
+ });
+}
+/* Deteksi dokumen SO "mundur": ada jejak pelaku (aktor[gerbang] hanya ditulis
+   saat tombol approve/reject BENAR-BENAR ditekan) tapi benderanya kosong lagi.
+   Revisi yang sah TIDAK terjebak di sini — soRevisiSubmit menghapus aktor
+   untuk gerbang yang dibuka ulang. */
+function soCacatMundur(s){
+ var ak=(s&&s.aktor)||{};
+ var cek={section:s.apprSection,budget:s.apprBudget,proc:s.apprProc,dept:s.apprDept};
+ for(var g in cek){ var v=cek[g];
+   var sah=(v==="Approved"||v==="Rejected"||(g==="budget"&&v==="Escalated"));
+   if(ak[g]&&!sah) return g; }
+ return null;
+}
 /* Cache perangkat ini bisa saja masih menyimpan SO pra-live (mis. perangkat yang
    belum ikut saat cutoff dijalankan). Saring di sini supaya TIDAK pernah tampil
    lagi — dan, lewat dbSaveSOAll, tidak terunggah balik ke cloud. */
@@ -13526,7 +13558,21 @@ function approveSO(no,gate,decision,beralasan){
    try{ agavaNotify("⛔ SO "+no+" ditolak — perlu revisi",((s.reject&&s.reject.perbaikan)||"Buka AGAVA untuk memperbaiki.")); }catch(e){}
    try{ auditLog("so-reject", no+" · gerbang "+gate+" · "+((s.reject&&s.reject.alasan)||"")); }catch(e){}
  } else notifySound();   // flow maju masuk ke gate/assigned berikutnya
- soPersist();
+ /* ── TULIS SATU BIDANG, BUKAN 47 DOKUMEN (3 Agu 2026) ──
+    Dulu: soPersist() → dbSaveSOAll() → seluruh SO ditulis ulang dari salinan
+    lokal perangkat ini tiap satu keputusan. Perangkat basi = 17 SO mundur.
+    Kini: localStorage tetap, cloud hanya dokumen INI, field yang berubah saja. */
+ var patch={};
+ patch["aktor."+gate]=s.aktor[gate];
+ if(s.ts&&s.ts[gate])  patch["ts."+gate]=s.ts[gate];
+ if(s.tsf&&s.tsf[gate])patch["tsf."+gate]=s.tsf[gate];
+ if(s.override)        patch.override=s.override;
+ if(decision==="Rejected"&&s.reject) patch.reject=s.reject;
+ if(gate==="section"){ patch.apprSection=s.apprSection; if(s.sectionBy)patch.sectionBy=s.sectionBy; }
+ else if(gate==="budget"){ patch.apprBudget=s.apprBudget; patch.escalated=!!s.escalated; }
+ else if(gate==="proc"){ patch.apprProc=s.apprProc; patch.staffPIC=s.staffPIC||""; patch.pic=s.pic||""; patch.fup=s.fup||""; }
+ else if(gate==="dept"){ patch.apprDept=s.apprDept; if(s.stage!==undefined)patch.stage=s.stage; }
+ soPersistLokal(); dbPatchSO(no,patch);
  renderApprovals(); renderProc(); renderAssigned(); renderReminder(); navSetActive(); updateBell();
 }
 /* ===== Klarifikasi: PIC Proc kirim catatan → Requester (Reminder) → jawab → balik ke PIC Proc ===== */
@@ -16096,7 +16142,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.03-169";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.03-170";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -16293,7 +16339,11 @@ function dbInit(){
       agavaRenderAman(["renderProc","renderApprovals","renderAssigned","renderPayment","renderOverview","renderMobileHome","updateBell"]);
     }
     if(soNew.length) agavaNotify("📋 SO baru masuk", soNew[0].no+" · "+(soNew[0].item||"")+(soNew.length>1?" · +"+(soNew.length-1)+" lainnya":""));
-    if(!AGDB.soInit){ AGDB.soInit=true; dbSaveSOAll(); }   // koneksi pertama → unggah SO lokal yang belum ada di cloud
+    /* ── PAGAR CACHE (3 Agu 2026) ── snapshot pertama bisa datang DARI CACHE
+       (perangkat baru dibuka / sinyal jelek). Dulu unggah-balik jalan di situ
+       → salinan berhari-hari menimpa approval semua orang. Kini unggah-balik
+       hanya setelah snapshot SERVER pertama tiba. */
+    if(!AGDB.soInit && !snap.metadata.fromCache){ AGDB.soInit=true; dbSaveSOAll(); }   // koneksi pertama → unggah SO lokal yang belum ada di cloud
   },err=>{ console.warn("SO rules/err:",err&&err.code); });
   /* KPI + review PDCA bulanan — satu dokumen bersama */
   AGDB.db.collection("agava_config").doc("kpi").onSnapshot(doc=>{
@@ -16584,11 +16634,81 @@ function dbSaveSOAll(){
  AGDB.soEcho=AGDB.soEcho||{};
  SO.forEach(function(s){ if(!s||!s.no)return;
    if(goLivePre(s))return;                       // pra-live → sudah di Record Log, JANGAN unggah balik
+   /* ── PAGAR MUNDUR (3 Agu 2026) ── salinan yang cacat-mundur (ada jejak
+      aktor tapi bendera approval kosong lagi) = salinan basi. JANGAN diunggah;
+      biarkan snapshot cloud yang menyembuhkan salinan lokal ini. Revisi sah
+      tidak terjebak — soRevisiSubmit menghapus aktor gerbang yang dibuka. */
+   var cacat=soCacatMundur(s);
+   if(cacat){ console.warn("SO "+s.no+": unggah DITAHAN — gerbang "+cacat+" mundur (salinan basi)");
+     try{ if(!AGDB._mundurLog||!AGDB._mundurLog[s.no]){ AGDB._mundurLog=AGDB._mundurLog||{}; AGDB._mundurLog[s.no]=1;
+       auditLog("so-tahan-mundur", s.no+" · gerbang "+cacat+" · salinan basi tidak diunggah"); } }catch(e){}
+     return; }
    var c=dbStripSO(s), j=JSON.stringify(c);
    if(AGDB.soEcho[s.no]===j)return;              // tidak berubah → jangan tulis ulang
    AGDB.soEcho[s.no]=j;
    AGDB.db.collection("agava_so").doc(String(s.no)).set(c,{merge:true}).catch(function(e){ console.warn("SO cloud:",e&&e.code); });
  });
+}
+/* ╔══ PULIHKAN APPROVAL SO YANG HILANG (3 Agu 2026) ══════════════════════════╗
+   Insiden: dbSaveSOAll dari perangkat basi menimpa bendera approval 17 SO
+   kembali ke Pending/— padahal jejak pelaku (aktor) + jam (ts) masih utuh.
+   Alat ini membaca ULANG dari server, menghitung gerbang yang rusak dari
+   bukti di dokumennya sendiri, minta konfirmasi, arsip dulu, baru menulis.
+   Aturan bukti — aktor[gerbang] hanya pernah ditulis oleh approveSO():
+     · ada reject.gate==gerbang → Rejected (SO-0012: ditolak Elok, bukan lolos)
+     · gerbang budget + escalated → Escalated
+     · selain itu → Approved
+   Gerbang proc TANPA nama staff di peta di bawah DITAHAN (staffPIC ikut
+   terhapus & tak bisa direkonstruksi) — Sudana menentukan staff-nya lalu
+   approve ulang lewat Procurement seperti biasa. */
+const SO_PULIH_STAFF={ "SO-202606-0025":"Didi Sutama", "SO-202606-0026":"Endang Maulana", "SO-202606-0028":"Didi Sutama" };
+async function soPulihkanApproval(){
+ if(!isOwner()){ alert("⛔ Hanya Owner."); return; }
+ if(AGDB.ro){ alert("⚠️ Perangkat ini read-only (localhost/uji). Jalankan dari situs live."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak terhubung."); return; }
+ var KEY={section:"apprSection",budget:"apprBudget",proc:"apprProc",dept:"apprDept"};
+ var sah=function(g,v){ return v==="Approved"||v==="Rejected"||(g==="budget"&&v==="Escalated"); };
+ var snap;
+ try{ snap=await AGDB.db.collection("agava_so").limit(400).get(); }
+ catch(e){ alert("⚠️ Gagal membaca SO: "+(e&&e.code)); return; }
+ var rencana=[], ditahan=[];
+ snap.forEach(function(d){
+  var s=d.data(); var ak=s.aktor||{}, ts=s.ts||{}, rj=s.reject||null;
+  var upd={}, cat=[];
+  ["section","budget","proc","dept"].forEach(function(g){
+   if(!ak[g]||sah(g,s[KEY[g]]))return;           // tanpa jejak / sudah sehat → jangan disentuh
+   if(g==="proc"){
+     var st=SO_PULIH_STAFF[d.id];
+     if(!st){ ditahan.push(d.id+" — proc oleh "+ak[g]+" ("+(ts.proc||"?")+")"); return; }
+     upd.apprProc="Approved"; upd.staffPIC=st; upd.pic=st; upd.fup=soStaffInit(st);
+     cat.push("proc→Approved · staff "+st); return;
+   }
+   var jadi=(rj&&rj.gate===g)?"Rejected":(g==="budget"?(s.escalated===true?"Escalated":"Approved"):"Approved");
+   upd[KEY[g]]=jadi; cat.push(g+" "+(s[KEY[g]]||"—")+"→"+jadi);
+   if(g==="dept"&&jadi==="Approved") upd.stage=Math.max(s.stage||0,2);
+  });
+  if(Object.keys(upd).length) rencana.push({id:d.id,data:s,upd:upd,cat:cat});
+ });
+ if(!rencana.length){
+   alert("✅ Tidak ada approval yang perlu dipulihkan."+(ditahan.length?"\n\n⏸ Gerbang Procurement ditahan (tentukan staff dulu):\n"+ditahan.join("\n"):""));
+   return; }
+ var nGate=0; rencana.forEach(function(r){ nGate+=r.cat.length; });
+ if(!confirm("🩺 PULIHKAN APPROVAL SO\n\n"+rencana.length+" SO · "+nGate+" gerbang dipulihkan dari bukti aktor+jam di dokumennya:\n\n"+
+   rencana.map(function(r){return r.id+" : "+r.cat.join(", ");}).join("\n")+
+   (ditahan.length?"\n\n⏸ DITAHAN (staff belum ditentukan):\n"+ditahan.join("\n"):"")+
+   "\n\nVersi sekarang diarsipkan dulu ke agava_config_riwayat. Lanjut?")) return;
+ var ok=0, gagal=[];
+ for(var i=0;i<rencana.length;i++){ var r=rencana[i];
+  try{
+   dbSimpanRiwayat("so:"+r.id, r.data, "pulihkan-approval-hilang");
+   await AGDB.db.collection("agava_so").doc(r.id).update(r.upd);
+   auditLog("so-pulihkan-approval", r.id+" · "+r.cat.join(" · "));
+   ok++;
+  }catch(e){ gagal.push(r.id+" ("+((e&&e.code)||e)+")"); }
+ }
+ alert("🩺 Selesai.\n✅ "+ok+" SO dipulihkan — daftar & inbox approver menyusul lewat sinkron."+
+   (gagal.length?"\n⚠️ Gagal: "+gagal.join(", "):"")+
+   (ditahan.length?"\n\n⏸ Ditahan — tentukan staff lalu approve lewat Procurement:\n"+ditahan.join("\n"):""));
 }
 /* ══ PAGAR DATA BERSAMA (31 Jul 2026) — insiden "KPI kembali dummy" ══════════
    Dokumen agava_config/kpi TERTIMPA salinan basi dua kali (28 & 30 Jul, keduanya
@@ -16747,6 +16867,7 @@ function agavaCloudPanel(){
    '<div class="panel-t" style="margin:16px 0 6px">Tindakan</div>'+
    '<button class="btn-out" style="width:100%;margin-bottom:8px" onclick="agavaStorageTest()">🧪 Uji Firebase Storage (lampiran)</button>'+
    '<button class="btn-act" style="width:100%;margin-bottom:8px" onclick="agavaPushAll()">☁️ Dorong Semua Data ke Cloud</button>'+
+   '<button class="btn-out" style="width:100%;margin-bottom:8px" onclick="soPulihkanApproval()">🩺 Pulihkan Approval SO yang Hilang</button>'+
    '<button class="btn-out" style="width:100%;margin-bottom:8px" onclick="agavaBackupDownload()">⬇️ Unduh Backup (JSON)</button>'+
    '<label class="btn-out" style="width:100%;display:block;text-align:center;cursor:pointer;margin-bottom:8px">'+
      '⬆️ Pulihkan dari File Backup<input type="file" accept="application/json,.json" style="display:none" onchange="agavaRestoreFile(this)"/></label>'+
