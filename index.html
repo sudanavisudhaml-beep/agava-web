@@ -1345,6 +1345,75 @@ html,body{overscroll-behavior-y:contain}
 .tkc-stars.belum i{color:#e3e8f0}
 .tkc-stars-kosong{height:calc(10px*var(--fz))}
 .tkc-chev{width:7px;height:12px;color:#C6CBD4;flex:0 0 auto}
+/* ╔══ KARTU NOTIFIKASI — gaya Notification Center (4 Agu 2026) ══════════════╗
+   Rancangan Sudana, mengacu tangkapan layar Notification Center iPhone:
+     kolom 1  ikon MODUL-nya (ikon nav yang sama, bukan kosakata kedua)
+     kolom 2  b1 judul · b2 aging · status · pemohon · b3 nama modul
+     kolom 3  waktu masuk — "x mnt" selama satu jam pertama, lalu jamnya
+   DUA UKURAN SAJA. Kotak yang tingginya mengikuti panjang isi tiap baris
+   membuat daftar terbaca seperti reruntuhan; dua tinggi tetap membuat mata
+   punya garis pijak. Judul "sedang" dipotong 2 baris supaya tingginya tetap.
+   Dipakai bersama oleh halaman Notifikasi (HP) dan Log Notifikasi (desktop). */
+.nfc{display:grid;grid-template-columns:38px minmax(0,1fr) 46px;gap:11px;align-items:start;
+  padding:11px 13px;border-radius:15px;background:var(--card);cursor:pointer;position:relative;
+  border:1px solid var(--line);transition:background .12s,border-color .12s}
+.nfc:active{background:#f2f5fa}
+.nfc+.nfc{margin-top:8px}
+/* Tinggi DIPATOK, bukan min-height: "min" masih membiarkan tiap kartu tumbuh
+   sesuai isinya, dan itu justru variasi yang diminta hilang. Dua angka ini
+   adalah satu-satunya tinggi kartu notifikasi yang boleh ada.
+   Kecil  = judul 1 baris + nama modul (2 baris teks).
+   Sedang = judul 2 baris + aging/status/pemohon + nama modul (4 baris teks).
+   Ruangnya dihitung pada --fz mobile 1.12 (huruf 12% lebih besar), jadi di
+   desktop masih tersisa kelonggaran — bukan sebaliknya. */
+.nfc-s{height:70px}
+.nfc-m{height:106px}
+.nfc-ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;
+  background:var(--nfbg,#EEF4FF);align-self:center}
+.nfc-ic svg{width:20px;height:20px;stroke:var(--nfc-c,#2563EB);fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
+.nfc-tx{min-width:0;align-self:center}
+.nfc-t{font-size:calc(13.5px*var(--fz));font-weight:600;color:var(--ink);line-height:1.34;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nfc-m .nfc-t{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.nfc-r2{font-size:calc(11.5px*var(--fz));color:var(--muted);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nfc-r3{font-size:calc(10.5px*var(--fz));font-weight:700;color:var(--nfc-c,#98A2B3);margin-top:3px;
+  letter-spacing:.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nfc-w{font-size:calc(10.5px*var(--fz));color:#98A2B3;text-align:right;white-space:nowrap;
+  font-variant-numeric:tabular-nums;align-self:start;padding-top:2px;
+  display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.nfc-x{border:1px solid var(--line);background:#fff;border-radius:7px;width:22px;height:22px;
+  color:#98A2B3;font-size:calc(10px*var(--fz));line-height:1;cursor:pointer;font-family:var(--ff);
+  display:grid;place-items:center}
+.nfc-x:active{background:#f2f5fa}
+/* ── BELUM DIBACA: huruf ditebalkan + warna kartu sedikit dipekatkan ──
+   Sesuai permintaan; sengaja BUKAN titik merah tambahan — penandanya cukup
+   satu bahasa. Kartu yang sudah dibaca justru diturunkan ke abu agar yang
+   belum dibaca menonjol tanpa perlu warna mencolok. */
+.nfc.dibaca{background:#FAFBFC;border-color:#EEF1F5}
+.nfc.dibaca .nfc-t{font-weight:500;color:var(--text)}
+.nfc.dibaca .nfc-ic{filter:saturate(.35);opacity:.75}
+.nfc.blm{background:var(--card);border-color:#DCE4EE;box-shadow:0 1px 2px rgba(15,23,40,.05)}
+.nfc.blm .nfc-t{font-weight:800;color:var(--ink)}
+.nfc.blm .nfc-w{color:var(--muted);font-weight:700}
+/* ── TUMPUKAN KARTU per modul ──
+   Lebih dari satu kabar dari modul yang sama ditumpuk jadi satu dek; dua lapis
+   tipis di belakang memberi tahu "ada lagi di bawah ini" tanpa perlu dibaca. */
+.nfd{position:relative;margin-bottom:8px}
+.nfd.tumpuk{padding-bottom:9px}
+.nfd-l{position:absolute;left:8px;right:8px;border-radius:15px;background:var(--card);
+  border:1px solid var(--line);z-index:0}
+.nfd-l1{bottom:4px;height:16px;opacity:.9}
+.nfd-l2{left:15px;right:15px;bottom:0;height:14px;opacity:.65}
+.nfd .nfc{position:relative;z-index:1}
+.nfd-n{position:absolute;right:9px;bottom:9px;z-index:2;font-size:calc(10px*var(--fz));font-weight:800;
+  color:#fff;background:var(--nfc-c,#2563EB);border-radius:99px;padding:2px 8px;pointer-events:none;
+  box-shadow:0 1px 4px rgba(15,23,40,.2)}
+.nfd-tutup{display:block;width:100%;margin-top:8px;border:1px dashed var(--line);background:transparent;
+  border-radius:12px;padding:8px;font-family:var(--ff);cursor:pointer;color:var(--muted);
+  font-size:calc(11.5px*var(--fz));font-weight:700}
+.nfd-tutup:active{background:#f2f5fa}
 /* ╔══ KARTU PREVIEW SO (4 Agu 2026) ═════════════════════════════════════════╗
    Permintaan Sudana: "komposisi, style dan elemen yang sama seperti preview
    tiket". Maka kelas .tkc dipakai ULANG apa adanya — bukan disalin menjadi
@@ -11746,16 +11815,9 @@ function renderNotif(){
      '<span class="m-ni-tx"><b>'+esc(inb.label)+'</b><small>'+inb.n+' item menunggu tindakan Anda</small></span>'+
      '<span class="m-ni-badge">'+inb.n+'</span></button>':'';
  var markAll=unseenN?'<button class="m-markall" onclick="notifMarkAllSeen()">✓ Tandai semua dibaca</button>':'';
- var list=items.length?'<div class="mh-list" style="margin-top:12px">'+items.map(function(n){
-     var uns=!notifSeen(n.key);
-     var ic=n.open==='approvals'?'📋':n.open==='payment'?'💳':'🔔';
-     return '<div class="m-notif-row'+(uns?' unseen':'')+'" onclick="notifOpen(\''+n.key+'\',\''+(n.open||'')+'\',\''+(n.doc||'')+'\')">'+
-       '<span class="m-notif-ic">'+(uns?'<i class="ndot"></i>':'')+ic+'</span>'+
-       '<div class="m-notif-tx"><div class="m-notif-t">'+esc(n.alert||n.module)+'</div>'+
-         '<div class="m-notif-s">'+esc(n.module)+' · '+esc(n.status||'')+'</div></div>'+
-       (notifBisaBuang(n)?'<button class="m-notif-x" title="Buang" onclick="notifBuang(\''+n.key+'\','+(n.followId?"'"+n.followId+"'":'null')+',event)">✕</button>':'')+
-       mhChev()+'</div>';
-   }).join("")+'</div>'
+ /* Kartu Notification Center — perender yang SAMA dipakai Log Notifikasi di
+    desktop, jadi kedua sisi tidak bisa saling mendahului. */
+ var list=items.length?'<div style="margin-top:12px">'+notifDaftarHTML(items)+'</div>'
    :'<div class="mh-empty" style="margin-top:12px">Tidak ada notifikasi baru. Semua terpantau.</div>';
  el.innerHTML=head+inbox+markAll+list;
 }
@@ -14104,14 +14166,21 @@ function notifItems(){
    /* SO → notifikasi diklik langsung MEMBUKA Dokumen SO + lampirannya, supaya
       approver bisa membaca isinya sebelum memutuskan (doc: nomor SO-nya). */
    var isSO=/^SO-/.test(no);
+   /* mod · at · aging · req dipakai KARTU notifikasi (ikon modul, kolom waktu,
+      Row 2). Diambil dari dokumen aslinya bila ketemu; kalau tidak, bidangnya
+      kosong dan kartunya menyusut sendiri ke ukuran kecil. */
+   var recA=isSO?((typeof SO!=="undefined"?SO:[]).find(function(x){return x.no===no;})||null):null;
+   var msA=recA?goLiveMs(recA):0;
    items.push({key:"appr:"+(a.tier||"")+":"+no, module:"Approval · "+a.tier, alert:a.item,
      status:a.source||a.status, cls:"bd-proc", action:"Menunggu "+a.tier,
-     open:"approvals", doc:(isSO?no:null)}); });
+     open:"approvals", doc:(isSO?no:null),
+     mod:"approvals", at:msA, aging:notifUsiaTeks(msA), req:(recA?soPemohon(recA):"")}); });
  if(payRemRole()&&notifModulBoleh("payment")) paymentReminders().forEach(function(x){ var wait=x.kind==='wait';
    items.push({key:"pay:"+x.s.no+":"+(x.kind||""), module:"Payment · Budget",
      alert: wait? x.s.no+" — "+(x.s.vendor||'vendor')+" · Menunggu Invoice "+invWaitHK(x.s)+" HK" : x.s.no+" — "+(x.s.vendor||'vendor')+" (Rp "+invNom(x.s)+" jt)",
      status: wait? "Vendor belum kirim invoice (≥5 HK)" : "Lewat estimasi rilis "+fmtDay(invRelEst(x.s)),
-     cls: wait?'bd-warn':'bd-crit', action: wait?"Tagih invoice":"F-up treasury", open:"payment"}); });
+     cls: wait?'bd-warn':'bd-crit', action: wait?"Tagih invoice":"F-up treasury", open:"payment",
+     mod:"payment", at:goLiveMs(x.s), aging:notifUsiaTeks(goLiveMs(x.s)), req:(x.s.vendor||"")}); });
  /* ── TIKET LAYANAN → kotak Notifikasi ──
     Administrator & GA Dept Head menerima semua; Section Head hanya kategori yang
     menjadi tanggung jawabnya (Building/Project → Elok · Tenant/Asset/Hospitality/
@@ -14123,7 +14192,10 @@ function notifItems(){
    items.push({key:"tiket:"+t.no, module:"Tiket · "+kat,
      alert:(t.no||"")+" — "+(t.judul||""),
      status:t.status||"Submitted", cls:((t.stg||0)===0?"bd-crit":"bd-warn"),
-     action:((t.stg||0)===0?"Perlu ditugaskan":"Sedang dikerjakan"), open:"service"});
+     action:((t.stg||0)===0?"Perlu ditugaskan":"Sedang dikerjakan"), open:"service",
+     mod:"service", at:goLiveMs(t),
+     aging:((typeof ticketAging==="function"&&ticketAging(t).t)||notifUsiaTeks(goLiveMs(t))),
+     req:((typeof ticketReqName==="function")?ticketReqName(t):(t.requester||""))});
  });
  /* NOTIFS dibuat dengan bentuk {ic,t,d,at,sev,nav} — dulu dibaca sebagai
     {module,alert,status,cls,action} sehingga barisnya tampil KOSONG di layar.
@@ -14135,7 +14207,12 @@ function notifItems(){
      alert:n.alert||n.d||n.t||"",
      status:n.status||(sev==="crit"?"Perlu tindakan":sev==="warn"?"Perlu perhatian":"Informasi"),
      cls:n.cls||(sev==="crit"?"bd-crit":sev==="warn"?"bd-warn":"bd-info"),
-     action:n.action||"Buka", open:n.nav||null, followId:n.id}); });
+     action:n.action||"Buka", open:n.nav||null, followId:n.id,
+     /* n.at bentuknya "DD/MM HH:MM" (nowStamp) — goLiveMs sudah tahu membaca
+        bentuk itu lewat ts.created, jadi dipinjamkan ke sana daripada menulis
+        pengurai kedua yang kelak melenceng sendiri. */
+     mod:(n.nav||"reminder"), at:goLiveMs({ts:{created:n.at}}),
+     aging:notifUsiaTeks(goLiveMs({ts:{created:n.at}})), req:(n.nama||"")}); });
  /* Yang belum dibaca naik ke atas, yang sudah dibaca turun — supaya kotak tidak
     terasa macet sesudah diklik. Urutan di dalam masing-masing kelompok tetap
     (Array.sort stabil), jadi susunan aslinya tidak teracak. */
@@ -14147,6 +14224,151 @@ function notifItems(){
    payment adalah cerminan keadaan yang masih berjalan — ia lenyap sendiri saat
    pekerjaannya beres, dan memaksa membuangnya justru menghilangkan pengingat. */
 function notifBisaBuang(i){ return !!(i && i.key && i.key.indexOf("notif:")===0); }
+/* ╔══ KARTU NOTIFIKASI — perkakas bersama HP & desktop (4 Agu 2026) ═════════╗ */
+/* Identitas modul: ikon diambil dari IC — daftar ikon yang SAMA dengan menu nav,
+   jadi lambang di kotak notifikasi persis lambang yang diketuk orang di menu.
+   Warnanya menandai modul, bukan tingkat kegawatan (itu urusan Row 2). */
+const NOTIF_MOD_EXTRA={
+ reminder:{label:"Notifikasi", ic:"reminder"},
+ myticket:{label:"My Tickets", ic:"myticket"},
+ chat:{label:"Chat GA Team", ic:"reminder"}
+};
+const NOTIF_MOD_COL={approvals:"#7A5AF8", service:"#2563EB", payment:"#0E7A55",
+ procurement:"#B0740B", assigned:"#B0740B", myticket:"#2563EB", building:"#0E7A55",
+ hse:"#C22B45", energy:"#B0740B", gacal:"#7A5AF8", reminder:"#667085"};
+function notifModMeta(id){
+ id=id||"reminder";
+ var m=(typeof MENU!=="undefined")?MENU.find(function(x){return x.id===id;}):null;
+ var base=m?{label:m.label, ic:m.ic}:(NOTIF_MOD_EXTRA[id]||{label:"AGAVA", ic:"reminder"});
+ var col=NOTIF_MOD_COL[id]||"#667085";
+ return {id:id, label:base.label, ic:base.ic, col:col};
+}
+function notifModIcon(meta){
+ var d=(typeof IC!=="undefined"&&IC[meta.ic])||(typeof IC!=="undefined"?IC.reminder:"");
+ return '<svg viewBox="0 0 24 24">'+d+'</svg>';
+}
+/* Kolom 3 — permintaan Sudana: "history time untuk 1 jam pertama (1 min ago s/d
+   59 min ago), lewat satu jam tertulis time masuknya saja."
+   Ditulis "12 mnt" tanpa kata "lalu": kolomnya hanya selebar ±46px dan kata itu
+   memaksa pembungkusan baris. Kabar dari hari sebelumnya diberi tanggal — jam
+   telanjang "07.48" pada kabar tiga hari lalu menyesatkan, bukan meringkas. */
+function notifWaktuTeks(ms){
+ if(!ms) return "";
+ var d=Date.now()-ms;
+ if(d<0) d=0;
+ if(d<60000) return "baru";
+ if(d<3600000) return Math.floor(d/60000)+" mnt";
+ var t=new Date(ms);
+ var jam=('0'+t.getHours()).slice(-2)+"."+('0'+t.getMinutes()).slice(-2);
+ if(t.toDateString()===new Date().toDateString()) return jam;
+ return ('0'+t.getDate()).slice(-2)+'/'+('0'+(t.getMonth()+1)).slice(-2);
+}
+/* Aging untuk Row 2 — berapa lama kabar ini sudah menunggu ditindak. */
+function notifUsiaTeks(ms){
+ if(!ms) return "";
+ var d=Date.now()-ms; if(d<0) d=0;
+ var m=Math.floor(d/60000);
+ if(m<60) return m+" mnt";
+ var j=Math.floor(m/60);
+ if(j<24) return j+" jam";
+ return Math.floor(j/24)+" hari";
+}
+/* DUA UKURAN SAJA. Kecil = kabar ringkas (judul muat satu baris, sedikit meta).
+   Sedang = selebihnya. Sengaja tidak ada ukuran ketiga: begitu tinggi kotak
+   mengikuti isi, daftar kehilangan garis pijak dan jadi melelahkan dibaca. */
+function notifUkuran(n){
+ /* Pembedanya HARUS bidang yang benar-benar berbeda antar kabar. Percobaan
+    pertama memakai "jumlah potongan meta ≥2" — dan tidak pernah menghasilkan
+    kartu kecil satu pun, sebab `status` selalu terisi dan `aging` selalu bisa
+    dihitung, jadi setiap kabar otomatis punya dua. Yang betul-betul berbeda
+    cuma dua: panjang judul, dan ada/tidaknya PEMOHON. Kabar yang menyeret
+    orang (approval, tiket) memang berisi lebih banyak; pemberitahuan sistem
+    ("Genset diuji") tidak — dan itulah yang pantas mendapat kotak kecil. */
+ var panjang=String(n.alert||n.module||"").length>40;
+ return (panjang || n.req) ? "m" : "s";
+}
+function notifKartuHTML(n,dalamDek){
+ var meta=notifModMeta(n.mod);
+ var blm=!notifSeen(n.key);
+ var uk=notifUkuran(n);
+ var bagian=[n.aging?"⏱ "+n.aging:"", n.status||"", n.req||""].filter(Boolean);
+ /* Kartu KECIL hanya punya dua baris teks. Supaya tidak ada keterangan yang
+    hilang, satu-satunya potongan meta yang dimilikinya (menurut notifUkuran,
+    kecil berarti ≤1 potongan) ditumpangkan ke baris nama modul — bukan dibuang. */
+ var baris2=(uk==="m")?bagian.join(" · "):"";
+ /* Kartu kecil: nama modul + status saja. Aging sengaja ditinggalkan di sini —
+    pada pemberitahuan sistem yang baru masuk, "⏱ 0 mnt" tidak mengabarkan apa
+    pun, dan kolom waktu di kanan sudah menyatakan hal yang sama dengan lebih
+    ringkas. */
+ var baris3=(uk==="m")?meta.label:[meta.label, n.status||""].filter(Boolean).join(" · ");
+ var aksi="notifOpen('"+n.key+"','"+(n.open||"")+"','"+(n.doc||"")+"')";
+ return '<div class="nfc nfc-'+uk+' '+(blm?'blm':'dibaca')+'"'+
+   ' style="--nfc-c:'+meta.col+';--nfbg:'+meta.col+'14"'+
+   ' onclick="'+aksi+'">'+
+   '<span class="nfc-ic">'+notifModIcon(meta)+'</span>'+
+   '<div class="nfc-tx">'+
+     '<div class="nfc-t">'+esc(n.alert||n.module||"")+'</div>'+
+     (baris2?'<div class="nfc-r2">'+esc(baris2)+'</div>':'')+
+     '<div class="nfc-r3">'+esc(baris3)+'</div>'+
+   '</div>'+
+   /* Kolom 3 = waktu, dan di bawahnya tombol buang bila kabar ini memang boleh
+      dibuang. Tanpa ini, kabar bebas (NOTIFS) tidak punya cara hilang sama
+      sekali — daftar lama punya ✕, dan kemampuan itu tidak boleh ikut hilang
+      hanya karena tata letaknya berganti. Approval/tiket/payment tetap tidak
+      bisa dibuang: ia lenyap sendiri saat pekerjaannya beres. */
+   '<span class="nfc-w">'+esc(notifWaktuTeks(n.at))+
+     (notifBisaBuang(n)?'<button class="nfc-x" title="Buang dari kotak notifikasi" aria-label="Buang notifikasi"'+
+       ' onclick="notifBuang(\''+n.key+'\','+(n.followId?"'"+n.followId+"'":'null')+',event)">✕</button>':'')+
+   '</span>'+
+ '</div>';
+}
+/* Dek per modul: tertutup → satu kartu terbaru + dua lapis di belakang + angka
+   sisanya. Diketuk → semua kabar modul itu terbuka ke bawah; kartu di dalamnya
+   baru mengantar ke halaman modulnya. Ketuk "Tutup" → mengecil lagi. */
+let NOTIF_DEK={};
+function notifDekToggle(mod){
+ NOTIF_DEK[mod]=!NOTIF_DEK[mod];
+ try{ renderNotif(); }catch(e){}
+ try{ if(active==="reminder") renderReminder(); }catch(e){}
+}
+/* Kelompokkan per modul, urut: yang punya kabar belum dibaca dulu, lalu terbaru. */
+function notifKelompok(items){
+ var peta={}, urut=[];
+ items.forEach(function(n){
+   var k=n.mod||"reminder";
+   if(!peta[k]){ peta[k]={mod:k, rows:[]}; urut.push(peta[k]); }
+   peta[k].rows.push(n);
+ });
+ urut.forEach(function(g){
+   g.rows.sort(function(a,b){ return (b.at||0)-(a.at||0); });
+   g.blm=g.rows.filter(function(x){ return !notifSeen(x.key); }).length;
+   g.baru=g.rows.reduce(function(m,x){ return Math.max(m,x.at||0); },0);
+ });
+ urut.sort(function(a,b){ return (b.blm?1:0)-(a.blm?1:0) || (b.baru-a.baru); });
+ return urut;
+}
+function notifDaftarHTML(items){
+ if(!items.length) return "";
+ return notifKelompok(items).map(function(g){
+   var meta=notifModMeta(g.mod);
+   if(g.rows.length===1) return '<div class="nfd">'+notifKartuHTML(g.rows[0])+'</div>';
+   var buka=!!NOTIF_DEK[g.mod];
+   if(buka){
+     return '<div class="nfd">'+g.rows.map(function(n){ return notifKartuHTML(n,true); }).join("")+
+       '<button class="nfd-tutup" onclick="notifDekToggle(\''+g.mod+'\')">▴ Tutup '+esc(meta.label)+
+       ' — '+g.rows.length+' notifikasi</button></div>';
+   }
+   /* Tertutup: kartu terbaru saja. Klik di mana pun pada dek = buka dek,
+      BUKAN pindah halaman — supaya tumpukan tidak pernah membuka modul yang
+      keliru hanya karena kartu teratas kebetulan milik kabar lain. */
+   var atas=notifKartuHTML(g.rows[0]).replace(/onclick="[^"]*"/,
+     'onclick="notifDekToggle(\''+g.mod+'\')"');
+   return '<div class="nfd tumpuk" style="--nfc-c:'+meta.col+'">'+
+     atas+
+     '<span class="nfd-l nfd-l1"></span><span class="nfd-l nfd-l2"></span>'+
+     '<span class="nfd-n">+'+(g.rows.length-1)+'</span></div>';
+ }).join("");
+}
 function notifUnseenCount(){ notifSeenEnsure(); return notifItems().filter(function(i){ return !NOTIF_SEEN[i.key]; }).length; }
 /* klik item → tandai dilihat, lalu buka modulnya / tuntaskan notif */
 /* doc = nomor SO → buka Dokumen SO + lampiran langsung dari notifikasi. */
@@ -14219,8 +14441,7 @@ function renderReminder(){
   ${clarifyReminderHTML()}
   <div class="card sec"><div class="sec-h">${secIc('#fdecec','#dc2626','reminder')}<div><h2>Log Notifikasi & Tindakan</h2><div class="d">Peringatan & persetujuan dari seluruh modul AGAVA · <b>${unseenN} belum ditindak</b> dari ${items.length} item</div></div>${items.length?`<button class="btn-out" style="margin-left:auto;padding:6px 12px;font-size:calc(11.5px*var(--fz))" onclick="notifMarkAllSeen()">✓ Tandai semua dibaca</button>`:''}</div>
     <div class="sec-body">
-      ${items.length?`<div class="nlog-head"><span>Module</span><span>Alert</span><span>Status</span><span>Action</span><span></span></div>
-      ${items.map(n=>{const uns=!notifSeen(n.key);return `<div class="nlog-row${uns?' unseen':''}"><span class="nmod">${uns?'<i class="ndot"></i>':''}${n.module}</span><span class="nalert">${n.alert}</span><span><span class="badge ${n.cls}">${n.status}</span></span><span class="naction">${n.action}</span><span style="display:flex;gap:6px;align-items:center">${n.open?`<button class="btn-out" style="padding:7px 11px;font-size:calc(12px*var(--fz))" onclick="notifOpen('${n.key}','${n.open}','${n.doc||''}')">${n.doc?'📄 Buka SO PDF':'Buka'}</button>`:`<button class="btn-act" style="padding:7px 12px;font-size:calc(12px*var(--fz))" onclick="notifFollowUp('${n.key}',${n.followId?`'${n.followId}'`:'null'})">Follow up</button>`}${notifBisaBuang(n)?`<button class="btn-out" title="Buang dari kotak notifikasi" style="padding:7px 10px;font-size:calc(12px*var(--fz));color:var(--muted)" onclick="notifBuang('${n.key}',${n.followId?`'${n.followId}'`:'null'},event)">✕</button>`:''}</span></div>`;}).join("")}`
+      ${items.length?notifDaftarHTML(items)
       :'<div style="text-align:center;padding:40px;color:var(--green);font-weight:600">✅ Semua beres — tidak ada notifikasi aktif.</div>'}
     </div>
   </div>
@@ -17076,7 +17297,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-189";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-190";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
