@@ -17336,7 +17336,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-193";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-194";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -19286,6 +19286,31 @@ function agavaBoot(){
  setTimeout(tutup,3400);   // BATAS KERAS — apa pun yang menggantung, bumper tetap menutup
  var lanjut=function(fu){
    var s=sesiBaca();
+   /* ╔══ IDENTITAS SESI DIPULIHKAN, BUKAN DIBUANG (4 Agu 2026) ══════════════╗
+      Laporan Sudana: "kenapa di akun sudana.visudha saya TETAP harus memasukan
+      password, seharusnya kan ke Pin Page."
+
+      `pulih` menuntut s.uid===fu.uid PERSIS. Catatan sesi ditulis applyLogin
+      dengan `(_fu&&_fu.uid)||u.email` — EMAIL sebagai cadangan bila
+      firebase.auth().currentUser belum siap pada detik login itu. Sekali saja
+      cadangan itu terpakai, s.uid berisi email sementara fu.uid berisi uid
+      Firebase, dan perbandingannya gagal SELAMANYA — sebab cabang pembersih di
+      bawah hanya membuang catatan yang KEDALUWARSA, tidak yang identitasnya
+      meleset. Catatan cacat itu mengendap dan menggagalkan SETIAP boot
+      berikutnya: password lagi, password lagi, tanpa pernah sampai layar PIN.
+
+      Perbaikannya bukan membuang catatan itu (jendela 7 harinya ikut hilang),
+      melainkan MEMINDAHKANNYA ke uid yang benar — termasuk PIN yang mungkin
+      ikut terdaftar di bawah kunci email yang sama.                          */
+   if(fu && s && sesiSegar(s) && s.uid!==fu.uid &&
+      String(s.email||"").toLowerCase()===String(fu.email||"").toLowerCase()){
+     try{ var p=pinSemua();
+          if(p[s.uid] && !p[fu.uid]){ p[fu.uid]=p[s.uid]; delete p[s.uid]; pinSimpanSemua(p); }
+     }catch(e){}
+     console.warn("sesi: identitas dipindahkan",s.uid,"→",fu.uid);
+     sesiTulis({uid:fu.uid,email:fu.email});
+     s=sesiBaca();
+   }
    var pulih = fu && s && sesiSegar(s) && (s.uid===fu.uid);
    if(pulih){
      var u=USERS.find(function(x){ return (x.email||"").toLowerCase()===String(fu.email||"").toLowerCase(); });
@@ -19295,11 +19320,24 @@ function agavaBoot(){
        tutup(); applyLogin(u); return;                  // belum pasang PIN → langsung masuk
      }
    }
+   /* Kenapa jatuh ke Login penuh — dicetak supaya keluhan berikutnya bisa
+      dijawab dengan sebab, bukan dugaan. */
+   console.warn("AGAVA login penuh — sebab:", !fu?"Firebase Auth tidak memulihkan sesi (beda origin / storage dibersihkan)"
+     : !s?"tidak ada catatan sesi di perangkat ini"
+     : !sesiSegar(s)?"catatan sesi lewat "+SESI_HARI+" hari"
+     : (s.uid!==fu.uid)?"uid sesi tidak cocok & emailnya pun berbeda"
+     : "email tidak terdaftar di daftar USERS aplikasi");
    /* sesi tidak ada / kedaluwarsa / akun tak dikenal → Login penuh */
    if(fu && s && !sesiSegar(s)){
      try{ firebase.auth().signOut(); }catch(e){}
      sesiHapus();
    }
+   /* Catatan sesi yang sudah terbukti tidak terpakai JANGAN ditinggalkan: ia
+      akan menggagalkan boot berikutnya dengan cara yang sama. Hanya dibuang
+      saat Auth memang punya pengguna (jadi ketidakcocokannya pasti), bukan saat
+      fu null — sebab kegagalan memulihkan Auth bisa cuma gangguan sesaat, dan
+      membuangnya di situ berarti mencabut jendela 7 hari tanpa alasan. */
+   if(fu && s && !pulih) sesiHapus();
    tutup();
    var l=document.getElementById("login"); if(l) l.classList.remove("hide");
  };
