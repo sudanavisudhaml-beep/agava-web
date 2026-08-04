@@ -7821,7 +7821,11 @@ function soDocHTML(s){
  var dept=SO_SIGN[(s.aktor&&s.aktor.dept)]||SO_SIGN['Leonardus Ariyanto Satriawan'];
  if(s.aktor&&s.aktor.dept&&!SO_SIGN[s.aktor.dept]) dept={label:s.aktor.dept,role:"Yang Berwenang"};
  var secOk=s.apprSection==='Approved', deptOk=s.apprDept==='Approved';
- var budgetMark=s.apprBudget==='Approved'?('PIC Budget : OK <span class="sod-ts">('+((s.tsf&&s.tsf.budget)||soDocDateStr())+')</span>'):(s.apprBudget==='Escalated'?('PIC Budget : Ekskalasi <span class="sod-ts">('+((s.tsf&&s.tsf.budget)||'')+')</span>'):'PIC Budget : —');
+ /* Dideklarasikan SEBELUM budgetMark & procMark — keduanya memakainya. */
+ var autoG=(s.auto||[]);
+ var autoSec=autoG.indexOf('Section Head')>=0, autoProc=autoG.indexOf('Procurement')>=0,
+     autoBud=autoG.indexOf('Budget')>=0;
+ var budgetMark=s.apprBudget==='Approved'?('PIC Budget : OK <span class="sod-ts">('+((s.tsf&&s.tsf.budget)||soDocDateStr())+(autoBud?' · disetujui otomatis':'')+')</span>'):(s.apprBudget==='Escalated'?('PIC Budget : Ekskalasi <span class="sod-ts">('+((s.tsf&&s.tsf.budget)||'')+')</span>'):'PIC Budget : —');
  /* ── PENANDA "DISETUJUI OTOMATIS" ────────────────────────────────────────
     Keputusan Sudana: penandanya cukup di kolom tanda tangan orang yang
     bersangkutan dan di kolom tanggal approve PIC Procurement — selebihnya
@@ -7829,8 +7833,6 @@ function soDocHTML(s){
     keuangan, auditor) tahu gerbang itu dilewati pembuatnya sendiri, bukan
     diperiksa orang lain. Menyembunyikannya akan membuat dokumen menyatakan
     sesuatu yang tidak benar. */
- var autoG=(s.auto||[]);
- var autoSec=autoG.indexOf('Section Head')>=0, autoProc=autoG.indexOf('Procurement')>=0;
  var procMark=s.apprProc==='Approved'?('PIC Procurement : OK <span class="sod-ts">('+((s.tsf&&s.tsf.proc)||soDocDateStr())+(autoProc?' · disetujui otomatis':'')+')</span>'):'PIC Procurement : —';
  var fup=s.fup||soStaffInit(s.staffPIC||s.pic||'')||'—';
  var logoSrc=(document.querySelector('.logo-img')||{}).src||'';
@@ -8207,16 +8209,28 @@ function soAutoGerbang(so){
      so.ts.section=nowStamp(); so.tsf.section=nowStampDoc();
      auto.push("Section Head");
    }
-   /* Procurement — gerbang lintas kategori. Ikut lewat bila pembuatnya memang
-      pemegangnya. Penugasan Staff Procurement TIDAK ikut diputuskan otomatis:
-      memilih orang adalah keputusan, bukan formalitas. SO-nya ditandai
-      `perluTugas` supaya tidak diam-diam berjalan tanpa PIC. */
+   /* ── GERBANG LINTAS KATEGORI — TIDAK TERIKAT URUTAN ────────────────────
+      Procurement biasanya giliran SESUDAH Budget, dan Budget sesudah Section.
+      Untuk SO buatan pemegang gerbangnya sendiri, urutan itu tidak relevan: ia
+      toh akan menyetujuinya, mau sekarang atau nanti. Jadi gerbangnya ditandai
+      lunas SEKARANG, dan soPhase() — yang murni menurunkan giliran dari status
+      tiap gerbang — otomatis melompat ke gerbang berikut yang masih kosong.
+      Dua orang ini justru saling memeriksa: SO Sudana tetap lewat Yessy
+      (Budget), SO Yessy tetap lewat Sudana (Procurement). Tidak ada yang bisa
+      meloloskan SO-nya sendiri sampai akhir. */
    if(tiers.indexOf("Procurement")>=0 && so.apprProc!=="Approved"){
      so.apprProc="Approved";
      so.ts=so.ts||{}; so.tsf=so.tsf||{};
      so.ts.proc=nowStamp(); so.tsf.proc=nowStampDoc();
      if(!so.staffPIC) so.perluTugas=true;
      auto.push("Procurement");
+   }
+   /* Budget — gerbang Yessy (role Section Head + tiers:["Budget"]). */
+   if(tiers.indexOf("Budget")>=0 && so.apprBudget!=="Approved" && so.apprBudget!=="Escalated"){
+     so.apprBudget="Approved";
+     so.ts=so.ts||{}; so.tsf=so.tsf||{};
+     so.ts.budget=nowStamp(); so.tsf.budget=nowStampDoc();
+     auto.push("Budget");
    }
    if(!auto.length) return so;
    so.auto=auto;
@@ -13920,10 +13934,18 @@ async function submitSO(){
  /* Unggah lampiran ke Storage SETELAH nomor SO ada, supaya berkasnya rapi per SO
     dan URL-nya (bukan base64) yang tersimpan → approver mana pun bisa melihat. */
  att=await soUploadAttachments(att,no);
- const isSec=(gRole==="section");   // Section Head buat SO sendiri → gate Section otomatis lewat
+ /* Dulu: `isSec=(gRole==="section")` → SETIAP Section Head yang membuat SO
+    otomatis melewati gerbang Section, TERMASUK untuk kategori milik Section
+    Head lain. Itu terlalu longgar dan bertentangan dengan aturan yang
+    ditetapkan Sudana: wewenang Section terikat KATEGORI. Penilaiannya pindah
+    seluruhnya ke soAutoGerbang(). */
  const so={no,item:itemStr,items:rows,lokasi:lokasi,req:req,requester:req,deptDiv:deptDiv,pic:"",staffPIC:"",nilai:nilai,jenis:"Goods",kategori:kat,budgetFlag:budget,vendor:"",fup:"",attachments:att.images,pdfAttachments:att.pdfs,
-   apprSection:isSec?"Approved":"Pending",sectionBy:"",apprBudget:isSec?"Pending":"—",apprProc:"—",apprDept:"—",wstep:0,ts:{created:nowStamp()},tsf:{},invStatus:"",spkNo:"",stage:0,aging:"On Track"};
- so.sectionBy=soSectionApprover(so); if(isSec){ so.sectionBy=req; so.tsf.section=nowStampDoc(); so.ts.section=nowStamp(); }
+   apprSection:"Pending",sectionBy:"",apprBudget:"—",apprProc:"—",apprDept:"—",wstep:0,ts:{created:nowStamp()},tsf:{},invStatus:"",spkNo:"",stage:0,aging:"On Track"};
+ /* sectionBy SELALU dari peta kategori. Auto-approve tidak lagi diputuskan di
+    sini — soAutoGerbang() yang menilainya, dan ia menilai per KATEGORI, bukan
+    per role. Bedanya nyata: Elok ber-role Section Head, tapi SO yang ia buat
+    di kategori Yessy tetap harus lewat Yessy. */
+ so.sectionBy=soSectionApprover(so);
  soAutoGerbang(so);          // gerbang yang MEMANG dipegang pembuatnya → lewat otomatis
  draftClearAfterSubmit(); SO.unshift(so); soPersist();
  /* SO ini lahir dari tiket eskalasi → tautkan balik supaya eskalasinya tertutup
@@ -17703,7 +17725,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-201";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-202";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
