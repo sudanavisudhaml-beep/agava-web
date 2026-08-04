@@ -4487,7 +4487,15 @@ const ROLES={
  fieldsup:{label:"Field Ops Supervisor",tier:"Procurement",menus:["service","fieldops","procurement","approvals"]}   // supervisor — terima eskalasi, buat SO
 };
 const USERS=[
- {email:"sudana.visudha@ai.astra.co.id",name:"Sudana Visudha",role:"admin"},
+ /* Sudana memegang DUA gerbang sungguhan, bukan sekadar hak Owner:
+      · Section Head — kategori HSE & Sustainability (lihat SECTION_MAP)
+      · Procurement  — PIC Procurement untuk SELURUH SO, lintas kategori
+    Gerbang Procurement dideklarasikan di `tiers` supaya ia bertindak SEBAGAI
+    pemegang gerbangnya — bukan lewat jalur "override Owner". Bedanya penting
+    untuk audit: yang satu wewenang yang memang dimilikinya, yang satu lagi
+    pengambilalihan milik orang lain. Jangan disamakan hanya karena orangnya
+    kebetulan sama. */
+ {email:"sudana.visudha@ai.astra.co.id",name:"Sudana Visudha",role:"admin",tiers:["Procurement"]},
  {email:"dedi@ai.astra.co.id",name:"Dedi Kusnodihardjo",role:"staffga"},
  {email:"susi.hariyanti@ai.astra.co.id",name:"Susi Hariyanti Kusuma",role:"staffga"},
  {email:"matilda.esther@ai.astra.co.id",name:"Matilda Esther Rotinsulu",role:"chief"},
@@ -15009,7 +15017,21 @@ function soApprovalCard(s){
     Section Head (mengambil alih saat Section Head berhalangan — mis. cuti).
     Gerbang Budget, Procurement, Dept Head, Division Head, dan Chief CHCD
     tampil sebagai pantauan saja: tidak ada tombol aksi. */
- const pantauSaja = isOwner() && g!=="Section Head";
+ /* ── GERBANG YANG MEMANG DIPEGANG vs GERBANG YANG DIAMBIL ALIH ────────────
+    Dulu Owner dikunci ke Section Head saja. Itu keliru untuk orang yang
+    sungguh-sungguh memegang gerbang lain: Sudana adalah PIC Procurement untuk
+    seluruh SO, jadi menahannya di sana memaksa ia login dari akun kedua di HP
+    kedua — bukan kontrol, cuma kerepotan yang mendorong orang mencari jalan
+    pintas.
+    Sekarang dibedakan tegas:
+      · gerbang yang ADA di `tiers` akun ini  → wewenangnya sendiri, boleh
+      · gerbang di OWNER_OVERRIDE            → pengambilalihan, boleh & dicatat
+      · selebihnya                            → pantau saja
+    Perbedaan itu bukan kosmetik: yang pertama tidak perlu dipertanyakan
+    auditor, yang kedua harus. */
+ const tierDipegang = (function(){ try{ return userTiers(gUser,gRole)||[]; }catch(e){ return []; } })();
+ const punyaGerbang = tierDipegang.indexOf(g)>=0;
+ const pantauSaja = isOwner() && !punyaGerbang && OWNER_OVERRIDE.indexOf(g)<0;
  const head=`<div><b class="sono">${s.no}</b> · <span style="font-weight:600;color:var(--ink)">${s.item}</span></div>
    <div class="muted small" style="margin-top:4px">Requester: ${s.requester||s.req} · ${s.jenis||"—"} · Est. <b style="color:var(--ink)">${soNilaiTeks(s)}</b>${s.budgetFlag?` · Budget: ${s.budgetFlag}`:""}${esc?` · <span class="badge bd-warn">Eskalasi (budget tdk ada)</span>`:""}${s.spec?`<br>Spec: ${s.spec}${s.qty?` · Qty: ${s.qty}`:""}`:""}</div>`;
  const clarBox = s.clarify ? `<div class="card pad" style="background:#f8fafd;margin-top:8px;font-size:calc(12.5px*var(--fz))"><b>📝 Klarifikasi (${s.clarify.by}):</b> ${s.clarify.note}${s.clarify.answered?`<br><b style="color:var(--green)">Jawaban ${s.requester||s.req}:</b> ${s.clarify.answer}`:` <span class="badge bd-info" style="margin-left:4px">menunggu jawaban requester</span>`}</div>` : "";
@@ -17615,7 +17637,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-199";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-200";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
