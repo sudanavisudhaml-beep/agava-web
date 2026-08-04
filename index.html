@@ -334,6 +334,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   background:linear-gradient(135deg,#00c6fb,#0a7cff 55%,#0059e8);box-shadow:0 10px 26px rgba(10,124,255,.34),inset 0 1px 0 rgba(255,255,255,.4);transition:.16s}
 .login-btn:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(10,124,255,.46),inset 0 1px 0 rgba(255,255,255,.4)}
 .login-msg{font-size:calc(12px*var(--fz));color:var(--red);min-height:14px;margin:8px 0 0;text-align:center}
+/* Keterangan kenapa kata sandi diminta — nada tenang (abu), bukan galat merah:
+   ini penjelasan, bukan kesalahan orangnya. */
+.login-sebab{font-size:calc(11px*var(--fz));color:var(--muted);line-height:1.5;margin:6px 2px 0;text-align:center}
 .lf-demo-h{margin:18px 0 8px;font-size:calc(10px*var(--fz));font-weight:700;letter-spacing:.09em;color:#0a7cff}
 .lf-hint2{margin:16px 0 4px;font-size:calc(12px*var(--fz));color:#4a6187;line-height:1.6}
 .lf-hint2 span{font-size:calc(11px*var(--fz));color:#8aa0bd}
@@ -17353,7 +17356,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-195";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-196";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -19337,13 +19340,28 @@ function agavaBoot(){
        tutup(); applyLogin(u); return;                  // belum pasang PIN → langsung masuk
      }
    }
-   /* Kenapa jatuh ke Login penuh — dicetak supaya keluhan berikutnya bisa
-      dijawab dengan sebab, bukan dugaan. */
-   console.warn("AGAVA login penuh — sebab:", !fu?"Firebase Auth tidak memulihkan sesi (beda origin / storage dibersihkan)"
-     : !s?"tidak ada catatan sesi di perangkat ini"
-     : !sesiSegar(s)?"catatan sesi lewat "+SESI_HARI+" hari"
-     : (s.uid!==fu.uid)?"uid sesi tidak cocok & emailnya pun berbeda"
-     : "email tidak terdaftar di daftar USERS aplikasi");
+   /* ── SEBABNYA DITULIS DI LAYAR, BUKAN CUMA DI CONSOLE ────────────────────
+      Sudana: "kenapa saya masih harus melewati login page… saya khawatir
+      terjadi di akun-akun lain." Kekhawatiran yang tepat, dan menebak-nebak
+      dari jauh sudah dua kali tidak menyelesaikannya. Sebabnya sekarang
+      dicetak di halaman Login itu sendiri: HP tidak punya console yang mudah
+      dibuka, jadi keterangan yang hanya masuk console sama saja tidak ada.
+      Kalimatnya menyebut keadaan perangkat, bukan data pribadi.              */
+   var sebab = !fu ? "sesi Firebase di perangkat ini tidak pulih — biasanya karena AGAVA dibuka dari alamat yang berbeda dengan tempat Anda login, atau penyimpanan browsernya dibersihkan"
+     : !s ? "perangkat ini belum punya catatan sesi (login pertama di sini, atau pernah menekan Keluar)"
+     : !sesiSegar(s) ? "catatan sesi sudah lewat "+SESI_HARI+" hari"
+     : (s.uid!==fu.uid) ? "catatan sesi milik akun lain di perangkat ini"
+     : "email ini belum terdaftar di daftar pengguna AGAVA";
+   console.warn("AGAVA login penuh — sebab:", sebab, {adaAuth:!!fu, adaSesi:!!s,
+     segar:!!(s&&sesiSegar(s)), adaPIN:!!(fu&&pinAda(fu.uid)), origin:location.origin});
+   try{
+     var d=document.getElementById("loginSebab");
+     if(!d){ d=document.createElement("div"); d.id="loginSebab"; d.className="login-sebab";
+       var m=document.getElementById("loginMsg");
+       if(m&&m.parentNode) m.parentNode.insertBefore(d,m.nextSibling);
+     }
+     if(d) d.textContent="Perlu kata sandi karena "+sebab+".";
+   }catch(e){}
    /* sesi tidak ada / kedaluwarsa / akun tak dikenal → Login penuh */
    if(fu && s && !sesiSegar(s)){
      try{ firebase.auth().signOut(); }catch(e){}
