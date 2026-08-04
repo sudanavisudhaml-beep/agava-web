@@ -17336,7 +17336,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-192";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-193";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -18861,6 +18861,38 @@ function kaPassword(email){
  if(pw.length<6){ alert("⛔ Password minimal 6 karakter."); return; }
  kaAksi({aksi:"password",email:email,password:pw},null);
 }
+/* ── TAMBAH AKUN (4 Agu 2026) ──────────────────────────────────────────────
+   Sudana: "kenapa akun sunaryo2@ai.astra.co.id belum ditambahkan? ada masalah
+   apa?" Jawabannya: panel ini bisa mengatur ulang, menonaktifkan, dan menghapus
+   akun — tapi TIDAK PERNAH bisa membuat. Nama Sunaryo sudah lama ada di daftar
+   USERS aplikasi lengkap dengan peran & modulnya; yang tidak ada adalah akun
+   Firebase Auth-nya, dan satu-satunya jalan membuatnya adalah Firebase Console.
+   Karena itu ia tak pernah dibuat. Sekarang jalannya ada di dalam AGAVA.
+
+   Password diketik Owner di sini dan langsung dikirim ke server; tidak disimpan
+   di halaman, tidak ditulis di kode, dan tidak ikut tercatat di jejak audit. */
+function kaTambah(){
+ var em=prompt("➕ TAMBAH AKUN AGAVA\n\nEmail (harus @ai.astra.co.id):","");
+ if(em===null) return;
+ em=String(em).trim().toLowerCase();
+ if(!/^[a-z0-9._%+-]+@ai\.astra\.co\.id$/.test(em)){ alert("⛔ Email harus berdomain @ai.astra.co.id."); return; }
+ if(KA.akun.some(function(a){ return String(a.email).toLowerCase()===em; })){
+   alert("⛔ "+em+" sudah terdaftar.\n\nPakai \"Atur ulang password\" bila ingin menggantinya."); return; }
+ /* Nama diambil dari daftar USERS bila emailnya memang sudah dikenal aplikasi —
+    sekaligus jadi peringatan dini kalau ternyata belum. */
+ var kenal=(typeof USERS!=="undefined")?USERS.find(function(u){ return String(u.email).toLowerCase()===em; }):null;
+ var nm=prompt("Nama lengkap untuk "+em+":", kenal?kenal.name:"");
+ if(nm===null) return;
+ var pw=prompt("Password awal untuk "+em+"\n\nMinimal 6 karakter. Minta orangnya segera menggantinya lewat \"Lupa PIN / ganti password\".","");
+ if(pw===null) return;
+ pw=String(pw).trim();
+ if(pw.length<6){ alert("⛔ Password minimal 6 karakter."); return; }
+ var ingat=kenal?"" :
+   "\n\n⚠️ CATATAN: "+em+" BELUM ada di daftar USERS aplikasi, jadi perannya belum dikenali "+
+   "dan ia akan ditolak saat login. Tambahkan dulu emailnya di daftar USERS.";
+ if(!confirm("Buat akun "+em+(kenal?" ("+kenal.name+")":"")+"?"+ingat)) return;
+ kaAksi({aksi:"buat",email:em,nama:String(nm).trim(),password:pw},null);
+}
 function kaToggle(email,mati){
  kaAksi({aksi:mati?"nonaktif":"aktif",email:email},
    mati ? "Nonaktifkan "+email+"?\n\nAkun tidak bisa login sampai diaktifkan lagi. Datanya tidak dihapus."
@@ -18918,6 +18950,8 @@ function kaIsiHTML(){
    (mati?' · <b style="color:var(--red)">'+mati+' nonaktif</b>':'')+
    ' · <a href="#" onclick="kaMuat();return false;">muat ulang</a> · <a href="#" onclick="kaKunci();return false;">kunci lagi</a>'+
    (KA.sibuk?' · <b>memproses…</b>':'')+'</div>'+
+   '<button class="btn-act" style="margin:10px 0 4px" onclick="kaTambah()"'+(KA.sibuk?' disabled':'')+
+     '>＋ Tambah Akun</button>'+
    '<div class="ka-rows">'+KA.akun.map(kaBarisHTML).join("")+'</div>';
 }
 function kaRender(){
