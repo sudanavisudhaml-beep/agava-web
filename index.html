@@ -7959,7 +7959,27 @@ function normalizeSO(){SO.forEach(s=>{
  if(s.tsf===undefined)s.tsf={};
  if(s.invStatus===undefined)s.invStatus=(s.wstep>=4)?"Menunggu Invoice":"";
  if(s.spkNo===undefined)s.spkNo=s.wstep>=3?("SPK-202606-"+String(140+(parseInt(String(s.no).replace(/\D/g,"").slice(-4),10)||0)).padStart(4,"0")):"";
- if(s.wstep>=4&&!s.bastDate)s.bastDate="2026-06-11";
+ /* Baris `if(s.wstep>=4&&!s.bastDate)s.bastDate="2026-06-11";` DIBUANG 4 Agu 2026.
+    Ia menempelkan tanggal serah terima KARANGAN ke SO nyata pada setiap boot —
+    sumber dummy kedua di samping seedInvoices(). Tanggal BAST hanya boleh datang
+    dari orang yang benar-benar menyerahkan pekerjaan. */
+ /* ── SISA DATA INVOICE/BAST KARANGAN DIBUANG DARI TAMPILAN ─────────────────
+    Invoice & BAST secara alur hanya mungkin ada SESUDAH serah terima (wstep>=4).
+    SO yang masih wstep<4 tapi memuat invReceived/bastDate berarti bidang itu
+    bukan hasil kerja siapa pun — ia endapan seedInvoices() lama yang terlanjur
+    mengeram di cache perangkat dan dokumen cloud. Bukti paling telak: SO-0036
+    dibuat 3 Agustus namun "menerima invoice" 4 Juni, dua bulan sebelum SO-nya
+    ada.
+    Dibersihkan DI MEMORI saja — TIDAK ada tulis-balik dari jalur boot (aturan
+    "data live tak boleh ditimpa jalur boot"). Efeknya: layar langsung jujur di
+    semua perangkat, cache lokal ikut bersih pada soPersistLokal berikutnya, dan
+    karena dbStripSO membaca objek yang sudah bersih, bidang ini tidak bisa
+    terkirim ulang ke cloud. dbSaveSOAll memakai set(merge:true) yang tidak
+    menghapus bidang absen, jadi dokumen cloud tidak ikut terhapus diam-diam. */
+ if((+s.wstep||0)<4){
+   ["invNominal","invReceived","invRecvDate","invProcessed","invProcDate",
+    "invReleased","invReleaseDate","invStep","bastDate"].forEach(function(k){ delete s[k]; });
+ }
 });}
 /* Persistensi SO — SO yang dibuat/di-approve di aplikasi tersimpan agar tidak hilang saat refresh */
 const SO_STORE="agava_so_v1";
@@ -11810,21 +11830,20 @@ function renderChat(){
 }
 function renderNotif(){
  var el=document.getElementById("page-notif"); if(!el)return;
- var inb=mInbox();
  var items=(typeof notifItems==="function"?notifItems():[]);
  var unseenN=items.filter(function(i){return !notifSeen(i.key);}).length;
  var head='<div class="m-page-h"><div class="m-page-t">Notifikasi'+(unseenN?' <span class="m-notif-cnt">'+unseenN+'</span>':'')+'</div>'+
    '<div class="m-page-s">Yang tebal belum Anda tindak · ketuk untuk menandai sudah</div></div>';
- var inbox=inb.n>0?'<button class="m-notif-inbox" onclick="go(\''+inb.id+'\')">'+
-     '<span class="m-ni-ic">'+micSvg(inb.sv)+'</span>'+
-     '<span class="m-ni-tx"><b>'+esc(inb.label)+'</b><small>'+inb.n+' item menunggu tindakan Anda</small></span>'+
-     '<span class="m-ni-badge">'+inb.n+'</span></button>':'';
+ /* Kotak biru "Approval — N item menunggu tindakan Anda" DIBUANG (permintaan
+    Sudana). Sejak kabar dikelompokkan jadi dek per modul, ia mengulang persis
+    apa yang sudah dikatakan dek Approvals tepat di bawahnya — dan bottom bar
+    pun sudah memuat angka yang sama. Tiga tempat untuk satu kabar. */
  var markAll=unseenN?'<button class="m-markall" onclick="notifMarkAllSeen()">✓ Tandai semua dibaca</button>':'';
  /* Kartu Notification Center — perender yang SAMA dipakai Log Notifikasi di
     desktop, jadi kedua sisi tidak bisa saling mendahului. */
  var list=items.length?'<div style="margin-top:12px">'+notifDaftarHTML(items)+'</div>'
    :'<div class="mh-empty" style="margin-top:12px">Tidak ada notifikasi baru. Semua terpantau.</div>';
- el.innerHTML=head+inbox+markAll+list;
+ el.innerHTML=head+markAll+list;
 }
 
 /* ── HALAMAN: DISCOVER (informasi layanan GA) ── */
@@ -14248,7 +14267,16 @@ function notifModMeta(id){
  var col=NOTIF_MOD_COL[id]||"#667085";
  return {id:id, label:base.label, ic:base.ic, col:col};
 }
+/* Modul yang JUGA punya ubin di bottom bar memakai ikon BOTTOM BAR, bukan ikon
+   nav desktop. Sudana: "saya mau konsisten, gunakan icon seperti pada bottom
+   bar (perisai dengan cheklist)". Di HP bottom bar adalah navigasi yang paling
+   sering dilihat — kalau kartu notifikasi memakai lambang lain, satu modul jadi
+   punya dua wajah. Kuncinya sengaja disamakan dengan `sv` di mInbox(). */
+const NOTIF_MOD_MIC={approvals:"shield", myticket:"ticket", assigned:"bag",
+ payment:"inv", reminder:"bell", service:"head"};
 function notifModIcon(meta){
+ var k=NOTIF_MOD_MIC[meta.id];
+ if(k && typeof MIC!=="undefined" && MIC[k]) return '<svg viewBox="0 0 24 24">'+MIC[k]+'</svg>';
  var d=(typeof IC!=="undefined"&&IC[meta.ic])||(typeof IC!=="undefined"?IC.reminder:"");
  return '<svg viewBox="0 0 24 24">'+d+'</svg>';
 }
@@ -15820,17 +15848,23 @@ function invCard(s){
    <div style="margin-top:12px">${act}</div>
  </div>`;
 }
-function seedInvoices(){
- const set=(no,f)=>{ const s=SO.find(x=>x.no===no); if(s)Object.assign(s,f); };
- // SO-0035 (24jt, Division Head): MENUNGGU INVOICE — aging ≥5 HK → reminder ke Staff Budget
- set("SO-202606-0035",{bastDate:"2026-06-11"});
- // SO-0037 (8.5jt, Dept Head): Invoice DITERIMA, belum di-Proses
- set("SO-202606-0037",{invNominal:8.5,invReceived:true,invRecvDate:"2026-06-17",invStep:0});
- // SO-0036 (6.2jt, Dept Head): DI PROSES & LEWAT estimasi release → reminder f-up treasury
- set("SO-202606-0036",{invNominal:6.2,invReceived:true,invRecvDate:"2026-06-04",invProcessed:true,invProcDate:"2026-06-05",invStep:1});
- // SO-0005 (128jt, Chief CHCD): RELEASED
- set("SO-202606-0005",{invNominal:128,invReceived:true,invRecvDate:"2026-06-02",invProcessed:true,invProcDate:"2026-06-03",invReleased:true,invReleaseDate:"2026-06-16",invStep:3});
-}
+/* ╔══ seedInvoices() DIBUANG — 4 Agu 2026 ═══════════════════════════════════╗
+   Sudana melihat SO-202606-0036 di Payment Tracker & kotak Notifikasi dan
+   mengenalinya sebagai dummy. Benar, dan sumbernya fungsi ini: ia menempelkan
+   data invoice KARANGAN ke NOMOR SO NYATA, dan dijalankan pada SETIAP boot.
+
+   Itu persis pelanggaran aturan tertinggi repo ini — "data live tak boleh
+   ditimpa jalur boot". Buktinya ada di dokumen cloud: SO-0036 tercatat
+   invReceived+invProcessed padahal wstep-nya 0 (sourcing belum mulai), dan
+   SO-0005 tercatat invReleased padahal wstep-nya juga 0. Invoice dibayar untuk
+   pekerjaan yang belum pernah dimulai — mustahil, jadi jelas karangan.
+
+   Karena dijalankan tiap boot, sekali saja dokumennya tersimpan (klik apa pun
+   yang memicu tulis SO), karangan itu MENETAP di cloud. Membersihkan datanya
+   tanpa membuang fungsi ini akan sia-sia: boot berikutnya menempel lagi.
+
+   Data invoice yang sah masuk lewat modul Payment Tracker oleh Staff Budget,
+   bukan dari kode. JANGAN dihidupkan kembali.                                */
 function renderPayment(){
  const el=document.getElementById("page-payment"); if(!el)return;
  const rows=SO.filter(s=>s.wstep>=4);
@@ -17302,7 +17336,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-191";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-192";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -18953,7 +18987,7 @@ function renderParams(){
  paramPreview();
 }
 
-loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();selfCareLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();seedInvoices();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();rmdLoad();try{ rmdSweep(); }catch(e){}try{ sessionClear(); }catch(e){}   /* selalu mulai dari halaman Login — sesi tidak pernah dipulihkan */
+loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();selfCareLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();rmdLoad();try{ rmdSweep(); }catch(e){}try{ sessionClear(); }catch(e){}   /* selalu mulai dari halaman Login — sesi tidak pernah dipulihkan */
 /* Penjaga versi: periksa saat mulai, dan tiap kali aplikasi kembali ke depan —
    di HP/iPad aplikasi lebih sering "dibangunkan" daripada dibuka dari nol. */
 try{ agavaCekVersi();
