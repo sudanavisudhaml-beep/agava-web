@@ -1637,6 +1637,13 @@ html,body{overscroll-behavior-y:contain}
 #page-service[data-sec="rating"] .svc-sec-rating,
 #page-service[data-sec="room"] .svc-sec-room,
 #page-service[data-sec="vendor"] .svc-sec-vendor{display:block}
+/* Modul Approval memakai mekanisme yang SAMA. Dicocokkan lewat data-sec pada
+   section-nya sendiri, jadi menambah section ke-4 nanti tidak perlu menyentuh
+   CSS ini sama sekali — cukup satu baris di daftar secs. */
+.ap-sec{display:none}
+#page-approvals[data-sec="eskalasi"] .ap-sec[data-sec="eskalasi"],
+#page-approvals[data-sec="procurement"] .ap-sec[data-sec="procurement"],
+#page-approvals[data-sec="service"] .ap-sec[data-sec="service"]{display:block}
 .ptab{font-size:calc(13px*var(--fz));color:var(--muted);background:#fff;border:1px solid var(--line);padding:8px 16px;
   border-radius:9px;cursor:pointer;font-weight:600;transition:.15s}
 .ptab.on{background:var(--blue);color:#fff;border-color:var(--blue)}
@@ -4633,8 +4640,31 @@ function sesiHapus(){ try{ localStorage.removeItem(SESI_KEY); }catch(e){} }
 function sesiSegar(s){ return !!(s && s.at && (Date.now()-s.at) < SESI_HARI*864e5); }
 function pinSemua(){ try{ return JSON.parse(localStorage.getItem(PIN_KEY))||{}; }catch(e){ return {}; } }
 function pinSimpanSemua(o){ try{ localStorage.setItem(PIN_KEY,JSON.stringify(o)); }catch(e){} }
-function pinAda(uid){ return !!(uid && pinSemua()[uid]); }
-function pinHapus(uid){ var o=pinSemua(); delete o[uid]; pinSimpanSemua(o); }
+/* ╔══ KUNCI SESI & PIN = EMAIL, BUKAN uid (4 Agu 2026) ══════════════════════╗
+   Sudana tiga kali melaporkan hal yang sama: selalu diminta kata sandi, tidak
+   pernah langsung ke layar PIN. Akar yang bisa saya buktikan ada di kodenya:
+   catatan sesi & PIN dikunci `firebase.auth().currentUser.uid`, sementara
+   currentUser BELUM TENTU siap pada detik penulisannya — applyLogin & pinTawarkan
+   sama-sama memakai cadangan `|| email`. Sekali cadangan itu terpakai, kunci
+   tulis (email) dan kunci baca (uid) berbeda selamanya: sesi tak dikenali, PIN
+   tak ditemukan, dan orangnya diminta kata sandi lagi & lagi.
+   uid tidak pernah menjadi sifat keamanan di sini — ia sekadar penanda, dan
+   catatan PIN ini memang lokal-perangkat serta ber-hash bergaram. Email jauh
+   lebih stabil: selalu ada, tidak bergantung waktu, dan tetap unik per akun.
+   `pinKunci()` menormalkannya sekaligus MEMINDAHKAN catatan lama yang terlanjur
+   tersimpan di bawah uid, jadi PIN yang sudah dipasang orang tidak hilang.    */
+function pinKunci(x){
+ var e=String((x&&x.email)||x||"").trim().toLowerCase();
+ return e||String(x||"");
+}
+function pinAda(uid){
+ var k=pinKunci(uid), o=pinSemua();
+ if(o[k]) return true;
+ /* catatan lama masih berkunci uid mentah → pindahkan sekali, lalu akui */
+ if(uid && o[uid] && uid!==k){ o[k]=o[uid]; delete o[uid]; pinSimpanSemua(o); return true; }
+ return false;
+}
+function pinHapus(uid){ var o=pinSemua(); delete o[pinKunci(uid)]; delete o[uid]; pinSimpanSemua(o); }
 /* Hash bergaram. Sekali lagi: dengan hanya 1 juta kombinasi, hash ini TIDAK
    membuat PIN rahasia terhadap penyerang yang punya perangkat & waktu — ia
    mencegah PIN terbaca sekilas di devtools. Penguncian yang menjaga sisanya. */
@@ -4643,14 +4673,25 @@ async function pinHash(pin,uid,garam){
  var b=await crypto.subtle.digest("SHA-256",t);
  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");
 }
+/* Kunci DAN garam hash sama-sama dinormalkan lewat pinKunci — kalau hanya
+   kuncinya yang dinormalkan, hash lama (bergaram uid) tidak akan pernah cocok. */
 async function pinPasang(uid,pin){
+ var k=pinKunci(uid);
  var garam=Array.from(crypto.getRandomValues(new Uint8Array(16))).map(x=>x.toString(16).padStart(2,"0")).join("");
- var o=pinSemua(); o[uid]={h:await pinHash(pin,uid,garam), s:garam, n:pin.length, gagal:0};
- pinSimpanSemua(o); return true;
+ var o=pinSemua(); o[k]={h:await pinHash(pin,k,garam), s:garam, n:pin.length, gagal:0};
+ if(uid!==k) delete o[uid];
+ pinSimpanSemua(o);
+ /* Bukti tulis: kalau localStorage menolak (kuota/mode privat), jangan diam —
+    diam itulah yang membuat orang mengetik PIN lalu tetap dimintai kata sandi. */
+ if(!pinSemua()[k]){ console.warn("PIN GAGAL disimpan — localStorage menolak"); return false; }
+ return true;
 }
 async function pinCocok(uid,pin){
- var r=pinSemua()[uid]; if(!r) return false;
- return (await pinHash(pin,uid,r.s))===r.h;
+ var k=pinKunci(uid), o=pinSemua();
+ var r=o[k]; if(r) return (await pinHash(pin,k,r.s))===r.h;
+ var lama=o[uid];                                   // catatan lama bergaram uid
+ if(lama) return (await pinHash(pin,uid,lama.s))===lama.h;
+ return false;
 }
 function applyLogin(u){
  gUser=u; gRole=u.role;
@@ -14954,8 +14995,9 @@ function renderApprovals(){
  const opsiOwner=`<option value="" ${!gTier?'selected':''}>Semua gerbang</option>`+
    OWNER_GATES.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("");
  const tierCtrl=(ROLES[gRole]&&ROLES[gRole].tier==="*")
-   ? `<select onchange="setTier(this.value)" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:calc(14px*var(--fz));font-weight:700;color:var(--ink);font-family:var(--ff)">${isOwner()?opsiOwner:TIERS.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("")}</select>`+tetap+
-     (isOwner()?`<span class="muted small" style="margin-left:10px">✍️ hanya gerbang <b>Section Head</b> yang bisa Anda ambil alih — sisanya mode pantau</span>`:"")
+   ? `<select onchange="setTier(this.value)" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:calc(14px*var(--fz));font-weight:700;color:var(--ink);font-family:var(--ff)">${isOwner()?opsiOwner:TIERS.map(t=>`<option ${t===gTier?'selected':''}>${t}</option>`).join("")}</select>`+tetap
+     /* Keterangan "hanya gerbang Section Head yang bisa Anda ambil alih …"
+        DIBUANG atas permintaan Sudana. */
    : (myT.length?myT:['—']).map(t=>`<span class="badge bd-proc" style="font-size:calc(13px*var(--fz));padding:7px 14px;margin-right:6px">${t}</span>`).join("");
  const soGate=isOwner()||(soList.length>0)||myT.some(t=>["Budget","Procurement","Dept Head","Section Head"].indexOf(t)>=0);
  const DESC={"Section Head":"Approve SO kategori Anda (TTD Pemohon terbubuh)",
@@ -14968,15 +15010,47 @@ function renderApprovals(){
    : (myT.length>1)
      ? "Anda memegang "+myT.length+" gerbang: "+myT.join(" + ")+" — semuanya tampil di satu daftar"
      : (DESC[myT[0]]||DESC[gTier]||"Menunggu tindakan Anda");
- document.getElementById("page-approvals").innerHTML=`
-  <div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+ /* ── APPROVAL DIPECAH JADI SECTION BERPINDAH-HALAMAN (4 Agu 2026) ──────────
+    Sudana: "isinya akan Eskalasi Tiket, Approval dari Procurement, Approval
+    dari modul Service, dan modul lain nanti — pisahkan halamannya seperti
+    modul Service."
+    Mekanismenya SAMA PERSIS dengan svcGoSec: satu halaman, atribut data-sec,
+    CSS yang menyembunyikan section lain. Tombolnya polos tanpa ikon (diminta).
+    Menambah section ke-4 nanti cukup menambah satu baris di APPR_SECS. */
+ var secs=[
+   {k:"eskalasi",   label:"Eskalasi",    n:escList.length},
+   {k:"procurement",label:"Procurement", n:soList.length+uprList.length},
+   {k:"service",    label:"Service",     n:otList.length+oPend.length}
+ ];
+ if(!secs.some(function(x){return x.k===apprSec;})) apprSec="eskalasi";
+ var tabs='<div class="svc-tabs">'+secs.map(function(s){
+   return '<button type="button" class="svc-tab'+(apprSec===s.k?' on':'')+'" data-sec="'+s.k+'" onclick="apprGoSec(\''+s.k+'\')">'+
+     esc(s.label)+(s.n?'<b>'+s.n+'</b>':'')+'</button>'; }).join("")+'</div>';
+ var el=document.getElementById("page-approvals");
+ el.setAttribute("data-sec",apprSec);
+ el.innerHTML=`
+  <div class="card" style="padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="font-size:calc(13px*var(--fz));color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
     <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+uprList.length+oPend.length+escList.length+otList.length} pending</span></div>
   </div>
-  ${escPanelHTML(escList)}
+  ${tabs}
+  <div class="ap-sec" data-sec="eskalasi">
+  ${escList.length?escPanelHTML(escList):'<div class="card" style="padding:34px;text-align:center;color:var(--muted)">Tidak ada tiket yang dieskalasi.</div>'}
+  </div>
+  <div class="ap-sec" data-sec="procurement">
   ${uprList.length?`<div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','approvals')}<div><h2>📑 UPR — Usulan Penunjukan Rekanan</h2><div class="d">${uprList.length} usulan menunggu gerbang Anda · perbandingan 3 penawaran &amp; alasan penunjukan ada di kartunya</div></div></div>
     <div class="sec-body">${uprList.map(uprApprovalCard).join("")}</div>
   </div>`:''}
+  ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','approvals')}<div><h2>SO Approvals</h2><div class="d">${gateDesc}</div></div></div>
+    <div class="sec-body">${soList.length?soList.map(soApprovalCard).join(""):'<div class="muted small" style="padding:24px;text-align:center">Tidak ada SO menunggu di gerbang Anda.</div>'}</div>
+  </div>`:''}
+  ${others.length?`<div class="card sec"><div class="sec-h">${secIc('#ede9fe','#7a4fd0','approvals')}<div><h2>Other approvals</h2><div class="d">UPR · SPK/PKS · BAST · Ticket→SO</div></div></div>
+    <div class="sec-body"><div class="svc-head" style="grid-template-columns:120px 1.5fr 110px 130px 150px"><span>Source</span><span>Item</span><span>Value</span><span>Status</span><span>Action</span></div>
+    <div class="svc-list">${[...oPend,...others.filter(a=>a.status!=="Pending")].map(otherApprovalRow).join("")}</div></div>
+  </div>`:''}
+  ${(!soGate&&!uprList.length&&!others.length)?'<div class="card" style="padding:34px;text-align:center;color:var(--muted)">Tidak ada approval Procurement untuk Anda.</div>':''}
+  </div>
+  <div class="ap-sec" data-sec="service">
   ${otList.length?`<div class="card sec"><div class="sec-h">${secIc('#f3eefe','#7a4fd0','approvals')}<div><h2>⏱️ Pengajuan Overtime</h2><div class="d">${otList.length} menunggu persetujuan — fasilitas gedung disiapkan sesuai jam yang disetujui.</div></div></div>
     <div class="sec-body">${otList.map(o=>`<div class="esc-row">
       <div class="esc-main"><div class="esc-no"><b>${esc(o.no)}</b><span class="badge bd-warn" style="font-size:calc(9px*var(--fz))">Diajukan</span></div>
@@ -14986,14 +15060,18 @@ function renderApprovals(){
       <div class="esc-act"><button class="btn-act" onclick="overtimeAct('${esc(o.no)}','Disetujui')">✓ Setujui</button>
         <button class="btn-out" onclick="overtimeAct('${esc(o.no)}','Ditolak')">✕ Tolak</button></div>
     </div>`).join("")}</div>
-  </div>`:''}
-  ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','approvals')}<div><h2>SO Approvals</h2><div class="d">${gateDesc}</div></div></div>
-    <div class="sec-body">${soList.length?soList.map(soApprovalCard).join(""):'<div class="muted small" style="padding:24px;text-align:center">No SO waiting at your gate right now.</div>'}</div>
-  </div>`:''}
-  ${others.length?`<div class="card sec"><div class="sec-h">${secIc('#ede9fe','#7a4fd0','approvals')}<div><h2>Other approvals</h2><div class="d">UPR · SPK/PKS · BAST · Ticket→SO</div></div></div>
-    <div class="sec-body"><div class="svc-head" style="grid-template-columns:120px 1.5fr 110px 130px 150px"><span>Source</span><span>Item</span><span>Value</span><span>Status</span><span>Action</span></div>
-    <div class="svc-list">${[...oPend,...others.filter(a=>a.status!=="Pending")].map(otherApprovalRow).join("")}</div></div>
-  </div>`:''}`;
+  </div>`:'<div class="card" style="padding:34px;text-align:center;color:var(--muted)">Tidak ada approval dari modul Service.</div>'}
+  </div>`;
+}
+/* Berpindah section — kembar dengan svcGoSec (modul Service). */
+let apprSec="eskalasi";
+function apprGoSec(k){
+ apprSec=k;
+ var el=document.getElementById("page-approvals"); if(!el)return;
+ el.setAttribute("data-sec",k);
+ el.querySelectorAll(".svc-tab").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-sec")===k); });
+ var app=document.querySelector(".app");
+ if(app&&app.scrollHeight>app.clientHeight) app.scrollTop=0; else window.scrollTo(0,0);
 }
 
 /* ============ ASSIGNED SO PAGE (Staff Procurement) ============ */
@@ -17356,7 +17434,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-196";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-197";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -17468,6 +17546,17 @@ function dbInit(){
   if(typeof firebase==="undefined"||!firebase.initializeApp){ dbPill("Database: offline — mode lokal",false); return; }
   firebase.initializeApp({apiKey:"AIzaSyCS8QGySkAcjd-49CdjElhgeMJqBtBcY48",authDomain:"agava-astra.firebaseapp.com",projectId:"agava-astra",storageBucket:"agava-astra.firebasestorage.app",messagingSenderId:"157492176112",appId:"1:157492176112:web:00f66a9aa9d4e7df650e35"});
   appCheckInit();                      // pastikan yang memanggil backend = AGAVA asli
+  /* ── PERSISTENSI AUTH DITEGASKAN ──────────────────────────────────────────
+     Bawaannya memang LOCAL, TAPI bila IndexedDB tidak tersedia (mode privat,
+     penyimpanan dibatasi, WebView tertentu) Firebase DIAM-DIAM turun ke
+     penyimpanan memori — sesi lenyap tiap kali halaman dimuat, dan orangnya
+     diminta kata sandi selamanya tanpa pernah tahu sebabnya. Diminta eksplisit
+     supaya kegagalannya BERSUARA, bukan menyamar jadi "sesi habis". */
+  try{
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .catch(function(e){ window._authPersistGagal=String((e&&e.code)||e);
+        console.warn("Auth persistence LOCAL ditolak:",e&&e.code,"— sesi tidak akan bertahan di perangkat ini"); });
+  }catch(e){ window._authPersistGagal=String(e&&e.message||e); }
   AGDB.db=firebase.firestore();
   dbPill("Database: menghubungkan…",false);
   AGDB.db.collection("agava_tickets").orderBy("created","desc").limit(300).onSnapshot(snap=>{
@@ -19331,7 +19420,12 @@ function agavaBoot(){
      sesiTulis({uid:fu.uid,email:fu.email});
      s=sesiBaca();
    }
-   var pulih = fu && s && sesiSegar(s) && (s.uid===fu.uid);
+   /* Pemulihan dinilai dari EMAIL, bukan uid. uid bisa tertulis salah saat
+      currentUser belum siap (lihat catatan pinKunci); email selalu ada dan
+      selalu sama. Perbandingan uid dipertahankan sebagai jalur cepat. */
+   var samaOrang = fu && s && (s.uid===fu.uid ||
+     (String(s.email||"").toLowerCase() === String(fu.email||"").toLowerCase() && !!s.email));
+   var pulih = fu && s && sesiSegar(s) && samaOrang;
    if(pulih){
      var u=USERS.find(function(x){ return (x.email||"").toLowerCase()===String(fu.email||"").toLowerCase(); });
      if(u){
@@ -19347,7 +19441,8 @@ function agavaBoot(){
       dicetak di halaman Login itu sendiri: HP tidak punya console yang mudah
       dibuka, jadi keterangan yang hanya masuk console sama saja tidak ada.
       Kalimatnya menyebut keadaan perangkat, bukan data pribadi.              */
-   var sebab = !fu ? "sesi Firebase di perangkat ini tidak pulih — biasanya karena AGAVA dibuka dari alamat yang berbeda dengan tempat Anda login, atau penyimpanan browsernya dibersihkan"
+   var sebab = window._authPersistGagal ? "browser di perangkat ini menolak menyimpan sesi ("+window._authPersistGagal+") — biasanya mode penyamaran/private, atau penyimpanan situs dibatasi"
+     : !fu ? "sesi Firebase di perangkat ini tidak pulih — biasanya karena AGAVA dibuka dari alamat yang berbeda dengan tempat Anda login, atau penyimpanan browsernya dibersihkan"
      : !s ? "perangkat ini belum punya catatan sesi (login pertama di sini, atau pernah menekan Keluar)"
      : !sesiSegar(s) ? "catatan sesi sudah lewat "+SESI_HARI+" hari"
      : (s.uid!==fu.uid) ? "catatan sesi milik akun lain di perangkat ini"
