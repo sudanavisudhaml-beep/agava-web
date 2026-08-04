@@ -4679,11 +4679,26 @@ function pinId(x){
  return /@/.test(s) ? {uid:"", email:s.trim().toLowerCase()} : {uid:s, email:""};
 }
 function pinKunci(x){ var i=pinId(x); return i.email||i.uid; }
+/* ╔══ DASAR HASH IKUT PINDAH (4 Agu 2026) ═══════════════════════════════════╗
+   Sudana: "saya jadi harus buat PIN baru ketika ada update, padahal PIN yang
+   dimasukkan sudah benar."
+   Penyebabnya cacat migrasi saya sendiri. pinHash() mengaduk `garam:KUNCI:pin`
+   — KUNCInya ikut masuk ke dalam hash. Waktu catatan lama dipindahkan dari
+   kunci uid ke kunci email, isinya disalin apa adanya, padahal hash-nya dulu
+   dihitung memakai uid. Sesudah pindah, pencocokan memakai email sebagai dasar
+   → hash tidak akan pernah sama → PIN yang BENAR ditolak, tiga kali salah,
+   PIN terhapus, dan orangnya dipaksa login penuh lalu membuat PIN baru.
+   Karena itu dasar hash sekarang disimpan sendiri di `k0`, dan ikut terbawa
+   saat catatannya dipindahkan. Kunci penyimpanan boleh berubah; dasar hash
+   tidak boleh.                                                              */
 function pinAda(x){
  var i=pinId(x), k=i.email||i.uid, o=pinSemua();
  if(k && o[k]) return true;
- /* catatan lama berkunci uid mentah → pindahkan sekali ke kunci email */
- if(i.uid && o[i.uid] && i.uid!==k){ o[k]=o[i.uid]; delete o[i.uid]; pinSimpanSemua(o); return true; }
+ if(i.uid && o[i.uid] && i.uid!==k){
+   o[k]=o[i.uid];
+   if(!o[k].k0) o[k].k0=i.uid;      // hash lama dihitung dengan uid — jangan hilang
+   delete o[i.uid]; pinSimpanSemua(o); return true;
+ }
  return false;
 }
 function pinHapus(x){ var i=pinId(x), o=pinSemua();
@@ -4701,7 +4716,9 @@ async function pinHash(pin,uid,garam){
 async function pinPasang(uid,pin){
  var i=pinId(uid), k=i.email||i.uid;
  var garam=Array.from(crypto.getRandomValues(new Uint8Array(16))).map(x=>x.toString(16).padStart(2,"0")).join("");
- var o=pinSemua(); o[k]={h:await pinHash(pin,k,garam), s:garam, n:pin.length, gagal:0};
+ /* k0 = dasar hash. Disimpan eksplisit supaya catatan ini tetap bisa dicocokkan
+    walau kelak kunci penyimpanannya berpindah lagi. */
+ var o=pinSemua(); o[k]={h:await pinHash(pin,k,garam), s:garam, k0:k, n:pin.length, gagal:0};
  if(i.uid && i.uid!==k) delete o[i.uid];
  pinSimpanSemua(o);
  /* Bukti tulis: kalau localStorage menolak (kuota/mode privat), jangan diam —
@@ -4711,9 +4728,12 @@ async function pinPasang(uid,pin){
 }
 async function pinCocok(uid,pin){
  var i=pinId(uid), k=i.email||i.uid, o=pinSemua();
- var r=o[k]; if(r) return (await pinHash(pin,k,r.s))===r.h;
- var lama=i.uid&&o[i.uid];                          // catatan lama bergaram uid
- if(lama) return (await pinHash(pin,i.uid,lama.s))===lama.h;
+ /* Dicocokkan dengan DASAR aslinya (k0), bukan dengan kunci penyimpanannya.
+    Catatan lama tanpa k0 memang dulu berdasar uid — itulah cadangannya. */
+ var r=o[k];
+ if(r) return (await pinHash(pin, r.k0||k, r.s))===r.h;
+ var lama=i.uid&&o[i.uid];
+ if(lama) return (await pinHash(pin, lama.k0||i.uid, lama.s))===lama.h;
  return false;
 }
 function applyLogin(u){
@@ -17595,7 +17615,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-198";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-199";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
