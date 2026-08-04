@@ -4484,10 +4484,16 @@ const USERS=[
  {email:"khalilul.rahman@ai.astra.co.id",name:"Khalilul Rahman",role:"staff"},
  {email:"mujibur@ai.astra.co.id",name:"Mujibur",role:"general",pic:"transport"},
  {email:"muhamad.zhaenuri@ai.astra.co.id",name:"M Zhaenuri",role:"general",plus:["procurement"]},
- /* Koordinator Operator per kategori layanan — modul & haknya SAMA dengan Maria:
+ /* KOORDINATOR LAPANGAN — modul & haknya SAMA PERSIS dengan Maria Paulina:
     memantau tiket & papan Field Ops tanpa mengambil tiket, tetapi berwenang
-    mengajukan SO untuk tiket yang dieskalasi ke kategorinya. */
- {email:"sunaryo2@ai.astra.co.id",name:"Sunaryo",role:"general",plus:["procurement","service","fieldops"],pantau:true},
+    mengajukan SO untuk tiket yang dieskalasi ke kategorinya.
+    `titel` hanya mengubah JABATAN yang tertulis di layar — role tetap "general"
+    supaya haknya persis sama; menyentuh ROLES.general akan ikut mengubah
+    M Zhaenuri & Mujibur yang seperan.
+    `name` SENGAJA tetap "Sunaryo" (bukan "Sunaryo Bara"): 15 tiket hidup sudah
+    memakai "Sunaryo" sebagai operator (t.pic). Mengganti nama di sini akan
+    memutus tautan itu — antrean My Tickets & Log Operator-nya ikut kosong. */
+ {email:"sunaryo2@ai.astra.co.id",name:"Sunaryo",titel:"Koordinator Lapangan",role:"general",plus:["procurement","service","fieldops"],pantau:true},
  /* Maria diberi modul tambahan lewat `plus` — bukan dengan mengubah menu role
     "general", karena M Zhaenuri & Mujibur seperan dengannya dan tidak ikut diberi.
     `pantau:true` = boleh melihat seluruh tiket & papan Field Ops untuk memantau,
@@ -5102,7 +5108,18 @@ function visibleTickets(){
 function isPicTransport(){ return !!(gUser&&gUser.pic==="transport"); }
 const ERSUS_URL="https://sudanavisudhaml-beep.github.io/ersus-astra/";
 function openErsusPlatform(){ window.open(ERSUS_URL,"_blank","noopener"); }
-function roleTitle(u){ if(u&&u.pic==="transport")return "PIC Transport"; return (u&&ROLES[u.role])?ROLES[u.role].label:""; }
+/* JABATAN PER AKUN (`titel`) — 4 Agu 2026.
+   Beberapa orang memakai role teknis yang sama tetapi jabatannya berbeda.
+   Sunaryo & Maria ber-role "general" (agar hak & modulnya pas), namun label
+   role itu berbunyi "Staff (Non-GA)" — salah untuk seorang koordinator.
+   Menggantinya di ROLES.general akan ikut mengubah M Zhaenuri & Mujibur yang
+   seperan, jadi jabatannya ditempelkan PER AKUN — pola yang sama dengan
+   `plus:[...]` untuk modul (lihat menusFor). Hanya label; hak tidak tersentuh. */
+function roleTitle(u){
+ if(u&&u.titel) return u.titel;
+ if(u&&u.pic==="transport")return "PIC Transport";
+ return (u&&ROLES[u.role])?ROLES[u.role].label:"";
+}
 /* GA Dept Head: boleh VIEW semua modul, tapi TIDAK boleh aksi di modul mana pun —
    satu-satunya aksi = approval di gate Dept Head (soApprovalCard). Admin tidak termasuk (god-mode). */
 function viewerOnly(){ return gRole==="dept"; }
@@ -17336,7 +17353,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-194";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-195";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
