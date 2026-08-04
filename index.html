@@ -1640,6 +1640,22 @@ html,body{overscroll-behavior-y:contain}
 /* Modul Approval memakai mekanisme yang SAMA. Dicocokkan lewat data-sec pada
    section-nya sendiri, jadi menambah section ke-4 nanti tidak perlu menyentuh
    CSS ini sama sekali — cukup satu baris di daftar secs. */
+/* ── SOROTAN "INI YANG ANDA KLIK" ──────────────────────────────────────────
+   Cincin biru yang berdenyut dua kali lalu memudar. Sengaja cincin (box-shadow)
+   dan bukan latar berwarna: latar akan bertabrakan dengan penanda status yang
+   sudah dipakai kartu (belum dibaca, ditolak, eskalasi). Cincin menumpang di
+   atas semuanya tanpa mengubah arti warna apa pun, dan tidak menggeser tata
+   letak sedikit pun karena box-shadow tidak memakan ruang. */
+@keyframes agvSorot{
+  0%{box-shadow:0 0 0 0 rgba(37,99,235,.55)}
+  35%{box-shadow:0 0 0 5px rgba(37,99,235,.30)}
+  70%{box-shadow:0 0 0 2px rgba(37,99,235,.45)}
+  100%{box-shadow:0 0 0 0 rgba(37,99,235,0)}
+}
+.agv-sorot{animation:agvSorot 1.25s ease-out 2;border-radius:14px;position:relative;z-index:3}
+@media(prefers-reduced-motion:reduce){
+  .agv-sorot{animation:none;box-shadow:0 0 0 3px rgba(37,99,235,.45)}
+}
 .ap-sec{display:none}
 #page-approvals[data-sec="eskalasi"] .ap-sec[data-sec="eskalasi"],
 #page-approvals[data-sec="procurement"] .ap-sec[data-sec="procurement"],
@@ -4653,18 +4669,25 @@ function pinSimpanSemua(o){ try{ localStorage.setItem(PIN_KEY,JSON.stringify(o))
    lebih stabil: selalu ada, tidak bergantung waktu, dan tetap unik per akun.
    `pinKunci()` menormalkannya sekaligus MEMINDAHKAN catatan lama yang terlanjur
    tersimpan di bawah uid, jadi PIN yang sudah dipasang orang tidak hilang.    */
-function pinKunci(x){
- var e=String((x&&x.email)||x||"").trim().toLowerCase();
- return e||String(x||"");
+/* Penanda akun dioper sebagai OBJEK {uid,email} supaya kunci penyimpanan selalu
+   bisa dinormalkan ke email, tetapi catatan lama yang terlanjur berkunci uid
+   tetap ketemu (dan dipindahkan sekali). String tunggal tetap diterima demi
+   pemanggil lama. */
+function pinId(x){
+ if(x && typeof x==="object") return {uid:String(x.uid||""), email:String(x.email||"").trim().toLowerCase()};
+ var s=String(x||"");
+ return /@/.test(s) ? {uid:"", email:s.trim().toLowerCase()} : {uid:s, email:""};
 }
-function pinAda(uid){
- var k=pinKunci(uid), o=pinSemua();
- if(o[k]) return true;
- /* catatan lama masih berkunci uid mentah → pindahkan sekali, lalu akui */
- if(uid && o[uid] && uid!==k){ o[k]=o[uid]; delete o[uid]; pinSimpanSemua(o); return true; }
+function pinKunci(x){ var i=pinId(x); return i.email||i.uid; }
+function pinAda(x){
+ var i=pinId(x), k=i.email||i.uid, o=pinSemua();
+ if(k && o[k]) return true;
+ /* catatan lama berkunci uid mentah → pindahkan sekali ke kunci email */
+ if(i.uid && o[i.uid] && i.uid!==k){ o[k]=o[i.uid]; delete o[i.uid]; pinSimpanSemua(o); return true; }
  return false;
 }
-function pinHapus(uid){ var o=pinSemua(); delete o[pinKunci(uid)]; delete o[uid]; pinSimpanSemua(o); }
+function pinHapus(x){ var i=pinId(x), o=pinSemua();
+ if(i.email) delete o[i.email]; if(i.uid) delete o[i.uid]; pinSimpanSemua(o); }
 /* Hash bergaram. Sekali lagi: dengan hanya 1 juta kombinasi, hash ini TIDAK
    membuat PIN rahasia terhadap penyerang yang punya perangkat & waktu — ia
    mencegah PIN terbaca sekilas di devtools. Penguncian yang menjaga sisanya. */
@@ -4676,10 +4699,10 @@ async function pinHash(pin,uid,garam){
 /* Kunci DAN garam hash sama-sama dinormalkan lewat pinKunci — kalau hanya
    kuncinya yang dinormalkan, hash lama (bergaram uid) tidak akan pernah cocok. */
 async function pinPasang(uid,pin){
- var k=pinKunci(uid);
+ var i=pinId(uid), k=i.email||i.uid;
  var garam=Array.from(crypto.getRandomValues(new Uint8Array(16))).map(x=>x.toString(16).padStart(2,"0")).join("");
  var o=pinSemua(); o[k]={h:await pinHash(pin,k,garam), s:garam, n:pin.length, gagal:0};
- if(uid!==k) delete o[uid];
+ if(i.uid && i.uid!==k) delete o[i.uid];
  pinSimpanSemua(o);
  /* Bukti tulis: kalau localStorage menolak (kuota/mode privat), jangan diam —
     diam itulah yang membuat orang mengetik PIN lalu tetap dimintai kata sandi. */
@@ -4687,10 +4710,10 @@ async function pinPasang(uid,pin){
  return true;
 }
 async function pinCocok(uid,pin){
- var k=pinKunci(uid), o=pinSemua();
+ var i=pinId(uid), k=i.email||i.uid, o=pinSemua();
  var r=o[k]; if(r) return (await pinHash(pin,k,r.s))===r.h;
- var lama=o[uid];                                   // catatan lama bergaram uid
- if(lama) return (await pinHash(pin,uid,lama.s))===lama.h;
+ var lama=i.uid&&o[i.uid];                          // catatan lama bergaram uid
+ if(lama) return (await pinHash(pin,i.uid,lama.s))===lama.h;
  return false;
 }
 function applyLogin(u){
@@ -9803,7 +9826,7 @@ function ticketRow(t){
  var g=tkGrup(t), sla=ticketSLA(t), ag=ticketAging(t);
  var meta=[t.lokasi, recCreatedLabel(t), ticketReqName(t)].filter(Boolean).map(esc).join(" · ");
  var langkah=[0,1,2,3].map(function(i){ return '<i class="'+((t.stg||0)>=i?'on':'')+'"></i>'; }).join("");
- return '<div class="tkc" onclick="openTicket(\''+esc(t.no)+'\')">'+
+ return '<div class="tkc" data-no="'+esc(t.no)+'" onclick="openTicket(\''+esc(t.no)+'\')">'+
    '<span class="tkc-bar" style="background:'+g.c+'"></span>'+
    '<div class="tkc-main">'+
      '<div class="tkc-r1"><span class="tkc-no">'+esc(t.no)+'</span>'+
@@ -9877,7 +9900,7 @@ function soRow(s){
  var gst=soGroupState(s);
  var langkah=gst.map(function(x){ return '<i class="'+((x==="done"||x==="active")?"on":"")+'"></i>'; }).join("");
  var meta=[s.jenis, s.lokasi, s.vendor, recCreatedLabel(s), soPemohon(s)].filter(Boolean).map(esc).join(" · ");
- return '<div class="tkc soc" onclick="openDrawer(\''+esc(s.no)+'\')">'+
+ return '<div class="tkc soc" data-no="'+esc(s.no)+'" onclick="openDrawer(\''+esc(s.no)+'\')">'+
    '<span class="tkc-bar" style="background:'+g.c+'"></span>'+
    '<div class="tkc-main">'+
      '<div class="tkc-r1"><span class="tkc-no">'+esc(s.no)+'</span>'+
@@ -14259,13 +14282,13 @@ function notifItems(){
    items.push({key:"appr:"+(a.tier||"")+":"+no, module:"Approval · "+a.tier, alert:a.item,
      status:a.source||a.status, cls:"bd-proc", action:"Menunggu "+a.tier,
      open:"approvals", doc:(isSO?no:null),
-     mod:"approvals", at:msA, aging:notifUsiaTeks(msA), req:(recA?soPemohon(recA):"")}); });
+     mod:"approvals", ref:no, at:msA, aging:notifUsiaTeks(msA), req:(recA?soPemohon(recA):"")}); });
  if(payRemRole()&&notifModulBoleh("payment")) paymentReminders().forEach(function(x){ var wait=x.kind==='wait';
    items.push({key:"pay:"+x.s.no+":"+(x.kind||""), module:"Payment · Budget",
      alert: wait? x.s.no+" — "+(x.s.vendor||'vendor')+" · Menunggu Invoice "+invWaitHK(x.s)+" HK" : x.s.no+" — "+(x.s.vendor||'vendor')+" (Rp "+invNom(x.s)+" jt)",
      status: wait? "Vendor belum kirim invoice (≥5 HK)" : "Lewat estimasi rilis "+fmtDay(invRelEst(x.s)),
      cls: wait?'bd-warn':'bd-crit', action: wait?"Tagih invoice":"F-up treasury", open:"payment",
-     mod:"payment", at:goLiveMs(x.s), aging:notifUsiaTeks(goLiveMs(x.s)), req:(x.s.vendor||"")}); });
+     mod:"payment", ref:x.s.no, at:goLiveMs(x.s), aging:notifUsiaTeks(goLiveMs(x.s)), req:(x.s.vendor||"")}); });
  /* ── TIKET LAYANAN → kotak Notifikasi ──
     Administrator & GA Dept Head menerima semua; Section Head hanya kategori yang
     menjadi tanggung jawabnya (Building/Project → Elok · Tenant/Asset/Hospitality/
@@ -14278,7 +14301,7 @@ function notifItems(){
      alert:(t.no||"")+" — "+(t.judul||""),
      status:t.status||"Submitted", cls:((t.stg||0)===0?"bd-crit":"bd-warn"),
      action:((t.stg||0)===0?"Perlu ditugaskan":"Sedang dikerjakan"), open:"service",
-     mod:"service", at:goLiveMs(t),
+     mod:"service", ref:t.no, at:goLiveMs(t),
      aging:((typeof ticketAging==="function"&&ticketAging(t).t)||notifUsiaTeks(goLiveMs(t))),
      req:((typeof ticketReqName==="function")?ticketReqName(t):(t.requester||""))});
  });
@@ -14296,7 +14319,7 @@ function notifItems(){
      /* n.at bentuknya "DD/MM HH:MM" (nowStamp) — goLiveMs sudah tahu membaca
         bentuk itu lewat ts.created, jadi dipinjamkan ke sana daripada menulis
         pengurai kedua yang kelak melenceng sendiri. */
-     mod:(n.nav||"reminder"), at:goLiveMs({ts:{created:n.at}}),
+     mod:(n.nav||"reminder"), ref:(n.ref||n.no||""), at:goLiveMs({ts:{created:n.at}}),
      aging:notifUsiaTeks(goLiveMs({ts:{created:n.at}})), req:(n.nama||"")}); });
  /* Yang belum dibaca naik ke atas, yang sudah dibaca turun — supaya kotak tidak
     terasa macet sesudah diklik. Urutan di dalam masing-masing kelompok tetap
@@ -14395,7 +14418,7 @@ function notifKartuHTML(n,dalamDek){
     pun, dan kolom waktu di kanan sudah menyatakan hal yang sama dengan lebih
     ringkas. */
  var baris3=(uk==="m")?meta.label:[meta.label, n.status||""].filter(Boolean).join(" · ");
- var aksi="notifOpen('"+n.key+"','"+(n.open||"")+"','"+(n.doc||"")+"')";
+ var aksi="notifOpen('"+n.key+"','"+(n.open||"")+"','"+(n.doc||"")+"','"+(n.ref||"")+"')";
  return '<div class="nfc nfc-'+uk+' '+(blm?'blm':'dibaca')+'"'+
    ' style="--nfc-c:'+meta.col+';--nfbg:'+meta.col+'14"'+
    ' onclick="'+aksi+'">'+
@@ -14476,15 +14499,150 @@ function notifSegarkan(){
  try{ renderNotif(); }catch(e){}
  try{ updateBell(); }catch(e){}
 }
-function notifOpen(key,target,doc){
+/* ╔══ NOTIFIKASI MENGANTAR SAMPAI KE BARISNYA (4 Agu 2026) ══════════════════╗
+   Sudana: "kalau saya klik notifikasi, dia tidak meng-address langsung ke item
+   yang diklik. Tampilannya hanya berpindah ke modul, user bingung ini yang
+   mana ya?"
+   Benar — berpindah modul saja memindahkan pekerjaan mencari dari sistem ke
+   orangnya, tepat pada saat ia sedang diberi tahu ada sesuatu yang mendesak.
+   Sekarang: pindah modul → buka bagian & hari yang menyembunyikan barisnya →
+   gulirkan ke sana → sorot sebentar supaya matanya tahu harus melihat ke mana.
+
+   Barisnya ditemukan lewat atribut `data-no` yang dipasang di kartu tiket,
+   kartu SO, kartu approval, dan baris eskalasi. Satu atribut, satu pencari —
+   modul baru cukup ikut memasang `data-no` untuk langsung kebagian.          */
+/* SATU nomor bisa punya BANYAK elemen: tiket yang sama tergambar di Services,
+   Field Ops, dan My Tickets sekaligus — halaman lain cuma disembunyikan, tidak
+   dibuang dari DOM. querySelector (tunggal) mengembalikan yang PERTAMA, dan itu
+   nyaris selalu milik halaman yang sedang tersembunyi — penyorot lalu diam
+   karena merasa sudah menemukannya. Karena itu semua kandidat dikumpulkan dan
+   yang dipilih adalah yang benar-benar TERLIHAT. */
+function agavaSorotSemua(no){
+ if(!no) return [];
+ try{ return [].slice.call(document.querySelectorAll('[data-no="'+String(no).replace(/"/g,'')+'"]')); }
+ catch(e){ return []; }
+}
+/* ADA di DOM ≠ TERLIHAT. Baris bisa sudah tergambar tapi tersembunyi karena
+   section lain sedang aktif atau harinya terlipat — dan itulah keadaan yang
+   paling sering terjadi. Memeriksa keberadaannya saja membuat penyorot berhenti
+   terlalu cepat lalu menyorot sesuatu yang tak kelihatan: persis "berpindah
+   modul tapi user tetap bingung" yang dikeluhkan. offsetParent null = benar-
+   benar tidak dirender. */
+function agavaSorotTampak(no){
+ var l=agavaSorotSemua(no);
+ for(var i=0;i<l.length;i++){ if(l[i].offsetParent!==null) return l[i]; }
+ return null;
+}
+/* Baris bisa tersembunyi karena (a) hari-nya terlipat, atau (b) ada di section
+   lain. Keduanya dibuka dulu, baru dicari lagi. */
+/* Bulan mana milik nomor ini — daftar Tiket & SO hanya menggambar SATU bulan,
+   dan bawaannya bulan terbaru. Kabar bulan lalu karenanya tidak pernah ada di
+   DOM; menyorotnya mustahil sebelum penyaring bulannya digeser dulu. */
+function agavaBulanRec(no){
+ var r=(typeof TICKETS!=="undefined"?TICKETS.find(function(t){return t&&t.no===no;}):null)
+     ||(typeof SO!=="undefined"?SO.find(function(s){return s&&s.no===no;}):null);
+ var ms=r?goLiveMs(r):0;
+ if(!ms) return null;
+ var d=new Date(ms);
+ return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2);
+}
+function agavaSorotBuka(no,modul){
+ try{
+   if(modul==="service"||modul==="procurement"||modul==="myticket"){
+     var bln=agavaBulanRec(no);
+     if(bln){
+       if(modul==="procurement"){ if(procBulan!==bln){ procBulan=bln; renderProc(); } }
+       else { if(svcBulan!==bln){ svcBulan=bln; renderService(); } }
+     }
+     hariSemua(modul==="procurement"?"proc":"svc",false);   // buka semua hari
+   }
+ }catch(e){}
+ try{
+   if(modul==="service" && typeof svcGoSec==="function" && svcSec!=="tiket") svcGoSec("tiket");
+ }catch(e){}
+ /* Approval: cicipi tiap section sampai barisnya benar-benar TERLIHAT.
+    Kalau tak satu pun memuatnya, kembalikan ke section semula supaya orangnya
+    tidak mendarat di halaman acak. */
+ try{
+   if(modul==="approvals" && typeof apprGoSec==="function" && !agavaSorotTampak(no)){
+     var semula=apprSec;
+     var ketemu=["eskalasi","procurement","service"].some(function(k){
+       apprGoSec(k); return !!agavaSorotTampak(no);
+     });
+     if(!ketemu) apprGoSec(semula);
+   }
+ }catch(e){}
+}
+function agavaSorot(no,modul,sisa){
+ if(!no) return;
+ var el=agavaSorotTampak(no);
+ if(!el){
+   agavaSorotBuka(no,modul);
+   el=agavaSorotTampak(no);
+ }
+ if(!el){
+   /* Daftarnya mungkin belum selesai digambar (snapshot cloud menyusul). */
+   var n=(sisa==null?6:sisa);
+   if(n>0){ setTimeout(function(){ agavaSorot(no,modul,n-1); },220); return; }
+   /* ── JALAN TERAKHIR: BUKA RINCIANNYA LANGSUNG ──────────────────────────
+      Ada kabar yang barisnya memang TIDAK PERNAH tergambar di daftar tujuan —
+      mis. tiket yang sudah tidak masuk penyaring, atau SO yang gerbangnya bukan
+      milik akun ini. Menyerah diam-diam di sini mengembalikan persoalan
+      semula: orangnya sampai di modul lalu bertanya "yang mana?".
+      Membuka drawer rinciannya selalu bisa, dan justru paling menjawab —
+      isinya persis satu item yang dia klik. */
+   try{
+     if(typeof TICKETS!=="undefined" && TICKETS.some(function(t){return t&&t.no===no;})) { openTicket(no); return; }
+     if(typeof SO!=="undefined" && SO.some(function(s){return s&&s.no===no;})) { openDrawer(no); return; }
+   }catch(e){}
+   return;
+ }
+ try{ el.scrollIntoView({block:"center",behavior:"smooth"}); }catch(e){ try{ el.scrollIntoView(); }catch(e2){} }
+ el.classList.remove("agv-sorot"); void el.offsetWidth;     // paksa animasi mulai ulang
+ el.classList.add("agv-sorot");
+ agavaSorotTahan(no);
+}
+/* ── SOROTAN HARUS SELAMAT DARI GAMBAR ULANG ───────────────────────────────
+   Daftar bisa digambar ulang sesaat setelah disorot: notifSegarkan() berjalan
+   di belakang, dan snapshot Firestore bisa mendarat kapan saja. Gambar ulang
+   MENGGANTI simpul DOM-nya, jadi kelas sorotan ikut lenyap — barisnya kembali
+   tenggelam di antara puluhan baris lain, dan orangnya bertanya lagi "yang
+   mana?". Selama ±2,4 detik kelasnya dipasang ulang kalau hilang. */
+let AGV_SOROT_TIMER=null;
+function agavaSorotTahan(no){
+ var sampai=Date.now()+2400;
+ try{ clearInterval(AGV_SOROT_TIMER); }catch(e){}
+ AGV_SOROT_TIMER=setInterval(function(){
+   var e=agavaSorotTampak(no);
+   if(Date.now()>sampai){
+     try{ clearInterval(AGV_SOROT_TIMER); }catch(x){}
+     if(e) e.classList.remove("agv-sorot");
+     return;
+   }
+   if(e && !e.classList.contains("agv-sorot")) e.classList.add("agv-sorot");
+ },180);
+}
+function notifOpen(key,target,doc,ref){
  notifMarkSeen(key);
  if(doc){
    try{ go(target||"approvals"); }catch(e){}
    setTimeout(function(){ try{ soDocShow(doc); }catch(e){} notifSegarkan(); },80);
+   /* Dokumen SO sudah menjawab "yang mana", tapi begitu ditutup orangnya
+      mendarat di daftar tanpa petunjuk apa pun. Barisnya ikut dibuka & disorot
+      di belakang layar, jadi menutup dokumen langsung memperlihatkan barisnya. */
+   if(ref) setTimeout(function(){ agavaSorot(ref,target||"approvals"); },300);
    return;
  }
- if(target){ go(target); setTimeout(notifSegarkan,0); return; }
+ if(target){
+   go(target);
+   setTimeout(notifSegarkan,0);
+   /* Sorot dijalankan SESUDAH render halaman tujuan DAN notifSegarkan() selesai
+      — kalau lebih cepat, gambar ulang itu langsung menghapus sorotannya. */
+   if(ref) setTimeout(function(){ agavaSorot(ref,target); },260);
+   return;
+ }
  notifSegarkan();
+ if(ref) setTimeout(function(){ agavaSorot(ref,active); },120);
 }
 /* Buang satu notifikasi dari kotak — untuk kabar yang sifatnya pemberitahuan
    (NOTIFS), yang memang tidak hilang sendiri karena tidak terikat keadaan yang
@@ -14863,7 +15021,10 @@ function soApprovalCard(s){
           <button class="btn-out" onclick="approveSO('${s.no}','dept','Rejected')">Reject</button>`;
    }
  }
- return `<div class="card pad" style="margin-bottom:12px;border:1px solid var(--line)">
+ /* CATATAN: di fungsi ini `esc` SUDAH DIPAKAI sebagai boolean (s.escalated),
+    jadi helper esc() global tertutup di sini. Memanggilnya = TypeError yang
+    menggagalkan SELURUH daftar approval. Nomor SO dirapikan seadanya. */
+ return `<div class="card pad" data-no="${String(s.no).replace(/"/g,'')}" style="margin-bottom:12px;border:1px solid var(--line)">
    <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
      <div style="flex:1;min-width:240px">${head}${clarBox}</div>
      <div style="display:flex;flex-direction:column;gap:8px;min-width:230px">
@@ -14925,7 +15086,7 @@ function escPanelHTML(list){
 }
 function escTicketRow(t){
  var umur=t.escAt?Math.round((nowMs()-t.escAt)/60000):null;
- return '<div class="esc-row">'+
+ return '<div class="esc-row" data-no="'+esc(t.no)+'">'+
    '<div class="esc-main">'+
      '<div class="esc-no"><b>'+esc(t.no)+'</b><span class="badge bd-crit" style="font-size:calc(9px*var(--fz))">Eskalasi</span>'+
        (umur!=null?'<span class="esc-age">'+fmtDur(umur)+' lalu</span>':'')+'</div>'+
@@ -17434,7 +17595,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-197";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-198";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -19130,7 +19291,46 @@ function renderParams(){
  paramPreview();
 }
 
-loadFlowConfig();dbLoadAll();permitSeedBerlaku();paramLoad();selfCareLoad();energyLoad();energyToJul();esgAchLoad();wpLoad();soLoad();fieldOpLoad();normalizeSO();normalizeTickets();buildNav();renderOverview();renderProc();renderBuilding();renderService();renderCreateTicket();renderCreateSO();renderEnergy();renderErsus();renderReminder();renderApprovals();renderAssigned();renderPayment();go("overview");updateBell();liveStatus("off","");dbInit();startTopClock();loadDataFiles();foWatchStart();mSwipeInit();mHistoryInit();mPullInit();rmdLoad();try{ rmdSweep(); }catch(e){}try{ sessionClear(); }catch(e){}   /* selalu mulai dari halaman Login — sesi tidak pernah dipulihkan */
+/* ╔══ URUTAN BOOT — LOGIN TIDAK BOLEH BERGANTUNG PADA RENDER (4 Agu 2026) ═══╗
+   Sudana: "padahal awalnya sudah benar… sejak update 190 jadi kacau, saya
+   menemui login page lagi padahal belum logout."
+
+   Benar, dan ini regresi saya sendiri. Dulu seluruh boot adalah SATU pernyataan
+   panjang tanpa pagar, dan `dbInit()` berada di urutan ke-30 — SESUDAH dua
+   belas pemanggilan render. v190 menyisipkan kode baru ke dalam renderReminder()
+   dan updateBell()→notifItems(), keduanya berjalan SEBELUM dbInit().
+
+   Satu lemparan di render mana pun menghentikan sisa baris itu, sehingga:
+     · dbInit() tidak pernah jalan → firebase.initializeApp() tidak pernah
+       dipanggil → agavaBoot() gagal memanggil firebase.auth() → jatuh ke
+       Login penuh, PADAHAL sesi & PIN di perangkat masih utuh.
+     · mHistoryInit() juga tidak jalan → tombol back ikut pincang.
+   Dan semuanya SENYAP: halaman yang sempat ter-render tetap tampil, jadi tidak
+   ada tanda apa pun bahwa boot berhenti di tengah.
+
+   Aturan yang dilanggar itu sudah saya catat sendiri sesudah insiden serupa di
+   onSnapshot: "rantai render jangan telanjang berderet — pakai agavaRenderAman".
+   Kali ini akibatnya lebih jauh, sebab yang ikut mati adalah pintu masuknya.
+
+   Sekarang: data dimuat → INFRASTRUKTUR (dbInit & kawan-kawan) → baru render,
+   dan setiap render dipagari sendiri. Render yang rusak hanya merusak layarnya
+   sendiri, tidak pernah lagi menyeret login.                                  */
+agavaRenderAman(["loadFlowConfig","dbLoadAll","permitSeedBerlaku","paramLoad","selfCareLoad",
+  "energyLoad","energyToJul","esgAchLoad","wpLoad","soLoad","fieldOpLoad",
+  "normalizeSO","normalizeTickets"]);
+/* INFRASTRUKTUR DULU — dbInit() memanggil firebase.initializeApp(), dan tanpa
+   itu agavaBoot() tidak punya Auth untuk dipulihkan. Ia tidak boleh berada di
+   belakang satu pun render. */
+try{ dbInit(); }catch(e){ console.warn("dbInit:",e&&e.message); }
+agavaRenderAman(["startTopClock","loadDataFiles","foWatchStart","mSwipeInit",
+  "mHistoryInit","mPullInit","rmdLoad","rmdSweep","sessionClear","buildNav"]);
+/* Baru menggambar layar. Masing-masing berpagar sendiri. */
+agavaRenderAman(["renderOverview","renderProc","renderBuilding","renderService",
+  "renderCreateTicket","renderCreateSO","renderEnergy","renderErsus","renderReminder",
+  "renderApprovals","renderAssigned","renderPayment"]);
+try{ go("overview"); }catch(e){ console.warn("go:",e&&e.message); }
+agavaRenderAman(["updateBell"]);
+try{ liveStatus("off",""); }catch(e){}
 /* Penjaga versi: periksa saat mulai, dan tiap kali aplikasi kembali ke depan —
    di HP/iPad aplikasi lebih sering "dibangunkan" daripada dibuka dari nol. */
 try{ agavaCekVersi();
@@ -19365,7 +19565,9 @@ function pinTawarkan(){
  try{
    if(!gUser) return;
    var fu=(typeof firebase!=="undefined"&&firebase.auth&&firebase.auth().currentUser)||null;
-   var uid=(fu&&fu.uid)||gUser.email;
+   /* Kedua penanda dioper: email jadi kunci simpan (stabil), uid tetap dipakai
+      untuk menemukan catatan PIN lama yang terlanjur berkunci uid. */
+   var uid={uid:(fu&&fu.uid)||"", email:gUser.email||""};
    if(pinAda(uid)) return;
    setTimeout(function(){
      if(!confirm("🔒 Buat PIN untuk perangkat ini?\n\nDengan PIN, membuka AGAVA cukup "+PIN_PANJANG+" digit — tanpa mengetik email & password lagi.\n\nPIN hanya berlaku di perangkat ini.")) return;
@@ -19430,7 +19632,8 @@ function agavaBoot(){
      var u=USERS.find(function(x){ return (x.email||"").toLowerCase()===String(fu.email||"").toLowerCase(); });
      if(u){
        sesiTulis({uid:fu.uid,email:u.email});          // perpanjang jendela 7 hari
-       if(pinAda(fu.uid)){ tutup(); pinTampil("buka",u,fu.uid); return; }
+       var idAkun={uid:fu.uid, email:(u.email||fu.email||"")};
+       if(pinAda(idAkun)){ tutup(); pinTampil("buka",u,idAkun); return; }
        tutup(); applyLogin(u); return;                  // belum pasang PIN → langsung masuk
      }
    }
