@@ -2821,7 +2821,13 @@ body.rg-open{overflow:hidden}
     align-items:center;padding:8px 10px;
     /* area aman ditaruh di MARGIN, bukan padding — kalau di padding, kapsulnya
        yang memanjang ke bawah dan bentuk pilnya rusak di iPhone bernotch. */
-    margin:0 12px calc(10px + env(safe-area-inset-bottom));border-radius:999px;
+    /* 4 Agu 2026 — Sudana: "turun semepet mungkin ke bawah layar, tetap ada
+       jarak". Jarak tetap dipangkas 10px → 3px. Sisipan area aman diambil 75%:
+       di HP bernotch sisipan itulah yang mendominasi (±34px), jadi memangkas
+       angka tetapnya saja nyaris tak terasa di sana. 75% membuatnya ikut turun
+       tanpa menindih home indicator — batang itu perangkat keras, bukan hiasan,
+       dan bar yang menimpanya membuat gestur pulang salah tangkap. */
+    margin:0 12px calc(3px + env(safe-area-inset-bottom) * .75);border-radius:999px;
     background:rgba(255,255,255,.72);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);
     border:1px solid var(--m-sep);box-shadow:0 8px 30px rgba(15,23,40,.10)}
   .mbot button{display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:transparent;
@@ -10916,11 +10922,15 @@ function mInterceptBack(rearm){
     BELAKANGNYA sementara fotonya tetap menggantung menutupi layar. */
  var foto=document.getElementById("proofOvl");
  if(foto&&foto.classList.contains("show")){ agavaMediaTutup(); return makan(); }
- /* Kartu rating adalah GERBANG, bukan overlay biasa — memang tidak boleh
-    ditutup dengan back. Ditelan di sini supaya halaman di belakangnya tidak
-    diam-diam berpindah sementara gerbangnya masih menutupi layar. */
+ /* Kartu rating adalah GERBANG, bukan overlay biasa. Di v187 back di sini
+    DITELAN habis supaya halaman di belakangnya tidak diam-diam berpindah.
+    Itu keliru: menelan tanpa memberi jalan keluar melanggar aturan "overlay
+    wajib punya pintu darurat" — begitu ada yang tidak beres, layar benar-benar
+    jadi penjara dan aplikasi harus dimatikan paksa. Sekarang back berarti
+    "⏳ Ingatkan saya nanti": kartunya turun, tiketnya TIDAK ditutup dan muncul
+    lagi saat aplikasi dibuka berikutnya. Halaman di belakang tetap diam. */
  var gate=document.getElementById("rateGate");
- if(gate&&gate.classList.contains("show")) return makan();
+ if(gate&&gate.classList.contains("show")){ try{ rateGateNanti(); }catch(e){ try{ rateGateClose(); }catch(e2){} } return makan(); }
  var ovl=document.getElementById("ovl");
  if(ovl&&ovl.classList.contains("show")){ closeDrawer(); return makan(); }
  var doc=document.getElementById("soDoc");
@@ -16179,19 +16189,22 @@ function rateGateTolak(){
  if(a===null) return;
  a=String(a).trim();
  if(a.length<5){ alert("Tuliskan sebentar apa yang belum beres (minimal 5 karakter)."); return; }
+ /* Urutan sama dengan rateGateSubmit: rekam → LEPASKAN LAYAR → baru kirim.
+    Dulu `dbSaveTicket` & `NOTIFS.unshift` berada di atas `rateGateClose()`,
+    jadi satu lemparan di sana menyandera layar dengan cara yang persis sama. */
  t.stg=2; t.status=TSTAGES[2]; t.needRate=false; t.closed="";
  t.ditolakPemohon={oleh:ticketReqName(t), alasan:a, at:nowStamp()};
  t.tolakN=(+t.tolakN||0)+1;
  if(t.slaMs){ t.slaMs.resolved=null; }              // jam resolusi berjalan lagi
+ rateGateClose();
  try{ tkKomen(t,"Pemohon belum menyetujui hasil kerja: "+a,"eskalasi"); }catch(e){}
- dbSaveTicket(t);
- NOTIFS.unshift({ic:"✋",t:"Pekerjaan dikembalikan pemohon — "+t.no,
+ try{ dbSaveTicket(t); }catch(e){ console.warn("tolak → cloud gagal:",e); }
+ try{ NOTIFS.unshift({ic:"✋",t:"Pekerjaan dikembalikan pemohon — "+t.no,
    d:(t.judul||"")+" · "+a, at:nowStamp(), sev:"crit", nav:"myticket", done:false,
-   nama:(t.pic||t.closedBy||"")});
+   nama:(t.pic||t.closedBy||"")}); }catch(e){}
  try{ agavaNotify("✋ "+t.no+" dikembalikan pemohon", a); }catch(e){}
  try{ auditLog("tiket-ditolak-pemohon", t.no+" · "+a); }catch(e){}
- rateGateClose();
- agavaRenderAman(["renderService","renderMyTickets","renderFieldOps","renderOverview","renderMobileHome","updateBell"]);
+ try{ agavaRenderAman(["renderService","renderMyTickets","renderFieldOps","renderOverview","renderMobileHome","updateBell"]); }catch(e){}
  alert("✋ Tiket "+t.no+" dikembalikan ke "+(t.pic||"operator")+".\n\nStatusnya kembali In Progress dan alasan Anda sudah terkirim.");
 }
 function rateGateClose(){
@@ -16209,21 +16222,43 @@ function rateGateSet(s){
  if(v)v.textContent=["","Sangat kurang","Kurang","Cukup","Baik","Sangat baik"][s]+" · "+s+"/5";
  var b=document.getElementById("rgBtn"); if(b){ b.disabled=false; b.classList.add("ready"); }
 }
+/* ╔══ LAYAR DILEPAS DULU, BARU DIKIRIM (4 Agu 2026) ═════════════════════════╗
+   Laporan Sudana: "saat user memberi Rating, tampilan hang dan harus keluar
+   dulu dari aplikasi."
+
+   Terbukti: urutan lama menaruh `dbSaveTicket` + `triggerFlow` DI ATAS baris
+   yang melepas kartu. Satu lemparan di sana — Firestore belum siap, bentuk
+   tiket aneh dari cache lama, localStorage penuh — membuat fungsi ini berhenti
+   SEBELUM `.show` dilepas. Kartu tetap menutup seluruh layar, `RATE_GATE` tetap
+   terisi, `body.rg-open` tetap mengunci. Lemparan dari dalam onclick ditelan
+   browser, jadi tidak ada pesan apa pun: tombolnya sekadar "tidak bereaksi",
+   ditekan lagi pun sama. Diuji: 3 dari 4 jalur gagal menyandera layar.
+
+   Aturannya sekarang — dan berlaku untuk overlay penghalang mana pun:
+   KEPUTUSAN ORANG TIDAK BOLEH BERGANTUNG PADA KEBERHASILAN JARINGAN.
+   Nilainya dicatat di memori + localStorage (itu yang menahan kartu agar tak
+   muncul lagi), layar dilepas, BARU pengiriman dicoba — masing-masing berpagar
+   sendiri supaya satu yang gagal tidak menjatuhkan sisanya. Gagal kirim bukan
+   soal: `rateHeal` mendorong ulang ke cloud saat online kembali.             */
 function rateGateSubmit(){
  if(!window._rateTmp){ var v=document.getElementById("rgVal"); if(v){ v.textContent="Pilih bintang dulu"; v.classList.add("warn"); } return; }
  var t=TICKETS.find(function(x){return x.no===RATE_GATE;});
+ var nilai=window._rateTmp;
+ /* 1. Rekam keputusan (memori + perangkat) — murah, tak menyentuh jaringan. */
  if(t){
-   t.rating=window._rateTmp; t.needRate=false; if(!t.closed)t.closed=TODAY_STR;
-   rateAckSet(t.no,t.rating);   // catat lokal — tahan agar tak muncul lagi walau cloud sempat gagal
-   dbSaveTicket(t);
-   triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,rating:t.rating,closed:t.closed});
+   t.rating=nilai; t.needRate=false; if(!t.closed)t.closed=TODAY_STR;
+   try{ rateAckSet(t.no,nilai); }catch(e){ console.warn("rateAckSet:",e); }
+ }
+ /* 2. LEPASKAN LAYAR. Tidak ada apa pun di atas baris ini yang boleh melempar. */
+ rateGateClose();
+ /* 3. Baru kirim & gambar ulang — tiap langkah berpagar sendiri. */
+ if(t){
+   try{ dbSaveTicket(t); }catch(e){ console.warn("rating → cloud gagal:",e); }
+   try{ triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,rating:t.rating,closed:t.closed}); }
+   catch(e){ console.warn("rating → flow gagal:",e); }
    try{ auditLog("ticket-rated", t.no+" · ★"+t.rating); }catch(e){}
  }
- var el=document.getElementById("rateGate");
- if(el){ el.classList.remove("show"); setTimeout(function(){ el.innerHTML=""; },260); }
- document.body.classList.remove("rg-open");
- RATE_GATE=null; window._rateTmp=0;
- agavaRenderAman(["renderService","renderMyTickets","renderOverview","renderMobileHome","updateBell"]);
+ try{ agavaRenderAman(["renderService","renderMyTickets","renderOverview","renderMobileHome","updateBell"]); }catch(e){}
  setTimeout(rateGateCheck,400);   // masih ada tiket lain yg menunggu dinilai?
 }
 
@@ -17041,7 +17076,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.04-188";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.04-189";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
