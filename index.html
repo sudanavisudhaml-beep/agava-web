@@ -2537,6 +2537,14 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 /* ── Kolom keputusan kartu SO Approval ──
    Keterangan gerbang → tombol dokumen → dua tombol keputusan berjejer 1×2.
    Kedua tombol lewat grid supaya lebarnya benar-benar sama. */
+/* Spanduk eskalasi — sama persis di kartu Approvals & kartu My Tickets. */
+.esc-strip{margin-top:8px;border-left:3px solid #F04438;background:#fff6f5;border-radius:0 9px 9px 0;padding:8px 11px}
+.esc-strip-l{font-size:calc(11.5px*var(--fz));color:var(--ink);line-height:1.6}
+.esc-strip-l+.esc-strip-l{margin-top:4px}
+.esc-strip-l>span{display:inline-block;min-width:112px;color:var(--muted);font-weight:700;
+  font-size:calc(9.5px*var(--fz));letter-spacing:.3px;text-transform:uppercase}
+.esc-strip-l.ok{color:#027A48}
+.esc-strip-l.tunggu{color:#B54708}
 .ap-info{font-size:calc(11.5px*var(--fz));color:var(--muted);line-height:1.65;margin-bottom:2px}
 .ap-info b{color:var(--ink)}
 .ap-pdf{width:100%;text-align:center}
@@ -10926,6 +10934,7 @@ function myTicketCard(t){
    '<div class="mt-h"><span class="so-dot" style="background:'+pip+'"></span><span class="fo-no">'+t.no+'</span>'+(t.esc?'<span class="badge bd-crit" style="font-size:calc(9px*var(--fz))">Escalated</span>':'')+'<span class="mt-prio prio-'+(sla.pr||'Medium').toLowerCase()+'">'+sla.pr+'</span><span class="fo-st" style="color:'+ag.c+'">'+esc(ag.t)+'</span></div>'+
    '<div class="mt-t">'+esc(t.judul||'')+'</div>'+
    '<div class="fo-tik-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div>'+
+   escStripHTML(t)+
    /* operator yang memegang tiket melihat deskripsi UTUH + catatan + semua foto pemohon */
    tkBriefHTML(t,true)+
    '<div class="tbar" style="margin:7px 0">'+bar+'</div>'+cd+
@@ -15285,6 +15294,27 @@ function escPanelHTML(list){
    '<div><h2>Eskalasi Tiket Lapangan</h2></div></div>'+
    '<div class="sec-body">'+list.map(escTicketRow).join("")+'</div></div>';
 }
+/* ╔══ SPANDUK ESKALASI — DIPAKAI BERSAMA (5 Agu 2026) ══════════════════════╗
+   Sudana: "spanduk yang muncul di kartu eskalasi harus muncul juga di kartu
+   tiket dalam My Tickets milik operator."
+   Betul, dan alasannya penting: operatorlah yang MENGESKALASI tiket itu, tapi
+   selama ini ia hanya melihat lencana "Escalated" tanpa tahu apa yang terjadi
+   sesudahnya — sudah dibaca supervisor? sudah didiskusikan? sudah jadi SO?
+   Ia menunggu tanpa kabar pada pekerjaannya sendiri.
+   Satu perender dipakai DUA tempat supaya keduanya tidak bisa saling
+   mendahului: kartu eskalasi (Approvals) dan kartu My Tickets (operator). */
+function escStripHTML(t){
+ if(!t||!t.esc) return "";
+ var b=[];
+ b.push('<div class="esc-strip-l"><span>Dieskalasi ke</span><b>'+esc(escTujuanLabel(t))+'</b></div>');
+ if(t.escNote)   b.push('<div class="esc-strip-l"><span>Catatan</span>'+esc(t.escNote)+'</div>');
+ if(t.diskusiAt) b.push('<div class="esc-strip-l ok"><span>Sudah didiskusikan</span><b>'+esc(t.diskusiWith||'Section Head')+'</b> · '+esc(t.diskusiAt)+'</div>');
+ var so=t.soNo||t.so||"";
+ if(so)            b.push('<div class="esc-strip-l ok"><span>Sudah dibuatkan SO</span><b>'+esc(so)+'</b></div>');
+ else if(t.escDone)b.push('<div class="esc-strip-l ok"><span>Status</span>Eskalasi sudah ditindaklanjuti</div>');
+ else              b.push('<div class="esc-strip-l tunggu"><span>Status</span>Menunggu tindak lanjut supervisor</div>');
+ return '<div class="esc-strip">'+b.join("")+'</div>';
+}
 function escTicketRow(t){
  var umur=t.escAt?Math.round((nowMs()-t.escAt)/60000):null;
  return '<div class="esc-row" data-no="'+esc(t.no)+'">'+
@@ -15307,8 +15337,9 @@ function escTicketRow(t){
        '<div><span>Operator</span>'+esc(t.escBy||'—')+'</div>'+
        '<div><span>Supervisor</span>'+esc(escTujuanLabel(t))+(t.escUpBy?' · dinaikkan '+esc(t.escUpBy):'')+'</div>'+
      '</div>'+
-     (t.escNote?'<div class="esc-note">💬 '+esc(t.escNote)+'</div>':'')+
-     (t.diskusiAt?'<div class="esc-diskusi">💬 Sudah didiskusikan dengan Section Head <b>'+esc(t.diskusiWith||'')+'</b> · '+esc(t.diskusiAt)+'</div>':'')+
+     /* Catatan & status diskusi kini lewat spanduk BERSAMA — perender yang sama
+        dipakai kartu My Tickets operator, jadi keduanya tidak bisa melenceng. */
+     escStripHTML(t)+
    '</div>'+
    /* ── DUA TINDAKAN SAJA, SATU BARIS DUA KOLOM (5 Agu 2026) ───────────────
       Dulu empat tombol berukuran berbeda membungkus tak beraturan. Dua dibuang
@@ -17820,7 +17851,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-207";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-208";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
