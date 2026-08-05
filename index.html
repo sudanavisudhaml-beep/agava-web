@@ -780,7 +780,16 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .proof-close{align-self:center;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.10);color:#eaf3ff;
   border-radius:999px;padding:9px 26px;font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:600;cursor:pointer}
 .proof-close:active{background:rgba(255,255,255,.2)}
-.proof-box img{max-width:100%;max-height:74vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+/* ── PEMUTAR VIDEO (5 Agu 2026) ────────────────────────────────────────────
+   Video sebenarnya SUDAH dipasang di lightbox sejak lama, tetapi hanya `img`
+   yang pernah diberi ukuran — elemen <video> tampil sebesar aslinya, meluber
+   keluar kotak atau malah mengecil tak karuan. Ditambah `.proof-load` yang
+   hanya dibersihkan oleh onload milik gambar, sehingga tulisan "Memuat
+   lampiran…" menetap menutupi videonya. Dua sebab itulah yang membuat video
+   operator terasa "tidak bisa diputar" padahal berkasnya ada.
+   Aturannya disamakan dengan gambar supaya keduanya berperilaku sama. */
+.proof-box img,.proof-box video{max-width:100%;max-height:74vh;object-fit:contain;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.proof-box video{width:100%;background:#000;display:block}
 .proof-cap{color:#e8f2ff;font-size:calc(12.5px*var(--fz));line-height:1.6;text-align:center}
 .proof-cap .muted{color:#9db5d4}
 /* ── Log record operator (Field Ops, kelompok Super) ── */
@@ -9843,8 +9852,17 @@ function agavaMediaView(list,i,capHTML){
  /* klik latar menutup — tapi klik DI DALAM kotak tidak, supaya kontrol video
     (play/pause/geser) tetap bisa dipakai tanpa layarnya keburu tertutup. */
  ov.onclick=function(ev){ if(ev.target===ov) agavaMediaTutup(); };
+ /* VIDEO — kontrol penuh (putar/jeda/geser/volume/layar penuh) dari pemutar
+    bawaan peramban, jadi perilakunya persis yang sudah dikenal orang di HP-nya.
+    `onloadeddata` MEMBERSIHKAN tulisan "Memuat lampiran…" — dulu hanya gambar
+    yang melakukannya, sehingga tulisan itu menetap menutupi video.
+    `autoplay` sengaja TIDAK dipakai: banyak peramban memblokirnya kalau ada
+    suara, dan videonya lalu diam tanpa penjelasan. Orangnya menekan putar
+    sendiri — satu ketukan, dan selalu berhasil. */
  var isi = mdIsVideo(m)
-   ? '<video src="'+u+'" controls autoplay playsinline'+(m.poster?' poster="'+m.poster+'"':'')+'></video>'
+   ? '<video src="'+u+'" controls playsinline preload="metadata"'+(m.poster?' poster="'+m.poster+'"':'')+
+     ' onloadeddata="var s=this.parentNode.querySelector(\'.proof-load\'); if(s)s.remove();"'+
+     ' onerror="var b=this.parentNode.querySelector(\'.proof-load\'); if(b)b.innerHTML=\'⚠️ Video gagal dimuat.<br><span class=&quot;muted&quot;>Berkasnya mungkin belum selesai diunggah dari perangkat operator, atau koneksi terputus.</span>\';"></video>'
    : '<img src="'+u+'" alt="Lampiran" '+
      'onload="var s=this.parentNode.querySelector(\'.proof-load\'); if(s)s.remove();" '+
      'onerror="this.style.display=\'none\'; var b=this.parentNode.querySelector(\'.proof-load\'); '+
@@ -17916,7 +17934,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-211";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-212";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
