@@ -26,7 +26,33 @@
      penuh sampai tepi atas layar. Isinya digeser turun pakai safe-area-inset-top. -->
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <meta name="apple-mobile-web-app-title" content="AGAVA"/>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script>
+<!-- ══ KENAPA iPAD BISA MEMBEKU DI VERSI LAMA (5 Agu 2026) ══════════════════
+     sw.js sendiri sudah benar: shell diambil jaringan-dulu, cache cuma cadangan.
+     Yang menjebak justru BARIS PENDAFTARANNYA. Tanpa `updateViaCache:'none'`,
+     peramban boleh melayani **berkas sw.js itu sendiri** dari cache HTTP-nya.
+     Safari iOS melakukannya: ia memeriksa salinan sw.js yang LAMA, melihat
+     isinya "tidak berubah", lalu tidak pernah memasang service worker baru.
+     Akibatnya perbaikan cache yang ada DI DALAM sw.js baru tidak pernah sampai
+     — SW lama terus melayani index.html lawas. Itulah sebabnya satu perangkat
+     bisa tertinggal puluhan versi sementara yang lain mulus.
+     `updateViaCache:'none'` memaksa sw.js selalu diambil dari jaringan, dan
+     reg.update() menagih pemeriksaan tiap kali aplikasi dibuka. -->
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){
+      try{ reg.update(); }catch(e){}
+      /* SW baru sudah terpasang & mengambil alih → muat ulang sekali supaya
+         halamannya ikut baru. Tanpa ini orangnya masih melihat HTML lama
+         sampai ia menutup-buka aplikasi sendiri. */
+      var pernah=false;
+      navigator.serviceWorker.addEventListener('controllerchange',function(){
+        if(pernah)return; pernah=true; location.reload();
+      });
+    }).catch(function(){});
+  });
+}
+</script>
 <style>
 :root{
   --navy:#0b2546; --navy2:#08203c; --ink:#0f2036; --text:#23344a; --muted:#6b7a90;
@@ -17965,7 +17991,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-214";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-215";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
