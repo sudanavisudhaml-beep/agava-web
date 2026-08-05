@@ -8215,7 +8215,23 @@ function soCacatMundur(s){
 /* Cache perangkat ini bisa saja masih menyimpan SO pra-live (mis. perangkat yang
    belum ikut saat cutoff dijalankan). Saring di sini supaya TIDAK pernah tampil
    lagi — dan, lewat dbSaveSOAll, tidak terunggah balik ke cloud. */
-function soLoad(){ try{ var r=localStorage.getItem(SO_STORE); if(r){ var a=JSON.parse(r); if(Array.isArray(a)&&a.length){ SO.length=0; a.forEach(function(x){ if(!goLivePre(x)) SO.push(x); }); return true; } } }catch(e){ console.warn("SO load:",e.message); } return false; }
+function soLoad(){ try{ var r=localStorage.getItem(SO_STORE); if(r){ var a=JSON.parse(r); if(Array.isArray(a)&&a.length){ SO.length=0;
+ /* ── SATU NOMOR = SATU BARIS (5 Agu 2026) ────────────────────────────────
+    Laporan Susi: SO-202606-0012 tampil berkali-kali di layarnya, padahal di
+    cloud dokumennya HANYA SATU dan tidak ada nomor kembar. Artinya yang ganda
+    bukan datanya, melainkan salinan di perangkatnya — cache lokal yang pernah
+    terisi berulang. Tanpa pagar ini, satu cache yang cacat membuat orangnya
+    melihat "banyak tembakan SO" yang sebenarnya tidak pernah ada, dan cache
+    itu tidak akan pernah membaik sendiri.
+    Yang dipakai entri PERTAMA; sisanya dibuang diam-diam ke console. */
+ var lihat={};
+ a.forEach(function(x){
+   if(!x||goLivePre(x)) return;
+   var k=String(x.no||"");
+   if(!k||lihat[k]){ if(k) console.warn("SO ganda di cache dibuang:",k); return; }
+   lihat[k]=1; SO.push(x);
+ });
+ return true; } } }catch(e){ console.warn("SO load:",e.message); } return false; }
 function soResetDemo(){ try{ localStorage.removeItem(SO_STORE); }catch(e){} location.reload(); }
 function soPhase(s){if(s.apprDept==="Rejected"||s.apprSection==="Rejected")return"rejected";if(s.apprSection!=="Approved")return"section";if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"budget";if(s.escalated){if(s.apprDept!=="Approved")return"dept";if(s.apprProc!=="Approved")return"proc";}else{if(s.apprProc!=="Approved")return"proc";if(s.apprDept!=="Approved")return"dept";}if(s.wstep<4)return"work";return"pay";}
 function soStatusLabel(s){var p=soPhase(s);
@@ -17934,7 +17950,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-212";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-213";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
