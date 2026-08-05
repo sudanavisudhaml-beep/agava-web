@@ -6,7 +6,13 @@
 <!-- maximum-scale/user-scalable dihormati Android & iOS lama; iOS modern
      mengabaikannya, jadi zoom ketuk-dua-kali ditutup lewat CSS touch-action
      (lihat aturan html,body di bawah). Dua-duanya dipasang. -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+<!-- CUBIT-UNTUK-ZOOM DIBUKA (5 Agu 2026). `maximum-scale=1.0, user-scalable=no`
+     dicabut supaya dokumen SO & foto bukti bisa diperbesar dengan dua jari —
+     tanpa itu lampiran berisi tulisan kecil praktis tak terbaca di HP.
+     Zoom ketuk-dua-kali TETAP mati lewat `touch-action:manipulation` pada
+     html,body (lihat catatan di CSS): dua hal berbeda, dan hanya yang kedua
+     yang dulu mengganggu. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>AGAVA · Astra General Affairs Virtual Assistant</title>
 <!-- Favicon: simbol "A" AGAVA (chevron) di kepingan kaca gradasi electric→turquoise -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23d9f5fd'/%3E%3Cstop offset='1' stop-color='%23a7e0f5'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M15 45 L32 19 L49 45' fill='none' stroke='%230a7cff' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"/>
@@ -7940,7 +7946,7 @@ function soDocBtnHTML(s){
    ? ('lampiran: '+(foto?foto+' foto':'')+(foto&&pdf?' · ':'')+(pdf?pdf+' dokumen PDF':'')+' — tampil sebagai halaman 2 dst')
    : 'halaman 1 · belum ada lampiran';
  return '<button class="so-pdf" style="width:100%;text-align:center;padding:10px;margin-bottom:12px;font-size:calc(12.5px*var(--fz))" '+
-   'onclick="soDocShow(\''+esc(s.no)+'\')" title="Buka Dokumen Supply Order beserta lampirannya">📄 Buka Dokumen SO + Lampiran</button>'+
+   'onclick="soDocShow(\''+esc(s.no)+'\')" title="Buka Dokumen Supply Order beserta lampirannya">Tampilkan SO</button>'+
    '<div class="muted small" style="text-align:center;margin:-6px 0 14px">'+esc(ket)+'</div>';
 }
 let soDocCur=null;
@@ -8944,12 +8950,9 @@ function openDrawer(no){
   </div>
   <div class="db">
     ${soTolakHTML(s)}
-    ${soBolehRevisi(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px">
-      <button class="btn-act" style="flex:1 1 200px" onclick="soRevisiMulai('${s.no}')">${soDitolak(s)?'✏️ Revisi &amp; Kirim Ulang':'✏️ Perbaiki SO Ini'}</button>
-      <button class="btn-out" style="flex:0 1 auto" onclick="soBatal('${s.no}')">🚫 Batalkan SO</button></div>
-      <div class="muted small" style="margin:0 0 14px;line-height:1.55">
-        <b>${soDitolak(s)?'Revisi':'Perbaiki'}</b> — nomor SO tetap, Anda tidak perlu membuat SO baru.${soDitolak(s)?'':'<br>Karena isinya berubah, <b>rantai persetujuan diputar ulang dari awal</b> — persetujuan untuk versi lama tidak ikut terbawa.'}<br>
-        <b>Batalkan</b> — kebutuhannya gugur; SO ditutup dengan alasan dan tetap tercatat.</div>`
+    ${soBolehRevisi(s)?`<div class="ap-2col" style="margin-bottom:14px">
+      <button class="btn-act" onclick="soRevisiMulai('${s.no}')">Revisi</button>
+      <button class="btn-out" onclick="soBatal('${s.no}')">Batalkan</button></div>`
      :(soDitolak(s)&&!s.batal?`<div class="muted small" style="margin-bottom:14px;line-height:1.5">Menunggu <b>${esc(soPemohon(s)||"pemohon")}</b> memperbaiki dan mengirim ulang SO ini.</div>`
       :(soSudahEksekusi(s)&&!s.batal&&soBolehBatal(s)?`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px">
         <button class="btn-out" style="flex:0 1 auto" onclick="soBatal('${s.no}')">🚫 Batalkan SO</button></div>
@@ -8966,7 +8969,7 @@ function openDrawer(no){
       <span class="k">Vendor</span><span class="v">${s.vendor||'— not sourced yet'}</span>
       <span class="k">Tahap saat ini</span><span class="v">${(()=>{const gi=gst.indexOf("rejected")>=0?gst.indexOf("rejected"):(gst.indexOf("active")>=0?gst.indexOf("active"):SO_GROUPS.length-1);
         return `<span class="stg"><span class="pip" style="background:${gst[gi]==='rejected'?'var(--red)':SO_GROUPS[gi].col}"></span>${gi+1}/${SO_GROUPS.length} · ${SO_GROUPS[gi].n}</span>`;})()}
-        <div class="muted small" style="font-weight:400;margin-top:2px">langkah ${Math.min(pr.p+1,LIFECYCLE.length)} dari ${LIFECYCLE.length} · status bar: ${esc(soStatusLabel(s).t)}</div></span>
+        </span>
     </div>
     ${soDocBtnHTML(s)}
     <div class="panel-t" style="margin-bottom:4px">Lifecycle Journey</div>
@@ -15172,7 +15175,7 @@ function actApproval(id,decision){
    gerbangnya, kategori apa, baru "buka dokumennya", baru memutuskan. */
 function soDocBtnMini(s){
  return '<button class="so-pdf ap-pdf" onclick="soDocShow(\''+String(s.no).replace(/"/g,'')+'\')"'+
-   ' title="Buka Dokumen Supply Order beserta lampirannya">Buka SO PDF + Lampiran</button>';
+   ' title="Buka Dokumen Supply Order beserta lampirannya">Tampilkan SO</button>';
 }
 function soApprovalCard(s){
  const g=soGateTier(s), tier=gTier, esc=!!s.escalated;
@@ -15222,8 +15225,11 @@ function soApprovalCard(s){
      right=`<span class="badge bd-info" style="text-align:center;padding:8px">Menunggu jawaban Requester</span><div class="muted small" style="text-align:center">Terkirim ke ${s.requester||s.req} (Reminder).</div>`;
    } else {
      right=`<select id="assign-${s.no}" style="border:1px solid var(--line);border-radius:9px;padding:9px;font-family:var(--ff);font-size:calc(13px*var(--fz))"><option value="">— Pilih Staff Procurement —</option>${STAFF_PROC.map(n=>`<option ${s.staffPIC===n?'selected':''}>${n}</option>`).join("")}</select>
-            <button class="btn-act" onclick="approveSO('${s.no}','proc','Approved')">Approve &amp; Assign</button>
-            <button class="btn-out" onclick="openClarify('${s.no}')">Klarifikasi</button>`;
+            ${soDocBtnMini(s)}
+            <div class="ap-2col">
+              <button class="btn-act" onclick="approveSO('${s.no}','proc','Approved')">Approve</button>
+              <button class="btn-out" onclick="openClarify('${s.no}')">Klarifikasi</button>
+            </div>`;
    }
  } else { // Dept Head gate
    if(tier==="Procurement" && esc){
@@ -17910,7 +17916,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-210";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-211";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
