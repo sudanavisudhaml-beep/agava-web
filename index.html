@@ -2534,6 +2534,14 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .esc-note{font-size:calc(11.5px*var(--fz));color:#8a5300;background:#fdf6e9;border:1px solid #f0dcb4;border-radius:8px;padding:6px 10px;margin-top:6px;line-height:1.5}
 /* Dua tombol, SATU BARIS DUA KOLOM, lebar sama. grid (bukan flex-wrap) supaya
    keduanya benar-benar sama besar dan tidak pernah membungkus tak beraturan. */
+/* ── Kolom keputusan kartu SO Approval ──
+   Keterangan gerbang → tombol dokumen → dua tombol keputusan berjejer 1×2.
+   Kedua tombol lewat grid supaya lebarnya benar-benar sama. */
+.ap-info{font-size:calc(11.5px*var(--fz));color:var(--muted);line-height:1.65;margin-bottom:2px}
+.ap-info b{color:var(--ink)}
+.ap-pdf{width:100%;text-align:center}
+.ap-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ap-2col button{width:100%;padding:9px 12px;font-size:calc(12.5px*var(--fz));white-space:nowrap}
 .esc-act{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch;min-width:230px}
 .esc-act button{width:100%;padding:9px 12px;font-size:calc(12.5px*var(--fz));white-space:nowrap}
 /* ── META 2×2 ──
@@ -10360,8 +10368,10 @@ function escTujuan(t){
 function escTujuanLabel(t){
  var d=escTujuan(t);
  if(((t&&t.escTo)||"koor")!=="section"){
+   /* Namanya saja — kolomnya sudah berlabel "Supervisor", jadi menulis
+      "Koordinator" lagi cuma mengulang apa yang sudah tertulis di atasnya. */
    var k=ticketKoordinator(t);
-   return k?("Koordinator "+k):"Koordinator (belum ditentukan → Staff GA)";
+   return k||"belum ditentukan → Staff GA";
  }
  return d.label;
 }
@@ -15138,6 +15148,13 @@ function actApproval(id,decision){
  }
  renderApprovals(); renderReminder(); renderAssigned(); navSetActive(); updateBell();
 }
+/* Tombol dokumen SO di kartu approval. Dipindah ke SESUDAH baris Section &
+   Kategori (Sudana, 5 Agu 2026): urutan membacanya jadi masuk akal — siapa
+   gerbangnya, kategori apa, baru "buka dokumennya", baru memutuskan. */
+function soDocBtnMini(s){
+ return '<button class="so-pdf ap-pdf" onclick="soDocShow(\''+String(s.no).replace(/"/g,'')+'\')"'+
+   ' title="Buka Dokumen Supply Order beserta lampirannya">Buka SO PDF + Lampiran</button>';
+}
 function soApprovalCard(s){
  const g=soGateTier(s), tier=gTier, esc=!!s.escalated;
  /* ── BATAS WEWENANG OWNER ──
@@ -15169,9 +15186,15 @@ function soApprovalCard(s){
    right=`<span class="badge bd-info" style="text-align:center;padding:9px 12px">👀 Menunggu ${g}</span>
           <div class="muted small" style="text-align:center">Mode pantau — wewenang ini bukan milik Owner</div>`;
  } else if(g==="Section Head"){
-   right=`<div class="muted small" style="text-align:center;margin-bottom:2px">Section: <b>${soSectionApprover(s)}</b><br><span style="font-size:calc(11px*var(--fz))">${s.kategori||''}</span></div>
-          <button class="btn-act" onclick="approveSO('${s.no}','section','Approved')">Approve (Section)</button>
-          <button class="btn-out" onclick="approveSO('${s.no}','section','Rejected')">Reject</button>`;
+   /* Urutan diperbaiki (Sudana, 5 Agu 2026): keterangan Section & Kategori DULU,
+      lalu tombol Dokumen SO, baru dua tombol keputusan berjejer satu baris.
+      Label cukup "Approve" — gerbangnya sudah tertulis persis di atasnya. */
+   right=`<div class="ap-info">Section: <b>${soSectionApprover(s)}</b><br>Kategori: <b>${s.kategori||'—'}</b></div>
+          ${soDocBtnMini(s)}
+          <div class="ap-2col">
+            <button class="btn-act" onclick="approveSO('${s.no}','section','Approved')">Approve</button>
+            <button class="btn-out" onclick="approveSO('${s.no}','section','Rejected')">Reject</button>
+          </div>`;
  } else if(g==="Budget"){
    right=`<button class="btn-act" onclick="approveSO('${s.no}','budget','Approved')">Approve Budget</button>
           <button class="btn-out" onclick="approveSO('${s.no}','budget','Escalate')">Ekskalasi → Dept Head</button>`;
@@ -15198,7 +15221,6 @@ function soApprovalCard(s){
    <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
      <div style="flex:1;min-width:240px">${head}${clarBox}</div>
      <div style="display:flex;flex-direction:column;gap:8px;min-width:230px">
-       <button class="so-pdf" style="align-self:stretch;text-align:center" onclick="soDocShow('${s.no}')" title="Buka Dokumen Supply Order beserta lampirannya — bisa dibaca sebelum ditandatangani">📄 Buka SO PDF + Lampiran</button>
        ${right}</div>
    </div>
  </div>`;
@@ -15382,7 +15404,9 @@ function renderApprovals(){
  el.innerHTML=`
   <div class="card" style="padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="font-size:calc(13px*var(--fz));color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
-    <div style="margin-left:auto"><span class="badge bd-warn">${soList.length+uprList.length+oPend.length+escList.length+otList.length} pending</span></div>
+    <!-- Lencana "N pending" dibuang (Sudana, 5 Agu 2026): tiap tab section di
+         bawahnya sudah membawa angkanya sendiri, dan bottom bar pun memuat
+         angka yang sama. Tiga tempat untuk satu hitungan. -->
   </div>
   ${tabs}
   <div class="ap-sec" data-sec="eskalasi">
@@ -15392,7 +15416,7 @@ function renderApprovals(){
   ${uprList.length?`<div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','approvals')}<div><h2>📑 UPR — Usulan Penunjukan Rekanan</h2><div class="d">${uprList.length} usulan menunggu gerbang Anda · perbandingan 3 penawaran &amp; alasan penunjukan ada di kartunya</div></div></div>
     <div class="sec-body">${uprList.map(uprApprovalCard).join("")}</div>
   </div>`:''}
-  ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','approvals')}<div><h2>SO Approvals</h2><div class="d">${gateDesc}</div></div></div>
+  ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','approvals')}<div><h2>SO Approvals</h2></div></div>
     <div class="sec-body">${soList.length?soList.map(soApprovalCard).join(""):'<div class="muted small" style="padding:24px;text-align:center">Tidak ada SO menunggu di gerbang Anda.</div>'}</div>
   </div>`:''}
   ${others.length?`<div class="card sec"><div class="sec-h">${secIc('#ede9fe','#7a4fd0','approvals')}<div><h2>Other approvals</h2><div class="d">UPR · SPK/PKS · BAST · Ticket→SO</div></div></div>
@@ -17785,7 +17809,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-205";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-206";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
