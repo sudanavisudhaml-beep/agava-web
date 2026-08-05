@@ -11286,9 +11286,19 @@ function mOvlTerbuka(){
    dan oleh mBack saat tak ada entri history untuk dikonsumsi. */
 function mNavConsumeBack(){
  mNavBack=true;
- /* Dari Chat: SELALU pulang ke Beranda (chat dibuka dari ikon top bar, bukan alur
-    modul) — berlaku juga utk swipe & tombol back HP, bukan cuma tombol di layar. */
- if(active==="chat"){ mStack.length=0; go(mHomeId()); mNavBack=false; return; }
+ /* ╔══ ATURAN: BACK SELALU PULANG KE ASALNYA (5 Agu 2026) ══════════════════╗
+    Dulu ada pengecualian: dari Chat SELALU ke Beranda, dengan alasan "chat
+    dibuka dari ikon top bar". Alasan itu hanya benar untuk SATU jalan masuk.
+    Begitu Chat dibuka dari dalam modul — mis. "Diskusi Section" pada kartu
+    eskalasi — pengecualian itu membuang orangnya ke Beranda, jauh dari
+    pekerjaan yang sedang ia kerjakan, dan ia harus menyusuri jalannya lagi.
+    Pengecualiannya DICABUT. mStack sudah menyimpan halaman asal dengan benar
+    untuk KEDUA jalan masuk: dibuka dari Beranda → mStack kosong → back pulang
+    ke Beranda; dibuka dari modul → mStack berisi modul itu → back kembali ke
+    sana. Satu aturan, tanpa pengecualian, berlaku untuk tombol back HP, usapan
+    tepi, dan tombol back di layar. JANGAN tambahkan pengecualian per-halaman
+    lagi di sini — kalau sebuah halaman terasa perlu, yang salah jalan masuknya,
+    bukan aturannya. */
  var prev=mStack.pop();
  go(prev||mHomeId());
  mNavBack=false;
@@ -11298,9 +11308,8 @@ function mNavConsumeBack(){
    pushState ganda / pemakaian `active` (id modul) yang dulu melempar ke modul lain. */
 function mBack(){
  if(mInterceptBack(false)) return;          // overlay/sub-state → cukup ditutup
- /* Chat: langsung pulang ke Beranda, tanpa lewat riwayat — supaya tidak pernah
-    tersangkut kembali ke Chat bila "chat" sempat masuk mStack. */
- if(active==="chat"){ mGoHome(); return; }
+ /* Pengecualian Chat dicabut — lihat catatan di mNavConsumeBack. Tombol back di
+    layar mengikuti aturan yang SAMA dengan tombol back HP: pulang ke asalnya. */
  /* Langsung ke halaman induk. TIDAK memakai history.back() supaya tidak ada
     entri riwayat yang tertinggal / terpakai ganda di kemudian hari. */
  mNavConsumeBack();
@@ -15292,7 +15301,9 @@ function escTicketRow(t){
           operator | supervisor tujuan                                        */
      '<div class="esc-grid">'+
        '<div><span>Kategori</span>'+esc(foNormCat(t.cat))+'</div>'+
-       '<div><span>Lokasi &amp; Pemohon</span>'+esc(t.lokasi||'—')+' · '+pemohonChip(t)+'</div>'+
+       /* Nama pemohonnya saja, tebal. Kolomnya sudah berlabel "Lokasi & Pemohon",
+        jadi menulis "🙋 Pemohon" lagi di dalamnya cuma mengulang label. */
+     '<div><span>Lokasi &amp; Pemohon</span>'+esc(t.lokasi||'—')+' · <b>'+esc(pemohonNama(t))+'</b></div>'+
        '<div><span>Operator</span>'+esc(t.escBy||'—')+'</div>'+
        '<div><span>Supervisor</span>'+esc(escTujuanLabel(t))+(t.escUpBy?' · dinaikkan '+esc(t.escUpBy):'')+'</div>'+
      '</div>'+
@@ -17809,7 +17820,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-206";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-207";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
