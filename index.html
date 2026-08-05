@@ -780,6 +780,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .proof-close{align-self:center;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.10);color:#eaf3ff;
   border-radius:999px;padding:9px 26px;font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:600;cursor:pointer}
 .proof-close:active{background:rgba(255,255,255,.2)}
+/* Tautan pemutar bawaan sistem — jaring pengaman codec, bukan hiasan. */
+.proof-buka{align-self:center;color:#bcd8ff;font-size:calc(12.5px*var(--fz));font-weight:600;
+  text-decoration:underline;padding:2px 6px}
 /* ── PEMUTAR VIDEO (5 Agu 2026) ────────────────────────────────────────────
    Video sebenarnya SUDAH dipasang di lightbox sejak lama, tetapi hanya `img`
    yang pernah diberi ukuran — elemen <video> tampil sebesar aslinya, meluber
@@ -9883,10 +9886,22 @@ function agavaMediaView(list,i,capHTML){
      'onload="var s=this.parentNode.querySelector(\'.proof-load\'); if(s)s.remove();" '+
      'onerror="this.style.display=\'none\'; var b=this.parentNode.querySelector(\'.proof-load\'); '+
        'if(b)b.innerHTML=\'⚠️ Gambar gagal dimuat.<br><span class=&quot;muted&quot;>Berkasnya mungkin belum selesai diunggah dari perangkat pengirim, atau koneksi terputus.</span>\';"/>';
+ /* ── JALAN KELUAR YANG SELALU BEKERJA (5 Agu 2026) ────────────────────────
+    Video bukti SUDAH diunggah ke Storage sebagai berkas .mp4 (bukan base64),
+    jadi tautannya sah. Yang tidak bisa dijamin adalah CODEC-nya: iPhone merekam
+    HEVC/H.265 di dalam wadah .mov, dan pemutar dalam-halaman di sebagian
+    peramban menolaknya TANPA pesan — layarnya hitam dan orang mengira videonya
+    rusak. Karena itu tiap video diberi tautan "Buka di tab baru": pemutar bawaan
+    sistem (Safari/QuickTime/Chrome) hampir selalu memainkan apa yang ditolak
+    pemutar dalam-halaman. Satu ketukan, dan videonya pasti tertonton. */
+ var tautan = mdIsVideo(m)
+   ? '<a class="proof-buka" href="'+u+'" target="_blank" rel="noopener">Buka di tab baru</a>'
+   : '';
  ov.innerHTML='<div class="proof-box">'+
    '<button type="button" class="proof-x" onclick="agavaMediaTutup()" aria-label="Tutup lampiran">✕</button>'+
    '<div class="proof-stage">'+isi+'<div class="proof-load">Memuat lampiran…</div></div>'+
    '<div class="proof-cap">'+(capHTML||"")+'</div>'+
+   tautan+
    '<button type="button" class="proof-close" onclick="agavaMediaTutup()">Tutup</button>'+
  '</div>';
  ov._bodyOv=document.body.style.overflow||"";
@@ -17950,7 +17965,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-213";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-214";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
