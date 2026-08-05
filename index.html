@@ -92,7 +92,11 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .wrap{padding:14px 34px 50px}
 
 /* ---------- Cards ---------- */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 1px 3px rgba(16,32,54,.04)}
+/* BAYANGAN KARTU DIMATIKAN untuk SELURUH AGAVA (keputusan Sudana, 5 Agu 2026)
+   — menyusul sisi mobile yang sudah tanpa bayangan sejak v165. Kedalaman datang
+   dari beda putih kartu vs abu latar, sesuai AGAVA Brand Direction. Satu tempat
+   ini saja; jangan tambahkan box-shadow baru di komponen kartu mana pun. */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:none}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:18px}
 .kpi{padding:16px 18px}
 .kpi .l{font-size:calc(12.5px*var(--fz));color:var(--muted)}
@@ -1752,6 +1756,14 @@ tr.bl-trsep:hover td{background:#dbe3ec}
    badan kalimat patah ke baris sendiri dan spanduknya terbaca berantakan. */
 .so-perbaiki b:first-child{display:block;color:var(--ink);font-size:calc(13.5px*var(--fz));margin-bottom:5px}
 .so-perbaiki b{color:var(--ink)}
+/* ── Varian SATU BARIS ─────────────────────────────────────────────────────
+   Spanduk peringatan yang panjang terpotong di tengah kalimat pada layar HP —
+   terbaca lebih buruk daripada tidak ada. Versi ini memuat inti masalahnya
+   saja; langkah rincinya pindah ke `title` (tooltip), tetap ada tapi tidak
+   memakan layar. Judulnya sengaja TIDAK jadi blok supaya benar-benar 1 baris. */
+.so-perbaiki-1b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:block!important;-webkit-line-clamp:none!important;line-height:1.5}
+.so-perbaiki-1b b:first-child{display:inline;font-size:calc(12.5px*var(--fz));margin-bottom:0}
 /* ── Kriteria "kapan layak jadi tiket" + cermin dampak (Create Ticket) ── */
 .ct-krit{background:#f7fafd;border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-bottom:16px}
 .ct-krit-h{font-size:calc(12.5px*var(--fz));font-weight:800;color:var(--ink);margin-bottom:9px}
@@ -2507,7 +2519,11 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .wp-dk:hover{border-color:var(--blue);background:#f6faff}
 .wp-dk input{width:15px;height:15px;flex:0 0 15px}
 /* ── Baris eskalasi tiket di inbox Approval ── */
-.esc-row{display:flex;gap:14px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+/* Garis pemisah antar item DITEGASKAN (.07 → .13, sama dengan kartu tiket) dan
+   jarak vertikalnya dinaikkan — dua item berdempet dulu terbaca seperti satu. */
+.esc-row{display:flex;gap:14px;align-items:flex-start;padding:15px 0;
+  border-bottom:1px solid rgba(15,23,40,.13);flex-wrap:wrap}
+.esc-row:last-child{border-bottom:none}
 .esc-row:last-child{border-bottom:none}
 .esc-main{flex:1;min-width:230px}
 .esc-no{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -2516,7 +2532,21 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .esc-t{font-size:calc(13.5px*var(--fz));font-weight:700;color:var(--ink);margin-top:3px}
 .esc-m{font-size:calc(11.5px*var(--fz));color:var(--muted);margin-top:2px}
 .esc-note{font-size:calc(11.5px*var(--fz));color:#8a5300;background:#fdf6e9;border:1px solid #f0dcb4;border-radius:8px;padding:6px 10px;margin-top:6px;line-height:1.5}
-.esc-act{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+/* Dua tombol, SATU BARIS DUA KOLOM, lebar sama. grid (bukan flex-wrap) supaya
+   keduanya benar-benar sama besar dan tidak pernah membungkus tak beraturan. */
+.esc-act{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch;min-width:230px}
+.esc-act button{width:100%;padding:9px 12px;font-size:calc(12.5px*var(--fz));white-space:nowrap}
+/* ── META 2×2 ──
+   Jarak antar bagian dinaikkan (permintaan Sudana: +0,25–0,5pt) supaya tiap
+   keterangan terbaca sebagai blok sendiri, bukan bubur teks. */
+.esc-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;margin-top:8px}
+.esc-grid>div{font-size:calc(11.5px*var(--fz));color:var(--ink);line-height:1.5;min-width:0;
+  overflow:hidden;text-overflow:ellipsis}
+.esc-grid>div>span{display:block;font-size:calc(9.5px*var(--fz));color:var(--muted);
+  font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-bottom:2px}
+/* Tetap DUA kolom di HP (permintaan Sudana: 2 baris × 2 kolom). Isinya
+   dipotong dengan elipsis bila sempit — bentuk yang tetap membuat mata hafal
+   letak tiap keterangan, dan itu justru gunanya. */
 .esc-act .btn-act,.esc-act .btn-out{padding:8px 13px;font-size:calc(12px*var(--fz));white-space:nowrap}
 /* ── GERBANG RATING — kotak tengah layar, wajib diisi ── */
 body.rg-open{overflow:hidden}
@@ -3584,7 +3614,10 @@ body.rg-open{overflow:hidden}
 .pi-x:hover{border-color:var(--red);color:var(--red)}
 .gd-kpy-chip{margin-left:auto;font-size:calc(12px*var(--fz));font-weight:800;color:#c2740a;background:#fdf3e3;border:1px solid #f0d9ad;border-radius:20px;padding:6px 13px;white-space:nowrap}
 @media(max-width:900px){.pi-2col{grid-template-columns:1fr}.pi-panel:first-child{border-right:none;border-bottom:1px solid var(--line)}.pi-row.pi-std{grid-template-columns:42px 1fr 44px}.pi-row.pi-key{grid-template-columns:40px 1fr 44px 26px}}
-.gd .card{border-radius:14px;box-shadow:0 1px 3px rgba(15,23,42,.04),0 4px 14px rgba(15,23,42,.03)}
+/* Bayangan dimatikan juga di sini — aturan ini lebih spesifik dari `.card`,
+   jadi tanpa ini keputusan "semua kartu AGAVA tanpa bayangan" tidak berlaku di
+   seluruh halaman ber-kelas .gd. */
+.gd .card{border-radius:14px;box-shadow:none}
 .gd-head{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;margin-bottom:10px;flex-wrap:wrap;gap:10px}
 .gd-hl{display:flex;align-items:center;gap:13px}
 .gd-logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#2563EB,#60A5FA);display:grid;place-items:center;color:#fff;font-size:calc(15px*var(--fz));font-weight:800}
@@ -3921,9 +3954,14 @@ body{background:
   background-attachment:fixed}
 ::-webkit-scrollbar-thumb{background:rgba(120,140,170,.45)}
 /* ---- permukaan kaca ---- */
+/* Bayangan kaca DIMATIKAN (keputusan Sudana, 5 Agu 2026 — berlaku semua kartu).
+   Ini aturan .card KETIGA di berkas ini; dua lainnya di ~line 95 dan `.gd .card`.
+   Ketiganya harus seiring, kalau tidak bayangannya muncul lagi di sebagian
+   halaman saja dan terlihat seperti bug. Permukaan kacanya sendiri (blur +
+   tepi) dipertahankan — yang dibuang hanya bayangannya. */
 .card{background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
   border:1px solid var(--glass-brd);
-  box-shadow:0 12px 32px rgba(20,40,80,.10),0 2px 6px rgba(20,40,80,.05),inset 0 1px 0 var(--glass-hi)}
+  box-shadow:inset 0 1px 0 var(--glass-hi)}
 .gd-nav{background:rgba(255,255,255,.55);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--glass-brd);box-shadow:0 8px 24px rgba(20,40,80,.10),inset 0 1px 0 var(--glass-hi)}
 .drawer{background:rgba(255,255,255,.82);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
 .gc-toolbar,.gc-monthstrip{background:rgba(255,255,255,.60);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur)}
@@ -8861,9 +8899,9 @@ function renderProc(){
    <div class="ptab ${procFilter==='bast'?'on':''}" onclick="procFilter='bast';renderProc()">BAST & Invoice</div>
    ${nMacet?`<div class="ptab ${procFilter==='tolak'?'on':''}" onclick="procFilter='tolak';renderProc()" title="SO yang ditolak (perlu revisi) & yang dibatalkan">⛔ Ditolak & Batal <b>${nMacet}</b></div>`:''}
  </div>
- ${perluRevisi?`<div class="so-perbaiki" style="margin-bottom:14px"><b>✏️ ${perluRevisi} SO Anda ditolak dan menunggu perbaikan</b>
-   Buka SO-nya di tab <b>⛔ Ditolak &amp; Batal</b>, lalu pilih: <b>Revisi &amp; Kirim Ulang</b> (nomor tetap sama, tidak perlu membuat SO baru) ·
-   <b>Batalkan</b> bila kebutuhannya gugur · <b>Hapus</b> bila SO-nya keliru dan Anda ingin membuat yang baru dari awal.</div>`:''}
+ ${perluRevisi?`<div class="so-perbaiki so-perbaiki-1b" style="margin-bottom:14px"
+     title="Buka SO-nya di tab Ditolak &amp; Batal, lalu pilih Revisi &amp; Kirim Ulang (nomor tetap sama) · Batalkan bila kebutuhannya gugur · Hapus bila SO-nya keliru."
+   ><b>✏️ ${perluRevisi} SO Ditolak</b> — silakan buka catatannya dan revisi.</div>`:''}
 
  ${cariBoxHTML("procCariBox",procCari,"Cari SO — nomor, item, vendor, lokasi, pemohon…","procSetCari")}
  ${bulanStripHTML(grup,selB,"procSetBulan")}
@@ -15209,9 +15247,9 @@ function escPanelHTML(list){
  if(!list.length) return "";
  return '<div class="card sec" style="margin-bottom:18px"><div class="sec-h">'+
    secIc('#fdecec','#dc2626','approvals')+
-   '<div><h2>⏫ Eskalasi Tiket dari Lapangan</h2><div class="d">'+list.length+
-     ' tiket — operator tidak dapat menyelesaikan sendiri. Tindak lanjut: buatkan SO ke Procurement, '+
-     'naikkan ke Section Head, atau tutup dengan alasan.</div></div></div>'+
+   /* Sub-teks dibuang (permintaan Sudana): judulnya sudah menjelaskan dirinya,
+      dan dua dari tiga tindakan yang disebut di sana memang sudah tidak ada. */
+   '<div><h2>Eskalasi Tiket Lapangan</h2></div></div>'+
    '<div class="sec-body">'+list.map(escTicketRow).join("")+'</div></div>';
 }
 function escTicketRow(t){
@@ -15221,20 +15259,34 @@ function escTicketRow(t){
      '<div class="esc-no"><b>'+esc(t.no)+'</b><span class="badge bd-crit" style="font-size:calc(9px*var(--fz))">Eskalasi</span>'+
        (umur!=null?'<span class="esc-age">'+fmtDur(umur)+' lalu</span>':'')+'</div>'+
      '<div class="esc-t">'+esc(t.judul||'')+'</div>'+
-     /* pemohon asli ikut tampil — approver memutuskan membuat SO untuk KELUHAN SIAPA */
-     '<div class="esc-m">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+' · '+pemohonChip(t)+
-       ' · dieskalasi oleh <b>'+esc(t.escBy||'operator')+'</b> → <b>'+esc(escTujuanLabel(t))+'</b>'+
-       (t.escUpBy?' · dinaikkan '+esc(t.escUpBy):'')+'</div>'+
+     /* ── META 2 BARIS × 2 KOLOM (5 Agu 2026) ──────────────────────────────
+        Dulu satu paragraf panjang bersambung titik-tengah: kategori · lokasi ·
+        pemohon · dieskalasi oleh · tujuan. Di layar HP ia membungkus jadi 3–4
+        baris dan tidak ada yang bisa dipindai cepat. Sekarang tiap keterangan
+        punya tempat tetap, jadi mata tahu ke mana harus melihat:
+          kategori | lokasi & pemohon
+          operator | supervisor tujuan                                        */
+     '<div class="esc-grid">'+
+       '<div><span>Kategori</span>'+esc(foNormCat(t.cat))+'</div>'+
+       '<div><span>Lokasi &amp; Pemohon</span>'+esc(t.lokasi||'—')+' · '+pemohonChip(t)+'</div>'+
+       '<div><span>Operator</span>'+esc(t.escBy||'—')+'</div>'+
+       '<div><span>Supervisor</span>'+esc(escTujuanLabel(t))+(t.escUpBy?' · dinaikkan '+esc(t.escUpBy):'')+'</div>'+
+     '</div>'+
      (t.escNote?'<div class="esc-note">💬 '+esc(t.escNote)+'</div>':'')+
      (t.diskusiAt?'<div class="esc-diskusi">💬 Sudah didiskusikan dengan Section Head <b>'+esc(t.diskusiWith||'')+'</b> · '+esc(t.diskusiAt)+'</div>':'')+
    '</div>'+
+   /* ── DUA TINDAKAN SAJA, SATU BARIS DUA KOLOM (5 Agu 2026) ───────────────
+      Dulu empat tombol berukuran berbeda membungkus tak beraturan. Dua dibuang
+      atas keputusan Sudana:
+        · "Naikkan ke Section Head" — eskalasi sudah beralamat sejak awal
+        · "Tutup tanpa SO" — melanggar aturan pokok AGAVA: keluhan orang tidak
+          boleh ditutup sepihak tanpa jalan keluar. Menghapus tombolnya menutup
+          jalan pintas itu untuk selamanya.
+      Sisanya dua, ukuran sama, tanpa ikon. Hanya WARNA yang dipertahankan —
+      "Buat SO" biru sebagai tindakan utama. */
    '<div class="esc-act">'+
-     /* Langkah 3 & 4 pada urutan baku: berdiskusi dulu bila perlu, lalu buat SO */
-     '<button class="btn-out" onclick="escDiskusiSection(\''+esc(t.no)+'\')" title="Buka Chat dengan Section Head pemilik kategori ini">💬 Diskusi dengan Section Head</button>'+
-     '<button class="btn-act" onclick="soFromTicket(\''+esc(t.no)+'\')">📋 Buat SO ke Procurement</button>'+
-     /* anak tangga kedua — hanya masuk akal selagi masih di tangga Koordinator */
-     (((t.escTo||"koor")!=="section")?'<button class="btn-out" onclick="escNaikkan(\''+esc(t.no)+'\')">⏫ Naikkan ke Section Head</button>':'')+
-     '<button class="btn-out" onclick="escDismiss(\''+esc(t.no)+'\')">Tutup tanpa SO</button>'+
+     '<button class="btn-act" onclick="soFromTicket(\''+esc(t.no)+'\')">Buat SO</button>'+
+     '<button class="btn-out" onclick="escDiskusiSection(\''+esc(t.no)+'\')" title="Buka Chat dengan Section Head pemilik kategori ini">Diskusi Section</button>'+
    '</div>'+
  '</div>';
 }
@@ -17725,7 +17777,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-202";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-203";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
