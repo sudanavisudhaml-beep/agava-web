@@ -8901,7 +8901,7 @@ function renderProc(){
  </div>
  ${perluRevisi?`<div class="so-perbaiki so-perbaiki-1b" style="margin-bottom:14px"
      title="Buka SO-nya di tab Ditolak &amp; Batal, lalu pilih Revisi &amp; Kirim Ulang (nomor tetap sama) · Batalkan bila kebutuhannya gugur · Hapus bila SO-nya keliru."
-   ><b>✏️ ${perluRevisi} SO Ditolak</b> — silakan buka catatannya dan revisi.</div>`:''}
+   ><b>${perluRevisi} SO Ditolak</b> — silakan buka catatannya dan revisi.</div>`:''}
 
  ${cariBoxHTML("procCariBox",procCari,"Cari SO — nomor, item, vendor, lokasi, pemohon…","procSetCari")}
  ${bulanStripHTML(grup,selB,"procSetBulan")}
@@ -14562,7 +14562,9 @@ function notifKartuHTML(n,dalamDek){
  var meta=notifModMeta(n.mod);
  var blm=!notifSeen(n.key);
  var uk=notifUkuran(n);
- var bagian=[n.aging?"⏱ "+n.aging:"", n.status||"", n.req||""].filter(Boolean);
+ /* Tanpa ikon — aturan Sudana: jangan menambahkan ikon ke teks kartu kecuali
+    diminta. Aging cukup ditulis apa adanya. */
+ var bagian=[n.aging||"", n.status||"", n.req||""].filter(Boolean);
  /* Kartu KECIL hanya punya dua baris teks. Supaya tidak ada keterangan yang
     hilang, satu-satunya potongan meta yang dimilikinya (menurut notifUkuran,
     kecil berarti ≤1 potongan) ditumpangkan ke baris nama modul — bukan dibuang. */
@@ -17783,7 +17785,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-204";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-205";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
