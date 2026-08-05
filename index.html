@@ -15509,12 +15509,70 @@ function tsStepper(labels,doneCount,tsArr,notes){
 /* Dulu langkah Sourcing & UPR hanya membubuhkan cap waktu — pekerjaannya
    sebenarnya terjadi di luar AGAVA. Sekarang keduanya membuka halamannya
    sendiri; cap waktu dibubuhkan oleh langkah itu saat benar-benar tuntas. */
+/* ╔══ ALUR ASSIGNED SO DISEDERHANAKAN (5 Agu 2026) ══════════════════════════╗
+   Sudana: "klik Sourcing malah muncul pilihan Vendor Management — menyasar ke
+   alamat yang salah. Untuk saat ini: Sourcing → UPR → SPK (isi nilainya) →
+   BAST → langsung masuk Payment Tracker."
+
+   Layar sourcing/UPR/SPK yang lama (pilih 3 rekanan, undangan tender, rekap
+   penawaran) TIDAK dihapus — fungsinya masih ada dan bisa dihidupkan lagi.
+   Yang berubah hanya apa yang dipanggil tombol ini: satu klik = satu langkah
+   maju, tercatat waktunya. Staff Procurement bisa jalan hari ini tanpa harus
+   melewati layar yang belum dipakai.
+
+   Yang TIDAK disederhanakan: nilai SPK tetap harus DIKETIK. Ia angka uang yang
+   masuk ke dokumen SO dan Payment Tracker — menebaknya sama saja mengarang. */
+function soAgingSegarkan(s){
+ try{
+   var t=s.ts||{};
+   var acuan=t.bast||t.spk||t.upr||t.sourcing||t.dept||t.proc||t.budget||t.section||t.created;
+   var ms=goLiveMs({ts:{created:acuan}}) || goLiveMs(s);
+   if(!ms){ s.aging="On Track"; return; }
+   var hari=Math.floor((Date.now()-ms)/864e5);
+   s.aging = hari>14 ? "Needs Attention" : (hari>7 ? "Warning" : "On Track");
+ }catch(e){ s.aging="On Track"; }
+}
 function soStep(no){
- var s=SO.find(x=>x.no===no); if(!s)return;
- if(s.wstep===0){ sourcingMulai(no); return; }   // Sourcing → pilih 3 rekanan + undangan tender
- if(s.wstep===1){ uprMulai(no); return; }        // UPR → rekap penawaran + approval berjenjang
- if(s.wstep===2){ openSPK(no); return; }         // Kirim SPK → modal upload+email
- if(s.wstep===3){ openBAST(no); return; }        // Kirim BAST → modal upload
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ var w=+s.wstep||0;
+ s.ts=s.ts||{}; s.tsf=s.tsf||{};
+ var patch={};
+ if(w===0){
+   s.wstep=1; s.ts.sourcing=nowStamp(); s.tsf.sourcing=nowStampDoc();
+   patch["ts.sourcing"]=s.ts.sourcing; patch["tsf.sourcing"]=s.tsf.sourcing;
+ } else if(w===1){
+   s.wstep=2; s.ts.upr=nowStamp(); s.tsf.upr=nowStampDoc();
+   patch["ts.upr"]=s.ts.upr; patch["tsf.upr"]=s.tsf.upr;
+ } else if(w===2){
+   var isi=prompt("Nilai SPK untuk "+no+"\n\nKetik angka rupiah (tanpa titik).\nContoh: 12500000",
+                  soNilaiRp(s)>0?String(soNilaiRp(s)):"");
+   if(isi===null) return;
+   var n=parseFloat(String(isi).replace(/[^0-9]/g,""))||0;
+   if(n<=0){ alert("Nilai SPK harus lebih dari 0."); return; }
+   s.nilai=n; s.wstep=3; s.spkSent=true;
+   if(!s.spkNo) s.spkNo="SPK-"+String(no).replace(/^SO-/,"");
+   s.ts.spk=nowStamp(); s.tsf.spk=nowStampDoc(); s.stage=Math.max(s.stage||0,5);
+   patch.nilai=s.nilai; patch.spkNo=s.spkNo; patch.spkSent=true; patch.stage=s.stage;
+   patch["ts.spk"]=s.ts.spk; patch["tsf.spk"]=s.tsf.spk;
+ } else if(w===3){
+   s.wstep=4; s.ts.bast=nowStamp(); s.tsf.bast=nowStampDoc();
+   s.bastDate=TODAY_STR; s.invStatus="Menunggu Invoice";
+   patch.bastDate=s.bastDate; patch.invStatus=s.invStatus;
+   patch["ts.bast"]=s.ts.bast; patch["tsf.bast"]=s.tsf.bast;
+ } else return;
+ soAgingSegarkan(s);
+ patch.wstep=s.wstep; patch.aging=s.aging;
+ try{ dbPatchSO(no,patch); }catch(e){ console.warn("soStep patch:",e&&e.message); }
+ try{ soPersistLokal(); }catch(e){}
+ try{ auditLog("so-langkah", no+" → wstep "+s.wstep); }catch(e){}
+ try{ agavaRenderAman(["renderAssigned","renderProc","renderPayment","renderOverview","updateBell"]); }catch(e){}
+ if(s.wstep>=4){
+   alert("BAST tercatat untuk "+no+".\n\nSO ini masuk ke Payment Tracker untuk proses invoice.");
+   try{ go("payment"); }catch(e){}
+   /* Baris SO-nya disorot di Payment Tracker — sama seperti jalur notifikasi,
+      supaya orangnya tidak perlu mencari lagi di daftar. */
+   try{ setTimeout(function(){ agavaSorot(no,"payment"); },280); }catch(e){}
+ }
 }
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  SOURCING → UPR → SPK — rantai pengadaan di dalam AGAVA                  ║
@@ -17851,7 +17909,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-208";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-209";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
