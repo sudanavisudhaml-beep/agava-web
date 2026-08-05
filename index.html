@@ -15330,8 +15330,14 @@ function renderApprovals(){
  const uprList=uprApprovalsForMe();   // UPR: Procurement → Dept Head → Division Head → Chief
  const others=APPROVALS.filter(a=>myT.indexOf(a.tier)>=0);
  const oPend=others.filter(a=>a.status==="Pending");
- /* Administrator: pemilih tier + lencana tier tetap yang selalu menempel padanya */
- const tetap=((gUser&&gUser.tiers)||[]).map(t=>`<span class="badge bd-proc" style="font-size:calc(12.5px*var(--fz));padding:7px 12px;margin-left:6px" title="gerbang tetap milik akun ini">${t}</span>`).join("");
+ /* Lencana "tier tetap" DIBUANG (Sudana, 5 Agu 2026): "saya tidak mengerti card
+    Procurement di bawah menu Tier, itu menunjukkan apa?"
+    Pertanyaan yang wajar — dan itu sendiri jawabannya. Lencana itu menyebut
+    gerbang yang PERMANEN dipegang akun ini, sementara dropdown tepat di atasnya
+    menyebut gerbang yang SEDANG disaring. Dua arti berbeda, berdampingan, tanpa
+    satu pun keterangan. Wewenangnya tidak berubah sedikit pun tanpa lencana ini
+    — ia hanya lapisan penjelas yang justru membingungkan. */
+ const tetap="";
  /* Owner: penyaring gerbang, bukan pemilih peran. Bawaannya "Semua gerbang"
     supaya ia melihat seluruh antrean operasional sekaligus dan bisa mengambil
     alih. Chief CHCD & Division Head sengaja TIDAK ada di daftar. */
@@ -17777,7 +17783,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-203";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.05-204";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
