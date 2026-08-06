@@ -10,7 +10,6 @@
       "**/node_modules/**",
       "**/*.md",
       "**/*.ps1",
-      "!data/**/*.xlsx",
       "**/*.xlsx",
       "app.js",
       "index-prototype.html",
