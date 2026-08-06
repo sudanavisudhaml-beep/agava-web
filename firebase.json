@@ -10,6 +10,7 @@
       "**/node_modules/**",
       "**/*.md",
       "**/*.ps1",
+      "!data/**/*.xlsx",
       "**/*.xlsx",
       "app.js",
       "index-prototype.html",
@@ -19,33 +20,54 @@
       {
         "source": "/@(index.html|sw.js|version.json|pj-timeline.html|wp.html)",
         "headers": [
-          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
         ]
       },
       {
         "source": "/",
         "headers": [
-          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
         ]
       },
       {
         "source": "**/*.@(png|jpg|jpeg|svg|mp3)",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=604800" }
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=604800"
+          }
         ]
       },
       {
         "source": "/@(xlsx.full.min.js|html2canvas.min.js|jspdf.umd.min.js|pdf.min.js|pdf.worker.min.js|pdf-lib.min.js)",
         "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=2592000, immutable" }
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=2592000, immutable"
+          }
         ]
       },
       {
         "source": "**",
         "headers": [
-          { "key": "X-Content-Type-Options", "value": "nosniff" },
-          { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "SAMEORIGIN"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          }
         ]
       }
     ]
