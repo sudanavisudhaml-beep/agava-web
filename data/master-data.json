@@ -18,20 +18,7 @@
     { "obj": "MA Warehouse", "note": "Land & building", "due": "2026-06-30" }
   ],
 
-  "_izin": "Perizinan dokumen legal. site pilih: AMDI / Menara Astra / ABC BSD / ABC Bandung / Tower / AIHO.",
-  "izin": [
-    { "name": "Genset Operation Permit", "site": "AMDI", "due": "2026-09-01" },
-    { "name": "Lift Operation Cert (SLO)", "site": "Tower", "due": "2026-06-22" },
-    { "name": "Fire System Certificate", "site": "ABC BSD", "due": "2026-07-15" },
-    { "name": "Building Permit (PBG)", "site": "MA", "due": "2026-12-01" }
-  ],
-
-  "_izinops": "Izin operasional yang tampil di GA Calendar (hitung mundur otomatis: ≤90 hari = Near overdue).",
-  "izinops": [
-    { "name": "Izin K3 Sistem Kebakaran (Hydrant & Fire Alarm)", "site": "AMDI", "due": "2026-08-15" },
-    { "name": "Izin Operasional Lift (SLO)", "site": "AMDI", "due": "2026-06-22" },
-    { "name": "Izin Operasional Genset (SLO)", "site": "AMDI", "due": "2026-09-01" }
-  ],
+  "_izin": "DIHAPUS 6 Agu 2026. Daftar 'izin' & 'izinops' di sini hanya contoh, dan sempat membuat Beranda melaporkan izin lewat tempo yang tidak ada di dokumen aslinya. Register izin yang sebenarnya (66 izin) ada di dalam AGAVA sendiri, sumbernya data/perizinan-sumber.xlsx — lihat modul HSE, halaman 1 Perizinan.",
 
   "_maint": "Jadwal Maintenance tahunan (tampil sebagai matriks di modul Building). n = nama pekerjaan, cat = kategori (ME/EE/Sipil/Fire & Safety/Umum), m = 12 angka untuk Jan..Des: 0 = tidak terjadwal, 1 = terjadwal, 2 = sudah selesai. Angka 'maintenance rutin' di CODEC dihitung otomatis dari sini.",
   "maint": [

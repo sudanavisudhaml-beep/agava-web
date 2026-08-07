@@ -16,7 +16,10 @@ function agavaParseIzin(ab){
     if(!s||/selamanya/i.test(s)) return null;
     var m=s.match(/(\d{1,2})?\s*([A-Za-z]+)\s*(\d{4})/); if(!m) return null;
     var b=BLN[String(m[2]).toLowerCase()]; if(!b) return null;
-    var y=+m[3], d=m[1]?+m[1]:new Date(y,b,0).getDate();   // tanpa tanggal → akhir bulan
+    /* Tanpa tanggal → AWAL bulan (keputusan Sudana, 6 Agu 2026). "Mei 2026"
+       berarti izinnya harus sudah beres saat Mei dimulai, bukan saat Mei habis;
+       memakai akhir bulan membuat pengingatnya telat sebulan. */
+    var y=+m[3], d=m[1]?+m[1]:1;
     return y+"-"+("0"+b).slice(-2)+"-"+("0"+d).slice(-2);
   }
   var rp=function(s){ return Math.round(parseFloat(String(s||"").replace(/[^0-9.]/g,""))||0); };

@@ -2478,7 +2478,7 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .izn-row.urgent{background:linear-gradient(90deg,rgba(255,77,109,.06),transparent 60%)}
 .izn-nm{font-weight:700;color:var(--ink);line-height:1.3}
 .izn-sub{font-size:calc(10.5px*var(--fz));color:#9aa7b8;margin-top:2px;overflow-wrap:anywhere}
-.izn-due b,.izn-berlaku b{font-size:calc(12.5px*var(--fz));color:var(--ink);font-weight:700} .izn-due>div{margin-top:3px}
+.izn-due b,.izn-berlaku b{font-size:calc(12.5px*var(--fz));color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums} .izn-due>div{margin-top:3px}
 .izn-act{font-size:calc(11.5px*var(--fz));font-weight:600;line-height:1.35}
 .izn-x{font-size:calc(10px*var(--fz));color:#9aa7b8;font-weight:500;margin-top:2px;line-height:1.3}
 .izn-mut{font-size:calc(11px*var(--fz));color:#9aa7b8}
@@ -2486,6 +2486,22 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .izn-close{padding:5px 12px;font-size:calc(11px*var(--fz));font-weight:700;white-space:nowrap}
 .izn-closed{font-size:calc(11px*var(--fz));font-weight:800;color:var(--green);line-height:1.3}
 .izn-note{padding:11px 18px;font-size:calc(11px*var(--fz));color:var(--muted);background:#f8fafd;border-top:1px solid var(--line);line-height:1.6}
+/* Alat bantu daftar izin — pencarian + saringan keadaan + saringan area.
+   66 baris terlalu banyak untuk digulir mencari satu izin; ini pintu masuknya. */
+.izn-tools{display:flex;flex-direction:column;gap:9px;margin-bottom:13px}
+.izn-cari{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px 13px;background:#fff;
+  font-family:var(--ff);font-size:calc(13px*var(--fz));color:var(--ink)}
+.izn-cari:focus{outline:none;border-color:#0a7cff;box-shadow:0 0 0 3px rgba(10,124,255,.12)}
+.izn-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.izn-chips-l{font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3;margin-right:2px}
+.izn-chips .ptab b{font-weight:800;margin-left:3px}
+.ptab.izn-st.lewat.on{background:var(--red);border-color:var(--red)}
+.ptab.izn-st.segera.on{background:#c2740a;border-color:#c2740a}
+.ptab.izn-st.aman.on,.ptab.izn-st.permanen.on{background:#0a7d5e;border-color:#0a7d5e}
+/* Keterangan pengurusan apa adanya dari Database Perizinan — penjelas kenapa
+   sebuah izin lewat tempo tapi sebenarnya sedang diurus. */
+.izn-ket{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:7px;background:#fff4e0;color:#8a5a00;
+  font-size:calc(10.5px*var(--fz));font-weight:700;line-height:1.45}
 /* ── AGC · Astra Green Company (halaman 3 HSE) ── */
 .agc-score{flex:0 0 auto;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .agc-score-v{font-size:calc(24px*var(--fz));font-weight:900;line-height:1}
@@ -2545,6 +2561,13 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
     letter-spacing:.06em;text-transform:uppercase;color:#9aa7b8;margin-bottom:2px}
   .izn-aksi{grid-column:1/3;text-align:left;margin-top:2px}
   .izn-act{grid-column:1/3}
+  /* saringan di HP jadi rel mendatar — tidak menumpuk jadi tiga baris tinggi */
+  .izn-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .izn-chips::-webkit-scrollbar{display:none}
+  .izn-chips .ptab{flex:0 0 auto;white-space:nowrap;padding:7px 12px;font-size:calc(12px*var(--fz))}
+  .izn-chips-l{flex:0 0 auto}
+  /* target tap ≥44px — di HP tombolnya melebar penuh, bukan pil kecil 28px */
+  .izn-close{width:100%;min-height:44px;font-size:calc(12.5px*var(--fz))}
   /* tiga halaman HSE di layar kecil — tab dibuat menumpuk agar 3 kolom muat */
   .hse-kpi3{grid-template-columns:repeat(3,1fr);gap:8px}
   .hse-tabs{gap:7px}
@@ -5348,9 +5371,10 @@ function kpiDeptData(){
  // 6. Vendor SLA — dari Vendor Management (skor SLA kontrak, skala 3)
  const sl=VENDOR_CONTRACTS.filter(c=>c.sla!=null), slAvg=sl.length?sl.reduce((a,c)=>a+c.sla,0)/sl.length:0;
  K.push({ic:"🏢",name:"Vendor SLA",param:sl.length?(sl.length+" vendor ternilai dari "+VENDOR_CONTRACTS.length):("0 dari "+VENDOR_CONTRACTS.length+" vendor — isi SLA Form"),target:"≥ 2.50",ach:sl.length?slAvg.toFixed(2):"belum dinilai",pct:sl.length?Math.round(slAvg/3*100):0,st:!sl.length?"warn":slAvg>=2.5?"ok":slAvg>=2.2?"warn":"bad",src:"Vendor Mgmt"});
- // 7. Compliance Perizinan — dari HSE (IZIN yang belum jatuh tempo)
- const izOk=IZIN.filter(z=>z.due>=TODAY_STR).length, izPct=IZIN.length?Math.round(izOk/IZIN.length*100):100;
- K.push({ic:"📄",name:"Compliance Perizinan",param:izOk+" dari "+IZIN.length+" izin masih aktif",target:"100%",ach:izPct+"%",pct:izPct,st:izPct>=100?"ok":izPct>=90?"warn":"bad",src:"HSE & Sustain"});
+ // 7. Compliance Perizinan — dari register resmi HSE (izin yang belum jatuh tempo)
+ const izL=izinOpsList();
+ const izOk=izL.filter(z=>z.due>=TODAY_STR).length, izPct=izL.length?Math.round(izOk/izL.length*100):100;
+ K.push({ic:"📄",name:"Compliance Perizinan",param:izOk+" dari "+izL.length+" izin masih berlaku",target:"100%",ach:izPct+"%",pct:izPct,st:izPct>=100?"ok":izPct>=90?"warn":"bad",src:"HSE & Sustain"});
  // 8. Transport Terlayani — dari modul Transportation
  const trH=TRANSPORT_REQ.filter(x=>(x.status||"Diajukan")!=="Diajukan").length, trPct=TRANSPORT_REQ.length?Math.round(trH/TRANSPORT_REQ.length*100):100;
  K.push({ic:"🚗",name:"Transport Terlayani",param:trH+" dari "+TRANSPORT_REQ.length+" permintaan ditindaklanjuti",target:"≥ 90%",ach:trPct+"%",pct:trPct,st:trPct>=90?"ok":trPct>=70?"warn":"bad",src:"Transportation"});
@@ -5694,22 +5718,16 @@ const GACAL_TYPES={
 };
 /* lokasi event → project renovasi yang menaunginya (Auditorium & Lt.8) */
 const GACAL_LOCPROJ={ 'Auditorium':'G.  RENOVASI AUDITORIUM', 'Exlounge':'E.  RENOVASI KORIDOR & TOILET 8A' };
-/* Izin operasional (jatuh tempo → status) */
-const IZIN_OPS=[
- {name:"Izin K3 Sistem Kebakaran (Hydrant & Fire Alarm)",site:"AMDI",due:"2026-08-15"},
- {name:"Izin Operasional Lift (SLO)",site:"AMDI",due:"2026-06-22"},
- {name:"Izin Operasional Genset (SLO)",site:"AMDI",due:"2026-09-01"},
- {name:"Izin Instalasi Listrik (SLO TM/TR)",site:"AMDI",due:"2026-10-10"},
- {name:"Izin Penangkal Petir",site:"AMDI",due:"2026-07-30"},
- {name:"Izin Bejana Tekan / Kompresor Angin",site:"AMDI",due:"2026-11-05"},
- {name:"Izin TPS Limbah B3",site:"AMDI",due:"2026-06-25"},
- {name:"Sertifikat Laik Fungsi (SLF) Gedung",site:"AMDI",due:"2027-05-01"},
- {name:"Izin Operasional Eskalator",site:"MA",due:"2026-08-20"},
- {name:"Izin Operasional Boiler",site:"MA",due:"2026-06-10"},
- {name:"Izin K3 Proteksi Kebakaran",site:"ABC BSD",due:"2026-12-15"},
- {name:"Izin Lingkungan (UKL-UPL)",site:"AMDI",due:"2027-02-01"}
-];
-function izinStatus(due){ const d=Math.floor((new Date(due)-new Date(TODAY_STR))/86400000); return d<0?{k:'overdue',d}:d<=90?{k:'near',d}:{k:'ok',d}; }
+/* ── IZIN OPERASIONAL — SATU SUMBER: register resmi PERMITS ──────────────────
+   Dulu di sini ada 12 izin KARANGAN (Izin Operasional Lift SLO jatuh tempo
+   22 Jun 2026, dst). Akibatnya Beranda, GA Calendar, dan CODEC memberitakan
+   "Izin Lift lewat tempo 45 hari" padahal di Database Perizinan yang asli
+   izin lift AMDI aman sampai 2027 — dilaporkan Sudana 6 Agu 2026.
+   Daftarnya dibuang; semua tampilan izin sekarang turun dari PERMITS (66 izin),
+   sehingga menekan "Perpanjang" di modul HSE langsung terlihat di Beranda. */
+function izinOpsList(){ return (typeof PERMITS!=="undefined"?PERMITS:[]).filter(function(p){ return !!p.due; }); }
+function izinStatus(due){ var s=permitStatus(due);
+ return {k:(s==="Overdue"?'overdue':s==="Due soon"?'near':'ok'), d:dueDays(due)}; }
 /* Ruang meeting utk "Acara Baru → Meeting" (tersambung ke Room Booking) */
 const MEETING_ROOMS=["Mahoni","Ebony","Trembesi","Akasia","Angsana","Auditorium","Executive Lounge","R. William Soeryadjaja","Meeting Room 6B","Training Room 2"];
 /* Agenda buatan user (Acara Baru) — ikut tampil di kalender & deteksi benturan */
@@ -5746,8 +5764,11 @@ function gacalEvents(){
  /* HSE & Sustainability — jatuh tempo legal: STNK · PBB · Izin · Izin Operasional */
  (typeof STNK!=='undefined'?STNK:[]).forEach((x,i)=>{ if(x.due)evs.push({date:x.due,type:'legal',loc:x.unit||'',title:'STNK '+x.plate,sub:'Jatuh tempo STNK · '+(x.unit||''),src:'STNK',idx:i}); });
  (typeof PBB!=='undefined'?PBB:[]).forEach((x,i)=>{ if(x.due)evs.push({date:x.due,type:'legal',loc:x.obj||'',title:'PBB '+x.obj,sub:'Jatuh tempo PBB · '+(x.note||''),src:'PBB',idx:i}); });
- (typeof IZIN!=='undefined'?IZIN:[]).forEach((x,i)=>{ if(x.due)evs.push({date:x.due,type:'legal',loc:x.site||'',title:'Izin: '+x.name,sub:'Jatuh tempo izin legal · '+(x.site||''),src:'IZIN',idx:i}); });
- IZIN_OPS.forEach((z,i)=>{ if(z.due)evs.push({date:z.due,type:'legal',loc:z.site,title:'Izin Ops: '+z.name,sub:'Jatuh tempo izin operasional · '+z.site,status:izinStatus(z.due).k,src:'IZINOPS',idx:i}); });
+ /* Izin: langsung dari register resmi. Yang sudah dicatat diperpanjang memakai
+    tanggal barunya, jadi kalender ikut bergerak begitu tombol Perpanjang ditekan. */
+ (typeof PERMITS!=='undefined'?PERMITS:[]).forEach((z,i)=>{ if(z.due)evs.push({date:z.due,type:'legal',loc:z.area||'',
+   title:'Izin: '+z.name, sub:'Uji berkala · '+(z.area||'')+(z.noIzin?' · '+z.noIzin:''),
+   status:izinStatus(z.due).k, src:'PERMITS', idx:i}); });
  /* Vendor Management — akhir masa kontrak */
  (typeof VENDOR_CONTRACTS!=='undefined'?VENDOR_CONTRACTS:[]).forEach((c,i)=>{ if(c.end)evs.push({date:c.end,type:'contract',loc:c.site||'',title:'Kontrak '+c.vendor,sub:'Akhir kontrak · '+(c.scope||'')+(c.site?' · '+c.site:''),src:'CONTRACT',idx:i}); });
  /* Service — tiket masuk */
@@ -5776,19 +5797,20 @@ function gacalToggle(k){ gacalFilters[k]=!gacalFilters[k]; renderGACal(); }
 function gacalSourceModule(type){ return {event:'service',project:'project',payment:'payment',maint:'building',legal:'reminder',contract:'vendor',ticket:'service'}[type]||'overview'; }
 function gacalGoSource(type){ try{ soDocClose&&soDocClose(); }catch(e){} try{ closeDrawer&&closeDrawer(); }catch(e){} go(gacalSourceModule(type)); }
 function gacalPermitsHTML(){
- const ok=IZIN_OPS.filter(z=>izinStatus(z.due).k==='ok').length;
- const near=IZIN_OPS.filter(z=>izinStatus(z.due).k==='near');
- const over=IZIN_OPS.filter(z=>izinStatus(z.due).k==='overdue');
+ const list=izinOpsList();
+ const ok=list.filter(z=>izinStatus(z.due).k==='ok').length;
+ const near=list.filter(z=>izinStatus(z.due).k==='near');
+ const over=list.filter(z=>izinStatus(z.due).k==='overdue');
  const watch=over.concat(near).sort((a,b)=>a.due.localeCompare(b.due));
  return `<div class="gc-permits">
-   <div class="gc-perm-h">📄 Izin Operasional <span>K3 kebakaran · Lift · Genset · Listrik · dll · ${IZIN_OPS.length} izin</span>
-     ${dbCanEdit()?`<button class="btn-act btn-mini" style="margin-left:auto" onclick="dbOpenForm('izinops')">＋ Tambah Izin</button>`:''}</div>
+   <div class="gc-perm-h">📄 Izin Operasional <span>Database Perizinan Astra · ${list.length} izin berjatuh tempo</span>
+     <button class="btn-act btn-mini" style="margin-left:auto" onclick="go('hse')">Buka modul HSE</button></div>
    <div class="gc-perm-stat">
-     <div class="gc-ps ok"><b>${ok}</b><span>✅ Done / Aktif</span></div>
-     <div class="gc-ps near"><b>${near.length}</b><span>🟠 Near overdue (≤90 hari)</span></div>
-     <div class="gc-ps over"><b>${over.length}</b><span>🔴 Overdue</span></div>
+     <div class="gc-ps ok"><b>${ok}</b><span>✅ Aman</span></div>
+     <div class="gc-ps near"><b>${near.length}</b><span>🟠 ≤2 bulan lagi</span></div>
+     <div class="gc-ps over"><b>${over.length}</b><span>🔴 Lewat tempo</span></div>
    </div>
-   ${watch.length?`<div class="gc-perm-list">${watch.slice(0,6).map(z=>{const s=izinStatus(z.due);return `<div class="gc-perm-row ${s.k}"><span class="gc-pn">${esc(z.name)} <small>· ${z.site}</small></span><span class="gc-pd">${fmtDay(z.due)} · ${s.k==='overdue'?('lewat '+Math.abs(s.d)+'h'):(s.d+' hari lagi')}</span></div>`;}).join('')}</div>`:''}
+   ${watch.length?`<div class="gc-perm-list">${watch.slice(0,6).map(z=>{const s=izinStatus(z.due);return `<div class="gc-perm-row ${s.k}"><span class="gc-pn">${esc(z.name)} <small>· ${esc(z.area||'')}</small></span><span class="gc-pd">${fmtDay(z.due)} · ${s.k==='overdue'?('lewat '+Math.abs(s.d)+'h'):(s.d+' hari lagi')}</span></div>`;}).join('')}</div>`:''}
  </div>`;
 }
 function gacalNewToggle(){ const m=document.getElementById('gcNewMenu'); if(m)m.classList.toggle('open'); }
@@ -6127,7 +6149,7 @@ function codecSubFnData(){
  pdComp.push({n:"Procurement Hub across Astra Group",v:CODEC_PROC_HUB.ach,type:"nonroutine",nav:"procurement"});
  const psd=Math.round(avgA(pdComp.map(c=>c.v)));
  /* GA-05 External Relation ← Perizinan (HSE) · Kontrak vendor · rata-rata form SLA vendor */
- const izinAll=IZIN.concat(typeof IZIN_OPS!=='undefined'?IZIN_OPS:[]);
+ const izinAll=izinOpsList();
  const izinOk=izinAll.filter(z=>z.due>=TODAY_STR).length, izinPct=izinAll.length?Math.round(izinOk/izinAll.length*100):100;
  const konOk=VENDOR_CONTRACTS.filter(c=>c.end>=TODAY_STR).length, konPct=VENDOR_CONTRACTS.length?Math.round(konOk/VENDOR_CONTRACTS.length*100):100;
  const slaSet=VENDOR_CONTRACTS.filter(c=>c.sla!=null).map(c=>+c.sla);
@@ -6813,8 +6835,7 @@ function impactData(){
  const obl=[
   ...STNK.map(x=>({due:x.due,src:"STNK"})),
   ...PBB.map(x=>({due:x.due,src:"PBB"})),
-  ...IZIN.map(x=>({due:x.due,src:"Perizinan"})),
-  ...IZIN_OPS.map(x=>({due:x.due,src:"Izin Operasional"})),
+  ...izinOpsList().map(x=>({due:x.due,src:"Perizinan"})),
   ...VENDOR_CONTRACTS.map(x=>({due:x.end,src:"Kontrak Vendor"})),
   ...WORK_PERMITS.map(x=>({due:x.selesai,src:"Work Permit"}))
  ].filter(o=>o.due);
@@ -7246,7 +7267,7 @@ function renderOverview(){
         ${gdPri('🚨','Tiket eskalasi','butuh perhatian PIC',TICKETS.filter(t=>t.esc&&t.stg<3).length,'service')}
         ${gdPri('✅','Approval menunggu','antrian semua gate',pendingApprovals().length,'approvals')}
         ${gdPri('🔔','Payment lewat estimasi','f-up treasury',SO.filter(s=>invReleaseOverdue(s)).length,'payment')}
-        ${gdPri('📄','Izin overdue / near','≤90 hari jatuh tempo',IZIN_OPS.filter(z=>izinStatus(z.due).k!=='ok').length,'gacal')}
+        ${gdPri('📄','Izin perlu tindakan','lewat tempo atau ≤2 bulan lagi',izinOpsList().filter(z=>izinStatus(z.due).k!=='ok').length,'hse')}
       </div></div>
   </div>
 
@@ -7392,7 +7413,7 @@ function renderOverview(){
          ${prioRow('🚨','Tiket eskalasi', TICKETS.filter(t=>t.esc&&t.stg<3).length, 'service', 'butuh perhatian PIC')}
          ${prioRow('✅','Approval menunggu', pendingApprovals().length, 'approvals', 'antrian semua gate')}
          ${prioRow('💰','Payment lewat estimasi', SO.filter(s=>invReleaseOverdue(s)).length, 'payment', 'f-up treasury')}
-         ${prioRow('📄','Izin overdue / near', IZIN_OPS.filter(z=>izinStatus(z.due).k!=='ok').length, 'gacal', '≤90 hari jatuh tempo')}
+         ${prioRow('📄','Izin perlu tindakan', izinOpsList().filter(z=>izinStatus(z.due).k!=='ok').length, 'hse', 'lewat tempo atau ≤2 bulan lagi')}
        </div>
      </div>
    </div>
@@ -11718,18 +11739,37 @@ function mWipItems(){
  return out;
 }
 
-/* Pengingat — jatuh tempo terdekat dari seluruh master data + payment (role tertentu). */
+/* Pengingat — jatuh tempo terdekat dari seluruh master data + payment (role tertentu).
+
+   IZIN & IZIN_OPS (daftar contoh) DIBUANG dari sini 6 Agu 2026. Merekalah yang
+   membuat Beranda menulis "Izin Operasional Lift (SLO) lewat 45 hari" padahal
+   di Database Perizinan yang asli tidak ada izin lift yang terlewat. Satu-satunya
+   sumber izin sekarang: register resmi PERMITS. */
 function mReminderItems(){
  var rows=[];
  function add(tag,name,due){ if(due) rows.push({tag:tag,name:name,due:due,d:dueDays(due)}); }
  /* STNK & PBB ditunda (data confidential belum diupload) — tidak ditampilkan dulu. */
- (typeof IZIN!=="undefined"?IZIN:[]).forEach(function(x){ add("IZIN",x.name+" · "+x.site,x.due); });
- (typeof IZIN_OPS!=="undefined"?IZIN_OPS:[]).forEach(function(x){ add("IZIN",x.name,x.due); });
- (typeof PERMITS!=="undefined"?PERMITS:[]).forEach(function(x){ if(!x.closedAt) add("UJI",x.name,x.due); });
+ /* Izin: nama banyak yang kembar antar area, jadi areanya ikut ditulis.
+    Yang BARU dicatat diperpanjang di modul HSE (≤30 hari) tidak muncul sebagai
+    hitung mundur, melainkan sebagai kabar "sudah diperpanjang" berikut tanggal
+    berlaku barunya — permintaan Sudana 6 Agu 2026, supaya menekan Perpanjang
+    terlihat hasilnya di Beranda, bukan cuma hilang diam-diam. */
+ (typeof PERMITS!=="undefined"?PERMITS:[]).forEach(function(x){
+   if(!x.due) return;
+   var baru=!!(x.closedAt && dueDays(x.closedAt)>=-30);
+   rows.push({tag:"UJI", name:x.name+(x.area?" · "+x.area:""), due:x.due, d:dueDays(x.due),
+     baru:baru, label:baru?"sudah diperpanjang":null, color:baru?"#12805C":null,
+     ket:(x.ket&&!/^done$/i.test(String(x.ket).trim()))?x.ket:"", closedAt:x.closedAt||""});
+ });
  if(mCanPay()) (typeof SO!=="undefined"?SO:[]).forEach(function(s){
    if(s.invReceived&&!s.invReleased) rows.push({tag:"BAYAR",name:s.item,due:s.invDue||null,
      d:s.invDue?dueDays(s.invDue):null}); });
- rows.sort(function(a,b){ return (a.d==null?9e9:a.d)-(b.d==null?9e9:b.d); });
+ /* Kabar perpanjangan naik ke atas (yang terbaru dulu), sisanya paling mendesak dulu */
+ rows.sort(function(a,b){
+   if(!!a.baru!==!!b.baru) return a.baru?-1:1;
+   if(a.baru&&b.baru) return String(b.closedAt).localeCompare(String(a.closedAt));
+   return (a.d==null?9e9:a.d)-(b.d==null?9e9:b.d);
+ });
  return rows;
 }
 function mDueLabel(d){ if(d==null)return "perlu diproses"; if(d<0)return "lewat "+(-d)+" hr"; if(d===0)return "hari ini"; return d+" hr lagi"; }
@@ -12368,9 +12408,19 @@ function renderMobileHome(){
  /* ── SECTION 4 — Pengingat · jatuh tempo terdekat ── */
  var remBlok="";
  if(mCanRemind()){
-   var remAll=mReminderItems(), rem=remAll.slice(0,6);
+   /* Register izin resmi (66 baris) mudah mendominasi pratinjau ini. Jatahnya
+      dibatasi: paling banyak 2 kabar perpanjangan + 3 jatuh tempo izin, supaya
+      STNK, PBB, dan tagihan tidak ikut tertutup. Jumlah totalnya tetap ditulis
+      apa adanya di kepala section — tidak ada yang disembunyikan diam-diam. */
+   var remAll=mReminderItems(), rem=[], jUji=0, jBaru=0;
+   remAll.forEach(function(r){ if(rem.length>=6)return;
+     if(r.baru){ if(jBaru>=2)return; jBaru++; }
+     else if(r.tag==="UJI"){ if(jUji>=3)return; jUji++; }
+     rem.push(r); });
    var remRows=rem.length?'<div class="mh-list">'+rem.map(function(r){
-       return mCardRow({judul:r.name,chip:r.tag,chipCls:M_RTAG[r.tag]||"k-so",status:mDueLabel(r.d),metaColor:mDueColor(r.d),
+       return mCardRow({judul:r.name,chip:r.tag,chipCls:M_RTAG[r.tag]||"k-so",
+         status:r.label||mDueLabel(r.d), metaColor:r.color||mDueColor(r.d),
+         meta:r.baru?("berlaku s/d "+fmtDay(r.due)+" "+String(r.due).slice(0,4)):(r.ket||""),
          right:r.due?(fmtDay(r.due)+" "+String(r.due).slice(0,4)):""});
      }).join("")+'</div>':'<div class="mh-empty">Tidak ada jatuh tempo terdekat.</div>';
    remBlok=mSecBlock("🔔 Pengingat",remAll.length+" item",null,remRows);
@@ -14218,12 +14268,12 @@ let NOTIFS=[];
    Panel input master-nya juga disembunyikan sampai datanya siap. */
 const STNK=[];
 const PBB=[];
-const IZIN=[
- {name:"Genset Operation Permit",site:"AMDI",due:"2026-09-01"},
- {name:"Lift Operation Cert (SLO)",site:"Tower",due:"2026-06-22"},
- {name:"Fire System Certificate",site:"ABC BSD",due:"2026-07-15"},
- {name:"Building Permit (PBG)",site:"MA",due:"2026-12-01"}
-];
+/* IZIN dikosongkan 6 Agu 2026 — isinya 4 izin karangan ("Lift Operation Cert
+   (SLO)" jatuh tempo 22 Jun 2026, dst) yang membuat Beranda & CODEC melaporkan
+   izin lewat tempo yang tidak ada di Database Perizinan. Register izin yang
+   sebenarnya ada di PERMITS (modul HSE). Array-nya dibiarkan kosong, bukan
+   dihapus, supaya kode lama yang masih menyebutnya tidak meledak. */
+const IZIN=[];
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  AGAVA DATA ENGINE — AGAVA ADALAH SUMBER DATA (bukan Excel/SharePoint)   ║
    ║  Prinsip: Excel/SharePoint hanya BAYANGAN untuk menjalankan flow otomasi; ║
@@ -14245,16 +14295,10 @@ const DB_SETS={
            {k:"due",l:"Jatuh tempo",t:"date",req:1},
            {k:"biaya",l:"Estimasi biaya (Rp)",t:"number",ph:"mis. 25000000"}],
    cols:[["obj","Objek Pajak"],["note","Keterangan"],["due","Jatuh tempo"]] },
- izin:{ label:"Perizinan — Dokumen Legal", ic:"📄", get:()=>IZIN, render:()=>{renderReminder();renderOverview();},
-   fields:[{k:"name",l:"Nama Izin",t:"text",req:1,ph:"Genset Operation Permit"},
-           {k:"site",l:"Lokasi / Site",t:"select",opts:SITE_OPTS,req:1},
-           {k:"due",l:"Jatuh tempo",t:"date",req:1}],
-   cols:[["name","Nama Izin"],["site","Site"],["due","Jatuh tempo"]] },
- izinops:{ label:"Izin Operasional", ic:"🔧", get:()=>IZIN_OPS, render:()=>{renderGACal();renderOverview();},
-   fields:[{k:"name",l:"Nama Izin Operasional",t:"text",req:1,ph:"Izin Operasional Lift (SLO)"},
-           {k:"site",l:"Lokasi / Site",t:"select",opts:SITE_OPTS,req:1},
-           {k:"due",l:"Jatuh tempo",t:"date",req:1}],
-   cols:[["name","Nama Izin"],["site","Site"],["due","Jatuh tempo"]] },
+ /* Dataset 'izin' & 'izinops' DIHAPUS 6 Agu 2026. Keduanya daftar contoh yang
+    menyaingi register resmi; satu izin bisa hidup di tiga tempat dengan tanggal
+    berbeda. Sekarang hanya ada satu: 'permits' di bawah. Kolom sisa di dokumen
+    cloud agava_config/master tidak lagi dibaca maupun ditulis. */
  /* Register izin HSE. Didaftarkan di sini supaya hasil tombol Close (uji berkala
     maju setahun) ikut tersimpan ke localStorage DAN Firestore — sebelumnya
     PERMITS cuma array statis, jadi perubahannya hilang begitu halaman dimuat ulang. */
@@ -14262,11 +14306,16 @@ const DB_SETS={
    fields:[{k:"name",l:"Nama Izin",t:"text",req:1,ph:"Izin Lift 1"},
            {k:"area",l:"Area / Site",t:"text",req:1,ph:"AMDI"},
            {k:"noIzin",l:"Nomor izin",t:"text",ph:"4400/I.PM-LF/09-B/2001"},
-           {k:"terbit",l:"Tanggal terbit",t:"text",ph:"17 Jun 2025"},
+           {k:"terbit",l:"Tanggal terbit / pengurusan terakhir",t:"text",ph:"17 Juni 2025"},
            {k:"periode",l:"Periode",t:"text",ph:"1 tahun"},
-           {k:"berlaku",l:"Masa berlaku s/d",t:"date"},
-           {k:"due",l:"Uji berkala (jatuh tempo)",t:"date",req:1}],
-   cols:[["name","Nama Izin"],["area","Area"],["berlaku","Masa berlaku"],["due","Uji berkala"]] },
+           {k:"berlaku",l:"Masa berlaku dokumen",t:"text",ph:"Selamanya / Berkala"},
+           {k:"due",l:"Uji berkala (jatuh tempo)",t:"date",req:1},
+           {k:"harga",l:"Estimasi biaya perpanjangan (Rp)",t:"number",ph:"mis. 2875000"},
+           {k:"ket",l:"Keterangan pengurusan",t:"text",ph:"mis. SO Bulan Agustus 2026"}],
+   cols:[["name","Nama Izin"],["area","Area"],["berlaku","Masa berlaku"],["due","Uji berkala"]],
+   /* id wajib: tombol Perpanjang memanggil baris lewat id, dan register resmi
+      punya nama kembar (3 izin petir ACSET dengan nama identik). */
+   in:o=>{ if(!o.id) o.id="IZX"+Date.now().toString(36); o.harga=+o.harga||0; return o; } },
  works:{ label:"Repair Work in Progress", ic:"🔨", get:()=>WORKS, render:()=>{renderBuilding();renderOverview();},
    fields:[{k:"job",l:"Pekerjaan",t:"text",req:1,ph:"AHU Cleaning — Floor 5A"},
            {k:"pt",l:"Vendor / PT pelaksana",t:"text",req:1},
@@ -14301,14 +14350,23 @@ const DB_SETS={
 function dbCanEdit(){ return gRole==="admin" || !viewerOnly(); }
 function dbPersist(){
   try{ const out={}; Object.keys(DB_SETS).forEach(k=>{ out[k]=DB_SETS[k].get(); });
+       out._seed={permits:PERMITS_SEED};        // stempel versi daftar izin resmi
        localStorage.setItem(DB_STORE, JSON.stringify(out)); }
   catch(e){ console.warn("AGAVA DB save:",e); }
   try{ dbSaveMaster(); }catch(e){}      // master data ikut naik ke Firestore
 }
+/* PAGAR CACHE — daftar izin.
+   Salinan localStorage yang dibuat sebelum 6 Agu 2026 masih berisi 28 izin contoh.
+   Kalau ikut dimuat, ia menimpa 66 izin nyata di kode setiap kali aplikasi dibuka
+   di perangkat itu. Karena itu set 'permits' hanya dipakai bila stempel versinya
+   sama — pagar yang sama seperti pada tiket & SO. Set lain tetap dimuat normal. */
 function dbLoadAll(){
   try{ const raw=localStorage.getItem(DB_STORE); if(!raw)return;
        const d=JSON.parse(raw);
-       Object.keys(DB_SETS).forEach(k=>{ if(Array.isArray(d[k])){ const a=DB_SETS[k].get(); a.length=0; d[k].forEach(x=>a.push(x)); } }); }
+       const seedOK=!!(d._seed&&d._seed.permits===PERMITS_SEED);
+       Object.keys(DB_SETS).forEach(k=>{
+         if(k==="permits"&&!seedOK){ console.info("Perizinan: cache lama perangkat dilewati — memakai daftar resmi",PERMITS_SEED); return; }
+         if(Array.isArray(d[k])){ const a=DB_SETS[k].get(); a.length=0; d[k].forEach(x=>a.push(x)); } }); }
   catch(e){ console.warn("AGAVA DB load:",e); }
 }
 let dbCur={set:null,idx:-1};
@@ -14419,6 +14477,31 @@ function dueStatus(due){ const d=Math.floor((new Date(due)-new Date(TODAY_STR))/
  if(d<=30) return {cls:"bd-warn",txt:"Due in "+d+"d"};
  return {cls:"bd-ok",txt:d+"d left"}; }
 function dueRow(name,sub,due){ const s=dueStatus(due); return `<div class="due-row"><div><div class="dj">${name}</div><div class="dm">${sub} · due ${due}</div></div><span class="badge ${s.cls}">${s.txt}</span></div>`; }
+/* Kartu "Reminder Perizinan" di modul Reminder — turun dari register resmi
+   (PERMITS), bukan lagi dari daftar contoh. Dua bagian:
+   · izin yang BARU dicatat diperpanjang (≤30 hari) → kabar hijau, biar jelas
+     tombol Perpanjang di modul HSE memang berbuah;
+   · izin yang perlu tindakan: lewat tempo atau ≤2 bulan lagi, keterangan
+     pengurusannya ikut supaya yang sedang diurus tidak terbaca terlantar. */
+function izinReminderHTML(){
+ var semua=izinOpsList();
+ var perlu=semua.filter(function(z){ return izinStatus(z.due).k!=='ok'; })
+   .sort(function(a,b){ return String(a.due).localeCompare(String(b.due)); });
+ var baru=semua.filter(function(z){ return z.closedAt && dueDays(z.closedAt)>=-30; })
+   .sort(function(a,b){ return String(b.closedAt).localeCompare(String(a.closedAt)); });
+ if(!perlu.length && !baru.length) return '';
+ return '<div class="card sec"><div class="sec-h">'+secIc('#fdf3e3','#c2740a','jatuhtempo')+
+   '<div><h2>📄 Reminder Perizinan</h2><div class="d">'+perlu.length+' dari '+semua.length+
+     ' izin perlu tindakan · sumber: Database Perizinan</div></div>'+
+   '<button class="btn-out btn-mini" style="margin-left:auto" onclick="go(\'hse\')">Buka daftar izin</button></div>'+
+  '<div class="sec-body">'+
+   baru.map(function(z){ return '<div class="due-row"><div><div class="dj">'+esc(z.name)+'</div>'+
+     '<div class="dm">'+esc(z.area||'')+' · dicatat diperpanjang '+fmtDay(z.closedAt)+' '+String(z.closedAt).slice(0,4)+
+     (z.closedBy?' oleh '+esc(z.closedBy):'')+' · berlaku s/d '+fmtDay(z.due)+' '+String(z.due).slice(0,4)+'</div></div>'+
+     '<span class="badge bd-ok">sudah diperpanjang</span></div>'; }).join('')+
+   perlu.map(function(z){ return dueRow(esc(z.name), esc(z.area||'')+(z.ket?' · '+esc(z.ket):''), z.due); }).join('')+
+  '</div></div>';
+}
 function myBookingCount(){ return (typeof RB_BOOKINGS!=="undefined"&&gUser)?RB_BOOKINGS.filter(b=>b.email===gUser.email||b.by===gUser.name).length:0; }
 /* ══════════════════════════════════════════════════════════════════════════
    STATUS "SUDAH DILIHAT" per notifikasi (per user).
@@ -14961,8 +15044,7 @@ function renderReminder(){
     </div>
   </div>
 
-  ${IZIN.length?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','jatuhtempo')}<div><h2>📄 Reminder Perizinan</h2><div class="d">${IZIN.length} dokumen · jatuh tempo dihitung otomatis</div></div></div>
-      <div class="sec-body">${IZIN.map(z=>dueRow(z.name,z.site,z.due)).join("")}</div></div>`:''}
+  ${izinReminderHTML()}
   ${pjReminderHTML()}`;
 }
 /* ══ REMINDER: TARGET SELESAI PEKERJAAN PROYEK ══
@@ -16600,7 +16682,9 @@ async function loadDataFiles(){
   if(md){
     DATA_LOADED.files.push("master-data.json");
     if(!localStorage.getItem(DB_STORE)){
-      const map={stnk:STNK,pbb:PBB,izin:IZIN,izinops:IZIN_OPS,permits:PERMITS,works:WORKS,contracts:VENDOR_CONTRACTS,maint:MAINT_SCHED};
+      /* 'permits' sengaja TIDAK ada di peta ini: daftar izin resmi (66 izin)
+         datang dari kode + stempel PERMITS_SEED, bukan dari file contoh. */
+      const map={stnk:STNK,pbb:PBB,works:WORKS,contracts:VENDOR_CONTRACTS,maint:MAINT_SCHED};
       Object.keys(map).forEach(k=>{ if(md[k]) repl(map[k],md[k]); });
     }
   }
@@ -17178,53 +17262,146 @@ function rateGateSubmit(){
 }
 
 /* ===================== HSE & SUSTAINABILITY — Permit compliance =====================
-   From "Database Perizinan PT Astra International Tbk". Tracks legal permits +
-   their re-test (uji kembali) deadlines → compliance KPIs + reminders. */
+   DAFTAR IZIN NYATA — "Database Perizinan PT Astra International Tbk".
+   Sumber berkas ada di repo: data/perizinan-sumber.xlsx, diurai oleh
+   data/perizinan-parse.js dan divalidasi 6 Agu 2026 → 66 izin
+   (AMDI 31 · BSD 20 · Bandung 15). Jangan diketik ulang dengan tangan:
+   bila sheet diperbarui, jalankan penguraiannya lagi lalu naikkan PERMITS_SEED.
+
+   Arti kolomnya:
+   · due     jatuh tempo = tanggal UJI KEMBALI. Sheet punya kolom 2025 DAN 2026.
+             Yang dipakai kolom 2026 (keadaan sekarang); bila 2026 masih kosong
+             dipakai kolom 2025 sebagai jatuh tempo terakhir yang diketahui,
+             supaya izin yang belum dijadwalkan ulang tidak hilang dari daftar.
+   · thn     dari kolom tahun mana due diambil — 2026 (mutakhir), 2025 (kolom 2026
+             masih kosong), 0 (izin permanen, tanpa jatuh tempo).
+   · uji     tulisan aslinya. Yang cuma bertuliskan bulan ("Mei 2026") dinormalkan
+             ke AWAL bulan — keputusan Sudana 6 Agu 2026: izin harus sudah beres
+             saat bulan itu dimulai, dan pengingatnya menyala 2 bulan sebelumnya.
+   · berlaku masa berlaku DOKUMEN ("Selamanya" / "Berkala"), bukan tanggal.
+   · ket     keterangan pengurusan apa adanya dari sheet ("SO Bulan Agustus 2026",
+             "progress perpanjangan", dll) — inilah yang menjelaskan kenapa sebuah
+             izin lewat tempo tapi sebenarnya sedang diurus.
+
+   PERMITS_SEED = versi daftar resmi. Salinan lama di localStorage perangkat dan
+   di dokumen cloud agava_config/master yang belum bertanda versi ini SENGAJA
+   diabaikan (lihat dbLoadAll & onSnapshot master) — kalau tidak, 28 izin contoh
+   yang lama akan menimpa 66 izin nyata ini setiap kali aplikasi dibuka. */
+const PERMITS_SEED="2026-08-06b";
 let PERMITS=[
- {area:"AMDI", name:"Izin Lift 1",            noIzin:"4400/I.PM-LF/09-B/2001", terbit:"17 Jun 2025", uji:"Mei 2026",       due:"2026-05-31", periode:"1 tahun", harga:2875000, status:"Done"},
- {area:"AMDI", name:"Izin Lift 2",            noIzin:"4401/I.PM-LF/09-B/2001", terbit:"17 Jun 2025", uji:"Mei 2026",       due:"2026-05-31", periode:"1 tahun", harga:2875000, status:"Done"},
- {area:"AMDI", name:"Izin Lift 5",            noIzin:"5393/I.PM-LF/09-E/98",   terbit:"17 Jun 2025", uji:"Mei 2026",       due:"2026-05-31", periode:"1 tahun", harga:2875000, status:"Done"},
- {area:"AMDI", name:"Izin Lift 8",            noIzin:"5878/I.PM-LF/09-B/2000", terbit:"17 Jun 2025", uji:"Mei 2026",       due:"2026-05-31", periode:"1 tahun", harga:2875000, status:"Done"},
- {area:"AMDI", name:"Izin Genset 1",          noIzin:"7176/2008",              terbit:"16 Okt 2025", uji:"September 2026", due:"2026-09-30", periode:"1 tahun", harga:2875000, status:"Done"},
- {area:"AMDI", name:"Izin Genset 3",          noIzin:"6153/2006",              terbit:"16 Okt 2025", uji:"September 2026", due:"2026-09-30", periode:"1 tahun", harga:2875000, status:"Done"},
- {area:"AMDI", name:"Penyalur Petir Gd A/D",  noIzin:"4389/2006",              terbit:"17 Jun 2025", uji:"Mei 2027",       due:"2027-05-31", periode:"2 tahun", harga:2500000, status:"Done"},
- {area:"AMDI", name:"Bejana Tekan Gedung D",  noIzin:"7175/2008",              terbit:"18 Jun 2025", uji:"Mei 2026",       due:"2026-05-31", periode:"1 tahun", harga:2875000, status:"Done"},
- {area:"AMDI", name:"Instalasi Listrik",      noIzin:"4371/2004",              terbit:"17 Jun 2025", uji:"Mei 2026",       due:"2026-05-31", periode:"1 tahun", harga:3250000, status:"Done"},
- {area:"AMDI", name:"Proteksi Kebakaran — Hydrant", noIzin:"4372/2004",        terbit:"17 Jun 2025", uji:"Mei 2026",       due:"2026-05-31", periode:"1 tahun", harga:3875000, status:"Done"},
- {area:"AMDI", name:"Proteksi Kebakaran — Fire Alarm", noIzin:"4372/2006",     terbit:"17 Jun 2025", uji:"Mei 2026",       due:"2026-05-31", periode:"1 tahun", harga:3875000, status:"Done"},
- {area:"AMDI", name:"Sertifikat Keselamatan Kebakaran (DPK)", noIzin:"571/-1.784.22", terbit:"10 Jul 2025", uji:"10 Juli 2026", due:"2026-07-10", periode:"1 tahun", harga:67500000, status:"Done"},
- {area:"AMDI", name:"Gondola Gedung A–D",     noIzin:"105/PA-GD/2011",         terbit:"18 Jun 2025", uji:"Mei 2026",       due:"2026-05-31", periode:"1 tahun", harga:3000000, status:"Done"},
- {area:"AMDI", name:"Izin Reklame AI HO",     noIzin:"20/C.35/…/2024",         terbit:"31 Mei 2024", uji:"Desember 2026",  due:"2026-12-31", periode:"1 tahun", harga:81420900, status:"Done"},
- {area:"AMDI", name:"Pajak Reklame",          noIzin:"SKPD.011711300802092405",terbit:"31 Des 2025", uji:"Desember 2026",  due:"2026-12-31", periode:"1 tahun", harga:91079100, status:"Done"},
- {area:"AMDI", name:"Surat Izin Laik Fungsi (SLF) Gd A&D", noIzin:"SK-SLF-…-002", terbit:"27 Mei 2025", uji:"26 Mei 2030", due:"2030-05-26", periode:"5 tahun", harga:935000000, status:"Done"},
- {area:"AMDI", name:"Surat Izin Laik Fungsi (SLF) Gd B&C", noIzin:"SK-SLF-…-001", terbit:"27 Mei 2025", uji:"26 Mei 2030", due:"2030-05-26", periode:"5 tahun", harga:935000000, status:"Done"},
- {area:"AMDI", name:"IPLC — Izin Pengolahan Limbah Cair (A,B)", noIzin:"—",     terbit:"—",           uji:"Selamanya",      due:null,        periode:"Selamanya", harga:0, status:"Done"},
- {area:"AMDI", name:"Izin Limbah B3",         noIzin:"—",                      terbit:"—",           uji:"Selamanya",      due:null,        periode:"Selamanya", harga:0, status:"Done"},
- {area:"AMDI", name:"SLO Instalasi Listrik (NIDI)", noIzin:"E3B.0.P.DJ.315.3172.23", terbit:"2023", uji:"2033",            due:"2033-12-01", periode:"10 tahun", harga:25000000, status:"Done"},
- {area:"BSD",  name:"Izin Motor Diesel — Affco BSD", noIzin:"566/1626/IL/K3/XI/2019", terbit:"2025",  uji:"Oktober 2026",   due:"2026-10-31", periode:"1 tahun", harga:1750000, status:"Done"},
- {area:"BSD",  name:"Izin Lift Penumpang — ABC BSD BMW", noIzin:"560/0208/DKT/BINWAS/II/2017", terbit:"2025", uji:"Oktober 2026", due:"2026-10-31", periode:"1 tahun", harga:1600000, status:"Done"},
- {area:"BSD",  name:"Izin Instalasi Listrik — ABC BSD", noIzin:"560/1619/IL/K3/XI/2019", terbit:"Nov 2025", uji:"November 2026", due:"2026-11-30", periode:"1 tahun", harga:4000000, status:"Done"},
- {area:"BSD",  name:"Izin Proteksi Kebakaran — ABC BSD", noIzin:"560/1620/IPK/XI/2019", terbit:"2025", uji:"Oktober 2026",   due:"2026-10-31", periode:"1 tahun", harga:4000000, status:"Done"},
- {area:"BSD",  name:"Izin Petir — Acset Indonusa", noIzin:"566/76/IPP/PNK3/2016", terbit:"20 Des 2024", uji:"Mei 2026",     due:"2026-05-31", periode:"2 tahun", harga:2000000, status:"Done"},
- {area:"Bandung", name:"Izin Lift — ABC Bandung", noIzin:"566/112/LFT-701/2012", terbit:"20 Feb 2025", uji:"Desember 2025", due:"2025-12-31", periode:"1 tahun", harga:2500000, status:"Done"},
- {area:"Bandung", name:"Izin Fire Hydrant — ABC Bandung", noIzin:"566/5177/IPK-199/2011", terbit:"10 Feb 2025", uji:"Desember 2025", due:"2025-12-31", periode:"1 tahun", harga:3500000, status:"Done"},
- {area:"Bandung", name:"Izin Motor Diesel — ABC Bandung", noIzin:"566/5179/MD-554/2011", terbit:"31 Jan 2025", uji:"Desember 2025", due:"2025-12-31", periode:"1 tahun", harga:2750000, status:"Done"}
+ {id:"IZ01", area:"AMDI", name:"Izin Lift 1", noIzin:"4400/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
+ {id:"IZ02", area:"AMDI", name:"Izin Lift 2", noIzin:"4401/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
+ {id:"IZ03", area:"AMDI", name:"Izin Lift 3", noIzin:"4402/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
+ {id:"IZ04", area:"AMDI", name:"Izin Lift 4", noIzin:"4403/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
+ {id:"IZ05", area:"AMDI", name:"Izin Lift 5", noIzin:"5393/I.PM-LF/09-E/98", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
+ {id:"IZ06", area:"AMDI", name:"Izin Lift 6", noIzin:"5394/I.PM-LF/09-E/98", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
+ {id:"IZ07", area:"AMDI", name:"Izin Lift 7", noIzin:"5877/I.PM-LF/09-B/2000", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
+ {id:"IZ08", area:"AMDI", name:"Izin Lift 8", noIzin:"5878/I.PM-LF/09-B/2000", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
+ {id:"IZ09", area:"AMDI", name:"Izin genset 1", noIzin:"7176/2008", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Mei 2026", due:"2026-05-01", thn:2025, periode:"1 tahun", harga:2225000, ket:"Progress perpanjangan"},
+ {id:"IZ10", area:"AMDI", name:"Izin genset 2", noIzin:"7177/2008", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Mei 2026", due:"2026-05-01", thn:2025, periode:"1 tahun", harga:2225000, ket:"Progress perpanjangan"},
+ {id:"IZ11", area:"AMDI", name:"Izin genset 3", noIzin:"6153/2006", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Mei 2026", due:"2026-05-01", thn:2025, periode:"1 tahun", harga:2225000, ket:"Progress perpanjangan"},
+ {id:"IZ12", area:"AMDI", name:"Izin genset 4", noIzin:"7186/2008", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Mei 2026", due:"2026-05-01", thn:2025, periode:"1 tahun", harga:2225000, ket:"Progress perpanjangan"},
+ {id:"IZ13", area:"AMDI", name:"Penyalur Petir gedung A/D", noIzin:"4389/2006", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2028", due:"2028-03-01", thn:2026, periode:"2 tahun", harga:2500000, ket:"done"},
+ {id:"IZ14", area:"AMDI", name:"Penyalur Petir gedung B/C", noIzin:"4390/2006", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2028", due:"2028-03-01", thn:2026, periode:"2 tahun", harga:2500000, ket:"done"},
+ {id:"IZ15", area:"AMDI", name:"Bejana tekan gedung D", noIzin:"7175/2008", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2875000, ket:"done"},
+ {id:"IZ16", area:"AMDI", name:"Instalasi listrik", noIzin:"4371/2004", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3250000, ket:"done"},
+ {id:"IZ17", area:"AMDI", name:"Proteksi kebakaran Hydrant", noIzin:"4372/2004", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3650000, ket:"done"},
+ {id:"IZ18", area:"AMDI", name:"Proteksi kebakaran Fire Alarm", noIzin:"4372/2006", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3650000, ket:"done"},
+ {id:"IZ19", area:"AMDI", name:"Sertifikat Keselamatan Kebakaran dari DPK", noIzin:"571/-1.784.22", berlaku:"Selamanya", terbit:"10 Juli 2025", uji:"Juni 2026", due:"2026-06-01", thn:2026, periode:"1 tahun", harga:67500000, ket:"done"},
+ {id:"IZ20", area:"AMDI", name:"Gondola Gedung A - D", noIzin:"105/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
+ {id:"IZ21", area:"AMDI", name:"Gondola Gedung A - D", noIzin:"106/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
+ {id:"IZ22", area:"AMDI", name:"Gondola Gedung B - C", noIzin:"107/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
+ {id:"IZ23", area:"AMDI", name:"Gondola Gedung B - C", noIzin:"108/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
+ {id:"IZ24", area:"AMDI", name:"Gondola Gedung B - C", noIzin:"281/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
+ {id:"IZ25", area:"AMDI", name:"Izin Reklame AI HO", noIzin:"20/C.35/31.72.02.1004.14.KPI/2/TM.12.07/e/2024", berlaku:"Berkala", terbit:"31 Mei 2024", uji:"Desember 2026", due:"2026-12-01", thn:2026, periode:"2 tahun", harga:81420900, ket:"SO akan dibuat di bulan Oktober"},
+ {id:"IZ26", area:"AMDI", name:"Pajak Reklame", noIzin:"SKPD .011711300802092405", berlaku:"Berkala", terbit:"1 Januari 2025", uji:"Desember 2026", due:"2026-12-01", thn:2026, periode:"1 tahun", harga:91079100, ket:"SO akan dibuat di bulan Oktober"},
+ {id:"IZ27", area:"AMDI", name:"Surat Izin Laik Fungsi (SLF) gedung A&D", noIzin:"SK-SLF-317202-27052025-002", berlaku:"Berkala", terbit:"27 Mei 2025", uji:"26 Mei 2030", due:"2030-05-26", thn:2026, periode:"5 tahun", harga:935000000, ket:""},
+ {id:"IZ28", area:"AMDI", name:"Surat Izin Laik Fungsi (SLF) gedung B&C", noIzin:"SK-SLF-317202-27052025-001", berlaku:"Berkala", terbit:"27 Mei 2025", uji:"26 Mei 2030", due:"2030-05-26", thn:2026, periode:"5 tahun", harga:935000000, ket:""},
+ {id:"IZ29", area:"AMDI", name:"IPLC (IZIN PENGOLAHAN LIMBAH CAIR A,B)", noIzin:"", berlaku:"Selamanya", terbit:"", uji:"Selamanya", due:null, thn:0, periode:"", harga:0, ket:""},
+ {id:"IZ30", area:"AMDI", name:"LIMBAH B3", noIzin:"", berlaku:"Selamanya", terbit:"", uji:"Selamanya", due:null, thn:0, periode:"", harga:0, ket:""},
+ {id:"IZ31", area:"AMDI", name:"SLO Instalasi Listrik NIDI : I.10.2023.USR1", noIzin:"Nomor Sertifikat : E3B.0.P.DJ.315.3172.23 Nomor Registrai : E3U.0.K23", berlaku:"Berkala", terbit:"21 November 2023", uji:"21 November 2033", due:"2033-11-21", thn:2026, periode:"10 Tahun", harga:25000000, ket:""},
+ {id:"IZ32", area:"BSD", name:"Izin Motor Diesel ABC GEDUNG AFFCO BSD", noIzin:"566/1626/IL/K3/XI/2019 E/N PR82079R007578A", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1750000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ33", area:"BSD", name:"Izin Motor Diesel ABC BSD IT DATA CENTER 2", noIzin:"566/1624/IL/K3/XI/2019 E/N JGXF7144U17017X", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1750000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ34", area:"BSD", name:"Izin Motor Diesel ABC BSD IT DATA CENTER 1", noIzin:"566/1623/IL/K3/XI/2019 E/N JGXF7144U17047X", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1750000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ35", area:"BSD", name:"Izin Motor Diesel ABC GEDUNG AFFCO BSD", noIzin:"566/1625/IL/K3/XI/2019 E/N PR82079R007580A", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1750000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ36", area:"BSD", name:"Izin LIFT PENUMPANG ABC BSD BMW", noIzin:"NO:560/0208/DKT/BINWAS/II/2017", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1600000, ket:"progress perpanjangan"},
+ {id:"IZ37", area:"BSD", name:"Izin LIFT PENUMPANG ABC BSD AFFCO 1", noIzin:"NO:560/1621/ELEV/K3/XI/2019", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1600000, ket:"progress perpanjangan"},
+ {id:"IZ38", area:"BSD", name:"Izin LIFT PENUMPANG ABC BSD AFFCO 2", noIzin:"NO:560/1622/ELEV/K3/XI/2019", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1600000, ket:"progress perpanjangan"},
+ {id:"IZ39", area:"BSD", name:"Izin PETIR ACSET INDONUSA Tbk", noIzin:"NO:566/76/IPP/PNK3/2016", berlaku:"Selamanya", terbit:"April 2026", uji:"April 2028", due:"2028-04-01", thn:2026, periode:"2 tahun", harga:2000000, ket:"done"},
+ {id:"IZ40", area:"BSD", name:"Izin PETIR ACSET INDONUSA Tbk", noIzin:"NO:566/77/IPP/PNK3/2016", berlaku:"Selamanya", terbit:"April 2026", uji:"April 2028", due:"2028-04-01", thn:2026, periode:"2 tahun", harga:2000000, ket:"done"},
+ {id:"IZ41", area:"BSD", name:"Izin PETIR ACSET INDONUSA Tbk", noIzin:"NO:566/78/IPP/PNK3/2016", berlaku:"Selamanya", terbit:"April 2026", uji:"April 2028", due:"2028-04-01", thn:2026, periode:"2 tahun", harga:2000000, ket:"done"},
+ {id:"IZ42", area:"BSD", name:"Izin Instalasi Listrik", noIzin:"No. 560/1619/IL/K3/XI/2019", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:4000000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ43", area:"BSD", name:"Izin PROTEKSI KEBAKARAN (Disnaker)", noIzin:"NO:560/1620/IPK/XI/2019", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:4000000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ44", area:"BSD", name:"SKK Kebakaran Dinas BPBD Prov Banten", noIzin:"360/270-PBD", berlaku:"Berkala", terbit:"23 September 2025", uji:"17 September 2026", due:"2026-09-17", thn:2025, periode:"1 Tahun", harga:56000000, ket:"progress perpanjangan"},
+ {id:"IZ45", area:"BSD", name:"Surat Ket Bangunan Laik Fungsi Kab Tangerang", noIzin:"No:645/04-DPMPTSP/SLF/2017", berlaku:"Berkala", terbit:"6 Juli 2026", uji:"Juli 2031", due:"2031-07-01", thn:2026, periode:"5 tahun", harga:962031000, ket:"done"},
+ {id:"IZ46", area:"BSD", name:"Ijin Reklame \"Astra Biz Center\" 1", noIzin:"No:026/011-DPMPTSP/PR/2017", berlaku:"Berkala", terbit:"Desember 2018", uji:"Desember 2020", due:"2020-12-01", thn:2025, periode:"2 tahun", harga:0, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ47", area:"BSD", name:"Pajak Reklame \"Astra Biz Center\" 1", noIzin:"", berlaku:"Berkala", terbit:"Desember 2019", uji:"Desember 2020", due:"2020-12-01", thn:2025, periode:"1 Tahun", harga:0, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ48", area:"BSD", name:"Ijin Reklame \"Astra Biz Center\" 2", noIzin:"No:026/012-DPMPTSP/PR/2017", berlaku:"Berkala", terbit:"Desember 2018", uji:"Desember 2020", due:"2020-12-01", thn:2025, periode:"2 tahun", harga:0, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ49", area:"BSD", name:"Pajak Reklame \"Astra Biz Center\" 2", noIzin:"", berlaku:"Berkala", terbit:"Desember 2019", uji:"Desember 2020", due:"2020-12-01", thn:2025, periode:"1 Tahun", harga:0, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ50", area:"BSD", name:"SLO Listrik Gedung AFFCO", noIzin:"B543.0.P.I.422.3603.I24", berlaku:"Berkala", terbit:"08 September 2024", uji:"08 September 2039", due:"2039-09-08", thn:2026, periode:"15 Tahun", harga:7000000, ket:""},
+ {id:"IZ51", area:"BSD", name:"SLO Listrik Kwasan (Infra)", noIzin:"B514.0.P.I.422.3603.I24", berlaku:"Berkala", terbit:"08 September 2024", uji:"08 September 2039", due:"2039-09-08", thn:2026, periode:"15 Tahun", harga:8500000, ket:""},
+ {id:"IZ52", area:"Bandung", name:"Izin Lift Astra BIZ Center Bandung", noIzin:"566/112/LFT-701/2012", berlaku:"Selamanya", terbit:"20 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:2500000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ53", area:"Bandung", name:"Izin Lift Astra BIZ Center Bandung", noIzin:"566/113/LFT-702/2012", berlaku:"Selamanya", terbit:"20 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:2500000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ54", area:"Bandung", name:"Izin Fire Hydrant ABC Bandung", noIzin:"566/5177/IPK-199/2011", berlaku:"Selamanya", terbit:"10 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:3500000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ55", area:"Bandung", name:"Izin Alarm Kebakaran ABC Bandung", noIzin:"566/5178/IPK-200/2011", berlaku:"Selamanya", terbit:"10 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:3500000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ56", area:"Bandung", name:"Izin Motor Diesel ABC Bandung", noIzin:"566/5179/MD-554/2011", berlaku:"Selamanya", terbit:"31 Januari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:2750000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ57", area:"Bandung", name:"Izin Instalasi penyalur Petir ABC Bandung", noIzin:"566/5180/IPP-1014/2011", berlaku:"Selamanya", terbit:"03 maret 2025", uji:"Desember 2026", due:"2026-12-01", thn:2025, periode:"1 tahun", harga:4500000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ58", area:"Bandung", name:"Izin Instalasi Listrik ABC Bandung", noIzin:"566/5181/IL-770/2011", berlaku:"Selamanya", terbit:"20 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:4500000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ59", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah Rotunda", noIzin:"546.2/785/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Desember 2021", uji:"Desember 2022", due:"2022-12-01", thn:2025, periode:"2 tahun", harga:67500000, ket:"Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
+ {id:"IZ60", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah UD Truck", noIzin:"546.2/842/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Desember 2021", uji:"Desember 2022", due:"2022-12-01", thn:2025, periode:"2 tahun", harga:0, ket:"Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
+ {id:"IZ61", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah Izusu", noIzin:"546.2/665/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Desember 2021", uji:"Desember 2022", due:"2022-12-01", thn:2025, periode:"2 tahun", harga:0, ket:"Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
+ {id:"IZ62", area:"Bandung", name:"Izin Dinas kebakaran Bandung", noIzin:"364.01/515-Diskar", berlaku:"Selamanya", terbit:"Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:52000000, ket:"SO Bulan Agustus 2026"},
+ {id:"IZ63", area:"Bandung", name:"Izin Reklame ABC Bandung", noIzin:"037/IPR/IV/2016/BPPT", berlaku:"Berkala", terbit:"September 2025", uji:"September 2026", due:"2026-09-01", thn:2025, periode:"1 tahun", harga:70000000, ket:"Progress Perpanjangan"},
+ {id:"IZ64", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Rotunda) NIDI : I.01.2024.TLB9", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : U030.0.P.J.427.3273.A24 Nomor Registrasi : A24JU03021105", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2039", due:"2039-01-13", thn:2026, periode:"15 tahun", harga:38000000, ket:""},
+ {id:"IZ65", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Infra) I.01.2024.SGY5", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : S252.0.P.J.427.3201.A24 Nomor Registrasi : A24JS25271504", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2039", due:"2039-01-13", thn:2026, periode:"15 tahun", harga:0, ket:""},
+ {id:"IZ66", area:"Bandung", name:"SLF Bangunan Kawasan ABC BDG", noIzin:"SK-SLF-327311-13072023-001", berlaku:"Berkala", terbit:"13 Juli 2023", uji:"12 Juli 2028", due:"2028-07-12", thn:2026, periode:"5 Tahun", harga:1000000000, ket:""}
 ];
-function permitStatus(due){ if(!due)return"Permanent"; const d=(new Date(due+"T00:00:00")-new Date(TODAY_STR+"T00:00:00"))/86400000; return d<0?"Overdue":d<=90?"Due soon":"Scheduled"; }
-function permitBadge(st){ return st==="Overdue"?'<span class="badge bd-crit">Overdue</span>':st==="Due soon"?'<span class="badge bd-warn">Due ≤90d</span>':st==="Permanent"?'<span class="badge bd-ok">Permanent</span>':'<span class="badge bd-info">Scheduled</span>'; }
+/* AMBANG PENGINGAT IZIN — 2 BULAN sebelum jatuh tempo (keputusan Sudana, 6 Agu
+   2026). Dihitung sebagai bulan kalender, bukan 60 hari, supaya sejalan dengan
+   tanggal uji berkala yang dinormalkan ke AWAL bulan: uji "Mei 2026" jatuh
+   1 Mei 2026, dan pengingatnya menyala 1 Maret 2026. */
+function permitBatasSegera(){ var d=new Date(TODAY_STR+"T00:00:00"); d.setMonth(d.getMonth()+2); return ymdLokal(d); }
+function permitStatus(due){ if(!due)return"Permanent"; if(due<TODAY_STR)return"Overdue"; return due<=permitBatasSegera()?"Due soon":"Scheduled"; }
+function permitBadge(st){ return st==="Overdue"?'<span class="badge bd-crit">Lewat tempo</span>':st==="Due soon"?'<span class="badge bd-warn">≤2 bulan</span>':st==="Permanent"?'<span class="badge bd-ok">Permanen</span>':'<span class="badge bd-info">Aman</span>'; }
 function rupShort(n){ n=+n||0; return n>=1e9?('Rp '+(n/1e9).toFixed(2)+' B'):n>=1e6?('Rp '+(n/1e6).toFixed(1)+' jt'):n>0?('Rp '+Math.round(n/1e3)+' rb'):'—'; }
-let hseArea="All";
-/* ── Klasifikasi izin: Utilitas vs Lingkungan (PBB ditarik dari master data PBB) ── */
-function permitGroup(p){ return /IPLC|B3|Limbah|Lingkungan|AMDAL|UKL|UPL/i.test(p.name||"")?"lingkungan":"utilitas"; }
+let hseArea="All", hseIzinQ="", hseIzinSt="all";
+/* ── Klasifikasi izin: Utilitas vs Lingkungan (PBB ditarik dari master data PBB) ──
+   Izin Pengambilan Air Bawah Tanah ikut Lingkungan — sumber daya air, bukan
+   utilitas gedung. */
+function permitGroup(p){ return /IPLC|B3|Limbah|Lingkungan|AMDAL|UKL|UPL|Air Bawah Tanah|Air Tanah/i.test(p.name||"")?"lingkungan":"utilitas"; }
+/* Tiga keadaan yang terbaca sekilas, plus 'permanen' untuk izin tanpa jatuh tempo
+   (IPLC & Limbah B3 berlaku selamanya). Ambangnya satu pintu: permitStatus. */
+function permitStKey(p){ var s=permitStatus(p&&p.due);
+ return s==="Permanent"?"permanen":s==="Overdue"?"lewat":s==="Due soon"?"segera":"aman"; }
+/* Saringan daftar izin — 66 baris terlalu panjang untuk digulir mencari satu izin */
+function permitCocok(p){
+ if(hseArea!=="All" && p.area!==hseArea) return false;
+ if(hseIzinSt!=="all" && permitStKey(p)!==hseIzinSt) return false;
+ var q=String(hseIzinQ||"").trim().toLowerCase(); if(!q) return true;
+ return [p.name,p.area,p.noIzin,p.ket,p.uji,p.periode].join(" ").toLowerCase().indexOf(q)>=0;
+}
+/* renderHSE menyusun ulang seluruh halaman, jadi fokus & posisi kursor kotak
+   pencarian dikembalikan sendiri — kalau tidak, mengetik huruf kedua mustahil. */
+function hseIzinCari(v){ hseIzinQ=v; renderHSE();
+ var el=document.getElementById("iznCari");
+ if(el){ el.focus(); try{ el.setSelectionRange(el.value.length,el.value.length); }catch(e){} } }
+function hseIzinFilter(k){ hseIzinSt=(hseIzinSt===k&&k!=="all")?"all":k; renderHSE(); }
+function hseIzinArea(a){ hseArea=a; renderHSE(); }
+function hseIzinReset(){ hseIzinQ=""; hseIzinSt="all"; hseArea="All"; renderHSE(); }
+/* Baris izin dicari lewat id, BUKAN nama: register resmi punya nama kembar
+   (3 "Izin PETIR ACSET INDONUSA Tbk", 5 Gondola, 2 "Izin Lift Astra BIZ Center
+   Bandung"). Mencocokkan nama akan memperpanjang izin yang salah. */
+function permitById(id){ return PERMITS.filter(function(x){ return String(x.id||"")===String(id); })[0]||null; }
 function dueDays(due){ if(!due)return null; return Math.round((new Date(due+"T00:00:00")-new Date(TODAY_STR+"T00:00:00"))/86400000); }
-/* Next action diturunkan dari sisa hari — bukan diketik manual, jadi selalu jujur */
+/* Next action diturunkan dari sisa hari — bukan diketik manual, jadi selalu jujur.
+   Ambangnya sama dengan permitStatus: 2 bulan sebelum jatuh tempo. */
 function permitNextAction(due){
  var d=dueDays(due);
  if(d===null) return {t:"Izin permanen — tidak perlu perpanjangan", c:"#15a34a", urgent:false};
  if(d<0)      return {t:"SEGERA urus perpanjangan — lewat "+Math.abs(d)+" hari", c:"var(--red)", urgent:true};
- if(d<=30)    return {t:"Ajukan perpanjangan sekarang ("+d+" hari lagi)", c:"var(--red)", urgent:true};
- if(d<=90)    return {t:"Siapkan dokumen perpanjangan ("+d+" hari lagi)", c:"#c2740a", urgent:true};
- if(d<=180)   return {t:"Jadwalkan pengurusan H-90", c:"#0a6ad6", urgent:false};
+ if(permitStatus(due)==="Due soon")
+              return {t:"Ajukan perpanjangan sekarang ("+d+" hari lagi)", c:"var(--red)", urgent:true};
+ if(d<=150)   return {t:"Jadwalkan pengurusan H-2 bulan", c:"#0a6ad6", urgent:false};
  return {t:"Pantau — masih "+d+" hari", c:"var(--muted)", urgent:false};
 }
 /* Tanggal dari teks Indonesia yang bentuknya bermacam-macam di register izin:
@@ -17240,15 +17417,31 @@ function parseTglID(s){
  if(b===undefined)return null;
  return new Date(+m[3],b,+m[1]);
 }
-/* Masa Berlaku = tanggal terbit + periode. Hanya diisi bila tanggal terbitnya
-   lengkap; kalau tidak, biarkan kosong dan tampilkan periodenya saja. */
+/* Dua hal yang dirapikan sekali di awal, untuk baris yang DITAMBAHKAN sendiri
+   lewat master data (66 izin resmi sudah lengkap sejak dari sumbernya):
+   1. id — setiap baris wajib punya penanda unik, karena tombol Perpanjang
+      memanggilnya lewat id. Diturunkan dari posisi, tidak ditulis ke penyimpanan.
+   2. berlaku — bila kosong, dihitung dari tanggal terbit + periode. Hanya kalau
+      tanggal terbitnya lengkap; kalau tidak, biarkan kosong. */
 function permitSeedBerlaku(){
- PERMITS.forEach(function(p){
+ PERMITS.forEach(function(p,i){
+   if(!p.id) p.id="IZX"+String(i+1).padStart(2,"0");
    if(p.berlaku!==undefined)return;
    var t=parseTglID(p.terbit), th=(String(p.periode||"").match(/(\d+)\s*tahun/i)||[])[1];
    if(t&&th){ t.setFullYear(t.getFullYear()+ +th); p.berlaku=ymdLokal(t); }
    else p.berlaku="";
  });
+}
+/* Usulan jatuh tempo berikutnya = (jatuh tempo lama, atau HARI INI bila sudah
+   lewat) + PERIODE izin itu sendiri — bukan selalu satu tahun. SLO 15 tahun dan
+   SLF 5 tahun pernah tampil salah karena dipatok setahun (pelajaran 3 Agu 2026).
+   Tetap hanya USULAN: tanggalnya boleh diubah sebelum disimpan. */
+function permitUsulBerikut(p){
+ var th=+((String(p&&p.periode||"").match(/(\d+)\s*tahun/i)||[])[1])||1;
+ var dasar=(p&&p.due&&p.due>TODAY_STR)?p.due:TODAY_STR;
+ var d=new Date(dasar+"T00:00:00"); if(isNaN(d))return "";
+ d.setFullYear(d.getFullYear()+th);
+ return ymdLokal(d);
 }
 /* Uji berkala tahun berikutnya — dipakai tombol Close setelah izin diperpanjang */
 function ujiTahunDepan(due){
@@ -17263,31 +17456,43 @@ function ujiLabel(due){
  var d=new Date(due+"T00:00:00"); if(isNaN(d))return "";
  return BLN_PANJANG[d.getMonth()]+" "+d.getFullYear();
 }
-/* Satu baris izin: masa berlaku · uji berkala (jatuh tempo) · biaya · aksi Close.
-   Next action dihapus — sisa harinya sudah terbaca dari badge di kolom uji berkala. */
+/* Satu baris izin: masa berlaku · uji berkala (jatuh tempo) · aksi perpanjangan.
+   Sisa harinya sudah terbaca dari badge, jadi tidak ada kolom "next action".
+   Keterangan pengurusan dari Database Perizinan ikut ditampilkan — itulah yang
+   membedakan izin yang TERLANTAR dari izin yang lewat tempo tapi SEDANG diurus. */
 function hseIzinRow(o){
  var due=o.due, st=permitStatus(due), na=permitNextAction(due);
  var sisa=dueDays(due);
+ /* 'berlaku' berupa tulisan ("Selamanya"/"Berkala") di register resmi, tetapi
+    bisa berupa tanggal ISO pada baris yang ditambahkan sendiri lewat master data. */
+ var bIso=/^\d{4}-\d{2}-\d{2}$/.test(String(o.berlaku||""));
+ var bawah=[o.periode||"", (+o.harga>0?rupShort(o.harga):"")].filter(Boolean).join(" · ");
  var berlakuHtml = o.berlaku
-   ? '<b>'+fmtDay(o.berlaku)+' '+o.berlaku.slice(0,4)+'</b>'+
-     (o.periode?'<div class="izn-x">'+esc(o.periode)+(o.terbit?' · terbit '+esc(o.terbit):'')+'</div>':'')
-   : (o.periode
-      ? '<span class="izn-mut">'+esc(o.periode)+'</span>'+(o.terbit?'<div class="izn-x">terbit '+esc(o.terbit)+'</div>':'')
+   ? (bIso?'<b>'+fmtDay(o.berlaku)+' '+String(o.berlaku).slice(0,4)+'</b>':'<b>'+esc(o.berlaku)+'</b>')+
+     (bawah?'<div class="izn-x">'+esc(bawah)+'</div>':'')+
+     (o.terbit?'<div class="izn-x">terbit '+esc(o.terbit)+'</div>':'')
+   : (bawah
+      ? '<span class="izn-mut">'+esc(bawah)+'</span>'+(o.terbit?'<div class="izn-x">terbit '+esc(o.terbit)+'</div>':'')
       : '<span class="izn-mut">—</span>');
  var ujiHtml = due
    ? '<b>'+fmtDay(due)+' '+due.slice(0,4)+'</b><div>'+permitBadge(st)+'</div>'+
      (sisa!==null&&sisa>=0?'<div class="izn-x">'+sisa+' hari lagi</div>':
-      sisa!==null?'<div class="izn-x" style="color:var(--red)">lewat '+Math.abs(sisa)+' hari</div>':'')
+      sisa!==null?'<div class="izn-x" style="color:var(--red)">lewat '+Math.abs(sisa)+' hari</div>':'')+
+     (o.thn===2025?'<div class="izn-x" title="Kolom 2026 di Database Perizinan belum diisi — tanggal ini diambil dari kolom 2025">acuan kolom 2025</div>':'')
    : '<span class="izn-mut">—</span>';
  var aksi='<span class="izn-mut">—</span>';
  if(o.closedAt){
-   aksi='<div class="izn-closed">✓ Diperpanjang</div><div class="izn-x">'+fmtDay(o.closedAt)+' '+o.closedAt.slice(0,4)+'</div>';
+   aksi='<div class="izn-closed">✓ Diperpanjang</div><div class="izn-x">'+fmtDay(o.closedAt)+' '+o.closedAt.slice(0,4)+
+        (o.closedBy?'<br>oleh '+esc(o.closedBy):'')+'</div>';
  } else if(o.closeFn && dbCanEdit()){
    aksi='<button class="btn-out izn-close" onclick="'+o.closeFn+'" '+
-     'title="Tandai izin sudah diperpanjang — uji berkala maju ke tahun berikutnya">Close</button>';
+     'title="Catat bahwa izin ini sudah diperpanjang — tanggal berlaku berikutnya Anda isi sendiri">Perpanjang</button>';
  }
+ /* "done" tidak perlu ditulis: tanggal uji 2026 yang terisi sudah menyatakannya. */
+ var ketHtml=(o.ket&&!/^done$/i.test(String(o.ket).trim()))
+   ? '<div class="izn-ket">'+esc(o.ket)+'</div>' : '';
  return '<div class="izn-row'+(na.urgent&&!o.closedAt?' urgent':'')+'">'+
-   '<div class="izn-n"><div class="izn-nm">'+esc(o.nama)+'</div><div class="izn-sub">'+esc(o.sub||'')+'</div></div>'+
+   '<div class="izn-n"><div class="izn-nm">'+esc(o.nama)+'</div><div class="izn-sub">'+esc(o.sub||'')+'</div>'+ketHtml+'</div>'+
    '<div class="izn-berlaku">'+berlakuHtml+'</div>'+
    '<div class="izn-due">'+ujiHtml+'</div>'+
    '<div class="izn-aksi">'+aksi+'</div>'+
@@ -17304,11 +17509,11 @@ function hseIzinRow(o){
    salah dan izin tampak Overdue padahal sudah diperpanjang.
    Sekarang: satu tahun ke depan hanya USULAN yang sudah terisi; tanggalnya
    boleh diubah, dan nomor izin barunya bisa sekalian dicatat. */
-function hseCloseIzin(nama){
+function hseCloseIzin(id){
  if(!dbCanEdit()){ alert("Anda tidak punya akses mengubah data izin."); return; }
- var p=PERMITS.find(function(x){ return x.name===nama; });
- if(!p){ alert("Izin tidak ditemukan: "+nama); return; }
- var usul=ujiTahunDepan(p.due)||ujiTahunDepan(TODAY_STR)||"";
+ var p=permitById(id);
+ if(!p){ alert("Izin tidak ditemukan: "+id); return; }
+ var usul=permitUsulBerikut(p);
  var lewat=(function(){ var d=dueDays(p.due); return d!==null&&d<0?Math.abs(d):0; })();
  document.getElementById("drawer").innerHTML=
   '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
@@ -17322,68 +17527,104 @@ function hseCloseIzin(nama){
    '</div>'+
    '<div class="field" style="margin-top:12px"><label>Berlaku sampai (tanggal perpanjangan) <span class="muted small">wajib</span></label>'+
      '<input type="date" id="izinDueBaru" value="'+esc(usul)+'"/></div>'+
-   '<div class="muted small" style="margin:-4px 0 12px;line-height:1.6">Terisi otomatis satu tahun ke depan — <b>ubah bila masa berlakunya berbeda</b> (SLO & SLF biasanya lebih panjang).</div>'+
+   '<div class="muted small" style="margin:-4px 0 12px;line-height:1.6">Terisi otomatis mengikuti periode izin ini (<b>'+esc(p.periode||"1 tahun")+'</b>) — <b>ubah bila tanggal di sertifikat barunya berbeda</b>.</div>'+
    '<div class="field"><label>Nomor izin baru <span class="muted small">(opsional)</span></label>'+
      '<input type="text" id="izinNoBaru" placeholder="'+esc(p.noIzin||"mis. 566/SLO/2027")+'"/></div>'+
-   '<button class="btn-act" style="width:100%;margin-top:6px" onclick="hseCloseIzinSimpan(\''+esc(nama).replace(/'/g,"\\'")+'\')">✅ Simpan Perpanjangan</button>'+
+   '<button class="btn-act" style="width:100%;margin-top:6px" onclick="hseCloseIzinSimpan(\''+esc(p.id)+'\')">✅ Simpan Perpanjangan</button>'+
    '<button class="btn-out" style="width:100%;margin-top:8px" onclick="closeDrawer()">Batal</button>'+
   '</div>';
  document.getElementById("ovl").classList.add("show");
 }
-function hseCloseIzinSimpan(nama){
- var p=PERMITS.find(function(x){ return x.name===nama; });
- if(!p){ alert("Izin tidak ditemukan: "+nama); return; }
+function hseCloseIzinSimpan(id){
+ var p=permitById(id);
+ if(!p){ alert("Izin tidak ditemukan: "+id); return; }
  var baru=(document.getElementById("izinDueBaru")||{}).value||"";
  var noBaru=((document.getElementById("izinNoBaru")||{}).value||"").trim();
  if(!baru){ alert("Isi dulu tanggal berlaku berikutnya."); return; }
  if(baru<=TODAY_STR && !confirm("Tanggal yang Anda isi ("+fmtDay(baru)+" "+baru.slice(0,4)+") sudah lewat atau hari ini.\n\nIzin akan tetap tampil sebagai lewat tempo. Lanjutkan?")) return;
  var lama=p.due;
- p.closedAt=TODAY_STR; p.due=baru; p.uji=ujiLabel(baru);
+ p.closedAt=TODAY_STR; p.closedBy=(gUser&&gUser.name)||""; p.due=baru; p.uji=ujiLabel(baru);
+ p.thn=2026;                       // sudah diperbarui di AGAVA, bukan lagi acuan kolom 2025
  if(noBaru) p.noIzin=noBaru;
  try{ dbPersist(); }catch(e){}
- try{ auditLog("izin-close", p.name+" · berlaku "+lama+" → "+baru+(noBaru?" · no "+noBaru:"")); }catch(e){}
+ try{ auditLog("izin-close", p.id+" · "+p.name+" ("+(p.area||"")+") · berlaku "+lama+" → "+baru+(noBaru?" · no "+noBaru:"")); }catch(e){}
  closeDrawer(); renderHSE();
  try{ renderReminder(); renderOverview(); }catch(e){}
  alert("✅ "+p.name+"\n\nBerlaku sampai "+fmtDay(baru)+" "+baru.slice(0,4)+(noBaru?"\nNo. izin: "+noBaru:"")+
    "\nDicatat diperpanjang: "+fmtDay(TODAY_STR)+" "+TODAY_STR.slice(0,4));
 }
+/* items = baris yang BENAR-BENAR ditampilkan (sudah disaring), supaya angka di
+   kepala kartu selalu sama dengan yang terlihat di bawahnya. */
 function hseIzinBlok(judul,ic,rows,items,catatan,kolom){
  var urg=items.filter(function(x){return permitNextAction(x.due).urgent;}).length;
  var lewat=items.filter(function(x){var d=dueDays(x.due); return d!==null&&d<0;}).length;
+ var biaya=items.reduce(function(s,x){ return s+(+x.harga||0); },0);
+ /* Saat menyaring, kartu yang kosong disembunyikan seluruhnya — tiga kartu
+    bertuliskan "0 izin" hanya menambah gulir tanpa memberi tahu apa pun.
+    Pesan "tidak ada yang cocok" cukup satu, dipasang di renderHSE. */
+ if(!rows && (hseIzinQ||hseIzinSt!=="all"||hseArea!=="All")) return "";
+ var kosong='<div class="muted small" style="padding:20px;text-align:center">Belum ada data.</div>';
  return '<div class="card izn-card">'+
    '<div class="izn-h"><span class="izn-ic">'+ic+'</span><div style="flex:1;min-width:0">'+
      '<div class="panel-t" style="margin:0">'+esc(judul)+'</div>'+
      '<div class="muted small">'+items.length+' izin'+(urg?' · <b style="color:var(--red)">'+urg+' perlu tindakan</b>':' · semua terkendali')+
-       (lewat?' · <b style="color:var(--red)">'+lewat+' lewat tempo</b>':'')+'</div></div></div>'+
+       (lewat?' · <b style="color:var(--red)">'+lewat+' lewat tempo</b>':'')+
+       (biaya?' · estimasi biaya '+rupShort(biaya):'')+'</div></div></div>'+
    '<div class="izn-head"><span>'+((kolom&&kolom[0])||"Izin / Objek")+'</span>'+
      '<span>'+((kolom&&kolom[1])||"Masa berlaku")+'</span>'+
      '<span>'+((kolom&&kolom[2])||"Uji berkala")+'</span>'+
      '<span>Aksi</span></div>'+
-   (rows||'<div class="muted small" style="padding:20px;text-align:center">Belum ada data.</div>')+
+   (rows||kosong)+
    (catatan?'<div class="izn-note">'+catatan+'</div>':'')+
  '</div>';
 }
 function renderHSE(){
  const el=document.getElementById("page-hse"); if(!el)return;
- /* ── SECTION 1 — Izin Operasional Bangunan & Utilitas ── */
+ /* ── SECTION 1 — Perizinan: 66 izin nyata dari Database Perizinan ── */
+ PERMITS.forEach((p,i)=>{ if(!p.id) p.id="IZX"+String(i+1).padStart(2,"0"); });  // tombol Perpanjang butuh id
  const util=PERMITS.filter(p=>permitGroup(p)==="utilitas");
  const ling=PERMITS.filter(p=>permitGroup(p)==="lingkungan");
  const pbbList=(typeof PBB!=="undefined"?PBB:[]);
- const utilF=util.filter(p=>hseArea==="All"||p.area===hseArea);
- const areas=["All"].concat(util.map(p=>p.area).filter((a,i,arr)=>arr.indexOf(a)===i));
+ const utilF=util.filter(permitCocok), lingF=ling.filter(permitCocok);
+ const areas=["All"].concat(PERMITS.map(p=>p.area).filter((a,i,arr)=>arr.indexOf(a)===i));
  const allDue=[].concat(util.map(p=>({due:p.due})), ling.map(p=>({due:p.due})), pbbList.map(p=>({due:p.due})));
  const urgent=allDue.filter(x=>permitNextAction(x.due).urgent).length;
  const overdue=allDue.filter(x=>{const d=dueDays(x.due); return d!==null&&d<0;}).length;
  const wpPend=WORK_PERMITS.filter(w=>w.status==="Menunggu Review").length;
  const agc=agcScore(), agcLvl=agcLevel(agc.pct);
+ /* Saringan keadaan — angkanya dihitung dari SELURUH register, bukan dari yang
+    sedang tampil, supaya tombolnya tetap memberi tahu apa yang ada di baliknya. */
+ const cnt={all:PERMITS.length,lewat:0,segera:0,aman:0,permanen:0};
+ PERMITS.forEach(p=>{ cnt[permitStKey(p)]++; });
+ const stTabs=[["all","Semua"],["lewat","Lewat tempo"],["segera","≤2 bulan"],["aman","Aman"],["permanen","Permanen"]];
+ const iznTools=`
+    <div class="izn-tools">
+      <input id="iznCari" class="izn-cari" type="search" placeholder="Cari nama izin, nomor izin, atau keterangan…"
+        value="${esc(hseIzinQ)}" oninput="hseIzinCari(this.value)" autocomplete="off" spellcheck="false">
+      <div class="izn-chips">
+        ${stTabs.map(t=>`<div class="ptab izn-st ${t[0]} ${hseIzinSt===t[0]?'on':''}" onclick="hseIzinFilter('${t[0]}')">${t[1]} <b>${cnt[t[0]]}</b></div>`).join("")}
+      </div>
+      <div class="izn-chips">
+        <span class="izn-chips-l">Area</span>
+        ${areas.map(a=>`<div class="ptab ${hseArea===a?'on':''}" onclick="hseIzinArea('${esc(a)}')">${a==="All"?"Semua":esc(a)} <b>${a==="All"?PERMITS.length:PERMITS.filter(p=>p.area===a).length}</b></div>`).join("")}
+      </div>
+    </div>`;
  const izinRow=p=>hseIzinRow({nama:p.name, sub:p.area+' · '+(p.noIzin||'tanpa no. izin'),
-   berlaku:p.berlaku, periode:p.periode, terbit:p.terbit, due:p.due,
-   closedAt:p.closedAt, closeFn:"hseCloseIzin('"+esc(p.name).replace(/'/g,"\\'")+"')"});
- const rowsUtil=utilF.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')).map(izinRow).join("");
- const rowsLing=ling.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')).map(izinRow).join("");
+   berlaku:p.berlaku, periode:p.periode, terbit:p.terbit, due:p.due, thn:p.thn,
+   harga:p.harga, ket:p.ket, closedAt:p.closedAt, closedBy:p.closedBy,
+   closeFn:"hseCloseIzin('"+esc(p.id)+"')"});
+ const byDue=(a,b)=>(a.due||'9999').localeCompare(b.due||'9999');   // paling dekat jatuh tempo di atas
+ const rowsUtil=utilF.slice().sort(byDue).map(izinRow).join("");
+ const rowsLing=lingF.slice().sort(byDue).map(izinRow).join("");
  /* PBB bukan izin berkala — tidak punya masa berlaku maupun uji, jadi kolomnya
-    diberi label lain dan tanpa tombol Close. */
- const rowsPbb=pbbList.slice().sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'))
+    diberi label lain dan tanpa tombol perpanjangan. Saringan area tidak berlaku
+    (objek pajak tidak dikelompokkan per area), tetapi pencarian & keadaan ikut. */
+ const pbbF=pbbList.filter(p=>{
+   if(hseIzinSt!=="all" && permitStKey(p)!==hseIzinSt) return false;
+   const q=String(hseIzinQ||"").trim().toLowerCase();
+   return !q || [p.obj,p.note].join(" ").toLowerCase().indexOf(q)>=0;
+ });
+ const rowsPbb=pbbF.slice().sort(byDue)
    .map(p=>hseIzinRow({nama:p.obj, sub:p.note||'Pajak Bumi & Bangunan', due:p.due})).join("");
  /* ── DUA HALAMAN ──
     Daftar izin di section 1 panjang, jadi Izin Kerja dipindah ke halaman kedua.
@@ -17416,20 +17657,20 @@ function renderHSE(){
   <div class="hse-pager" id="hsePager" onscroll="hsePagerSync()">
    <section class="hse-page">
     <div class="hse-sec"><span class="hse-sec-n">1</span>
-      <div><div class="hse-sec-t">Monitoring Perizinan — Bangunan &amp; Utilitas</div>
-        <div class="hse-sec-s">Masa berlaku &amp; uji berkala · jatuh tempo mengikuti tanggal uji berkala · Close bila sudah diperpanjang</div></div>
+      <div><div class="hse-sec-t">Monitoring Perizinan — ${PERMITS.length} izin</div>
+        <div class="hse-sec-s">Database Perizinan PT Astra International Tbk · urut dari jatuh tempo terdekat</div></div>
     </div>
-
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
-      <span class="muted small" style="font-weight:700">Filter area:</span>
-      ${areas.map(a=>`<div class="ptab ${hseArea===a?'on':''}" onclick="hseArea='${a}';renderHSE()">${a}</div>`).join("")}
-    </div>
-    ${hseIzinBlok("a. Izin Operasional Utilitas","⚙️",rowsUtil,util,
-       'Lift, genset, penyalur petir, bejana tekan, instalasi listrik, proteksi kebakaran, gondola, SLF &amp; reklame.')}
-    ${hseIzinBlok("b. Izin Lingkungan","♻️",rowsLing,ling,
-       'IPLC &amp; Limbah B3. <a class="gd-kopen" onclick="go(\'energy\')">Lihat kinerja ESG di modul Energy →</a>')}
-    ${hseIzinBlok("c. PBB — Pajak Bumi &amp; Bangunan","🏠",rowsPbb,pbbList,
-       'Objek &amp; jatuh tempo PBB diinput di modul Reminder. <a class="gd-kopen" onclick="go(\'reminder\')">Buka master data PBB →</a>',
+    ${iznTools}
+    ${(!rowsUtil&&!rowsLing&&!rowsPbb)?`<div class="card pad" style="text-align:center;padding:26px 18px">
+       <div style="font-weight:700;color:var(--ink)">Tidak ada izin yang cocok dengan saringan</div>
+       <div class="muted small" style="margin-top:5px">${hseIzinQ?`Pencarian &ldquo;${esc(hseIzinQ)}&rdquo;`:'Saringan'} tidak menemukan apa pun dari ${PERMITS.length} izin.</div>
+       <button class="btn-out" style="margin-top:12px" onclick="hseIzinReset()">Tampilkan semua izin</button></div>`:''}
+    ${hseIzinBlok("a. Izin Operasional Utilitas","⚙️",rowsUtil,utilF,
+       'Lift, genset, penyalur petir, bejana tekan, instalasi listrik, proteksi kebakaran, gondola, SLO, SLF &amp; reklame.')}
+    ${hseIzinBlok("b. Izin Lingkungan","♻️",rowsLing,lingF,
+       'IPLC, Limbah B3 &amp; pengambilan air bawah tanah. <a class="gd-kopen" onclick="go(\'energy\')">Lihat kinerja ESG di modul Energy →</a>')}
+    ${hseIzinBlok("c. PBB — Pajak Bumi &amp; Bangunan","🏠",rowsPbb,pbbF,
+       'Objek &amp; jatuh tempo PBB diinput di modul Reminder — saringan area tidak berlaku di sini. <a class="gd-kopen" onclick="go(\'reminder\')">Buka master data PBB →</a>',
        ["Objek pajak","—","Jatuh tempo"])}
     <button class="hse-lanjut" onclick="hseGoPage(1)">
       <span class="hse-lanjut-t"><b>Halaman 2 — Izin Kerja (Work Permit)</b>
@@ -17991,7 +18232,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.05-216";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.06-217";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -18275,8 +18516,18 @@ function dbInit(){
     const j=JSON.stringify(d.sets);
     if(j===AGDB.masterEcho)return;
     AGDB.masterEcho=j;
-    Object.keys(DB_SETS).forEach(k=>{ if(Array.isArray(d.sets[k])){ const a=DB_SETS[k].get(); a.length=0; d.sets[k].forEach(x=>a.push(x)); } });
-    try{ localStorage.setItem(DB_STORE, JSON.stringify(d.sets)); }catch(e){}
+    /* PAGAR DAFTAR IZIN — dokumen cloud yang belum bertanda PERMITS_SEED masih
+       memuat 28 izin contoh. Jangan dipakai; pakai daftar resmi di kode, lalu
+       naikkan isi dokumennya sekali (dbSaveMaster mengarsipkan yang lama ke
+       agava_config_riwayat dan menolak menulis bila belum login). */
+    const izinLama=!(d.seed&&d.seed.permits===PERMITS_SEED);
+    Object.keys(DB_SETS).forEach(k=>{ if(k==="permits"&&izinLama)return;
+      if(Array.isArray(d.sets[k])){ const a=DB_SETS[k].get(); a.length=0; d.sets[k].forEach(x=>a.push(x)); } });
+    try{ const sets=Object.assign({},d.sets); if(izinLama) sets.permits=JSON.parse(JSON.stringify(PERMITS));
+         sets._seed={permits:PERMITS_SEED};
+         localStorage.setItem(DB_STORE, JSON.stringify(sets)); }catch(e){}
+    if(izinLama){ console.info("Perizinan: dokumen cloud masih daftar lama — dinaikkan ke",PERMITS_SEED);
+                  try{ dbSaveMaster(); }catch(e){} }
     try{ renderReminder(); renderVendor(); renderBuilding(); renderHSE(); renderOverview(); }catch(e){}
   },err=>{ console.warn("Master rules/err:",err&&err.code); });
   /* Konfigurasi endpoint Power Automate — ikut pindah antar perangkat */
@@ -18657,7 +18908,7 @@ function dbSaveMaster(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  if(!gUser||!gUser.name){ console.warn("Master: tulis cloud DITOLAK — belum login (pagar data bersama)"); return; }
  var out={}; Object.keys(DB_SETS).forEach(function(k){ out[k]=DB_SETS[k].get(); });
- var payload={sets:JSON.parse(JSON.stringify(out)), up:Date.now(), by:gUser.name};
+ var payload={sets:JSON.parse(JSON.stringify(out)), seed:{permits:PERMITS_SEED}, up:Date.now(), by:gUser.name};
  var j=JSON.stringify(payload.sets);
  if(AGDB.masterEcho===j)return;
  try{ if(AGDB.masterEcho) dbSimpanRiwayat("master", AGDB.masterEcho, "edit-master"); }catch(e){}
