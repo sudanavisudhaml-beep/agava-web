@@ -2492,6 +2492,12 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .izn-cari{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px 13px;background:#fff;
   font-family:var(--ff);font-size:calc(13px*var(--fz));color:var(--ink)}
 .izn-cari:focus{outline:none;border-color:#0a7cff;box-shadow:0 0 0 3px rgba(10,124,255,.12)}
+.izn-row1{display:flex;gap:8px;align-items:stretch}
+.izn-row1 .izn-cari{flex:1 1 auto;min-width:0}
+/* saringan lokasi = dropdown (8 lokasi, chip-nya akan memakan dua baris di HP) */
+.izn-sel{flex:0 0 auto;max-width:46%;border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff;
+  font-family:var(--ff);font-size:calc(13px*var(--fz));font-weight:600;color:var(--ink);cursor:pointer}
+.izn-sel:focus{outline:none;border-color:#0a7cff;box-shadow:0 0 0 3px rgba(10,124,255,.12)}
 .izn-chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .izn-chips-l{font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#7d8ca3;margin-right:2px}
 .izn-chips .ptab b{font-weight:800;margin-left:3px}
@@ -17263,98 +17269,119 @@ function rateGateSubmit(){
 
 /* ===================== HSE & SUSTAINABILITY — Permit compliance =====================
    DAFTAR IZIN NYATA — "Database Perizinan PT Astra International Tbk".
-   Sumber berkas ada di repo: data/perizinan-sumber.xlsx, diurai oleh
-   data/perizinan-parse.js dan divalidasi 6 Agu 2026 → 66 izin
-   (AMDI 31 · BSD 20 · Bandung 15). Jangan diketik ulang dengan tangan:
-   bila sheet diperbarui, jalankan penguraiannya lagi lalu naikkan PERMITS_SEED.
+   Sumber: data/perizinan-sumber.xlsx sheet "Rekap", diurai data/perizinan-parse.js.
+   80 izin di 8 lokasi: AMDI 31 · BSD 26 · Bandung 15 · Cibitung 3 · Cibinong 1 ·
+   Ex Pako 2 · Karawang 1 · Masjid 1. Jangan diketik ulang dengan tangan — bila
+   sheet diperbarui, urai ulang lalu naikkan PERMITS_SEED.
+
+   ══ SHEET "Rekap", BUKAN SHEET PER LOKASI (koreksi 10 Agu 2026) ══════════════
+   Versi pertama membaca tiga sheet per lokasi dan hasilnya menyesatkan: 14 izin
+   hilang (seluruh Cibitung, Cibinong, Ex Pako, Karawang, Masjid + 6 izin BSD),
+   dan tanggal uji-nya tertinggal jauh sehingga 28 izin tampak LEWAT TEMPO
+   padahal aman. Contoh: lift ABC BSD tertulis "November 2025" di sheet lama,
+   "25 September 2026" di Rekap. Sheet "Rekap" adalah tabel induk yang dirawat.
 
    Arti kolomnya:
-   · due     jatuh tempo = tanggal UJI KEMBALI. Sheet punya kolom 2025 DAN 2026.
-             Yang dipakai kolom 2026 (keadaan sekarang); bila 2026 masih kosong
-             dipakai kolom 2025 sebagai jatuh tempo terakhir yang diketahui,
-             supaya izin yang belum dijadwalkan ulang tidak hilang dari daftar.
-   · thn     dari kolom tahun mana due diambil — 2026 (mutakhir), 2025 (kolom 2026
-             masih kosong), 0 (izin permanen, tanpa jatuh tempo).
+   · due     jatuh tempo = tanggal UJI KEMBALI. Dipakai kolom 2026; bila kosong
+             dipakai kolom 2025 (di Rekap, kolom 2025 memang menyimpan jatuh
+             tempo yang masih berlaku, bukan tanggal basi).
    · uji     tulisan aslinya. Yang cuma bertuliskan bulan ("Mei 2026") dinormalkan
              ke AWAL bulan — keputusan Sudana 6 Agu 2026: izin harus sudah beres
              saat bulan itu dimulai, dan pengingatnya menyala 2 bulan sebelumnya.
+   · st      status pengurusan dari sheet: Done · progress / On Progress ·
+             Selamanya · SO Pembuatan Izin Baru (izin baru, belum pernah terbit).
+   · so      rencana bulan SO perpanjangan ("SO Bulan Agst 2026").
    · berlaku masa berlaku DOKUMEN ("Selamanya" / "Berkala"), bukan tanggal.
-   · ket     keterangan pengurusan apa adanya dari sheet ("SO Bulan Agustus 2026",
-             "progress perpanjangan", dll) — inilah yang menjelaskan kenapa sebuah
-             izin lewat tempo tapi sebenarnya sedang diurus.
+   · ket     keterangan apa adanya. Sebagian besar berisi patokan lead-time yang
+             sama ("Uji Riksa 1 Minggu Submit Dokumen ... sebelum Exp"); yang
+             ditampilkan di baris hanya sisa kalimat sesudahnya — lihat
+             permitKetRingkas().
 
    PERMITS_SEED = versi daftar resmi. Salinan lama di localStorage perangkat dan
    di dokumen cloud agava_config/master yang belum bertanda versi ini SENGAJA
-   diabaikan (lihat dbLoadAll & onSnapshot master) — kalau tidak, 28 izin contoh
-   yang lama akan menimpa 66 izin nyata ini setiap kali aplikasi dibuka. */
-const PERMITS_SEED="2026-08-06b";
+   diabaikan (lihat dbLoadAll & onSnapshot master). */
+const PERMITS_SEED="2026-08-10";
 let PERMITS=[
- {id:"IZ01", area:"AMDI", name:"Izin Lift 1", noIzin:"4400/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
- {id:"IZ02", area:"AMDI", name:"Izin Lift 2", noIzin:"4401/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
- {id:"IZ03", area:"AMDI", name:"Izin Lift 3", noIzin:"4402/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
- {id:"IZ04", area:"AMDI", name:"Izin Lift 4", noIzin:"4403/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
- {id:"IZ05", area:"AMDI", name:"Izin Lift 5", noIzin:"5393/I.PM-LF/09-E/98", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
- {id:"IZ06", area:"AMDI", name:"Izin Lift 6", noIzin:"5394/I.PM-LF/09-E/98", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
- {id:"IZ07", area:"AMDI", name:"Izin Lift 7", noIzin:"5877/I.PM-LF/09-B/2000", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
- {id:"IZ08", area:"AMDI", name:"Izin Lift 8", noIzin:"5878/I.PM-LF/09-B/2000", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2446875, ket:"done"},
- {id:"IZ09", area:"AMDI", name:"Izin genset 1", noIzin:"7176/2008", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Mei 2026", due:"2026-05-01", thn:2025, periode:"1 tahun", harga:2225000, ket:"Progress perpanjangan"},
- {id:"IZ10", area:"AMDI", name:"Izin genset 2", noIzin:"7177/2008", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Mei 2026", due:"2026-05-01", thn:2025, periode:"1 tahun", harga:2225000, ket:"Progress perpanjangan"},
- {id:"IZ11", area:"AMDI", name:"Izin genset 3", noIzin:"6153/2006", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Mei 2026", due:"2026-05-01", thn:2025, periode:"1 tahun", harga:2225000, ket:"Progress perpanjangan"},
- {id:"IZ12", area:"AMDI", name:"Izin genset 4", noIzin:"7186/2008", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Mei 2026", due:"2026-05-01", thn:2025, periode:"1 tahun", harga:2225000, ket:"Progress perpanjangan"},
- {id:"IZ13", area:"AMDI", name:"Penyalur Petir gedung A/D", noIzin:"4389/2006", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2028", due:"2028-03-01", thn:2026, periode:"2 tahun", harga:2500000, ket:"done"},
- {id:"IZ14", area:"AMDI", name:"Penyalur Petir gedung B/C", noIzin:"4390/2006", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2028", due:"2028-03-01", thn:2026, periode:"2 tahun", harga:2500000, ket:"done"},
- {id:"IZ15", area:"AMDI", name:"Bejana tekan gedung D", noIzin:"7175/2008", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:2875000, ket:"done"},
- {id:"IZ16", area:"AMDI", name:"Instalasi listrik", noIzin:"4371/2004", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3250000, ket:"done"},
- {id:"IZ17", area:"AMDI", name:"Proteksi kebakaran Hydrant", noIzin:"4372/2004", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3650000, ket:"done"},
- {id:"IZ18", area:"AMDI", name:"Proteksi kebakaran Fire Alarm", noIzin:"4372/2006", berlaku:"Selamanya", terbit:"17 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3650000, ket:"done"},
- {id:"IZ19", area:"AMDI", name:"Sertifikat Keselamatan Kebakaran dari DPK", noIzin:"571/-1.784.22", berlaku:"Selamanya", terbit:"10 Juli 2025", uji:"Juni 2026", due:"2026-06-01", thn:2026, periode:"1 tahun", harga:67500000, ket:"done"},
- {id:"IZ20", area:"AMDI", name:"Gondola Gedung A - D", noIzin:"105/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
- {id:"IZ21", area:"AMDI", name:"Gondola Gedung A - D", noIzin:"106/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
- {id:"IZ22", area:"AMDI", name:"Gondola Gedung B - C", noIzin:"107/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
- {id:"IZ23", area:"AMDI", name:"Gondola Gedung B - C", noIzin:"108/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
- {id:"IZ24", area:"AMDI", name:"Gondola Gedung B - C", noIzin:"281/PA-GD/2011", berlaku:"Selamanya", terbit:"18 Juni 2025", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 tahun", harga:3000000, ket:"done"},
- {id:"IZ25", area:"AMDI", name:"Izin Reklame AI HO", noIzin:"20/C.35/31.72.02.1004.14.KPI/2/TM.12.07/e/2024", berlaku:"Berkala", terbit:"31 Mei 2024", uji:"Desember 2026", due:"2026-12-01", thn:2026, periode:"2 tahun", harga:81420900, ket:"SO akan dibuat di bulan Oktober"},
- {id:"IZ26", area:"AMDI", name:"Pajak Reklame", noIzin:"SKPD .011711300802092405", berlaku:"Berkala", terbit:"1 Januari 2025", uji:"Desember 2026", due:"2026-12-01", thn:2026, periode:"1 tahun", harga:91079100, ket:"SO akan dibuat di bulan Oktober"},
- {id:"IZ27", area:"AMDI", name:"Surat Izin Laik Fungsi (SLF) gedung A&D", noIzin:"SK-SLF-317202-27052025-002", berlaku:"Berkala", terbit:"27 Mei 2025", uji:"26 Mei 2030", due:"2030-05-26", thn:2026, periode:"5 tahun", harga:935000000, ket:""},
- {id:"IZ28", area:"AMDI", name:"Surat Izin Laik Fungsi (SLF) gedung B&C", noIzin:"SK-SLF-317202-27052025-001", berlaku:"Berkala", terbit:"27 Mei 2025", uji:"26 Mei 2030", due:"2030-05-26", thn:2026, periode:"5 tahun", harga:935000000, ket:""},
- {id:"IZ29", area:"AMDI", name:"IPLC (IZIN PENGOLAHAN LIMBAH CAIR A,B)", noIzin:"", berlaku:"Selamanya", terbit:"", uji:"Selamanya", due:null, thn:0, periode:"", harga:0, ket:""},
- {id:"IZ30", area:"AMDI", name:"LIMBAH B3", noIzin:"", berlaku:"Selamanya", terbit:"", uji:"Selamanya", due:null, thn:0, periode:"", harga:0, ket:""},
- {id:"IZ31", area:"AMDI", name:"SLO Instalasi Listrik NIDI : I.10.2023.USR1", noIzin:"Nomor Sertifikat : E3B.0.P.DJ.315.3172.23 Nomor Registrai : E3U.0.K23", berlaku:"Berkala", terbit:"21 November 2023", uji:"21 November 2033", due:"2033-11-21", thn:2026, periode:"10 Tahun", harga:25000000, ket:""},
- {id:"IZ32", area:"BSD", name:"Izin Motor Diesel ABC GEDUNG AFFCO BSD", noIzin:"566/1626/IL/K3/XI/2019 E/N PR82079R007578A", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1750000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ33", area:"BSD", name:"Izin Motor Diesel ABC BSD IT DATA CENTER 2", noIzin:"566/1624/IL/K3/XI/2019 E/N JGXF7144U17017X", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1750000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ34", area:"BSD", name:"Izin Motor Diesel ABC BSD IT DATA CENTER 1", noIzin:"566/1623/IL/K3/XI/2019 E/N JGXF7144U17047X", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1750000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ35", area:"BSD", name:"Izin Motor Diesel ABC GEDUNG AFFCO BSD", noIzin:"566/1625/IL/K3/XI/2019 E/N PR82079R007580A", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1750000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ36", area:"BSD", name:"Izin LIFT PENUMPANG ABC BSD BMW", noIzin:"NO:560/0208/DKT/BINWAS/II/2017", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1600000, ket:"progress perpanjangan"},
- {id:"IZ37", area:"BSD", name:"Izin LIFT PENUMPANG ABC BSD AFFCO 1", noIzin:"NO:560/1621/ELEV/K3/XI/2019", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1600000, ket:"progress perpanjangan"},
- {id:"IZ38", area:"BSD", name:"Izin LIFT PENUMPANG ABC BSD AFFCO 2", noIzin:"NO:560/1622/ELEV/K3/XI/2019", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:1600000, ket:"progress perpanjangan"},
- {id:"IZ39", area:"BSD", name:"Izin PETIR ACSET INDONUSA Tbk", noIzin:"NO:566/76/IPP/PNK3/2016", berlaku:"Selamanya", terbit:"April 2026", uji:"April 2028", due:"2028-04-01", thn:2026, periode:"2 tahun", harga:2000000, ket:"done"},
- {id:"IZ40", area:"BSD", name:"Izin PETIR ACSET INDONUSA Tbk", noIzin:"NO:566/77/IPP/PNK3/2016", berlaku:"Selamanya", terbit:"April 2026", uji:"April 2028", due:"2028-04-01", thn:2026, periode:"2 tahun", harga:2000000, ket:"done"},
- {id:"IZ41", area:"BSD", name:"Izin PETIR ACSET INDONUSA Tbk", noIzin:"NO:566/78/IPP/PNK3/2016", berlaku:"Selamanya", terbit:"April 2026", uji:"April 2028", due:"2028-04-01", thn:2026, periode:"2 tahun", harga:2000000, ket:"done"},
- {id:"IZ42", area:"BSD", name:"Izin Instalasi Listrik", noIzin:"No. 560/1619/IL/K3/XI/2019", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:4000000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ43", area:"BSD", name:"Izin PROTEKSI KEBAKARAN (Disnaker)", noIzin:"NO:560/1620/IPK/XI/2019", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:4000000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ44", area:"BSD", name:"SKK Kebakaran Dinas BPBD Prov Banten", noIzin:"360/270-PBD", berlaku:"Berkala", terbit:"23 September 2025", uji:"17 September 2026", due:"2026-09-17", thn:2025, periode:"1 Tahun", harga:56000000, ket:"progress perpanjangan"},
- {id:"IZ45", area:"BSD", name:"Surat Ket Bangunan Laik Fungsi Kab Tangerang", noIzin:"No:645/04-DPMPTSP/SLF/2017", berlaku:"Berkala", terbit:"6 Juli 2026", uji:"Juli 2031", due:"2031-07-01", thn:2026, periode:"5 tahun", harga:962031000, ket:"done"},
- {id:"IZ46", area:"BSD", name:"Ijin Reklame \"Astra Biz Center\" 1", noIzin:"No:026/011-DPMPTSP/PR/2017", berlaku:"Berkala", terbit:"Desember 2018", uji:"Desember 2020", due:"2020-12-01", thn:2025, periode:"2 tahun", harga:0, ket:"SO Bulan Agustus 2026"},
- {id:"IZ47", area:"BSD", name:"Pajak Reklame \"Astra Biz Center\" 1", noIzin:"", berlaku:"Berkala", terbit:"Desember 2019", uji:"Desember 2020", due:"2020-12-01", thn:2025, periode:"1 Tahun", harga:0, ket:"SO Bulan Agustus 2026"},
- {id:"IZ48", area:"BSD", name:"Ijin Reklame \"Astra Biz Center\" 2", noIzin:"No:026/012-DPMPTSP/PR/2017", berlaku:"Berkala", terbit:"Desember 2018", uji:"Desember 2020", due:"2020-12-01", thn:2025, periode:"2 tahun", harga:0, ket:"SO Bulan Agustus 2026"},
- {id:"IZ49", area:"BSD", name:"Pajak Reklame \"Astra Biz Center\" 2", noIzin:"", berlaku:"Berkala", terbit:"Desember 2019", uji:"Desember 2020", due:"2020-12-01", thn:2025, periode:"1 Tahun", harga:0, ket:"SO Bulan Agustus 2026"},
- {id:"IZ50", area:"BSD", name:"SLO Listrik Gedung AFFCO", noIzin:"B543.0.P.I.422.3603.I24", berlaku:"Berkala", terbit:"08 September 2024", uji:"08 September 2039", due:"2039-09-08", thn:2026, periode:"15 Tahun", harga:7000000, ket:""},
- {id:"IZ51", area:"BSD", name:"SLO Listrik Kwasan (Infra)", noIzin:"B514.0.P.I.422.3603.I24", berlaku:"Berkala", terbit:"08 September 2024", uji:"08 September 2039", due:"2039-09-08", thn:2026, periode:"15 Tahun", harga:8500000, ket:""},
- {id:"IZ52", area:"Bandung", name:"Izin Lift Astra BIZ Center Bandung", noIzin:"566/112/LFT-701/2012", berlaku:"Selamanya", terbit:"20 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:2500000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ53", area:"Bandung", name:"Izin Lift Astra BIZ Center Bandung", noIzin:"566/113/LFT-702/2012", berlaku:"Selamanya", terbit:"20 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:2500000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ54", area:"Bandung", name:"Izin Fire Hydrant ABC Bandung", noIzin:"566/5177/IPK-199/2011", berlaku:"Selamanya", terbit:"10 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:3500000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ55", area:"Bandung", name:"Izin Alarm Kebakaran ABC Bandung", noIzin:"566/5178/IPK-200/2011", berlaku:"Selamanya", terbit:"10 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:3500000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ56", area:"Bandung", name:"Izin Motor Diesel ABC Bandung", noIzin:"566/5179/MD-554/2011", berlaku:"Selamanya", terbit:"31 Januari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:2750000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ57", area:"Bandung", name:"Izin Instalasi penyalur Petir ABC Bandung", noIzin:"566/5180/IPP-1014/2011", berlaku:"Selamanya", terbit:"03 maret 2025", uji:"Desember 2026", due:"2026-12-01", thn:2025, periode:"1 tahun", harga:4500000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ58", area:"Bandung", name:"Izin Instalasi Listrik ABC Bandung", noIzin:"566/5181/IL-770/2011", berlaku:"Selamanya", terbit:"20 Februari 2025", uji:"Desember 2025", due:"2025-12-01", thn:2025, periode:"1 tahun", harga:4500000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ59", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah Rotunda", noIzin:"546.2/785/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Desember 2021", uji:"Desember 2022", due:"2022-12-01", thn:2025, periode:"2 tahun", harga:67500000, ket:"Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
- {id:"IZ60", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah UD Truck", noIzin:"546.2/842/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Desember 2021", uji:"Desember 2022", due:"2022-12-01", thn:2025, periode:"2 tahun", harga:0, ket:"Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
- {id:"IZ61", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah Izusu", noIzin:"546.2/665/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Desember 2021", uji:"Desember 2022", due:"2022-12-01", thn:2025, periode:"2 tahun", harga:0, ket:"Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
- {id:"IZ62", area:"Bandung", name:"Izin Dinas kebakaran Bandung", noIzin:"364.01/515-Diskar", berlaku:"Selamanya", terbit:"Desember 2024", uji:"November 2025", due:"2025-11-01", thn:2025, periode:"1 tahun", harga:52000000, ket:"SO Bulan Agustus 2026"},
- {id:"IZ63", area:"Bandung", name:"Izin Reklame ABC Bandung", noIzin:"037/IPR/IV/2016/BPPT", berlaku:"Berkala", terbit:"September 2025", uji:"September 2026", due:"2026-09-01", thn:2025, periode:"1 tahun", harga:70000000, ket:"Progress Perpanjangan"},
- {id:"IZ64", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Rotunda) NIDI : I.01.2024.TLB9", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : U030.0.P.J.427.3273.A24 Nomor Registrasi : A24JU03021105", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2039", due:"2039-01-13", thn:2026, periode:"15 tahun", harga:38000000, ket:""},
- {id:"IZ65", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Infra) I.01.2024.SGY5", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : S252.0.P.J.427.3201.A24 Nomor Registrasi : A24JS25271504", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2039", due:"2039-01-13", thn:2026, periode:"15 tahun", harga:0, ket:""},
- {id:"IZ66", area:"Bandung", name:"SLF Bangunan Kawasan ABC BDG", noIzin:"SK-SLF-327311-13072023-001", berlaku:"Berkala", terbit:"13 Juli 2023", uji:"12 Juli 2028", due:"2028-07-12", thn:2026, periode:"5 Tahun", harga:1000000000, ket:""}
+ {id:"IZ01", area:"AMDI", name:"Izin Lift 1", noIzin:"4400/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ02", area:"AMDI", name:"Izin Lift 2", noIzin:"4401/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ03", area:"AMDI", name:"Izin Lift 3", noIzin:"4402/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ04", area:"AMDI", name:"Izin Lift 4", noIzin:"4403/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ05", area:"AMDI", name:"Izin Lift 5", noIzin:"5393/I.PM-LF/09-E/98", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ06", area:"AMDI", name:"Izin Lift 6", noIzin:"5394/I.PM-LF/09-E/98", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ07", area:"AMDI", name:"Izin Lift 7", noIzin:"5877/I.PM-LF/09-B/2000", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ08", area:"AMDI", name:"Izin Lift 8", noIzin:"5878/I.PM-LF/09-B/2000", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ09", area:"AMDI", name:"Izin genset 1", noIzin:"7176/2008", berlaku:"Selamanya", terbit:"16 Oktober 2025", uji:"September 2026", due:"2026-09-01", thn:2025, periode:"1 Tahun", harga:2225000, st:"progress", so:"SO Bulan Juli 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ10", area:"AMDI", name:"Izin genset 2", noIzin:"7177/2008", berlaku:"Selamanya", terbit:"16 Oktober 2025", uji:"September 2026", due:"2026-09-01", thn:2025, periode:"1 Tahun", harga:2225000, st:"progress", so:"SO Bulan Juli 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ11", area:"AMDI", name:"Izin genset 3", noIzin:"6153/2006", berlaku:"Selamanya", terbit:"16 Oktober 2025", uji:"September 2026", due:"2026-09-01", thn:2025, periode:"1 Tahun", harga:2225000, st:"progress", so:"SO Bulan Juli 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ12", area:"AMDI", name:"Izin genset 4", noIzin:"7186/2008", berlaku:"Selamanya", terbit:"16 Oktober 2025", uji:"September 2026", due:"2026-09-01", thn:2025, periode:"1 Tahun", harga:2225000, st:"progress", so:"SO Bulan Juli 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ13", area:"AMDI", name:"Penyalur Petir gedung A/D", noIzin:"4389/2006", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2028", due:"2028-03-01", thn:2026, periode:"2 tahun", harga:2500000, st:"Done", so:"SO Bulan Feb 2027", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ14", area:"AMDI", name:"Penyalur Petir gedung B/C", noIzin:"4390/2006", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2028", due:"2028-03-01", thn:2026, periode:"2 tahun", harga:2500000, st:"Done", so:"SO Bulan Feb 2027", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ15", area:"AMDI", name:"Bejana tekan gedung D", noIzin:"7175/2008", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2875000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ16", area:"AMDI", name:"Instalasi listrik", noIzin:"4371/2004", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:3250000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ17", area:"AMDI", name:"Proteksi kebakaran Hydrant", noIzin:"4372/2004", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:3650000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ18", area:"AMDI", name:"Proteksi kebakaran Fire Alarm", noIzin:"4372/2006", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:3650000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ19", area:"AMDI", name:"Sertifikat Keselamatan Kebakaran dari DPK", noIzin:"571/-1.784.22", berlaku:"Selamanya", terbit:"23 Juni 2026", uji:"Juni 2027", due:"2027-06-01", thn:2026, periode:"1 Tahun", harga:67500000, st:"Done", so:"so Bulan April 2026", ket:"Uji Riksa 1 minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ20", area:"AMDI", name:"Gondola Gedung A - D", noIzin:"105/PA-GD/2011", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:3000000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ21", area:"AMDI", name:"Gondola Gedung A - D", noIzin:"106/PA-GD/2011", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:3000000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ22", area:"AMDI", name:"Gondola Gedung B - C", noIzin:"107/PA-GD/2011", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:3000000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ23", area:"AMDI", name:"Gondola Gedung B - C", noIzin:"108/PA-GD/2011", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:3000000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ24", area:"AMDI", name:"Gondola Gedung B - C", noIzin:"281/PA-GD/2011", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:3000000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ25", area:"AMDI", name:"Izin Reklame AI HO", noIzin:"20/C.35/31.72.02.1004.14.KPI/2/TM.12.07/e/2024", berlaku:"Berkala", terbit:"31 Mei 2024", uji:"Desember 2026", due:"2026-12-01", thn:2025, periode:"1 tahun", harga:122720022, st:"Done", so:"SO Bulan Sep 2026", ket:"SO 3 Bulan sebelum exp Proses pencarian vendor oleh procurement"},
+ {id:"IZ26", area:"AMDI", name:"Pajak Reklame", noIzin:"SKPD .011711300802092405", berlaku:"Berkala", terbit:"31 Desember 2025", uji:"Desember 2026", due:"2026-12-01", thn:2025, periode:"1 tahun", harga:91079100, st:"Done", so:"SO Bulan Sep 2026", ket:"SO 3 Bulan sebelum exp Proses pencarian vendor oleh procurement"},
+ {id:"IZ27", area:"AMDI", name:"Surat Izin Laik Fungsi (SLF) gedung A&D", noIzin:"SK-SLF-317202-27052025-002", berlaku:"Berkala", terbit:"27 Mei 2025", uji:"26 Mei 2030", due:"2030-05-26", thn:2025, periode:"5 tahun", harga:935000000, st:"Done", so:"SO Bulan Des 2029", ket:"Uji Riksa 1 Bulan Submit Dokumen dan sampai izin keluar 5 Bulan SO 6 Bulan sebelum exp"},
+ {id:"IZ28", area:"AMDI", name:"Surat Izin Laik Fungsi (SLF) gedung B&C", noIzin:"SK-SLF-317202-27052025-001", berlaku:"Berkala", terbit:"27 Mei 2025", uji:"26 Mei 2030", due:"2030-05-26", thn:2025, periode:"5 tahun", harga:935000000, st:"Done", so:"SO Bulan Des 2029", ket:"Uji Riksa 1 Bulan Submit Dokumen dan sampai izin keluar 5 Bulan SO 6 Bulan sebelum exp"},
+ {id:"IZ29", area:"AMDI", name:"IPLC (IZIN PENGOLAHAN LIMBAH CAIR A,B)", noIzin:"", berlaku:"Selamanya", terbit:"", uji:"Selamanya", due:null, thn:0, periode:"", harga:0, st:"Selamanya", so:"", ket:"Berubah menjadi Ijin Lingkungan (Pertek)"},
+ {id:"IZ30", area:"AMDI", name:"LIMBAH B3", noIzin:"", berlaku:"Selamanya", terbit:"", uji:"Selamanya", due:null, thn:0, periode:"", harga:0, st:"Selamanya", so:"", ket:"Berubah menjadi Ijin Lingkungan (Rintek)"},
+ {id:"IZ31", area:"AMDI", name:"SLO Instalasi Listrik NIDI : I.10.2023.USR1", noIzin:"Nomor Sertifikat : E3B.0.P.DJ.315.3172.23 Nomor Registrai : E3U.0.K23", berlaku:"Berkala", terbit:"21 November 2023", uji:"21 November 2033", due:"2033-11-21", thn:2025, periode:"10 Tahun", harga:25000000, st:"Done", so:"SO Bulan Agst 2032", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ32", area:"BSD", name:"Izin Motor Diesel ABC GEDUNG AFFCO BSD", noIzin:"566/1626/IL/K3/XI/2019 E/N PR82079R007578A", berlaku:"Selamanya", terbit:"06 November 2025", uji:"Oktober 2026", due:"2026-10-01", thn:2025, periode:"1 tahun", harga:1750000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ33", area:"BSD", name:"Izin Motor Diesel ABC BSD IT DATA CENTER 2", noIzin:"566/5999.01-DTKT/K3/PTP/XI/2025", berlaku:"Selamanya", terbit:"06 November 2025", uji:"Oktober 2026", due:"2026-10-01", thn:2025, periode:"1 tahun", harga:1750000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ34", area:"BSD", name:"Izin Motor Diesel ABC BSD IT DATA CENTER 1", noIzin:"566/1623/IL/K3/XI/2019 E/N JGXF7144U17047X", berlaku:"Selamanya", terbit:"06 November 2025", uji:"Oktober 2026", due:"2026-10-01", thn:2025, periode:"1 tahun", harga:1750000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ35", area:"BSD", name:"Izin Motor Diesel ABC GEDUNG AFFCO BSD", noIzin:"566/1625/IL/K3/XI/2019 E/N PR82079R007580A", berlaku:"Selamanya", terbit:"06 November 2025", uji:"Oktober 2026", due:"2026-10-01", thn:2025, periode:"1 tahun", harga:1750000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ36", area:"BSD", name:"Izin LIFT PENUMPANG ABC BSD BMW", noIzin:"NO:560/0208/DKT/BINWAS/II/2017", berlaku:"Selamanya", terbit:"25 September 2025", uji:"25 September 2026", due:"2026-09-25", thn:2025, periode:"1 tahun", harga:1600000, st:"On Progress", so:"SO Bulan Juli 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ37", area:"BSD", name:"Izin LIFT PENUMPANG ABC BSD AFFCO 1", noIzin:"NO:560/1621/ELEV/K3/XI/2019", berlaku:"Selamanya", terbit:"25 September 2025", uji:"25 September 2026", due:"2026-09-25", thn:2025, periode:"1 tahun", harga:1600000, st:"On Progress", so:"SO Bulan Juli 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ38", area:"BSD", name:"Izin LIFT PENUMPANG ABC BSD AFFCO 2", noIzin:"NO:560/1622/ELEV/K3/XI/2019", berlaku:"Selamanya", terbit:"25 September 2025", uji:"25 September 2026", due:"2026-09-25", thn:2025, periode:"1 tahun", harga:1600000, st:"On Progress", so:"SO Bulan Juli 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ39", area:"BSD", name:"Izin PETIR ACSET INDONUSA Tbk", noIzin:"NO:566/76/IPP/PNK3/2016", berlaku:"Selamanya", terbit:"13-Apr-26", uji:"April 2028", due:"2028-04-01", thn:2026, periode:"2 tahun", harga:2000000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ40", area:"BSD", name:"Izin PETIR ACSET INDONUSA Tbk", noIzin:"NO:566/77/IPP/PNK3/2016", berlaku:"Selamanya", terbit:"13-Apr-26", uji:"April 2028", due:"2028-04-01", thn:2026, periode:"2 tahun", harga:2000000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ41", area:"BSD", name:"Izin PETIR ACSET INDONUSA Tbk", noIzin:"NO:566/78/IPP/PNK3/2016", berlaku:"Selamanya", terbit:"13-Apr-26", uji:"April 2028", due:"2028-04-01", thn:2026, periode:"2 tahun", harga:2000000, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ42", area:"BSD", name:"Izin Instalasi Listrik", noIzin:"No. 560/1619/IL/K3/XI/2019", berlaku:"Selamanya", terbit:"November 2025", uji:"November 2026", due:"2026-11-01", thn:2025, periode:"1 tahun", harga:4000000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ43", area:"BSD", name:"Izin PROTEKSI KEBAKARAN (Disnaker)", noIzin:"NO:560/1620/IPK/XI/2019", berlaku:"Selamanya", terbit:"25 September 2025", uji:"25 September 2026", due:"2026-09-25", thn:2025, periode:"1 tahun", harga:4000000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ44", area:"BSD", name:"SKK Kebakaran Dinas BPBD Prov Banten", noIzin:"360/270-PBD", berlaku:"Berkala", terbit:"23 September 2025", uji:"17 September 2026", due:"2026-09-17", thn:2025, periode:"1 tahun", harga:56000000, st:"On Progress", so:"SO Bulan Juni 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ45", area:"BSD", name:"Surat Ket Bangunan Laik Fungsi Kab Tangerang", noIzin:"No:645/04-DPMPTSP/SLF/2017", berlaku:"Berkala", terbit:"6 Juli 2026", uji:"Juli 2031", due:"2031-07-01", thn:2026, periode:"5 tahun", harga:962031000, st:"Done", so:"SO Bulan April 2027", ket:"Uji Riksa 1 bulan Submit Dokumen dan sampai izin keluar 5 Bulan SO 6 Bulan sebelum Exp"},
+ {id:"IZ46", area:"BSD", name:"Ijin Reklame \"Astra Biz Center\" 1", noIzin:"No:026/011-DPMPTSP/PR/2017", berlaku:"Berkala", terbit:"Desember 2025", uji:"Oktober 2026", due:"2026-10-01", thn:2025, periode:"1 tahun", harga:44360000, st:"On Progress", so:"SO Bulan Agst 2026", ket:"Cek dan Survey 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO (proses pengumpulan penawaran Vendor )"},
+ {id:"IZ47", area:"BSD", name:"Pajak Reklame \"Astra Biz Center\" 1", noIzin:"", berlaku:"Berkala", terbit:"Desember 2025", uji:"Oktober 2026", due:"2026-10-01", thn:2025, periode:"1 Tahun", harga:0, st:"On Progress", so:"SO Bulan Agst 2026", ket:"Cek dan Survey 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO (proses pengumpulan penawaran Vendor )"},
+ {id:"IZ48", area:"BSD", name:"Ijin Reklame \"Astra Biz Center\" 2", noIzin:"No:026/012-DPMPTSP/PR/2017", berlaku:"Berkala", terbit:"Desember 2025", uji:"Desember 2026", due:"2026-12-01", thn:2025, periode:"1 Tahun", harga:39600000, st:"On Progress", so:"SO Bulan Agst 2026", ket:"Cek dan Survey 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO (proses pengumpulan penawaran Vendor )"},
+ {id:"IZ49", area:"BSD", name:"Pajak Reklame \"Astra Biz Center\" 2", noIzin:"", berlaku:"Berkala", terbit:"Desember 2025", uji:"Desember 2026", due:"2026-12-01", thn:2025, periode:"1 Tahun", harga:0, st:"On Progress", so:"SO Bulan Agst 2026", ket:"Cek dan Survey 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp Sudah SO (proses pengumpulan penawaran Vendor )"},
+ {id:"IZ50", area:"BSD", name:"SLO Listrik Gedung AFFCO", noIzin:"B543.0.P.I.422.3603.I24", berlaku:"Berkala", terbit:"08 September 2024", uji:"08 September 2039", due:"2039-09-08", thn:2025, periode:"15 Tahun", harga:7000000, st:"Done", so:"SO Bulan Mei 2039", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp"},
+ {id:"IZ51", area:"BSD", name:"SLO Listrik Kawasan (Infra)", noIzin:"B514.0.P.I.422.3603.I24", berlaku:"Berkala", terbit:"08 September 2024", uji:"08 September 2039", due:"2039-09-08", thn:2025, periode:"15 Tahun", harga:8500000, st:"Done", so:"SO Bulan Mei 2039", ket:"Uji Riksa 1 bulan Submit Dokumen dan sampai izin keluar 1 Bulan SO 4 Bulan sebelum Exp"},
+ {id:"IZ52", area:"BSD", name:"SLO IPAL STP", noIzin:"B/600.1.17.2/23-DLHKK", berlaku:"Selamanya", terbit:"30 Oktober 2025", uji:"Sampai perubahan perundangan", due:null, thn:0, periode:"Selamanya", harga:0, st:"Done", so:"", ket:""},
+ {id:"IZ53", area:"BSD", name:"IUPTLS PB UMKU (IUPTLS Genset)", noIzin:"PB-UMKU: 812021020064300910001 IUPTLS : 500.10.18.1/112-DESDM.IUPTLS/X/2025", berlaku:"Berkala", terbit:"20 Oktober 2025", uji:"20 Oktober 2035", due:"2035-10-20", thn:2025, periode:"10 tahun", harga:0, st:"Done", so:"SO Bulan Juli 2035", ket:""},
+ {id:"IZ54", area:"BSD", name:"SLO Genset IT 1", noIzin:"QCB.0.S.63.307.3603.25", berlaku:"Berkala", terbit:"18 November 2025", uji:"18 November 2030", due:"2030-11-18", thn:2026, periode:"5 tahun", harga:0, st:"Done", so:"", ket:""},
+ {id:"IZ55", area:"BSD", name:"SLO Genset IT 2", noIzin:"QC8.0.S.63.307.3603.25", berlaku:"Berkala", terbit:"18 November 2025", uji:"18 November 2030", due:"2030-11-18", thn:2026, periode:"5 tahun", harga:0, st:"Done", so:"", ket:""},
+ {id:"IZ56", area:"BSD", name:"SLO Genset AFFCO", noIzin:"QC6.0.S.63.307.3603.25", berlaku:"Berkala", terbit:"18 November 2025", uji:"18 November 2030", due:"2030-11-18", thn:2026, periode:"5 tahun", harga:0, st:"Done", so:"", ket:""},
+ {id:"IZ57", area:"BSD", name:"SLO Genset Infra", noIzin:"QC9.0.S.63.307.3603.25", berlaku:"Berkala", terbit:"18 November 2025", uji:"18 November 2030", due:"2030-11-18", thn:2026, periode:"5 tahun", harga:0, st:"Done", so:"", ket:""},
+ {id:"IZ58", area:"Bandung", name:"Izin Lift Astra BIZ Center Bandung", noIzin:"566/112/LFT-701/2012", berlaku:"Selamanya", terbit:"Desember 2025", uji:"2 Oktober 2026", due:"2026-10-02", thn:2025, periode:"1 tahun", harga:2500000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ59", area:"Bandung", name:"Izin Lift Astra BIZ Center Bandung", noIzin:"566/113/LFT-702/2012", berlaku:"Selamanya", terbit:"Desember 2025", uji:"2 Oktober 2026", due:"2026-10-02", thn:2025, periode:"1 tahun", harga:2500000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ60", area:"Bandung", name:"Izin Fire Hydrant ABC Bandung", noIzin:"566/5177/IPK-199/2011", berlaku:"Selamanya", terbit:"Desember 2025", uji:"2 Oktober 2026", due:"2026-10-02", thn:2025, periode:"1 tahun", harga:3500000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ61", area:"Bandung", name:"Izin Alarm Kebakaran ABC Bandung", noIzin:"566/5178/IPK-200/2011", berlaku:"Selamanya", terbit:"Desember 2025", uji:"2 Oktober 2026", due:"2026-10-02", thn:2025, periode:"1 tahun", harga:3500000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ62", area:"Bandung", name:"Izin Motor Diesel ABC Bandung", noIzin:"566/5179/MD-554/2011", berlaku:"Selamanya", terbit:"Desember 2025", uji:"2 Oktober 2026", due:"2026-10-02", thn:2025, periode:"1 tahun", harga:2750000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ63", area:"Bandung", name:"Izin Instalasi penyalur Petir ABC Bandung", noIzin:"566/5180/IPP-1014/2011", berlaku:"Selamanya", terbit:"03 maret 2025", uji:"Desember 2026", due:"2026-12-01", thn:2025, periode:"2 tahun", harga:4500000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ64", area:"Bandung", name:"Izin Instalasi Listrik ABC Bandung", noIzin:"566/5181/IL-770/2011", berlaku:"Selamanya", terbit:"Desember 2025", uji:"2 Oktober 2026", due:"2026-10-02", thn:2025, periode:"1 tahun", harga:4500000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sudah Uji Riksa oleh PT Citra Media"},
+ {id:"IZ65", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah Rotunda", noIzin:"546.2/785/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Akan terbit November 2025", uji:"November 2026", due:"2026-11-01", thn:2025, periode:"2 tahun", harga:67500000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
+ {id:"IZ66", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah UD Truck", noIzin:"546.2/842/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Akan terbit November 2025", uji:"November 2026", due:"2026-11-01", thn:2025, periode:"2 tahun", harga:0, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
+ {id:"IZ67", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah Izusu", noIzin:"546.2/665/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Akan terbit November 2025", uji:"November 2026", due:"2026-11-01", thn:2025, periode:"2 tahun", harga:0, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
+ {id:"IZ68", area:"Bandung", name:"Izin Dinas kebakaran Bandung", noIzin:"364.01/515-Diskar", berlaku:"Selamanya", terbit:"November 2025", uji:"November 2026", due:"2026-11-01", thn:2025, periode:"1 tahun", harga:52000000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ69", area:"Bandung", name:"Izin Reklame ABC Bandung", noIzin:"037/IPR/IV/2016/BPPT", berlaku:"Berkala", terbit:"September 2025", uji:"September 2026", due:"2026-09-01", thn:2025, periode:"1 Tahun", harga:70000000, st:"On Progress", so:"SO Bulan Juli 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ70", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Rotunda) NIDI : I.01.2024.TLB9", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : U030.0.P.J.427.3273.A24 Nomor Registrasi : A24JU03021105", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2026", due:"2026-01-13", thn:2025, periode:"15 tahun", harga:38000000, st:"Done", so:"SO Bulan Juli 2038", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp"},
+ {id:"IZ71", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Infra) I.01.2024.SGY5", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : S252.0.P.J.427.3201.A24 Nomor Registrasi : A24JS25271504", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2039", due:"2039-01-13", thn:2025, periode:"15 tahun", harga:0, st:"Done", so:"SO Bulan Jan 2039", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp"},
+ {id:"IZ72", area:"Bandung", name:"SLF Bangunan Kawasan ABC BDG", noIzin:"SK-SLF-327311-13072023-001", berlaku:"Berkala", terbit:"13 Juli 2023", uji:"12 Juli 2028", due:"2028-07-12", thn:2025, periode:"5 Tahun", harga:1000000000, st:"Done", so:"", ket:"Uji Riksa 1 bulan Submit Dokumen dan sampai izin keluar 5 Bulan SO 6 Bulan sebelum Exp"},
+ {id:"IZ73", area:"Cibitung", name:"Izin Ke Hydrant", noIzin:"566.10/2169/UPTD-WIL.II/XII/2024", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"20 Desember 2025", due:"2025-12-20", thn:2025, periode:"1 tahun", harga:7200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ74", area:"Cibitung", name:"Izin K3 Fire Alarm", noIzin:"566.10/2168/UPTD-WIL.II/XII/2024", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"20 Desember 2025", due:"2025-12-20", thn:2025, periode:"1 tahun", harga:8500000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ75", area:"Cibitung", name:"Izin K3 Genset", noIzin:"566.10/2170/UPTD-WIL.II/XII/2024", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"20 Desember 2025", due:"2025-12-20", thn:2025, periode:"1 tahun", harga:5200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ76", area:"Cibinong", name:"Izin K3 Lift", noIzin:"551/TK.04.03.01/PK-WIL.I. BGR", berlaku:"Selamanya", terbit:"08 Januari 2025", uji:"16 Desember 2026", due:"2026-12-16", thn:2025, periode:"1 tahun", harga:5200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ77", area:"Ex Pako", name:"Izin K3 Genset", noIzin:"17293/KT.05.0057/XII/2024", berlaku:"Selamanya", terbit:"27 Desember 2025", uji:"27 Desember 2026", due:"2026-12-27", thn:2025, periode:"1 tahun", harga:5200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ78", area:"Ex Pako", name:"SLO Instalasi Listrik NIDI Instalasi Listrik", noIzin:"SLO : KR2.0.P.16.315.3172.25 NIDI : I.08.2025.252028", berlaku:"10 Tahun", terbit:"24 September 2025 s.d 24 September 2035 (SLO) NIDI selamanya", uji:"24 September 2035", due:"2035-09-24", thn:2025, periode:"10 Tahun", harga:0, st:"Done", so:"", ket:""},
+ {id:"IZ79", area:"Karawang", name:"Izin K3 Genset", noIzin:"", berlaku:"", terbit:"", uji:"", due:null, thn:0, periode:"", harga:0, st:"SO Pembuatan Izin Baru", so:"", ket:""},
+ {id:"IZ80", area:"Masjid", name:"Izin K3 Genset", noIzin:"", berlaku:"", terbit:"", uji:"", due:null, thn:0, periode:"", harga:0, st:"SO Pembuatan Izin Baru", so:"", ket:""}
 ];
 /* AMBANG PENGINGAT IZIN — 2 BULAN sebelum jatuh tempo (keputusan Sudana, 6 Agu
    2026). Dihitung sebagai bulan kalender, bukan 60 hari, supaya sejalan dengan
@@ -17369,10 +17396,26 @@ let hseArea="All", hseIzinQ="", hseIzinSt="all";
    Izin Pengambilan Air Bawah Tanah ikut Lingkungan — sumber daya air, bukan
    utilitas gedung. */
 function permitGroup(p){ return /IPLC|B3|Limbah|Lingkungan|AMDAL|UKL|UPL|Air Bawah Tanah|Air Tanah/i.test(p.name||"")?"lingkungan":"utilitas"; }
-/* Tiga keadaan yang terbaca sekilas, plus 'permanen' untuk izin tanpa jatuh tempo
-   (IPLC & Limbah B3 berlaku selamanya). Ambangnya satu pintu: permitStatus. */
-function permitStKey(p){ var s=permitStatus(p&&p.due);
+/* Keadaan yang terbaca sekilas. Dua keadaan TANPA jatuh tempo sengaja dipisah:
+   · permanen — IPLC, Limbah B3, SLO IPAL STP: berlaku selamanya, tidak perlu diurus
+   · baru     — Karawang & Masjid: izinnya BELUM PERNAH TERBIT, statusnya
+                "SO Pembuatan Izin Baru". Menyebut ini "permanen" jelas salah:
+                yang satu tidak perlu tindakan, yang satu justru menunggu diurus. */
+function permitBaru(p){ return /pembuatan izin baru/i.test(String(p&&p.st||"")); }
+function permitStKey(p){
+ if(permitBaru(p)) return "baru";
+ var s=permitStatus(p&&p.due);
  return s==="Permanent"?"permanen":s==="Overdue"?"lewat":s==="Due soon"?"segera":"aman"; }
+/* Keterangan di sheet hampir selalu diawali patokan lead-time yang sama persis
+   ("Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan
+   sebelum Exp"). Kalau ditampilkan utuh, tiap baris jadi berisi kalimat yang
+   sama dan yang benar-benar khas justru tenggelam. Yang diambil: sisa kalimat
+   SESUDAH patokan itu — "Sudah SO dan sedang diurus oleh PT Dua Pola Putra". */
+function permitKetRingkas(ket){
+ var s=String(ket||"").replace(/\s+/g," ").trim(); if(!s) return "";
+ var m=s.match(/sebelum\s+exp\b\.?\s*(.*)$/i);
+ return m?m[1].trim():s;
+}
 /* Saringan daftar izin — 66 baris terlalu panjang untuk digulir mencari satu izin */
 function permitCocok(p){
  if(hseArea!=="All" && p.area!==hseArea) return false;
@@ -17477,9 +17520,8 @@ function hseIzinRow(o){
  var ujiHtml = due
    ? '<b>'+fmtDay(due)+' '+due.slice(0,4)+'</b><div>'+permitBadge(st)+'</div>'+
      (sisa!==null&&sisa>=0?'<div class="izn-x">'+sisa+' hari lagi</div>':
-      sisa!==null?'<div class="izn-x" style="color:var(--red)">lewat '+Math.abs(sisa)+' hari</div>':'')+
-     (o.thn===2025?'<div class="izn-x" title="Kolom 2026 di Database Perizinan belum diisi — tanggal ini diambil dari kolom 2025">acuan kolom 2025</div>':'')
-   : '<span class="izn-mut">—</span>';
+      sisa!==null?'<div class="izn-x" style="color:var(--red)">lewat '+Math.abs(sisa)+' hari</div>':'')
+   : (permitBaru(o)?'<span class="izn-mut">belum terbit</span>':'<span class="izn-mut">—</span>');
  var aksi='<span class="izn-mut">—</span>';
  if(o.closedAt){
    aksi='<div class="izn-closed">✓ Diperpanjang</div><div class="izn-x">'+fmtDay(o.closedAt)+' '+o.closedAt.slice(0,4)+
@@ -17488,9 +17530,16 @@ function hseIzinRow(o){
    aksi='<button class="btn-out izn-close" onclick="'+o.closeFn+'" '+
      'title="Catat bahwa izin ini sudah diperpanjang — tanggal berlaku berikutnya Anda isi sendiri">Perpanjang</button>';
  }
- /* "done" tidak perlu ditulis: tanggal uji 2026 yang terisi sudah menyatakannya. */
- var ketHtml=(o.ket&&!/^done$/i.test(String(o.ket).trim()))
-   ? '<div class="izn-ket">'+esc(o.ket)+'</div>' : '';
+ /* Baris keterangan: status pengurusan dari sheet (yang bukan "Done" saja, sebab
+    Done adalah keadaan normal), rencana SO perpanjangannya, lalu catatan khas
+    izin itu. Ketiganya yang menjelaskan kenapa sebuah izin belum beres. */
+ var tanda=[];
+ if(o.st && !/^done$/i.test(String(o.st).trim())) tanda.push(esc(o.st));
+ if(o.so) tanda.push(esc(o.so));
+ var ketR=permitKetRingkas(o.ket);
+ if(ketR) tanda.push(esc(ketR));
+ var ketHtml=tanda.length
+   ? '<div class="izn-ket"'+(o.ket?' title="'+esc(o.ket)+'"':'')+'>'+tanda.join(' &middot; ')+'</div>' : '';
  return '<div class="izn-row'+(na.urgent&&!o.closedAt?' urgent':'')+'">'+
    '<div class="izn-n"><div class="izn-nm">'+esc(o.nama)+'</div><div class="izn-sub">'+esc(o.sub||'')+'</div>'+ketHtml+'</div>'+
    '<div class="izn-berlaku">'+berlakuHtml+'</div>'+
@@ -17594,24 +17643,30 @@ function renderHSE(){
  const agc=agcScore(), agcLvl=agcLevel(agc.pct);
  /* Saringan keadaan — angkanya dihitung dari SELURUH register, bukan dari yang
     sedang tampil, supaya tombolnya tetap memberi tahu apa yang ada di baliknya. */
- const cnt={all:PERMITS.length,lewat:0,segera:0,aman:0,permanen:0};
+ const cnt={all:PERMITS.length,lewat:0,segera:0,aman:0,permanen:0,baru:0};
  PERMITS.forEach(p=>{ cnt[permitStKey(p)]++; });
- const stTabs=[["all","Semua"],["lewat","Lewat tempo"],["segera","≤2 bulan"],["aman","Aman"],["permanen","Permanen"]];
+ /* "Izin baru" hanya muncul kalau memang ada yang sedang dibuat — jangan pajang
+    tombol saringan yang isinya nol. */
+ const stTabs=[["all","Semua"],["lewat","Lewat tempo"],["segera","≤2 bulan"],["aman","Aman"],["permanen","Permanen"]]
+   .concat(cnt.baru?[["baru","Izin baru"]]:[]);
+ /* Lokasi kini 8 (dulu 3), jadi saringannya dropdown — permintaan Sudana
+    10 Agu 2026. Chip 8 buah memakan dua baris penuh di layar HP. */
  const iznTools=`
     <div class="izn-tools">
-      <input id="iznCari" class="izn-cari" type="search" placeholder="Cari nama izin, nomor izin, atau keterangan…"
-        value="${esc(hseIzinQ)}" oninput="hseIzinCari(this.value)" autocomplete="off" spellcheck="false">
-      <div class="izn-chips">
-        ${stTabs.map(t=>`<div class="ptab izn-st ${t[0]} ${hseIzinSt===t[0]?'on':''}" onclick="hseIzinFilter('${t[0]}')">${t[1]} <b>${cnt[t[0]]}</b></div>`).join("")}
+      <div class="izn-row1">
+        <input id="iznCari" class="izn-cari" type="search" placeholder="Cari nama izin, nomor izin, atau keterangan…"
+          value="${esc(hseIzinQ)}" oninput="hseIzinCari(this.value)" autocomplete="off" spellcheck="false">
+        <select class="izn-sel" id="iznArea" title="Saring menurut lokasi" onchange="hseIzinArea(this.value)">
+          ${areas.map(a=>`<option value="${esc(a)}"${hseArea===a?' selected':''}>${a==="All"?"Semua lokasi":esc(a)} (${a==="All"?PERMITS.length:PERMITS.filter(p=>p.area===a).length})</option>`).join("")}
+        </select>
       </div>
       <div class="izn-chips">
-        <span class="izn-chips-l">Area</span>
-        ${areas.map(a=>`<div class="ptab ${hseArea===a?'on':''}" onclick="hseIzinArea('${esc(a)}')">${a==="All"?"Semua":esc(a)} <b>${a==="All"?PERMITS.length:PERMITS.filter(p=>p.area===a).length}</b></div>`).join("")}
+        ${stTabs.map(t=>`<div class="ptab izn-st ${t[0]} ${hseIzinSt===t[0]?'on':''}" onclick="hseIzinFilter('${t[0]}')">${t[1]} <b>${cnt[t[0]]}</b></div>`).join("")}
       </div>
     </div>`;
  const izinRow=p=>hseIzinRow({nama:p.name, sub:p.area+' · '+(p.noIzin||'tanpa no. izin'),
    berlaku:p.berlaku, periode:p.periode, terbit:p.terbit, due:p.due, thn:p.thn,
-   harga:p.harga, ket:p.ket, closedAt:p.closedAt, closedBy:p.closedBy,
+   harga:p.harga, ket:p.ket, st:p.st, so:p.so, closedAt:p.closedAt, closedBy:p.closedBy,
    closeFn:"hseCloseIzin('"+esc(p.id)+"')"});
  const byDue=(a,b)=>(a.due||'9999').localeCompare(b.due||'9999');   // paling dekat jatuh tempo di atas
  const rowsUtil=utilF.slice().sort(byDue).map(izinRow).join("");
@@ -17657,7 +17712,7 @@ function renderHSE(){
   <div class="hse-pager" id="hsePager" onscroll="hsePagerSync()">
    <section class="hse-page">
     <div class="hse-sec"><span class="hse-sec-n">1</span>
-      <div><div class="hse-sec-t">Monitoring Perizinan — ${PERMITS.length} izin</div>
+      <div><div class="hse-sec-t">Monitoring Perizinan — ${PERMITS.length} izin di ${areas.length-1} lokasi</div>
         <div class="hse-sec-s">Database Perizinan PT Astra International Tbk · urut dari jatuh tempo terdekat</div></div>
     </div>
     ${iznTools}
@@ -18232,7 +18287,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.06-217";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.10-218";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
