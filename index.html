@@ -791,7 +791,17 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .svc-proof img:hover{transform:scale(1.08);border-color:var(--blue)}
 .svc-proof-more{font-size:calc(10px*var(--fz));font-weight:800;color:var(--muted);background:#eef2f7;border-radius:6px;padding:3px 6px}
 .svc-proof-lb{font-size:calc(9.5px*var(--fz));font-weight:700;color:#0a7cff;background:rgba(10,124,255,.09);border-radius:20px;padding:2px 8px}
-.proof-ovl{position:fixed;inset:0;z-index:120;background:rgba(8,18,36,.86);display:none;place-items:center;padding:20px;cursor:zoom-out}
+/* ══ PEMUTAR LAMPIRAN WAJIB PALING ATAS (perbaikan 10 Agu 2026) ══════════════
+   Dulu z-index-nya 120 — DI BAWAH gerbang rating (900). Akibatnya, pemohon yang
+   mengetuk foto bukti di kartu rating (hal yang paling wajar dilakukan sebelum
+   menilai) membuka pemutar YANG TERSEMBUNYI DI BALIK kartu: layarnya seolah
+   tidak bereaksi, dan tombol ✕-nya tertutup .rg-box sehingga tak bisa dipencet.
+   Begitu kartu rating ditutup (selesai memberi bintang), yang tersisa adalah
+   lapisan gelap selebar layar tanpa satu tombol pun — persis "hang setelah
+   memberi bintang, harus keluar dari aplikasi" yang dilaporkan tiga kali.
+   Urutan lapisan sekarang: drawer 50 < dokumen SO 400 < gerbang rating 900
+   < PEMUTAR LAMPIRAN 1200. Pemutar selalu di atas apa pun yang membukanya. */
+.proof-ovl{position:fixed;inset:0;z-index:1200;background:rgba(8,18,36,.86);display:none;place-items:center;padding:20px;cursor:zoom-out}
 .proof-ovl.show{display:grid}
 .proof-box{position:relative;max-width:min(94vw,760px);max-height:90vh;display:flex;flex-direction:column;gap:10px;cursor:default}
 /* ✕ menempel di pojok kanan atas kotak — selalu terjangkau walau foto memenuhi layar */
@@ -8106,6 +8116,7 @@ async function soDocExtraRender(s){
  }
 }
 function soDocClose(){
+ try{ agavaMediaTutup(); }catch(e){}    // jangan tinggalkan pemutar lampiran yatim
  var d=document.getElementById('soDoc'); if(d)d.classList.add('hide');
  /* lepaskan canvas halaman lampiran — 10 halaman render bisa puluhan MB di HP */
  if(SODOC_OBS){ try{ SODOC_OBS.disconnect(); }catch(e){} SODOC_OBS=null; }
@@ -9060,7 +9071,9 @@ function openDrawer(no){
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
-function closeDrawer(){document.getElementById("ovl").classList.remove("show");}
+/* Menutup drawer = menutup juga pemutar lampiran yang dibuka DARI DALAM-nya —
+   aturan "tidak boleh ada lapisan yatim", lihat rateGateClose. */
+function closeDrawer(){document.getElementById("ovl").classList.remove("show"); try{ agavaMediaTutup(); }catch(e){}}
 /* ── Renderer journey BERSAMA (SO & Tiket) ──
    Metafora: perjalanan besar punya CHECKPOINT (node besar, biru neon); sebelum sampai
    checkpoint ada perjalanan-perjalanan kecil (node kecil, light grey) yang dirender DI ATAS
@@ -17124,6 +17137,7 @@ function rateGateShow(t){
    if(t&&t.no) RATE_TUNDA[t.no]=1;      // jangan dicoba terus setiap snapshot
    return;
  }
+ try{ agavaMediaTutup(); }catch(e){}   // jangan menumpuk di atas pemutar yang masih terbuka
  RATE_GATE=t.no;
  window._rateTmp=0;
  var el=document.getElementById("rateGate");
@@ -17212,10 +17226,19 @@ function rateGateTolak(){
  try{ agavaRenderAman(["renderService","renderMyTickets","renderFieldOps","renderOverview","renderMobileHome","updateBell"]); }catch(e){}
  alert("✋ Tiket "+t.no+" dikembalikan ke "+(t.pic||"operator")+".\n\nStatusnya kembali In Progress dan alasan Anda sudah terkirim.");
 }
+/* ── TIDAK BOLEH ADA LAPISAN YATIM (10 Agu 2026) ───────────────────────────
+   Pemutar lampiran dibuka DARI DALAM kartu ini. Kalau kartunya turun sementara
+   pemutarnya masih terbuka, yang tersisa menutupi layar adalah lapisan gelap
+   tanpa tombol — aplikasi tampak hang. Karena itu menutup kartu = menutup juga
+   apa pun yang dibuka dari dalamnya, dan kunci gulir dikembalikan tanpa syarat.
+   Aturan umum: overlay yang menutup wajib membereskan anak yang ia lahirkan. */
 function rateGateClose(){
+ try{ agavaMediaTutup(); }catch(e){}
  var el=document.getElementById("rateGate");
  if(el){ el.classList.remove("show"); setTimeout(function(){ el.innerHTML=""; },260); }
  document.body.classList.remove("rg-open");
+ try{ if(getComputedStyle(document.body).overflow==="hidden" && !document.querySelector(".ovl.show,.proof-ovl.show"))
+        document.body.style.overflow=""; }catch(e){}
  RATE_GATE=null; window._rateTmp=0;
 }
 function rateGateSet(s){
@@ -18287,7 +18310,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.10-218";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.10-219";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
