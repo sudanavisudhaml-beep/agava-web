@@ -13099,7 +13099,7 @@ function renderCreateTicket(){
       <div class="muted small" style="margin:-2px 0 8px">🎬 Video maksimal ${VID_MAX_MB} MB — kalau lebih, potong dulu di Galeri HP.</div>
       <div id="ctPhotoPrev" class="fo-prev"></div>
     </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-act" onclick="submitTicket()">Submit Ticket</button>${draftBtn('createticket')}<button class="btn-out" onclick="go('service')">Cancel</button></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-act" id="ctSubmitBtn" onclick="submitTicket()">Submit Ticket</button>${draftBtn('createticket')}<button class="btn-out" onclick="go('service')">Cancel</button></div>
   </div>`;
  window._ctPhoto={imgs:[]}; ctPhotoRender();
  window._ctCerminOff=false; ctCerminSync();
@@ -13192,7 +13192,39 @@ async function tkUploadPhotos(imgs,no,prefix){
  }catch(e){ AGAVA_UPLOAD.cloud=false; AGAVA_UPLOAD.err=(e&&e.message)||"gagal"; console.warn("tkUploadPhotos:",e&&e.message); }
  return out;
 }
+/* ╔══ SATU KETUKAN = SATU TIKET (11 Agu 2026) ═══════════════════════════════╗
+   Laporan Sudana: "ada tiket masuk dari Susi berkali-kali, dengan item yang
+   sama". Benar — 14 tiket kembar (GA-202608-0305 s/d 0318), semuanya "Banyak
+   sampah di area/sela2 motor parkir".
+
+   Sebabnya BUKAN loop mesin. Cap waktunya tersebar 4,5 menit dan nomornya tidak
+   urut terhadap waktu — pola khas orang yang menekan tombol berulang kali.
+
+   Kenapa ia menekan berulang: fungsi ini menunggu DUA hal yang lambat —
+   triggerFlow("createTicket") lalu tkUploadPhotos() yang mengunggah beberapa
+   foto ~500 KB dari HP. Selama puluhan detik itu tombolnya tetap hidup dan
+   TIDAK ADA satu pun tanda bahwa sesuatu sedang berjalan. Wajar kalau orang
+   mengira ketukannya tidak masuk, lalu menekan lagi. Tiap ketukan menjalankan
+   fungsi ini dari awal, dan nextTicketNo() baru dipanggil SESUDAH flow selesai
+   — itulah kenapa nomornya berebut dan tidak urut waktu.
+
+   Tiga pagar sekaligus, karena satu saja tidak cukup:
+     1. kunci masuk (_ctKirim) — panggilan kedua ditolak mentah, bahkan bila
+        tombolnya sempat ditekan dua kali sebelum layar sempat berubah;
+     2. tombol dimatikan & berubah jadi keterangan proses, jadi orangnya TAHU
+        sedang berjalan — ini yang sebenarnya menghentikan ketukan berulang;
+     3. finally — kunci SELALU dilepas walau gagal di tengah. Tanpa ini,
+        satu kegagalan jaringan mengunci formulir selamanya, dan kita menukar
+        satu bug dengan bug yang lebih buruk.                                */
+let _ctKirim=false;
+function ctSubmitSibuk(on,teks){
+ var b=document.getElementById("ctSubmitBtn"); if(!b)return;
+ b.disabled=!!on;
+ if(on){ if(!b.dataset.asli) b.dataset.asli=b.textContent; b.textContent=teks||"Mengirim…"; }
+ else { b.textContent=b.dataset.asli||"Submit Ticket"; }
+}
 async function submitTicket(){
+ if(_ctKirim){ console.info("Submit tiket diabaikan — pengiriman sebelumnya masih berjalan"); return; }
  const title=(document.getElementById("ct-title").value||"").trim()||"New service request";
  const cat=document.getElementById("ct-cat").value;
  const prio=document.getElementById("ct-prio").value;
@@ -13207,6 +13239,33 @@ async function submitTicket(){
  const note=((document.getElementById("ct-note")||{}).value||"").trim();
  const req=gUser?gUser.name:"";
  const reqEmail=gUser&&gUser.email?gUser.email:"";
+ /* PAGAR KEDUA — penangkal tiket kembar yang berdiri sendiri.
+    Kunci tombol hanya melindungi SATU sesi halaman. Kalau orangnya menutup lalu
+    membuka lagi, atau memakai dua perangkat, ketukan keduanya tetap lolos.
+    Karena itu isi tiketnya sendiri diperiksa: judul + lokasi yang sama dari
+    pemohon yang sama dalam 10 menit terakhir hampir pasti ketukan ulang, bukan
+    dua keluhan berbeda. TIDAK diblokir mentah — bisa saja memang ada dua kasus
+    serupa — tetapi ditanyakan dulu, dan bawaannya BATAL. */
+ const kembar=(TICKETS||[]).filter(function(t){
+   if(String(t.judul||"").trim().toLowerCase()!==title.toLowerCase()) return false;
+   if(String(t.lokasi||"").trim().toLowerCase()!==loc.toLowerCase()) return false;
+   var mail=String(t.email||"").toLowerCase();
+   if(reqEmail && mail && mail!==String(reqEmail).toLowerCase()) return false;
+   var ms=(t.slaMs&&t.slaMs.created)||0;
+   return ms && (nowMs()-ms) < 10*60*1000;
+ });
+ if(kembar.length){
+   if(!confirm("⚠️ Tiket dengan judul & lokasi yang sama baru saja Anda buat:\n\n"+
+     kembar.slice(0,3).map(function(t){return "• "+t.no;}).join("\n")+
+     (kembar.length>3?("\n• +"+(kembar.length-3)+" lainnya"):"")+
+     "\n\nBiasanya ini karena tombol Submit tertekan lebih dari sekali.\n\nTetap buat tiket BARU lagi?")) {
+     go("service"); return;
+   }
+ }
+ /* dikunci SESUDAH seluruh validasi lewat — supaya formulir yang ditolak
+    (mis. lokasi kosong) tidak meninggalkan tombol dalam keadaan mati */
+ _ctKirim=true; ctSubmitSibuk(true,"Mengirim tiket…");
+ try{
  // Create in-app, then trigger the Power Automate flow and apply its response.
  // Payload key = schema yang harus didaftarkan di trigger "When an HTTP request is received".
  const res=await triggerFlow("createTicket",{title, cat, priority:prio, lokasi:loc, description:desc, note:note, requester:req, requesterEmail:reqEmail, created:TODAY_STR})||{};
@@ -13214,6 +13273,8 @@ async function submitTicket(){
  const no=res.ticketNo||nextTicketNo();
  /* foto diunggah SETELAH nomor tiket ada → berkasnya rapi per tiket & URL-nya
     (bukan base64) yang tersimpan, jadi operator di perangkat lain bisa melihat */
+ const nFoto=((window._ctPhoto&&window._ctPhoto.imgs)||[]).length;
+ if(nFoto) ctSubmitSibuk(true,"Mengunggah "+nFoto+" foto…");
  const fotos=await tkUploadPhotos(((window._ctPhoto&&window._ctPhoto.imgs)||[]).slice(0,CT_PHOTO_MAX),no);
  draftClearAfterSubmit(); TICKETS.unshift({no,judul:title,team:"BM",cat:cat,lokasi:loc,created:TODAY_STR,status:res.status||"Submitted",stg:res.stg||0,resp:"—",pic:res.pic||"",esc:false,requester:req,email:reqEmail,prio:prio,desc:desc,note:note,photos:fotos,ts:{0:nowStamp()},slaMs:{created:nowMs()}});
  dbSaveTicket(TICKETS[0]);
@@ -13222,6 +13283,14 @@ async function submitTicket(){
  svcFilter="all"; renderService(); renderOverview(); renderBuilding(); go("service");
  if(res.ticketNo && !res._sim){ alert("✅ Tiket dibuat & flow Power Automate dijalankan.\nNomor dari flow: "+no+"\nStatus: "+(res.status||"Submitted")+(fotos.length?uploadNote():"")); }
  else if(fotos.length){ alert("✅ Tiket "+no+" dibuat dengan "+fotos.length+" foto."+uploadNote()); }
+ }catch(e){
+   console.warn("submitTicket gagal:",e);
+   alert("⚠️ Tiket belum terkirim.\n\n"+((e&&e.message)||e)+"\n\nPeriksa koneksi lalu tekan Submit sekali lagi — isian Anda masih ada.");
+ }finally{
+   /* WAJIB: kunci dilepas apa pun yang terjadi. Formulir yang terkunci setelah
+      gagal jauh lebih menyakitkan daripada tiket ganda. */
+   _ctKirim=false; ctSubmitSibuk(false);
+ }
 }
 
 /* ===================== ROOM BOOKING (Service · denah interaktif) =====================
@@ -18697,7 +18766,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.11-220";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.11-221";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
