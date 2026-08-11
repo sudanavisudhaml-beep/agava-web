@@ -4728,7 +4728,8 @@ function loginTogglePass(){ const i=document.getElementById("loginPass"); if(i)i
    Tautannya tetap dikirim (siapa tahu untuk sebagian orang lolos), tetapi
    pesan di layar TIDAK menjanjikan email itu pasti datang, dan langsung
    menunjukkan jalan keluar yang benar-benar bekerja: hubungi Administrator. */
-async function lupaPassword(){
+async function lupaPassword(){ return agavaSekaliJalan("lupaPass",null,null,_lupaPassword_inti); }
+async function _lupaPassword_inti(){
  var e=((document.getElementById("loginEmail")||{}).value||"").trim().toLowerCase();
  if(!e){ loginPesan("Isi dulu email Anda, lalu klik Lupa password."); return; }
  var u=USERS.find(function(x){ return x.email.toLowerCase()===e; });
@@ -8188,7 +8189,8 @@ function soDocFit(){
 window.addEventListener('resize',function(){ var d=document.getElementById('soDoc'); if(d&&!d.classList.contains('hide'))soDocFit(); });
 window.addEventListener('orientationchange',function(){ setTimeout(soDocFit,250); });
 /* Simpan Dokumen SO → PDF 1 halaman (ukuran mengikuti isi, tanpa halaman kosong), langsung ke folder Downloads */
-async function soDocSave(){
+async function soDocSave(){ return agavaSekaliJalan("soDocSave","soDocSaveBtn","Menyimpan…",_soDocSave_inti); }
+async function _soDocSave_inti(){
  var page=document.getElementById('soDocPage'); if(!page)return;
  if(typeof html2canvas==="undefined"){ alert("Library PDF belum termuat — coba refresh (Ctrl+Shift+R)."); return; }
  var s=SO.find(function(x){return x.no===soDocCur;})||{};
@@ -8705,7 +8707,8 @@ function soImportRender(){
    'onclick="soImportApply()">📎 Tempelkan '+siap+' berkas ke SO</button>'+
    (siap<SO_IMPOR.length?'<div class="muted small" style="margin-top:6px;text-align:center">'+(SO_IMPOR.length-siap)+' berkas dilewati karena nomor SO belum dipilih</div>':'');
 }
-async function soImportApply(){
+async function soImportApply(){ return agavaSekaliJalan("soImport",null,null,_soImportApply_inti); }
+async function _soImportApply_inti(){
  var siap=SO_IMPOR.filter(function(f){ return f.no; });
  if(!siap.length)return;
  var per={}; siap.forEach(function(f){ (per[f.no]=per[f.no]||[]).push(f); });
@@ -10846,7 +10849,8 @@ function foBuktiLihat(i){
    (m.kb?' · '+(m.kb>1024?(Math.round(m.kb/102.4)/10+" MB"):(m.kb+" KB")):'')+
    (m.dur?' · '+mdDur(m.dur):'')+' · belum terkirim</span>');
 }
-async function foConfirmClose(){
+async function foConfirmClose(){ return agavaSekaliJalan("foClose","foCloseBtn","Menyimpan bukti…",_foConfirmClose_inti); }
+async function _foConfirmClose_inti(){
  var p=window._foPhoto; if(!p||!p.imgs.length){ alert("📸 Wajib lampirkan minimal 1 foto bukti pekerjaan."); return; }
  var t=TICKETS.find(x=>x.no===p.no); if(!t)return;
  var note=(document.getElementById('fo-close-note')||{}).value||"";
@@ -13192,6 +13196,27 @@ async function tkUploadPhotos(imgs,no,prefix){
  }catch(e){ AGAVA_UPLOAD.cloud=false; AGAVA_UPLOAD.err=(e&&e.message)||"gagal"; console.warn("tkUploadPhotos:",e&&e.message); }
  return out;
 }
+/* ╔══ PAGAR KETUK-GANDA YANG DIPAKAI ULANG (11 Agu 2026) ════════════════════╗
+   Insiden tiket kembar Susi memperlihatkan pola yang berlaku untuk SETIAP
+   tombol kirim di AGAVA: fungsinya async, menunggu jaringan/unggahan foto
+   selama puluhan detik, dan selama itu tombolnya tetap hidup tanpa memberi
+   tanda apa pun. Menambal satu per satu berarti menunggu insiden berikutnya
+   di tombol yang lain, jadi pagarnya dibuat satu dan dipakai bersama.
+
+   Tiga hal yang dijamin: panggilan kedua ditolak selagi yang pertama jalan,
+   tombolnya mati DAN berbicara (itu yang benar-benar menghentikan ketukan
+   berulang), dan kuncinya SELALU dilepas di finally — formulir yang terkunci
+   setelah gagal jaringan lebih menyakitkan daripada kiriman ganda.        */
+const _agavaSibuk={};
+async function agavaSekaliJalan(kunci,btnId,teks,fn){
+ if(_agavaSibuk[kunci]){ console.info("Ketukan diabaikan — "+kunci+" masih berjalan"); return; }
+ _agavaSibuk[kunci]=true;
+ var b=btnId?document.getElementById(btnId):null;
+ if(b){ if(!b.dataset.asliTeks) b.dataset.asliTeks=b.textContent; b.disabled=true; b.textContent=teks||"Mengirim…"; }
+ try{ return await fn(); }
+ finally{ _agavaSibuk[kunci]=false;
+   if(b){ b.disabled=false; b.textContent=b.dataset.asliTeks||b.textContent; } }
+}
 /* ╔══ SATU KETUKAN = SATU TIKET (11 Agu 2026) ═══════════════════════════════╗
    Laporan Sudana: "ada tiket masuk dari Susi berkali-kali, dengan item yang
    sama". Benar — 14 tiket kembar (GA-202608-0305 s/d 0318), semuanya "Banyak
@@ -14143,7 +14168,7 @@ function renderCreateSO(){
         <span class="muted small" style="background:none;color:var(--muted);padding:0">lampiran lama tetap ikut — yang Anda tambahkan di bawah menyusul</span></div>`:''}
       <div class="hint" style="font-size:calc(11px*var(--fz));color:#9aa7b8;margin-top:6px">📎 Foto (spek, kondisi) & <b>dokumen PDF</b> (mis. Working Request / data stok) — file PDF pendukung akan otomatis <b>dijahit ke dalam Dokumen SO PDF</b> yang diunduh.</div>
     </div>
-    <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap"><button class="btn-act" onclick="submitSO()">${rev?`🔁 Kirim Ulang sebagai Rev.${nRev}`:"Submit SO"}</button>${rev?"":draftBtn('createso')}<button class="btn-out" onclick="soRevisiBatal()">Cancel</button></div>
+    <div style="display:flex;gap:10px;margin-top:6px;flex-wrap:wrap"><button class="btn-act" id="soSubmitBtn" onclick="submitSO()">${rev?`🔁 Kirim Ulang sebagai Rev.${nRev}`:"Submit SO"}</button>${rev?"":draftBtn('createso')}<button class="btn-out" onclick="soRevisiBatal()">Cancel</button></div>
   </div>`;
  soAttReset();   // form dirender ulang tiap masuk → keranjang lampiran ikut bersih
 }
@@ -14225,7 +14250,8 @@ function soAttRender(){
        '<em>'+(x.kb||0)+' KB</em></div>';
    }).join("");
 }
-async function submitSO(){
+async function submitSO(){ return agavaSekaliJalan("submitSO","soSubmitBtn","Mengirim SO…",_submitSO_inti); }
+async function _submitSO_inti(){
  const rows=Array.from(document.querySelectorAll('#so-items tr')).map(tr=>{
    const g=k=>{ const el=tr.querySelector('[data-k="'+k+'"]'); return el?String(el.value||'').trim():''; };
    return {item:g('item'),spec:g('spec'),satuan:g('satuan'),qty:g('qty'),lokasi:g('lokasi'),ket:g('ket')};
@@ -16077,7 +16103,8 @@ function srcMetodeHTML(){
 
    Sengaja surat TERPISAH per vendor, bukan satu email ber-CC: dalam tender,
    peserta tidak boleh saling tahu siapa pesaingnya. */
-async function srcKirimSemua(){
+async function srcKirimSemua(){ return agavaSekaliJalan("srcQuot","tnKirimSemua","Mengirim surat…",_srcKirimSemua_inti); }
+async function _srcKirimSemua_inti(){
  var s=SO.find(function(x){return x.no===SRC_SO;}); if(!s||!s.sourcing)return;
  var kand=s.sourcing.kandidat||[];
  var items=[], kurang=[];
@@ -18766,7 +18793,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.11-221";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.11-222";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
