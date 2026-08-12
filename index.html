@@ -17565,6 +17565,7 @@ function rateGatePending(){
  });
 }
 function rateGateCheck(){
+ rgOverlayWaras();                     // lepaskan layar bila sempat blur tanpa isi
  if(RATE_GATE) return;                 // sudah tampil
  /* Jangan menyela orang yang sedang mengetik/mengisi form — snapshot cloud bisa
     datang kapan saja, dan kartu yang menimpa isian setengah jadi terasa seperti
@@ -17595,12 +17596,16 @@ function rateGateShow(t){
    return;
  }
  try{ agavaMediaTutup(); }catch(e){}   // jangan menumpuk di atas pemutar yang masih terbuka
+ /* WAJIB: batalkan timer pengosongan dari penutupan sebelumnya. Tanpa baris ini
+    timer lama menyala 260 md kemudian dan mengosongkan kartu yang baru saja
+    dipasang — meninggalkan layar blur tanpa isi (lihat catatan di rateGateClose). */
+ if(_rgTimer){ clearTimeout(_rgTimer); _rgTimer=null; }
  RATE_GATE=t.no;
  window._rateTmp=0;
  var el=document.getElementById("rateGate");
  if(!el){ el=document.createElement("div"); el.id="rateGate"; document.body.appendChild(el); }
+ el.innerHTML=html;               // isi DULU, baru ditampilkan
  el.className="rg-ovl show";
- el.innerHTML=html;
  document.body.classList.add("rg-open");
 }
 function rateGateHTML(t){
@@ -17689,15 +17694,57 @@ function rateGateTolak(){
    tanpa tombol — aplikasi tampak hang. Karena itu menutup kartu = menutup juga
    apa pun yang dibuka dari dalamnya, dan kunci gulir dikembalikan tanpa syarat.
    Aturan umum: overlay yang menutup wajib membereskan anak yang ia lahirkan. */
+/* ╔══ LAYAR BLUR TANPA ISI — AKAR YANG SEBENARNYA (11 Agu 2026) ═════════════╗
+   Laporan Pak Dedi: sesudah memberi rating / menekan "kembalikan ke operator",
+   layarnya jadi blur dan tidak bisa disentuh. Perbaikan 10 Agu (z-index pemutar
+   lampiran) memang menutup satu jalur, tapi BUKAN yang ini.
+
+   Ini balapan waktu, dan sangat masuk akal terlewat: rateGateClose() melepas
+   .show lalu menjadwalkan innerHTML="" 260 md kemudian (menunggu animasi habis).
+   Sesudah keputusan disimpan, dbSaveTicket memicu snapshot Firestore, snapshot
+   memanggil rateGateCheck(), dan bila masih ada tiket lain yang menunggu dinilai
+   kartunya DITAYANGKAN LAGI — kadang dalam waktu kurang dari 260 md.
+
+   Timer lama dari penutupan sebelumnya lalu menyala dan MENGOSONGKAN kartu yang
+   baru saja dipasang. Yang tersisa: .rg-ovl masih .show — jadi latarnya tetap
+   blur dan menutup seluruh layar — tetapi isinya kosong. Tidak ada bintang,
+   tidak ada tombol, tidak ada jalan keluar. Persis tangkapan layar Pak Dedi.
+
+   Dua pagar: timer disimpan dan DIBATALKAN sebelum menayangkan apa pun, dan
+   satu pemeriksa mandiri yang menutup overlay bila ia tampil tanpa isi. */
+let _rgTimer=null;
+function rgOverlayWaras(){
+ var el=document.getElementById("rateGate"); if(!el) return;
+ if(el.classList.contains("show") && !el.querySelector(".rg-box")){
+   console.warn("Gerbang rating tampil tanpa isi — dilepas paksa");
+   el.classList.remove("show"); el.innerHTML="";
+   document.body.classList.remove("rg-open");
+   try{ document.body.style.overflow=""; }catch(e){}
+   RATE_GATE=null;
+ }
+}
 function rateGateClose(){
  try{ agavaMediaTutup(); }catch(e){}
  var el=document.getElementById("rateGate");
- if(el){ el.classList.remove("show"); setTimeout(function(){ el.innerHTML=""; },260); }
+ if(el){ el.classList.remove("show");
+   if(_rgTimer) clearTimeout(_rgTimer);
+   _rgTimer=setTimeout(function(){ _rgTimer=null;
+     /* jangan kosongkan kalau kartu BARU sudah tayang di sela-sela ini */
+     if(!el.classList.contains("show")) el.innerHTML="";
+   },260); }
  document.body.classList.remove("rg-open");
  try{ if(getComputedStyle(document.body).overflow==="hidden" && !document.querySelector(".ovl.show,.proof-ovl.show"))
         document.body.style.overflow=""; }catch(e){}
  RATE_GATE=null; window._rateTmp=0;
 }
+/* Pintu darurat terakhir: kalau layar sempat tersandera, kembali ke aplikasi
+   (ganti tab, buka lagi dari latar) sudah cukup untuk melepaskannya. Dipasang
+   sekali saja — dan dibungkus try supaya tidak pernah menggagalkan boot. */
+try{
+ window.addEventListener("focus",function(){ try{ rgOverlayWaras(); }catch(e){} });
+ document.addEventListener("visibilitychange",function(){
+   if(!document.hidden){ try{ rgOverlayWaras(); }catch(e){} } });
+}catch(e){}
 function rateGateSet(s){
  window._rateTmp=s;
  var w=document.getElementById("rgStars");
@@ -18793,7 +18840,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.11-222";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.11-223";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
