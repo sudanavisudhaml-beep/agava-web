@@ -17663,13 +17663,54 @@ function rateGateNanti(){
    pekerjaannya belum beres, tiket turun ke In Progress lagi, alasannya masuk
    utas catatan, dan operatornya diberi tahu. Rating tidak diminta karena
    pekerjaannya memang belum selesai untuk dinilai. */
+/* ╔══ prompt() DICABUT — INI PENYEBAB "HANG" YANG SEBENARNYA (11 Agu 2026) ═══╗
+   Laporan Sudana: saat pemohon memberi masukan atas bukti kerja operator dan
+   menekan kirim, layarnya hang, harus login ulang, dan tiket yang sudah diberi
+   masukan muncul lagi.
+
+   Ketiga gejala itu satu sebab: kotak isian alasannya memakai prompt() bawaan
+   peramban. Di PWA yang TERPASANG (standalone), Chrome & Safari MEMBLOKIR
+   prompt() diam-diam — tidak ada kotak yang muncul, fungsinya langsung menerima
+   null, lalu `if(a===null) return;` keluar tanpa melakukan apa pun.
+
+   Dari sisi penggunanya: ditekan, tidak terjadi apa-apa. Ditekan lagi, sama.
+   Kartu rating tidak bisa ditutup karena ia memang gerbang — jadi satu-satunya
+   jalan keluar adalah mematikan aplikasi, dan itulah "harus login ulang".
+   Dan karena tidak ada yang pernah tersimpan, tiketnya masih stg 3 di cloud —
+   begitu masuk lagi, kartunya muncul kembali. Persis ketiga gejalanya.
+
+   Perbaikannya: alasan diketik DI DALAM kartu, bukan di kotak bawaan peramban.
+   Aturan yang berlaku seterusnya: JANGAN PERNAH memakai prompt() untuk isian
+   yang menentukan jalannya proses — AGAVA dipakai sebagai aplikasi terpasang. */
 function rateGateTolak(){
  var t=TICKETS.find(function(x){return x.no===RATE_GATE;});
  if(!t){ rateGateClose(); return; }
- var a=prompt("✋ Kembalikan tiket "+t.no+" ke operator.\n\nApa yang belum beres? (wajib — dibaca operator)","");
- if(a===null) return;
- a=String(a).trim();
- if(a.length<5){ alert("Tuliskan sebentar apa yang belum beres (minimal 5 karakter)."); return; }
+ var box=document.querySelector("#rateGate .rg-box");
+ if(!box){ rateGateClose(); return; }
+ box.innerHTML=
+  '<div class="rg-h">Belum beres?</div>'+
+  '<div class="rg-sub">'+esc(t.no)+' · '+esc(t.judul||'')+'</div>'+
+  '<div class="rg-ask" style="margin-top:14px">Tuliskan apa yang belum beres — ini dibaca langsung oleh '+
+    esc(t.pic||t.closedBy||'operator')+'</div>'+
+  '<textarea id="rgTolakTeks" rows="4" placeholder="mis. lampu sudah menyala tapi kabelnya masih menjuntai" '+
+    'style="width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-family:var(--ff);'+
+    'font-size:calc(13px*var(--fz));color:var(--ink);background:#fff;resize:none;margin-top:8px"></textarea>'+
+  '<div class="rg-val" id="rgTolakVal">minimal 5 huruf</div>'+
+  '<button class="rg-btn ready" onclick="rateGateTolakKirim()">Kembalikan ke operator</button>'+
+  '<button class="rg-nanti" onclick="rateGateOpen(\''+esc(t.no)+'\')">← kembali ke penilaian</button>';
+ var ta=document.getElementById("rgTolakTeks"); if(ta) ta.focus();
+}
+function rateGateTolakKirim(){
+ var t=TICKETS.find(function(x){return x.no===RATE_GATE;});
+ if(!t){ rateGateClose(); return; }
+ var el=document.getElementById("rgTolakTeks");
+ var a=String((el&&el.value)||"").trim();
+ if(a.length<5){
+   var v=document.getElementById("rgTolakVal");
+   if(v){ v.textContent="Tuliskan sebentar apa yang belum beres (minimal 5 huruf)"; v.classList.add("warn"); }
+   if(el) el.focus();
+   return;
+ }
  /* Urutan sama dengan rateGateSubmit: rekam → LEPASKAN LAYAR → baru kirim.
     Dulu `dbSaveTicket` & `NOTIFS.unshift` berada di atas `rateGateClose()`,
     jadi satu lemparan di sana menyandera layar dengan cara yang persis sama. */
@@ -18840,7 +18881,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.11-223";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.11-224";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
