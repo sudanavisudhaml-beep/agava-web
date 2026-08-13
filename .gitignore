@@ -7,3 +7,5 @@ desktop.ini
 
 # Logs
 *.log
+.firebase/
+MEMORY.md

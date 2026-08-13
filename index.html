@@ -1016,7 +1016,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .tn-b{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .tn-b button{flex:1 1 130px;padding:8px 10px;font-size:calc(12px*var(--fz))}
 /* ══ UPR ══ */
-.upr-chain{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+/* Rantai kini bisa berisi 2, 3, atau 4 gerbang (tiering wewenang) — kolomnya
+   ikut jumlah isinya, bukan dipatok empat yang menyisakan sel kosong. */
+.upr-chain{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px;margin-top:12px}
 .upr-g{border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:#fafcfe}
 .upr-g b{display:block;font-size:calc(11.5px*var(--fz));color:var(--ink);line-height:1.3}
 .upr-g span{display:block;font-size:calc(10.5px*var(--fz));color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
@@ -1038,6 +1040,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   border:1px solid var(--line);border-radius:10px;padding:8px 11px}
 .upr-catat{margin-top:7px;font-size:calc(11.5px*var(--fz));color:#7a5a12;background:#fff8e8;
   border:1px solid #f0dcb4;border-radius:10px;padding:7px 10px}
+/* Pratinjau pita wewenang di halaman UPR */
+.upr-pita{margin:12px 0;background:var(--blue-s);border:1px solid var(--line);border-left:3px solid var(--blue);
+  border-radius:10px;padding:9px 12px;font-size:calc(12px*var(--fz));color:var(--ink);line-height:1.55}
+.upr-pita span{display:block;color:var(--muted);font-size:calc(11.5px*var(--fz));margin-top:3px}
+.upr-pita em{display:block;font-style:normal;margin-top:7px;color:var(--red);font-weight:600;
+  font-size:calc(11.5px*var(--fz));line-height:1.5}
+.upr-pita.bentrok{background:var(--red-s);border-color:#e9c6c6;border-left-color:var(--red)}
 /* ══ Dokumen UPR (dicetak lewat overlay Dokumen SO) ══ */
 .ud{font-family:var(--ff);color:#111;background:#fff;padding:14px 16px}
 .ud-hd{display:flex;align-items:center;gap:14px;border-bottom:2px solid #111;padding-bottom:9px;margin-bottom:11px}
@@ -1057,11 +1066,12 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .ud-tbl .sm{font-size:9px;color:#666}
 .ud-box{border:1px solid #bbb;padding:8px 10px;font-size:11px;line-height:1.6;min-height:42px}
 .ud-box.tolak{border-color:#c33;background:#fdf3f3;margin-top:9px}
-.ud-sigs{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:6px}
+.ud-sigs{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-top:6px}
 .ud-sig{border:1px solid #bbb;min-height:74px;display:flex;flex-direction:column}
 .ud-sl{font-size:9px;font-weight:800;letter-spacing:.04em;background:#f2f4f7;border-bottom:1px solid #bbb;padding:4px 6px;text-align:center}
 .ud-sb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px;text-align:center}
 .ud-sb b{font-size:10.5px} .ud-sb span{font-size:9px;color:#555} .ud-sb em{font-size:9.5px;color:#999;font-style:italic}
+.ud-pita{font-size:10px;color:#333;background:#f2f4f7;border:1px solid #bbb;padding:5px 8px;margin-bottom:6px}
 .ud-draft{margin-top:12px;border:1.5px dashed #c33;color:#c33;font-size:11px;font-weight:800;text-align:center;padding:7px;letter-spacing:.08em}
 @media(max-width:820px){
   .vb-strip{grid-template-columns:1fr}
@@ -8613,13 +8623,14 @@ function soHapus(no){
      alert("⚠️ Gagal menghapus di cloud: "+((e&&(e.code||e.message))||e)+"\n\nSO TIDAK jadi dihapus supaya tidak beda antar perangkat. Coba lagi saat koneksi stabil.");
    });
 }
-function soBatal(no){
+async function soBatal(no){
  var s=SO.find(function(x){return x.no===no;}); if(!s)return;
  if(!soBolehBatal(s)){ alert("⛔ Hanya pemohon SO ini atau Owner yang dapat membatalkannya."); return; }
- var a=prompt("Batalkan "+no+" — kebutuhannya tidak jadi diteruskan.\n\nAlasan pembatalan (tercatat di dokumen & jejak audit):","");
+ var a=await agavaTanya({judul:"Batalkan "+no, ok:"Batalkan SO", min:5,
+   pesan:"Kebutuhannya tidak jadi diteruskan. Alasan ini tercatat di dokumen dan di jejak audit.",
+   ph:"mis. barang ternyata masih ada di gudang"});
  if(a===null) return;
  a=String(a).trim();
- if(a.length<5){ alert("Alasan pembatalan minimal 5 karakter."); return; }
  closeDrawer();
  s.batal=true; s.batalAlasan=a; s.batalOleh=(gUser&&gUser.name)||""; s.batalAt=nowStamp();
  soPersist();
@@ -10614,25 +10625,14 @@ function myTicketEscalateSubmit(no){
  renderMyTickets(); renderFieldOps(); renderService(); renderApprovals(); renderReminder(); renderOverview(); updateBell();
  alert("⏫ Tiket "+no+" dinaikkan ke "+tujuan+".\n\nTiket TETAP ada di My Tickets Anda — yang berubah hanya statusnya.\nAnda menutupnya nanti setelah tindak lanjutnya selesai.");
 }
-/* Staff GA menaikkan lagi ke Section Head — anak tangga kedua */
-function escNaikkan(no){
- var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
- var alasan=prompt("Naikkan "+no+" ke Section Head.\nAlasan (mis. nilainya di atas wewenang Staff GA):","");
- if(alasan===null)return;
- alasan=String(alasan).trim();
- if(!alasan){ alert("Alasan wajib diisi."); return; }
- t.escTo="section"; t.escUpBy=(gUser&&gUser.name)||""; t.escUpAt=nowMs();
- tkKomen(t,"Dinaikkan ke Section Head oleh "+t.escUpBy+": "+alasan,"eskalasi");
- dbSaveTicket(t);
- NOTIFS.unshift({ic:"⏫",t:"Eskalasi tiket → Section Head",
-   d:t.no+" · "+(t.judul||"")+" · dinaikkan "+t.escUpBy+" — "+alasan,
-   at:nowStamp(), sev:"crit", nav:"approvals", done:false,
-   nama:ticketSectionOwner(t), namaRole:"section", roles:["dept"]});
- agavaNotify("⏫ Eskalasi → Section Head", t.no+" · "+(t.judul||""));
- try{ auditLog("escalation-up", no+" → Section Head · "+alasan); }catch(e){}
- renderApprovals(); renderService(); renderMyTickets(); renderFieldOps(); updateBell();
- alert("⏫ "+no+" dinaikkan ke Section Head ("+(ticketSectionOwner(t)||"pemilik kategori")+").");
-}
+/* escNaikkan() DIBUANG (13 Agu 2026) — tombolnya sudah dicabut di v203 karena
+   eskalasi beralamat sejak awal, jadi anak tangga kedua tidak lagi diperlukan.
+   Fungsinya tertinggal tanpa satu pun pemanggil selama 10 versi: mati di layar,
+   tetapi masih bisa dijalankan dari konsol dan masih menulis ke Firestore.
+   Tombol yang sudah dicabut atas keputusan harus ikut kehilangan fungsinya —
+   kalau tidak, yang dicabut cuma tampilannya, bukan wewenangnya.
+   Kolom t.escUpBy / t.escUpAt SENGAJA masih dibaca perender kartu eskalasi:
+   tiket lama yang pernah dinaikkan tetap harus menampilkan riwayatnya. */
 /* Selesaikan dari My Tickets — sama seperti Field Ops: WAJIB foto bukti dari kamera */
 function myTicketResolve(no){ foAskPhoto(no); }
 /* Supervisor buat SO dari tiket tereskalasi → prefill Create SO */
@@ -15743,16 +15743,14 @@ function escDiskusiSection(no){
  chatBukaDengan(mail,draf);
  try{ renderApprovals(); renderService(); }catch(e){}
 }
-function escDismiss(no){
- var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
- var alasan=prompt("Alasan menutup eskalasi tanpa membuat SO (tampil di journey tiket):","");
- if(alasan===null)return;
- t.escDone=true; t.escCloseNote=String(alasan).trim(); t.escSoBy=(gUser&&gUser.name)||""; t.escSoAt=nowStamp();
- dbSaveTicket(t);
- try{ auditLog("escalation-dismissed", no+" · "+t.escCloseNote); }catch(e){}
- renderApprovals(); renderService(); renderMyTickets(); renderFieldOps(); updateBell();
- alert("Eskalasi "+no+" ditutup tanpa SO.\nOperator dapat melanjutkan penyelesaian di My Tickets.");
-}
+/* escDismiss() DIBUANG (13 Agu 2026) — ini yang paling penting dari dua-duanya.
+   Tombol "Tutup tanpa SO" dicabut di v203 atas keputusan Sudana, alasannya
+   prinsipil dan masih tertulis di perender kartu eskalasi: keluhan orang tidak
+   boleh ditutup sepihak tanpa jalan keluar. Tetapi fungsinya dibiarkan hidup —
+   dan ia menyetel t.escDone=true lalu menulisnya ke Firestore. Artinya jalan
+   pintas yang dinyatakan ditutup sebenarnya masih terbuka, hanya tidak terlihat.
+   Sekarang benar-benar tertutup. Eskalasi berakhir lewat SO, atau lewat diskusi
+   dengan Section Head — dua-duanya meninggalkan jejak yang bisa ditagih. */
 function renderApprovals(){
  const escList=escalatedTickets();   // sudah tersaring per alamat di escUntukSaya()
  const otList=isSuper()?OVERTIME_REQ.filter(o=>(o.status||"Diajukan")==="Diajukan"):[];
@@ -16253,6 +16251,10 @@ function srcLanjut(){
  var db=vendorDB();
  s.sourcing=s.sourcing||{};
  s.sourcing.by=(gUser&&gUser.name)||""; s.sourcing.at=nowStamp();
+ /* Metodenya DICATAT, bukan disimpulkan belakangan dari jumlah kandidat.
+    Tiering UPR memakainya untuk menahan Penunjukan Langsung di atas pita
+    terendah — dan aturan wewenang tidak boleh bersandar pada tebakan. */
+ s.sourcing.metode=SRC_METODE;
  s.sourcing.kandidat=SRC_PILIH.map(function(nm){
    var v=db.filter(function(x){return x.vendor===nm;})[0]||{vendor:nm};
    var lama=((s.sourcing&&s.sourcing.kandidat)||[]).filter(function(k){return k.vendor===nm;})[0];
@@ -16455,13 +16457,72 @@ const UPR_GATES=[
  {k:"division", tier:"Division Head", label:"HCMS Division Head"},
  {k:"chief",    tier:"Chief CHCD",    label:"Chief of CHCD"}
 ];
+/* ╔══ TIERING WEWENANG UPR (13 Agu 2026) ════════════════════════════════════╗
+   Dulu SETIAP UPR melewati keempat gerbang — pengadaan Rp2 juta menunggu tanda
+   tangan Chief sama seperti pengadaan Rp500 juta. Akibatnya dua-duanya rugi:
+   yang kecil menunggu terlalu lama, dan yang besar dibaca dengan perhatian yang
+   sudah terkuras oleh antrean yang kecil-kecil.
+
+   Ambangnya DATA, bukan percabangan if. Alasannya dua:
+   · SK berubah — kalau angkanya tersebar di logika, perubahan SK jadi bedah kode.
+   · BU lain punya SK sendiri. Yang berbeda antar entitas adalah data (§5).
+
+   PIC Procurement ikut di SEMUA pita: perannya memverifikasi kelengkapan
+   dokumen, bukan memikul wewenang finansial — jadi ia tidak disaring nilai.
+
+   Batas bersifat INKLUSIF KE BAWAH: tepat Rp10 juta masih pita pertama.
+   Ini mengikuti lazimnya rumusan "s.d." pada SK, dan ditandai di System Brief
+   sebagai asumsi yang wajib dicocokkan dengan teksnya.                      */
+const UPR_AMBANG=[
+ {sampai:10000000,  rantai:["proc","dept"],
+  nama:"s.d. Rp10 juta",                     langsungBoleh:true},
+ {sampai:100000000, rantai:["proc","dept","division"],
+  nama:"di atas Rp10 juta s.d. Rp100 juta",  langsungBoleh:false},
+ {sampai:Infinity,  rantai:["proc","dept","division","chief"],
+  nama:"di atas Rp100 juta",                 langsungBoleh:false}
+];
+function uprPita(n){
+ n=parseFloat(n)||0;
+ for(var i=0;i<UPR_AMBANG.length;i++){ if(n<=UPR_AMBANG[i].sampai) return UPR_AMBANG[i]; }
+ return UPR_AMBANG[UPR_AMBANG.length-1];
+}
+/* Nilai yang MENGIKAT — hasil negosiasi bila sudah ada, kalau belum nilai
+    penawaran. Wewenang mengikuti angka yang akan benar-benar dikomitkan, jadi
+    begitu kolom harga final terisi nanti, pita ikut menyesuaikan sendiri. */
+function uprNilaiKomit(s){
+ var p=((s&&s.upr&&s.upr.penawaran)||[]).filter(function(x){return x.vendor===s.upr.pilih;})[0];
+ if(!p) return 0;
+ return (parseFloat(p.nilaiFinal)||0) || (parseFloat(p.nilai)||0);
+}
+/* ╔══ KENAPA RANTAINYA DIBEKUKAN DI DOKUMEN ═════════════════════════════════╗
+   Rantai TIDAK dihitung ulang tiap render. Ia ditulis ke s.upr.rantai sekali,
+   saat UPR diajukan, lalu dibaca apa adanya seterusnya.
+
+   Kalau dihitung ulang, dua hal buruk terjadi. Pertama, mengubah ambang akan
+   memindahkan dokumen yang sedang berjalan ke rantai lain di tengah jalan —
+   wewenang berubah surut, yang di dunia berkas persetujuan tidak boleh terjadi.
+   Kedua, dan ini yang merusak diam-diam: UPR lama bernilai kecil yang sudah
+   lewat Dept Head akan langsung terbaca "selesai" tanpa pernah menjalankan
+   langkah penuntasannya — vendor tidak menempel ke SO, wstep tidak naik, SPK
+   tidak pernah bisa terbit, dan tidak ada pesan galat apa pun.
+
+   UPR lama tidak punya kolom ini, dan sengaja jatuh ke rantai penuh empat
+   gerbang — persis perilaku sebelumnya. Tidak ada satu pun dokumen berjalan
+   yang berubah nasibnya saat versi ini naik.                                */
+function uprRantai(s){
+ var r=(s&&s.upr&&Array.isArray(s.upr.rantai)&&s.upr.rantai.length)?s.upr.rantai:null;
+ if(!r) return UPR_GATES.slice();
+ return UPR_GATES.filter(function(g){ return r.indexOf(g.k)>=0; });
+}
+function uprRantaiTeks(s){ return uprRantai(s).map(function(g){return g.label;}).join(" → "); }
 function uprAda(s){ return !!(s&&s.upr); }
-function uprDitolak(s){ return !!(s&&s.upr&&UPR_GATES.some(function(g){return s.upr.appr[g.k]==="Rejected";})); }
-function uprSelesai(s){ return !!(s&&s.upr&&UPR_GATES.every(function(g){return s.upr.appr[g.k]==="Approved";})); }
+function uprDitolak(s){ return !!(s&&s.upr&&uprRantai(s).some(function(g){return s.upr.appr[g.k]==="Rejected";})); }
+function uprSelesai(s){ return !!(s&&s.upr&&uprRantai(s).every(function(g){return s.upr.appr[g.k]==="Approved";})); }
 /* gerbang yang sedang menunggu — null bila tuntas / ditolak / belum diajukan */
 function uprGate(s){
  if(!uprAda(s)||!s.upr.diajukan||uprDitolak(s)) return null;
- for(var i=0;i<UPR_GATES.length;i++){ if(s.upr.appr[UPR_GATES[i].k]!=="Approved") return UPR_GATES[i]; }
+ var R=uprRantai(s);
+ for(var i=0;i<R.length;i++){ if(s.upr.appr[R[i].k]!=="Approved") return R[i]; }
  return null;
 }
 function uprStatusTeks(s){
@@ -16519,23 +16580,53 @@ function uprLengkap(s){
     selamanya dianggap belum lengkap. Sekarang: semua kandidat harus berharga. */
  return p.length>0 && p.every(function(x){ return (parseFloat(x.nilai)||0)>0; });
 }
+/* Metode pengadaan yang dipakai SO ini. Sejak 13 Agu 2026 metodenya DISIMPAN
+   di s.sourcing.metode; SO lama tidak punya kolom itu, jadi disimpulkan dari
+   jumlah kandidat (Penunjukan Langsung selalu tepat satu rekanan). */
+function soMetode(s){
+ var m=(s&&s.sourcing&&s.sourcing.metode)||"";
+ if(m) return m;
+ return (((s&&s.sourcing&&s.sourcing.kandidat)||[]).length===1)?"langsung":"terbatas";
+}
 function uprAjukan(){
  var s=SO.find(function(x){return x.no===UPR_SO;}); if(!s||!s.upr)return;
  uprSimpan(true);
- if(!uprLengkap(s)){ alert("Isi dulu nilai penawaran ketiga rekanan.\n\nUPR membandingkan tiga penawaran — itu inti dokumennya."); return; }
+ var jml=((s.upr&&s.upr.penawaran)||[]).length;
+ if(!uprLengkap(s)){ alert(jml===1
+   ? "Isi dulu nilai penawaran rekanan yang ditunjuk."
+   : "Isi dulu nilai penawaran "+jml+" rekanan.\n\nUPR membandingkan penawaran — itu inti dokumennya."); return; }
  if(!s.upr.pilih){ alert("Tentukan rekanan yang diusulkan (klik \"Usulkan\" pada salah satu kartu)."); return; }
  if((s.upr.alasan||"").length<10){ alert("Tuliskan alasan penunjukan minimal 10 karakter — inilah yang dibaca para approver."); return; }
+ /* ── Pita wewenang ditentukan DI SINI, sekali, lalu dibekukan di dokumen ── */
+ var nilai=uprNilaiKomit(s), pita=uprPita(nilai);
+ /* Penunjukan Langsung hanya sah di pita terendah. Pemeriksaannya baru bisa
+    dilakukan di sini — saat sourcing, harganya memang belum diketahui. */
+ if(soMetode(s)==="langsung" && !pita.langsungBoleh){
+   alert("⛔ Penunjukan Langsung tidak bisa dipakai pada nilai ini.\n\n"+
+     "Nilai yang diusulkan Rp "+rpFmt(nilai)+" — masuk pita "+pita.nama+", "+
+     "sedangkan Penunjukan Langsung hanya untuk pita "+UPR_AMBANG[0].nama+".\n\n"+
+     "Yang harus dilakukan: kembali ke Sourcing, pindah ke Pemilihan Terbatas, "+
+     "lalu undang dua rekanan lagi supaya penawarannya bisa dibandingkan.");
+   return;
+ }
  s.upr.diajukan=true; s.upr.ajukanAt=nowStamp(); s.upr.by=(gUser&&gUser.name)||s.upr.by;
- s.upr.appr={proc:"Pending",dept:"—",division:"—",chief:"—"};
+ s.upr.rantai=pita.rantai.slice();      /* dibekukan — lihat catatan di uprRantai() */
+ s.upr.pita=pita.nama;
+ s.upr.nilaiAjukan=nilai;               /* angka yang menentukan wewenang, ikut jadi jejak audit */
+ s.upr.appr={}; s.upr.rantai.forEach(function(k,i){ s.upr.appr[k]=(i===0?"Pending":"—"); });
  s.upr.reject=null;
  soPersist();
- try{ auditLog("upr-ajukan", s.upr.no+" · usul "+s.upr.pilih+" · Rp "+rpFmt(uprNilai(s))); }catch(e){}
+ try{ auditLog("upr-ajukan", s.upr.no+" · usul "+s.upr.pilih+" · Rp "+rpFmt(nilai)+
+   " · pita "+pita.nama+" · rantai "+uprRantaiTeks(s)); }catch(e){}
  NOTIFS.unshift({ic:"📑",t:"UPR menunggu persetujuan — "+s.upr.no,
-   d:(s.item||"")+" · usulan "+s.upr.pilih+" · Rp "+rpFmt(uprNilai(s)),
+   d:(s.item||"")+" · usulan "+s.upr.pilih+" · Rp "+rpFmt(nilai),
    at:nowStamp(), sev:"warn", nav:"approvals", done:false, roles:["proc"]});
  renderApprovals(); renderAssigned(); renderProc(); updateBell(); renderUPR();
- alert("📑 "+s.upr.no+" diajukan.\n\nMasuk gerbang PIC Procurement → GA Dept Head → HCMS Division Head → Chief of CHCD.");
+ alert("📑 "+s.upr.no+" diajukan.\n\nNilai Rp "+rpFmt(nilai)+" — pita "+pita.nama+".\n"+
+   "Gerbang yang harus dilewati: "+uprRantaiTeks(s)+".");
 }
+/* Nilai penawaran mentah rekanan yang diusulkan. Untuk urusan WEWENANG pakai
+   uprNilaiKomit() — yang mengikat adalah harga final bila negosiasi sudah ada. */
 function uprNilai(s){
  var p=((s.upr&&s.upr.penawaran)||[]).filter(function(x){return x.vendor===s.upr.pilih;})[0];
  return p?(parseFloat(p.nilai)||0):0;
@@ -16548,14 +16639,16 @@ function uprApprovalsForMe(){
    return t.indexOf(g.tier)>=0;
  });
 }
-function uprAksi(no,keputusan){
+async function uprAksi(no,keputusan){
  var s=SO.find(function(x){return x.no===no;}); if(!s||!s.upr)return;
  var g=uprGate(s); if(!g){ alert("UPR ini sudah tidak menunggu keputusan."); return; }
  if(isOwner()){ alert("👀 Mode pantau — gerbang UPR bukan wewenang akun Owner.\n\nGunakan akun pemegang gerbangnya."); return; }
  if(keputusan==="Rejected"){
-   var a=prompt("Alasan menolak "+s.upr.no+" (dibaca Staff Procurement, wajib):","");
+   var a=await agavaTanya({judul:"Tolak "+s.upr.no, ok:"Tolak UPR", min:10,
+     pesan:"Alasan ini dibaca Staff Procurement dan tercatat di jejak audit — tuliskan yang bisa ditindaklanjuti.",
+     ph:"mis. harga di atas pagu, minta negosiasi ulang dengan vendor kedua"});
    if(a===null) return;
-   a=String(a).trim(); if(a.length<10){ alert("Alasan minimal 10 karakter."); return; }
+   a=String(a).trim();
    s.upr.appr[g.k]="Rejected";
    s.upr.reject={gate:g.label, by:(gUser&&gUser.name)||"", alasan:a, at:nowStamp()};
    s.upr.aktor[g.k]=(gUser&&gUser.name)||""; s.upr.ts[g.k]=nowStamp();
@@ -16568,9 +16661,12 @@ function uprAksi(no,keputusan){
    var lanjut=uprGate(s);
    try{ auditLog("upr-approve", s.upr.no+" · "+g.label); }catch(e){}
    if(lanjut){
+     /* Alamatnya = kunci gerbangnya. Rantai kini bisa berhenti di mana saja,
+        jadi pemetaan bertingkat yang lama (…:"chief" sebagai jatuh-tempo
+        terakhir) berbahaya: gerbang di luar daftar akan disiarkan ke Chief. */
      NOTIFS.unshift({ic:"📑",t:"UPR menunggu "+lanjut.label+" — "+s.upr.no,
        d:(s.item||"")+" · usulan "+s.upr.pilih, at:nowStamp(), sev:"warn", nav:"approvals", done:false,
-       roles:[lanjut.k==="dept"?"dept":lanjut.k==="division"?"division":"chief"]});
+       roles:[lanjut.k]});
    } else {
      /* Tuntas → vendor pemenang menempel ke SO, langkah berikutnya SPK */
      s.vendor=s.upr.pilih;
@@ -16623,6 +16719,16 @@ function renderUPR(){
  var s=UPR_SO?SO.find(function(x){return x.no===UPR_SO;}):null;
  if(!s||!s.upr){ el.innerHTML='<div class="card pad muted small" style="text-align:center;padding:48px">Buka UPR dari <b>Assigned SO</b> setelah Sourcing selesai.</div>'; return; }
  var st=uprStatusTeks(s), bisaEdit=(!s.upr.diajukan||uprDitolak(s));
+ /* ── PRATINJAU PITA WEWENANG ────────────────────────────────────────────────
+    Pengaju melihat berapa tanda tangan yang akan ia butuhkan SEBELUM menekan
+    Ajukan, bukan setelahnya. Ini bagian dari intervensinya, bukan hiasan:
+    tanpa ini, tiering hanya memindahkan kejutan ke belakang. */
+ var nKomit=uprNilaiKomit(s), pitaKini=uprPita(nKomit), adaUsulan=!!(s.upr.pilih&&nKomit>0);
+ var rantaiKini=(s.upr.diajukan&&Array.isArray(s.upr.rantai)&&s.upr.rantai.length)
+   ? uprRantaiTeks(s)
+   : UPR_GATES.filter(function(g){return pitaKini.rantai.indexOf(g.k)>=0;})
+              .map(function(g){return g.label;}).join(" → ");
+ var langsungBentrok=(adaUsulan && soMetode(s)==="langsung" && !pitaKini.langsungBoleh);
  var nilai=(s.upr.penawaran||[]).map(function(x){return parseFloat(x.nilai)||0;});
  var min=Math.min.apply(null,nilai.filter(function(n){return n>0;}).concat([Infinity]));
  el.innerHTML=
@@ -16637,7 +16743,7 @@ function renderUPR(){
     '</div>'+
     (uprDitolak(s)&&s.upr.reject?('<div class="so-tolak" style="margin:12px 0 0"><b>⛔ Ditolak '+esc(s.upr.reject.gate)+' — '+esc(s.upr.reject.by)+'</b>'+
       '<div>'+esc(s.upr.reject.alasan)+'</div><i>'+esc(s.upr.reject.at)+'</i></div>'):'')+
-    (s.upr.diajukan&&!uprDitolak(s)?('<div class="upr-chain">'+UPR_GATES.map(function(g){
+    (s.upr.diajukan&&!uprDitolak(s)?('<div class="upr-chain">'+uprRantai(s).map(function(g){
         var v=s.upr.appr[g.k], cls=v==="Approved"?"ok":v==="Pending"?"now":v==="Rejected"?"no":"wait";
         return '<div class="upr-g '+cls+'"><b>'+esc(g.label)+'</b><span>'+
           (v==="Approved"?("✓ "+esc(s.upr.aktor[g.k]||"")+" · "+esc(s.upr.ts[g.k]||"")):
@@ -16664,11 +16770,17 @@ function renderUPR(){
      '</div>';
    }).join("")+'</div>'+
   '<div class="card pad" style="margin-top:14px">'+
-    '<div class="field"><label>Alasan penunjukan <span style="color:var(--red)">*</span> <span class="muted small">— dibaca PIC Procurement, Dept Head, Division Head, Chief</span></label>'+
+    '<div class="field"><label>Alasan penunjukan <span style="color:var(--red)">*</span> <span class="muted small">— dibaca '+esc(rantaiKini)+'</span></label>'+
       '<textarea id="upr-alasan" rows="3" placeholder="mis. harga terbaik dengan garansi 12 bulan dan pengalaman pekerjaan serupa di AMDI"'+(bisaEdit?'':' disabled')+'>'+esc(s.upr.alasan||"")+'</textarea></div>'+
+    (adaUsulan?('<div class="upr-pita'+(langsungBentrok?' bentrok':'')+'">'+
+       '<b>Nilai yang diusulkan Rp '+rpFmt(nKomit)+'</b> — pita <b>'+esc(pitaKini.nama)+'</b>'+
+       '<span>Gerbang yang harus dilewati: '+esc(rantaiKini)+'</span>'+
+       (langsungBentrok?'<em>⛔ SO ini memakai Penunjukan Langsung, yang hanya sah untuk pita '+esc(UPR_AMBANG[0].nama)+
+          '. Kembali ke Sourcing, pindah ke Pemilihan Terbatas, lalu undang dua rekanan lagi.</em>':'')+
+     '</div>'):'')+
     (bisaEdit?('<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-act" onclick="uprAjukan()">📑 Ajukan UPR →</button>'+
       '<button class="btn-out" onclick="uprSimpan()">💾 Simpan Draft</button></div>'+
-      '<div class="muted small" style="margin-top:8px;line-height:1.55">Setelah diajukan: PIC Procurement → GA Dept Head → HCMS Division Head → Chief of CHCD. Isian dikunci selama proses berjalan; kalau ditolak, ia terbuka lagi untuk diperbaiki.</div>')
+      '<div class="muted small" style="margin-top:8px;line-height:1.55">Rantai persetujuan mengikuti nilai yang diusulkan, dan <b>dikunci pada dokumen saat diajukan</b> — perubahan ambang di kemudian hari tidak menggeser UPR yang sudah berjalan. Isian dikunci selama proses berjalan; kalau ditolak, ia terbuka lagi untuk diperbaiki.</div>')
      :'<div class="muted small">UPR sedang berjalan di rantai persetujuan.</div>')+
   '</div>';
 }
@@ -16699,7 +16811,7 @@ function uprDocHTML(s){
      '<td>'+esc(x.plus||"—")+'</td><td>'+esc(x.minus||"—")+'</td>'+
      '<td class="c">'+(win?'<b>DIUSULKAN</b>':'')+'</td></tr>';
  }).join("");
- var ttd=UPR_GATES.map(function(g){
+ var ttd=uprRantai(s).map(function(g){
    var ok=u.appr[g.k]==="Approved";
    return '<div class="ud-sig"><div class="ud-sl">'+esc(g.label)+'</div>'+
      '<div class="ud-sb">'+(ok?('<b>'+esc(u.aktor[g.k]||"")+'</b><span>'+esc(u.ts[g.k]||"")+'</span>')
@@ -16712,7 +16824,8 @@ function uprDocHTML(s){
   '<table class="ud-meta"><tr><td>Referensi SO</td><td><b>'+esc(s.no)+'</b></td><td>Kategori</td><td>'+esc(s.kategori||"—")+'</td></tr>'+
     '<tr><td>Uraian pekerjaan</td><td colspan="3"><b>'+esc(s.item||"—")+'</b></td></tr>'+
     '<tr><td>Lokasi</td><td>'+esc(s.lokasi||"—")+'</td><td>Estimasi SO</td><td>'+esc(soNilaiTeks(s))+'</td></tr>'+
-    '<tr><td>Diajukan oleh</td><td>'+esc(u.by||"—")+'</td><td>Dept/Divisi</td><td>'+esc(s.deptDiv||"GENERAL AFFAIR")+'</td></tr></table>'+
+    '<tr><td>Diajukan oleh</td><td>'+esc(u.by||"—")+'</td><td>Dept/Divisi</td><td>'+esc(s.deptDiv||"GENERAL AFFAIR")+'</td></tr>'+
+    '<tr><td>Metode pengadaan</td><td colspan="3">'+esc(SRC_METODE_NAMA[soMetode(s)]||"—")+'</td></tr></table>'+
   '<div class="ud-sec">PERBANDINGAN PENAWARAN</div>'+
   '<table class="ud-tbl"><thead><tr><th>NO</th><th>REKANAN</th><th>NILAI PENAWARAN (Rp)</th><th>TGL MASUK</th><th>KELEBIHAN</th><th>KEKURANGAN</th><th>USULAN</th></tr></thead>'+
     '<tbody>'+baris+'</tbody></table>'+
@@ -16720,6 +16833,11 @@ function uprDocHTML(s){
   '<div class="ud-box">'+esc(u.alasan||"—")+'</div>'+
   (u.reject?'<div class="ud-box tolak"><b>DITOLAK — '+esc(u.reject.gate)+' ('+esc(u.reject.by)+')</b><br>'+esc(u.reject.alasan)+'<br><span class="sm">'+esc(u.reject.at)+'</span></div>':'')+
   '<div class="ud-sec">PERSETUJUAN BERJENJANG</div>'+
+  /* Pita dan angka penentunya IKUT TERCETAK. Dokumen harus bisa menjelaskan
+     sendiri kenapa ia hanya perlu sekian tanda tangan — kalau tidak, pembaca
+     berikutnya akan mengira ada tanda tangan yang hilang. */
+  (u.pita?('<div class="ud-pita">Pita wewenang <b>'+esc(u.pita)+'</b> — ditentukan dari nilai yang dikomitkan Rp '+
+     rpFmt(u.nilaiAjukan||0)+'</div>'):'')+
   '<div class="ud-sigs">'+ttd+'</div>'+
   (uprSelesai(s)?'':'<div class="ud-draft">DRAFT — belum disetujui penuh</div>')+
  '</div>';
@@ -18661,7 +18779,7 @@ function wpOpenDetail(no){
   '</div>';
  document.getElementById("ovl").classList.add("show");
 }
-function wpActNo(no,st){ var i=WORK_PERMITS.findIndex(function(x){return x.no===no;}); if(i>=0){ wpAct(i,st); wpOpenDetail(no); } }
+async function wpActNo(no,st){ var i=WORK_PERMITS.findIndex(function(x){return x.no===no;}); if(i>=0){ await wpAct(i,st); wpOpenDetail(no); } }
 function wpSeq(){ return "WP-"+new Date().toISOString().slice(0,7).replace("-","")+"-"+String(1+WORK_PERMITS.length).padStart(4,"0"); }
 function wpBadge(s){ return s==="Disetujui"?'<span class="badge bd-ok">Disetujui</span>':s==="Ditolak"?'<span class="badge bd-crit">Ditolak</span>':'<span class="badge bd-warn">Menunggu Review</span>'; }
 function wpPersist(){ try{ localStorage.setItem("agava_wp_v1",JSON.stringify(WORK_PERMITS)); }catch(e){} }
@@ -18751,9 +18869,12 @@ function wpSave(){
   closeDrawer(); renderHSE(); renderOverview();
   alert("✅ Izin Kerja "+rec.no+" diajukan — menunggu review PIC HSE.");
 }
-function wpAct(i,st){
+async function wpAct(i,st){
   const w=WORK_PERMITS[i]; if(!w)return;
-  if(st==="Ditolak"){ const c=prompt("Alasan penolakan (tampil di journey vendor):",""); if(c===null)return; w.catatan=String(c).trim(); }
+  if(st==="Ditolak"){ const c=await agavaTanya({judul:"Tolak izin kerja "+w.no, ok:"Tolak", min:5,
+      pesan:"Alasan penolakan tampil di journey vendor — sebutkan apa yang harus diperbaiki sebelum mengajukan ulang.",
+      ph:"mis. APD belum lengkap, JSA belum ditandatangani"});
+    if(c===null)return; w.catatan=String(c).trim(); }
   w.status=st; w.reviewedBy=gUser?gUser.name:""; w.reviewedAt=TODAY_STR;
   wpPersist(); wpDbSave(w);
   triggerFlow("workPermit",{mode:"review",record:w});
@@ -18932,7 +19053,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.11-225";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.13-227";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
