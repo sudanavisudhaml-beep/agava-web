@@ -801,6 +801,19 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
    memberi bintang, harus keluar dari aplikasi" yang dilaporkan tiga kali.
    Urutan lapisan sekarang: drawer 50 < dokumen SO 400 < gerbang rating 900
    < PEMUTAR LAMPIRAN 1200. Pemutar selalu di atas apa pun yang membukanya. */
+.tny-ovl{position:fixed;inset:0;z-index:1300;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(8,22,45,.55)}
+.tny-ovl.show{display:flex}
+.tny-box{width:100%;max-width:390px;background:#fff;border-radius:20px;padding:22px 20px 18px;box-shadow:0 24px 70px rgba(6,20,50,.4)}
+.tny-h{font-size:calc(16px*var(--fz));font-weight:800;color:var(--ink)}
+.tny-p{font-size:calc(12.5px*var(--fz));color:var(--muted);margin-top:5px;line-height:1.55;white-space:pre-line}
+.tny-in{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin-top:12px;background:#fff;
+  font-family:var(--ff);font-size:calc(13.5px*var(--fz));color:var(--ink);resize:none;box-sizing:border-box}
+.tny-in:focus{outline:none;border-color:var(--blue)}
+.tny-val{font-size:calc(11.5px*var(--fz));color:var(--red);min-height:16px;margin-top:5px}
+.tny-ok{width:100%;margin-top:6px;border:none;border-radius:12px;padding:12px;background:var(--blue);color:#fff;
+  font-family:var(--ff);font-size:calc(13.5px*var(--fz));font-weight:700;cursor:pointer}
+.tny-x{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;
+  font-family:var(--ff);font-size:calc(12.5px*var(--fz));color:var(--muted);cursor:pointer}
 .proof-ovl{position:fixed;inset:0;z-index:1200;background:rgba(8,18,36,.86);display:none;place-items:center;padding:20px;cursor:zoom-out}
 .proof-ovl.show{display:grid}
 .proof-box{position:relative;max-width:min(94vw,760px);max-height:90vh;display:flex;flex-direction:column;gap:10px;cursor:default}
@@ -13196,6 +13209,43 @@ async function tkUploadPhotos(imgs,no,prefix){
  }catch(e){ AGAVA_UPLOAD.cloud=false; AGAVA_UPLOAD.err=(e&&e.message)||"gagal"; console.warn("tkUploadPhotos:",e&&e.message); }
  return out;
 }
+/* ╔══ PENGGANTI prompt() — TIDAK PERNAH DIBLOKIR PWA (11 Agu 2026) ══════════╗
+   prompt() bawaan peramban DIBLOKIR diam-diam di PWA terpasang: tidak ada
+   kotak yang muncul, nilainya langsung null, dan alur prosesnya berhenti tanpa
+   pesan apa pun. Itu penyebab hang di jalur 'kembalikan tiket ke operator'
+   (v224), dan ranjau yang sama masih ada di beberapa jalur lain.
+   agavaTanya() mengembalikan Promise: nilai bila diisi, null bila dibatalkan —
+   jadi call site cukup mengganti `prompt(...)` dengan `await agavaTanya({...})`
+   tanpa mengubah logika sesudahnya.                                        */
+function agavaTanya(o){
+ o=o||{};
+ return new Promise(function(res){
+  var ov=document.getElementById('agavaTanyaOvl');
+  if(!ov){ ov=document.createElement('div'); ov.id='agavaTanyaOvl'; ov.className='tny-ovl'; document.body.appendChild(ov); }
+  var tutup=function(v){ ov.classList.remove('show'); ov.innerHTML=''; res(v); };
+  var angka=(o.tipe==='angka');
+  ov.innerHTML='<div class="tny-box" role="dialog" aria-modal="true">'+
+    '<div class="tny-h">'+esc(o.judul||'Isian')+'</div>'+
+    (o.pesan?'<div class="tny-p">'+esc(o.pesan)+'</div>':'')+
+    (angka?'<input id="tnyIn" class="tny-in" type="number" inputmode="numeric" value="'+esc(o.nilai||'')+'" placeholder="'+esc(o.ph||'')+'">'
+          :'<textarea id="tnyIn" class="tny-in" rows="3" placeholder="'+esc(o.ph||'')+'">'+esc(o.nilai||'')+'</textarea>')+
+    '<div class="tny-val" id="tnyVal"></div>'+
+    '<button class="tny-ok" id="tnyOk">'+esc(o.ok||'Simpan')+'</button>'+
+    '<button class="tny-x" id="tnyX">Batal</button></div>';
+  ov.classList.add('show');
+  var inp=document.getElementById('tnyIn'); if(inp) setTimeout(function(){ try{inp.focus();}catch(e){} },40);
+  var pesan=function(m){ var e=document.getElementById('tnyVal'); if(e) e.textContent=m; };
+  document.getElementById('tnyX').onclick=function(){ tutup(null); };
+  document.getElementById('tnyOk').onclick=function(){
+    var v=String((inp&&inp.value)||'').trim();
+    if(angka){ var n=parseFloat(v.replace(/[^0-9]/g,''))||0;
+      if(n<=0){ pesan('Angkanya harus lebih dari 0.'); return; } return tutup(String(n)); }
+    if(o.min && v.length<o.min){ pesan('Tuliskan sebentar — minimal '+o.min+' huruf.'); return; }
+    if(!v){ pesan('Belum diisi.'); return; }
+    tutup(v);
+  };
+ });
+}
 /* ╔══ PAGAR KETUK-GANDA YANG DIPAKAI ULANG (11 Agu 2026) ════════════════════╗
    Insiden tiket kembar Susi memperlihatkan pola yang berlaku untuk SETIAP
    tombol kirim di AGAVA: fungsinya async, menunggu jaringan/unggahan foto
@@ -15849,7 +15899,7 @@ function soAgingSegarkan(s){
    s.aging = hari>14 ? "Needs Attention" : (hari>7 ? "Warning" : "On Track");
  }catch(e){ s.aging="On Track"; }
 }
-function soStep(no){
+async function soStep(no){
  var s=SO.find(function(x){return x.no===no;}); if(!s)return;
  var w=+s.wstep||0;
  /* ── TOMBOL INI DULU HANYA MEMBUBUHKAN CAP WAKTU (diperbaiki 10 Agu 2026) ────
@@ -15868,11 +15918,12 @@ function soStep(no){
  s.ts=s.ts||{}; s.tsf=s.tsf||{};
  var patch={};
  if(w===2){
-   var isi=prompt("Nilai SPK untuk "+no+"\n\nKetik angka rupiah (tanpa titik).\nContoh: 12500000",
-                  soNilaiRp(s)>0?String(soNilaiRp(s)):"");
+   var isi=await agavaTanya({judul:"Nilai SPK — "+no, tipe:"angka", ok:"Terbitkan SPK",
+     pesan:"Ketik angka rupiah tanpa titik. Contoh: 12500000",
+     ph:"12500000", nilai:(soNilaiRp(s)>0?String(soNilaiRp(s)):"")});
    if(isi===null) return;
    var n=parseFloat(String(isi).replace(/[^0-9]/g,""))||0;
-   if(n<=0){ alert("Nilai SPK harus lebih dari 0."); return; }
+   if(n<=0) return;
    s.nilai=n; s.wstep=3; s.spkSent=true;
    if(!s.spkNo) s.spkNo="SPK-"+String(no).replace(/^SO-/,"");
    s.ts.spk=nowStamp(); s.tsf.spk=nowStampDoc(); s.stage=Math.max(s.stage||0,5);
@@ -18881,7 +18932,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.11-224";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.11-225";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
