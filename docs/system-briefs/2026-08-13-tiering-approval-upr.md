@@ -113,13 +113,27 @@ Dicegah dengan **membekukan rantai pada dokumen saat diajukan** (`s.upr.rantai`)
 
 ---
 
-## Asumsi Terbuka — wajib dikonfirmasi ke teks SK
+## Asumsi — status setelah pencocokan dokumen (14 Agu 2026)
 
-Ketiganya sudah **dikodekan sebagai data di satu tempat** (`UPR_AMBANG`), jadi koreksi apa pun berbiaya satu baris.
+Ketiganya dikodekan sebagai data di satu tempat (`UPR_AMBANG`), jadi koreksi berbiaya satu baris.
 
-1. **Batas pita bersifat inklusif ke bawah** — nilai tepat Rp10.000.000 masuk pita terendah (cukup Dept Head), tepat Rp100.000.000 masuk pita menengah. Mengikuti lazimnya rumusan "s.d." pada SK.
-2. **PIC Procurement selalu ikut di semua pita** — perannya verifikasi kelengkapan dokumen, bukan wewenang finansial, jadi tidak ikut disaring nilai.
-3. **Nilai penentu wewenang = nilai final hasil negosiasi bila ada, kalau tidak ada memakai nilai penawaran.** Yang mengikat adalah yang akan dikomitkan.
+1. **Batas pita inklusif ke bawah** — **terkonfirmasi.** SK memakai rumusan "s.d.", jadi tepat Rp10 juta masih pita terendah.
+2. **PIC Procurement ikut di semua pita** — **terkonfirmasi.** SK Wewenang Keuangan tidak menyebut Procurement sama sekali; ia matriks wewenang finansial. Procurement adalah langkah proses, bukan gerbang wewenang.
+3. **Nilai penentu = harga final hasil negosiasi bila ada** — **masih keputusan internal.** Tidak diatur dokumen mana pun; dipertahankan karena yang mengikat adalah angka yang akan dikomitkan.
+
+### Kenapa rantai berhenti di Chief, bukan naik ke Direktur
+
+Sempat muncul dugaan bahwa ada pita keempat yang terlewat, karena matriks wewenang finansial memang naik sampai Direktur. Dugaan itu **keliru**, dan alasannya struktural: yang naik sampai Direktur adalah wewenang **pelepasan uang** (BPH/PR di tahap pembayaran), bukan wewenang **penunjukan rekanan**.
+
+Untuk mengikat perusahaan ke pihak ketiga, dasarnya Surat Kuasa Direksi — dan kuasa itu berlaku "hingga sejumlah budget yang telah ditetapkan dan disetujui". Selama pengadaan berada di dalam budget, Chief adalah ujung wewenangnya. Dua sumbu berbeda; menyatukannya akan menambah gerbang yang tidak pernah diminta siapa pun.
+
+**Konsekuensi yang belum ditangani:** kalau kuasa itu dibatasi budget, maka pengadaan **di luar budget** jatuh di luarnya, dan punya jalur persetujuan sendiri yang naik lebih tinggi. AGAVA sudah mengenal keadaan "budget tidak tersedia" di tahap SO (penanda eskalasi budget), tetapi tiering UPR belum membacanya sama sekali. Ini utang terbuka, dicatat agar tidak hilang — letaknya di alur SO, bukan di UPR.
+
+### Penunjukan Langsung: pagar nilai dicabut
+
+Versi pertama menahan Penunjukan Langsung di atas pita terendah. **Itu salah.** Juklak Pengadaan mengatur metode ini lewat tujuh syarat kualitatif tanpa batas nilai — salah satunya bahkan berlaku "meski nominalnya kecil". Pagar nilai akan memblokir pengadaan yang sah (pemasok tunggal, vendor sesama grup, keadaan darurat) dan memaksa orang mengerjakannya di luar sistem.
+
+Gantinya: syaratnya **wajib dipilih**, tersimpan di dokumen, ikut tercetak, dan masuk jejak audit. Alasan yang harus ditulis menahan lebih baik daripada pagar yang bisa dilewati dengan memecah nilai — dan tidak menghalangi pekerjaan yang benar.
 
 ---
 

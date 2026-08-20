@@ -1046,7 +1046,9 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .upr-pita span{display:block;color:var(--muted);font-size:calc(11.5px*var(--fz));margin-top:3px}
 .upr-pita em{display:block;font-style:normal;margin-top:7px;color:var(--red);font-weight:600;
   font-size:calc(11.5px*var(--fz));line-height:1.5}
-.upr-pita.bentrok{background:var(--red-s);border-color:#e9c6c6;border-left-color:var(--red)}
+.upr-pl-sel{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--ink);font-family:var(--ff);font-size:calc(12.5px*var(--fz))}
+.upr-pl-sel:disabled{background:#f4f6f9;color:var(--muted)}
 /* ══ Dokumen UPR (dicetak lewat overlay Dokumen SO) ══ */
 .ud{font-family:var(--ff);color:#111;background:#fff;padding:14px 16px}
 .ud-hd{display:flex;align-items:center;gap:14px;border-bottom:2px solid #111;padding-bottom:9px;margin-bottom:11px}
@@ -16470,17 +16472,52 @@ const UPR_GATES=[
    PIC Procurement ikut di SEMUA pita: perannya memverifikasi kelengkapan
    dokumen, bukan memikul wewenang finansial — jadi ia tidak disaring nilai.
 
-   Batas bersifat INKLUSIF KE BAWAH: tepat Rp10 juta masih pita pertama.
-   Ini mengikuti lazimnya rumusan "s.d." pada SK, dan ditandai di System Brief
-   sebagai asumsi yang wajib dicocokkan dengan teksnya.                      */
+   Batas bersifat INKLUSIF KE BAWAH: tepat Rp10 juta masih pita pertama,
+   mengikuti rumusan "s.d." pada SK. DIKONFIRMASI 14 Agu 2026 terhadap teksnya.
+
+   RANTAI BERHENTI DI CHIEF, dan itu bukan kelalaian. Chief CHCD memegang Surat
+   Kuasa Direksi untuk menandatangani perjanjian dengan pihak ketiga "hingga
+   sejumlah budget yang telah ditetapkan dan disetujui" — jadi selama pengadaan
+   berada di dalam budget, Chief adalah ujung wewenangnya. Pita di SK Wewenang
+   Keuangan yang naik sampai Direktur mengatur BPH/PR (pelepasan uang di tahap
+   pembayaran), bukan penunjukan rekanan. Dua sumbu berbeda; jangan disatukan.  */
 const UPR_AMBANG=[
  {sampai:10000000,  rantai:["proc","dept"],
-  nama:"s.d. Rp10 juta",                     langsungBoleh:true},
+  nama:"s.d. Rp10 juta"},
  {sampai:100000000, rantai:["proc","dept","division"],
-  nama:"di atas Rp10 juta s.d. Rp100 juta",  langsungBoleh:false},
+  nama:"di atas Rp10 juta s.d. Rp100 juta"},
  {sampai:Infinity,  rantai:["proc","dept","division","chief"],
-  nama:"di atas Rp100 juta",                 langsungBoleh:false}
+  nama:"di atas Rp100 juta"}
 ];
+/* ╔══ PENUNJUKAN LANGSUNG: SYARAT, BUKAN AMBANG (14 Agu 2026) ═══════════════╗
+   v227 menahan Penunjukan Langsung di atas Rp10 juta. Itu SALAH, dan salahnya
+   berbahaya: ia memblokir pengadaan yang sah — distributor tunggal senilai
+   Rp50 juta, vendor sesama Grup Astra, keadaan darurat — lalu memaksa orang
+   mengerjakannya di luar AGAVA. Sistem yang menghalangi pekerjaan yang benar
+   tidak sedang menegakkan kontrol; ia sedang mengusir penggunanya.
+
+   Juklak Pengadaan CHCD mengatur Penunjukan Langsung lewat tujuh syarat
+   kualitatif, TANPA batas nilai. Salah satunya bahkan berbunyi "meski
+   nominalnya kecil" — nominal memang sengaja tidak dijadikan penentu.
+
+   Gantinya bukan tidak ada kontrol, melainkan kontrol yang lebih tepat:
+   syaratnya WAJIB dipilih, ikut tersimpan di dokumen, ikut tercetak, dan ikut
+   ke jejak audit. Approver jadi tahu DASAR penunjukannya, bukan cuma bahwa
+   metodenya langsung. Alasan yang harus ditulis lebih menahan daripada pagar
+   yang bisa dilewati dengan memecah nilai.                                   */
+const PL_SYARAT=[
+ {k:"tunggal",  t:"Pemasok tunggal atau distributor eksklusif"},
+ {k:"unik",     t:"Keahlian unik atau platform yang tidak ada penggantinya"},
+ {k:"lanjutan", t:"Kelanjutan pekerjaan yang tidak dapat dipisahkan"},
+ {k:"qcdsm",    t:"Skor QCDSM ≥ 4 dalam 1 tahun sejak penunjukan pertama"},
+ {k:"strategis",t:"Pekerjaan High Risk / Strategic (berlaku meski nominalnya kecil)"},
+ {k:"grup",     t:"Vendor merupakan perusahaan Grup Astra"},
+ {k:"darurat",  t:"Keadaan darurat"}
+];
+function plSyaratTeks(k){
+ var s=PL_SYARAT.filter(function(x){return x.k===k;})[0];
+ return s?s.t:"";
+}
 function uprPita(n){
  n=parseFloat(n)||0;
  for(var i=0;i<UPR_AMBANG.length;i++){ if(n<=UPR_AMBANG[i].sampai) return UPR_AMBANG[i]; }
@@ -16570,6 +16607,7 @@ function uprSimpan(diam){
    });
  });
  var al=document.getElementById("upr-alasan"); if(al) s.upr.alasan=String(al.value||"").trim();
+ var pl=document.getElementById("upr-plsyarat"); if(pl) s.upr.plSyarat=String(pl.value||"").trim();
  soPersist();
  if(!diam) alert("💾 Draft UPR tersimpan.");
  renderUPR();
@@ -16599,14 +16637,13 @@ function uprAjukan(){
  if((s.upr.alasan||"").length<10){ alert("Tuliskan alasan penunjukan minimal 10 karakter — inilah yang dibaca para approver."); return; }
  /* ── Pita wewenang ditentukan DI SINI, sekali, lalu dibekukan di dokumen ── */
  var nilai=uprNilaiKomit(s), pita=uprPita(nilai);
- /* Penunjukan Langsung hanya sah di pita terendah. Pemeriksaannya baru bisa
-    dilakukan di sini — saat sourcing, harganya memang belum diketahui. */
- if(soMetode(s)==="langsung" && !pita.langsungBoleh){
-   alert("⛔ Penunjukan Langsung tidak bisa dipakai pada nilai ini.\n\n"+
-     "Nilai yang diusulkan Rp "+rpFmt(nilai)+" — masuk pita "+pita.nama+", "+
-     "sedangkan Penunjukan Langsung hanya untuk pita "+UPR_AMBANG[0].nama+".\n\n"+
-     "Yang harus dilakukan: kembali ke Sourcing, pindah ke Pemilihan Terbatas, "+
-     "lalu undang dua rekanan lagi supaya penawarannya bisa dibandingkan.");
+ /* Penunjukan Langsung: syaratnya wajib dipilih, nilainya tidak dipersoalkan.
+    Lihat catatan di PL_SYARAT — nilai bukan penentu, dasarnya yang penting. */
+ if(soMetode(s)==="langsung" && !s.upr.plSyarat){
+   alert("Pilih dulu dasar Penunjukan Langsung-nya.\n\n"+
+     "Pengadaan ini memakai Penunjukan Langsung, jadi Juklak menuntut satu "+
+     "dasar yang jelas — dan dasar itu ikut tercetak di dokumen UPR supaya "+
+     "para approver tahu kenapa hanya satu rekanan yang diajukan.");
    return;
  }
  s.upr.diajukan=true; s.upr.ajukanAt=nowStamp(); s.upr.by=(gUser&&gUser.name)||s.upr.by;
@@ -16617,7 +16654,9 @@ function uprAjukan(){
  s.upr.reject=null;
  soPersist();
  try{ auditLog("upr-ajukan", s.upr.no+" · usul "+s.upr.pilih+" · Rp "+rpFmt(nilai)+
-   " · pita "+pita.nama+" · rantai "+uprRantaiTeks(s)); }catch(e){}
+   " · pita "+pita.nama+" · rantai "+uprRantaiTeks(s)+
+   " · metode "+(SRC_METODE_NAMA[soMetode(s)]||"—")+
+   (s.upr.plSyarat?(" · dasar PL: "+plSyaratTeks(s.upr.plSyarat)):"")); }catch(e){}
  NOTIFS.unshift({ic:"📑",t:"UPR menunggu persetujuan — "+s.upr.no,
    d:(s.item||"")+" · usulan "+s.upr.pilih+" · Rp "+rpFmt(nilai),
    at:nowStamp(), sev:"warn", nav:"approvals", done:false, roles:["proc"]});
@@ -16728,7 +16767,7 @@ function renderUPR(){
    ? uprRantaiTeks(s)
    : UPR_GATES.filter(function(g){return pitaKini.rantai.indexOf(g.k)>=0;})
               .map(function(g){return g.label;}).join(" → ");
- var langsungBentrok=(adaUsulan && soMetode(s)==="langsung" && !pitaKini.langsungBoleh);
+ var metodeLangsung=(soMetode(s)==="langsung");
  var nilai=(s.upr.penawaran||[]).map(function(x){return parseFloat(x.nilai)||0;});
  var min=Math.min.apply(null,nilai.filter(function(n){return n>0;}).concat([Infinity]));
  el.innerHTML=
@@ -16770,13 +16809,24 @@ function renderUPR(){
      '</div>';
    }).join("")+'</div>'+
   '<div class="card pad" style="margin-top:14px">'+
+    /* Dasar Penunjukan Langsung — hanya muncul bila metodenya memang langsung.
+       Wajib, karena inilah yang menjelaskan kepada approver kenapa cuma satu
+       rekanan yang diajukan. Nilainya tidak dipersoalkan (lihat PL_SYARAT). */
+    (metodeLangsung?('<div class="field"><label>Dasar Penunjukan Langsung <span style="color:var(--red)">*</span> '+
+       '<span class="muted small">— sesuai Juklak Pengadaan, ikut tercetak di dokumen UPR</span></label>'+
+       '<select id="upr-plsyarat" class="upr-pl-sel"'+(bisaEdit?'':' disabled')+'>'+
+         '<option value="">— pilih dasarnya —</option>'+
+         PL_SYARAT.map(function(o){
+           return '<option value="'+esc(o.k)+'"'+(s.upr.plSyarat===o.k?' selected':'')+'>'+esc(o.t)+'</option>';
+         }).join("")+
+       '</select></div>'):'')+
     '<div class="field"><label>Alasan penunjukan <span style="color:var(--red)">*</span> <span class="muted small">— dibaca '+esc(rantaiKini)+'</span></label>'+
       '<textarea id="upr-alasan" rows="3" placeholder="mis. harga terbaik dengan garansi 12 bulan dan pengalaman pekerjaan serupa di AMDI"'+(bisaEdit?'':' disabled')+'>'+esc(s.upr.alasan||"")+'</textarea></div>'+
-    (adaUsulan?('<div class="upr-pita'+(langsungBentrok?' bentrok':'')+'">'+
+    (adaUsulan?('<div class="upr-pita">'+
        '<b>Nilai yang diusulkan Rp '+rpFmt(nKomit)+'</b> — pita <b>'+esc(pitaKini.nama)+'</b>'+
        '<span>Gerbang yang harus dilewati: '+esc(rantaiKini)+'</span>'+
-       (langsungBentrok?'<em>⛔ SO ini memakai Penunjukan Langsung, yang hanya sah untuk pita '+esc(UPR_AMBANG[0].nama)+
-          '. Kembali ke Sourcing, pindah ke Pemilihan Terbatas, lalu undang dua rekanan lagi.</em>':'')+
+       (metodeLangsung?'<span>Metode: <b>Penunjukan Langsung</b>'+
+          (s.upr.plSyarat?(' — '+esc(plSyaratTeks(s.upr.plSyarat))):' — <b style="color:var(--red)">dasarnya belum dipilih</b>')+'</span>':'')+
      '</div>'):'')+
     (bisaEdit?('<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn-act" onclick="uprAjukan()">📑 Ajukan UPR →</button>'+
       '<button class="btn-out" onclick="uprSimpan()">💾 Simpan Draft</button></div>'+
@@ -16825,7 +16875,12 @@ function uprDocHTML(s){
     '<tr><td>Uraian pekerjaan</td><td colspan="3"><b>'+esc(s.item||"—")+'</b></td></tr>'+
     '<tr><td>Lokasi</td><td>'+esc(s.lokasi||"—")+'</td><td>Estimasi SO</td><td>'+esc(soNilaiTeks(s))+'</td></tr>'+
     '<tr><td>Diajukan oleh</td><td>'+esc(u.by||"—")+'</td><td>Dept/Divisi</td><td>'+esc(s.deptDiv||"GENERAL AFFAIR")+'</td></tr>'+
-    '<tr><td>Metode pengadaan</td><td colspan="3">'+esc(SRC_METODE_NAMA[soMetode(s)]||"—")+'</td></tr></table>'+
+    '<tr><td>Metode pengadaan</td><td colspan="3">'+esc(SRC_METODE_NAMA[soMetode(s)]||"—")+
+      /* Dasar PL ikut tercetak di samping metodenya — pembaca dokumen harus bisa
+         menilai kenapa hanya satu rekanan diajukan, tanpa bertanya ke siapa pun. */
+      (soMetode(s)==="langsung"
+        ? (' — dasar: <b>'+esc(u.plSyarat?plSyaratTeks(u.plSyarat):"tidak dicantumkan")+'</b>')
+        : '')+'</td></tr></table>'+
   '<div class="ud-sec">PERBANDINGAN PENAWARAN</div>'+
   '<table class="ud-tbl"><thead><tr><th>NO</th><th>REKANAN</th><th>NILAI PENAWARAN (Rp)</th><th>TGL MASUK</th><th>KELEBIHAN</th><th>KEKURANGAN</th><th>USULAN</th></tr></thead>'+
     '<tbody>'+baris+'</tbody></table>'+
@@ -19053,7 +19108,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.13-227";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.14-228";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
