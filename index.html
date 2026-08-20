@@ -16481,14 +16481,60 @@ const UPR_GATES=[
    berada di dalam budget, Chief adalah ujung wewenangnya. Pita di SK Wewenang
    Keuangan yang naik sampai Direktur mengatur BPH/PR (pelepasan uang di tahap
    pembayaran), bukan penunjukan rekanan. Dua sumbu berbeda; jangan disatukan.  */
-const UPR_AMBANG=[
- {sampai:10000000,  rantai:["proc","dept"],
-  nama:"s.d. Rp10 juta"},
- {sampai:100000000, rantai:["proc","dept","division"],
-  nama:"di atas Rp10 juta s.d. Rp100 juta"},
- {sampai:Infinity,  rantai:["proc","dept","division","chief"],
-  nama:"di atas Rp100 juta"}
+/* ╔══ ANGKA AMBANGNYA TIDAK ADA DI BERKAS INI (14 Agu 2026) ═════════════════╗
+   Ambang pita adalah matriks wewenang keuangan Astra. Repo ini PUBLIK dan
+   situsnya publik — menuliskan angkanya di sini sama dengan mengumumkan berapa
+   nilai yang cukup berhenti di Dept Head. Bagi yang berniat memecah pengadaan,
+   itu peta. Charter §1 melarangnya; §5 memberi jalannya: config over code.
+
+   Sumber angkanya: dokumen agava_config/upr, dibaca saat runtime. Sejak
+   firestore.rules aktif, dokumen itu hanya terbaca oleh yang sudah login —
+   bukan oleh pengunjung situs, bukan oleh pembaca repo.
+
+   BAWAAN SENGAJA BUKAN ANGKA ASLI. Kalau config belum ada, gagal koneksi, atau
+   isinya cacat, seluruh nilai memakai rantai PENUH. Itu memilih "terlalu banyak
+   yang menyetujui" daripada "terlalu sedikit" — fail-safe, bukan fail-open.
+   Config lain di aplikasi ini di-seed dari kode bila dokumennya belum ada;
+   yang ini TIDAK BOLEH, karena seed-nya berarti menaruh angkanya di kode lagi. */
+const UPR_AMBANG_BAWAAN=[
+ {sampai:Infinity, rantai:["proc","dept","division","chief"],
+  nama:"seluruh nilai — ambang belum dikonfigurasi"}
 ];
+let UPR_AMBANG=UPR_AMBANG_BAWAAN.slice();
+/* Config yang cacat lebih berbahaya daripada config yang tidak ada: ia mengubah
+   wewenang tanpa ada yang sadar. Jadi divalidasi ketat, dan setiap penolakan
+   berbunyi di konsol — bukan gagal diam-diam. */
+function uprAmbangSah(a){
+ if(!Array.isArray(a)||!a.length) return null;
+ var kunci=UPR_GATES.map(function(g){return g.k;});
+ var out=[], batasSebelumnya=-1;
+ for(var i=0;i<a.length;i++){
+   var p=a[i]; if(!p||typeof p!=="object") return null;
+   var sampai=(p.sampai===null||p.sampai===undefined||p.sampai==="~")?Infinity:parseFloat(p.sampai);
+   if(!(sampai>batasSebelumnya)) return null;              // wajib menaik, tanpa celah urutan
+   batasSebelumnya=sampai;
+   if(!Array.isArray(p.rantai)||!p.rantai.length) return null;
+   for(var j=0;j<p.rantai.length;j++){ if(kunci.indexOf(p.rantai[j])<0) return null; }
+   out.push({sampai:sampai, rantai:p.rantai.slice(), nama:String(p.nama||"").trim()||("s.d. "+sampai)});
+ }
+ if(out[out.length-1].sampai!==Infinity) return null;      // pita teratas wajib terbuka
+ return out;
+}
+function uprAmbangPakai(a, dari){
+ var sah=uprAmbangSah(a);
+ if(!sah){ console.warn("UPR ambang DITOLAK dari "+dari+" — bentuknya tidak sah, memakai rantai penuh"); return false; }
+ UPR_AMBANG=sah;
+ try{ if(active==="upr") renderUPR(); }catch(e){}
+ return true;
+}
+/* Salinan terakhir yang sah disimpan lokal supaya PWA di HP tetap memakai pita
+   yang benar saat sinyal hilang. Tanpa ini, offline = rantai penuh, dan orang
+   akan mengira sistemnya rusak padahal ia sedang berhati-hati. */
+const UPR_AMBANG_STORE="agava_upr_ambang_v1";
+try{
+ var _ua=localStorage.getItem(UPR_AMBANG_STORE);
+ if(_ua) uprAmbangPakai(JSON.parse(_ua), "simpanan lokal");
+}catch(e){}
 /* ╔══ PENUNJUKAN LANGSUNG: SYARAT, BUKAN AMBANG (14 Agu 2026) ═══════════════╗
    v227 menahan Penunjukan Langsung di atas Rp10 juta. Itu SALAH, dan salahnya
    berbahaya: ia memblokir pengadaan yang sah — distributor tunggal senilai
@@ -19108,7 +19154,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.14-228";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.14-229";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -19426,6 +19472,20 @@ function dbInit(){
     try{ localStorage.setItem(GA_PARAM_STORE, JSON.stringify(GA_PARAM)); }catch(e){}
     try{ if(active==="params")renderParams(); renderOverview(); renderMobileHome(); }catch(e){}
   },err=>{ console.warn("Param rules/err:",err&&err.code); });
+  /* Ambang pita wewenang UPR — angkanya TIDAK ada di kode (lihat UPR_AMBANG).
+     Berbeda dari config lain di atas: dokumen yang belum ada TIDAK di-seed dari
+     sini, karena seed-nya berarti menaruh matriks wewenang kembali ke bundel
+     yang tersaji publik. Belum ada dokumen = rantai penuh, dan itu disengaja. */
+  AGDB.db.collection("agava_config").doc("upr").onSnapshot(doc=>{
+    if(!doc.exists){ console.info("UPR: agava_config/upr belum ada — memakai rantai penuh"); return; }
+    const d=doc.data(); if(!d||!Array.isArray(d.ambang))return;
+    const j=JSON.stringify(d.ambang);
+    if(j===AGDB.uprEcho)return;
+    AGDB.uprEcho=j;
+    if(uprAmbangPakai(d.ambang,"cloud")){
+      try{ localStorage.setItem(UPR_AMBANG_STORE,j); }catch(e){}
+    }
+  },err=>{ console.warn("UPR ambang rules/err:",err&&err.code); });
   try{ chatInit(); }catch(e){ console.warn("chatInit:",e); }   // Chat GA Team real-time
   try{ notifSeenSync(); }catch(e){ console.warn("notifSeenSync:",e); }   // status "sudah dilihat" sinkron lintas-perangkat
   /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
