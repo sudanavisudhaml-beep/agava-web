@@ -1015,6 +1015,14 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   font-size:calc(12.5px*var(--fz));color:var(--ink);background:#fff}
 .tn-b{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .tn-b button{flex:1 1 130px;padding:8px 10px;font-size:calc(12px*var(--fz))}
+/* ══ Jejak tiga nomor di laci SPK ══
+   Satu pekerjaan bisa punya empat nomor: tiket → SO → UPR → SPK. Ditampilkan
+   berjajar supaya penelusuran balik dari tagihan tidak bergantung pada ingatan
+   siapa pun. */
+.spk-jejak{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:14px}
+.spk-jejak>div{border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:#fafcfe}
+.spk-jejak span{display:block;font-size:calc(10.5px*var(--fz));color:var(--muted)}
+.spk-jejak b{display:block;font-size:calc(12px*var(--fz));color:var(--ink);margin-top:2px;overflow-wrap:anywhere}
 /* ══ Spanduk "cloud tidak tersambung" ══
    Melintang penuh di atas segalanya (z-index di atas gerbang rating & kotak
    isian) karena isinya bukan informasi tambahan: ia memberitahu bahwa yang
@@ -15943,17 +15951,61 @@ async function soStep(no){
  s.ts=s.ts||{}; s.tsf=s.tsf||{};
  var patch={};
  if(w===2){
-   var isi=await agavaTanya({judul:"Nilai SPK — "+no, tipe:"angka", ok:"Terbitkan SPK",
-     pesan:"Ketik angka rupiah tanpa titik. Contoh: 12500000",
-     ph:"12500000", nilai:(soNilaiRp(s)>0?String(soNilaiRp(s)):"")});
-   if(isi===null) return;
-   var n=parseFloat(String(isi).replace(/[^0-9]/g,""))||0;
-   if(n<=0) return;
-   s.nilai=n; s.wstep=3; s.spkSent=true;
-   if(!s.spkNo) s.spkNo="SPK-"+String(no).replace(/^SO-/,"");
+   /* ╔══ NILAI DITURUNKAN, NOMOR DIKETIK — DAN BUKAN SEBALIKNYA ══════════════╗
+      Dulu terbalik: nilainya diketik ulang padahal UPR sudah memuatnya, dan
+      nomornya dikarang "SPK-" + nomor SO padahal penomoran SPK yang sah sudah
+      berjalan di luar AGAVA.
+
+      Dua-duanya salah arah. Angka uang yang diketik ulang menciptakan sumber
+      kedua yang bisa berbeda diam-diam dari yang disetujui para approver —
+      dan tidak ada yang akan menyadarinya. Sedangkan nomor yang dikarang
+      menciptakan nomor tandingan terhadap sistem penomoran yang sudah ada.
+
+      Sekarang: nilai DITURUNKAN dari vendor pemenang di UPR (harga final bila
+      negosiasi sudah tercatat), nomor DIKETIK mengikuti penomoran internal.
+
+      SPK TANPA UPR tetap dilayani, karena kenyataannya ada. Tapi tidak
+      disembunyikan: nilainya harus diketik, dan SO-nya ditandai spkTanpaUpr
+      supaya tercetak di dokumen dan tercatat di jejak audit. Juklak menuntut
+      UPR dibuat sebelum SPK, jadi jalur ini adalah pengecualian — dan
+      pengecualian yang mulus serta senyap adalah cara mengotomasi jalan
+      pintas (§8.2). Dilayani, tapi terlihat.                                */
+   var adaUpr = !!(s.upr && s.upr.diajukan && uprSelesai(s));
+   var nilaiUpr = adaUpr ? uprNilaiKomit(s) : 0;
+   var n = nilaiUpr;
+
+   if(!adaUpr || !(nilaiUpr>0)){
+     var isi=await agavaTanya({judul:"Nilai SPK — "+no, tipe:"angka", ok:"Lanjut",
+       pesan:"SO ini belum punya UPR yang disetujui, jadi nilainya tidak bisa diturunkan. "+
+             "Ketik nilai SPK-nya — angka rupiah tanpa titik. Penyimpangan dari Juklak ini "+
+             "ikut tercatat di dokumen dan jejak audit.",
+       ph:"12500000", nilai:(soNilaiRp(s)>0?String(soNilaiRp(s)):"")});
+     if(isi===null) return;
+     n=parseFloat(String(isi).replace(/[^0-9]/g,""))||0;
+     if(n<=0) return;
+     s.spkTanpaUpr=true; patch.spkTanpaUpr=true;
+   } else {
+     s.spkTanpaUpr=false; patch.spkTanpaUpr=false;
+   }
+
+   /* Nomor SPK: diketik, mengikuti penomoran internal yang sudah berjalan. */
+   var nomor=await agavaTanya({judul:"Nomor SPK — "+no, ok:"Terbitkan SPK", min:3,
+     pesan:"Ketik nomor SPK sesuai penomoran internal yang berlaku."+
+           (adaUpr?("\n\nNilai Rp "+rpFmt(n)+" diambil dari "+s.upr.no+" — rekanan "+(s.upr.pilih||"—")+"."):""),
+     ph:"mis. 077/SPK/GA/VIII/2026", nilai:(s.spkNo||"")});
+   if(nomor===null) return;
+   nomor=String(nomor).trim();
+   /* Nomor SPK adalah identitas dokumen. Kembar berarti dua pekerjaan berbeda
+      memakai satu identitas, dan itu baru ketahuan saat penagihan. */
+   var kembar=SO.filter(function(x){ return x.no!==no && String(x.spkNo||"").toLowerCase()===nomor.toLowerCase(); })[0];
+   if(kembar){ alert("⛔ Nomor SPK "+nomor+" sudah dipakai "+kembar.no+".\n\nSatu nomor SPK hanya boleh milik satu pekerjaan."); return; }
+
+   s.nilai=n; s.wstep=3; s.spkSent=true; s.spkNo=nomor;
    s.ts.spk=nowStamp(); s.tsf.spk=nowStampDoc(); s.stage=Math.max(s.stage||0,5);
    patch.nilai=s.nilai; patch.spkNo=s.spkNo; patch.spkSent=true; patch.stage=s.stage;
    patch["ts.spk"]=s.ts.spk; patch["tsf.spk"]=s.tsf.spk;
+   try{ auditLog("spk-terbit", no+" · "+nomor+" · Rp "+rpFmt(n)+
+     " · "+(adaUpr?("nilai dari "+s.upr.no):"TANPA UPR — nilai diketik manual")); }catch(e){}
  } else if(w===3){
    s.wstep=4; s.ts.bast=nowStamp(); s.tsf.bast=nowStampDoc();
    s.bastDate=TODAY_STR; s.invStatus="Menunggu Invoice";
@@ -16979,16 +17031,32 @@ function uprDocHTML(s){
 }
 function openSPK(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
- var spkNo="SPK-202606-"+String(140+(parseInt(String(s.no).replace(/\D/g,"").slice(-4),10)||0)).padStart(4,"0");
+ /* Nomor TIDAK dikarang lagi. Penomoran SPK yang sah berjalan di luar AGAVA;
+    mengarang nomor di sini berarti membuat nomor tandingan yang cepat atau
+    lambat bertabrakan dengan yang asli. Kosong = harus diketik. */
+ var spkNo=s.spkNo||"";
  /* Pemenang & nilainya diambil dari UPR yang sudah disetujui — tidak diketik ulang */
  var win=(s.upr&&s.upr.pilih)||s.vendor||"";
  var winMail=""; var winNilai=0;
  if(s.upr){ var pw=(s.upr.penawaran||[]).filter(function(x){return x.vendor===win;})[0];
-   if(pw){ winMail=pw.email||""; winNilai=parseFloat(pw.nilai)||0; } }
+   if(pw){ winMail=pw.email||""; }
+   winNilai=uprNilaiKomit(s);      /* harga final bila negosiasi tercatat */
+ }
+ /* ── JEJAK AUDIT TIGA NOMOR ──────────────────────────────────────────────
+    Satu pekerjaan bisa lahir dari keluhan seseorang di lapangan, jadi SO,
+    lalu UPR, lalu SPK. Empat nomor untuk satu kejadian yang sama. Tanpa
+    ketiganya tercantum, penelusuran balik dari tagihan ke asal-usulnya
+    memerlukan seseorang yang kebetulan ingat — dan itu justru yang hendak
+    dihapus AGAVA. Nomor tiket hanya muncul bila SO-nya memang lahir dari
+    tiket; tidak semua begitu. */
+ var noUpr=(s.upr&&s.upr.no)?s.upr.no:"";
+ var noTiket=s.fromTicket||"";
+ var jejak=[["No SO",s.no],["No UPR",noUpr||"— (SPK tanpa UPR)"],["No Tiket",noTiket||"—"]];
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">Kirim SPK — ${s.no}</div><div class="muted small" style="margin-top:4px">Upload SPK & email ke Vendor (cc Section Head, Dept Head)</div></div>
   <div class="db">
-    <div class="field"><label>No SPK</label><input id="spk-no" value="${spkNo}"/></div>
+    <div class="spk-jejak">${jejak.map(j=>`<div><span>${j[0]}</span><b>${esc(String(j[1]))}</b></div>`).join("")}</div>
+    <div class="field"><label>No SPK <span style="color:var(--red)">*</span> <span class="muted small">— sesuai penomoran internal, bukan dikarang AGAVA</span></label><input id="spk-no" value="${esc(spkNo)}" placeholder="mis. 077/SPK/GA/VIII/2026"/></div>
     <div class="field"><label>Vendor pemenang ${win?'<span class="muted small">— dari UPR '+esc((s.upr&&s.upr.no)||"")+'</span>':''}</label><input id="spk-vendor" value="${esc(win)}" placeholder="e.g. PT Pantraya"/></div>
     ${winNilai>0?`<div class="muted small" style="margin:-6px 0 12px">Nilai penawaran yang disetujui: <b style="color:var(--ink)">Rp ${rpFmt(winNilai)}</b></div>`:''}
     <div class="two" style="gap:0 12px"><div class="field"><label>Email vendor (To)</label><input id="spk-to" value="${esc(winMail)}" placeholder="vendor@email.com"/></div>
@@ -17007,11 +17075,30 @@ function openSPK(no){
 }
 function sendSPK(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
- s.spkNo=document.getElementById("spk-no").value||"SPK"; s.vendor=document.getElementById("spk-vendor").value||"Vendor";
+ var nomor=String((document.getElementById("spk-no")||{}).value||"").trim();
+ /* Dulu kosong diam-diam jadi "SPK". Nomor SPK adalah identitas dokumen yang
+    dipakai sampai penagihan — memberinya nilai bawaan berarti menerbitkan
+    dokumen tanpa identitas, dan itu baru ketahuan jauh di hilir. */
+ if(nomor.length<3){ alert("Nomor SPK belum diisi.\n\nIsi sesuai penomoran internal yang berlaku — AGAVA sengaja tidak mengarangnya."); return; }
+ var kembar=SO.filter(function(x){ return x.no!==no && String(x.spkNo||"").toLowerCase()===nomor.toLowerCase(); })[0];
+ if(kembar){ alert("⛔ Nomor SPK "+nomor+" sudah dipakai "+kembar.no+".\n\nSatu nomor SPK hanya boleh milik satu pekerjaan."); return; }
+
+ s.spkNo=nomor;
+ s.vendor=String((document.getElementById("spk-vendor")||{}).value||"").trim()||s.vendor||"Vendor";
  var toEmail=(document.getElementById("spk-to")||{}).value||"(email vendor)";
- s.spkSent=true; s.ts.spk=nowStamp(); s.wstep=3; s.stage=Math.max(s.stage||0,5);
+ s.spkSent=true; s.ts=s.ts||{}; s.ts.spk=nowStamp(); s.wstep=Math.max(s.wstep||0,3); s.stage=Math.max(s.stage||0,5);
+ /* Jalur ini dulu mengubah SO lalu merender ulang TANPA menyimpan — persis
+    cacat yang sama dengan modul Payment. SPK tampak terkirim, lalu hilang
+    saat halaman dimuat ulang. */
+ soPersist();
+ try{ auditLog("spk-kirim", no+" · "+nomor+" · "+s.vendor+
+   " · UPR "+((s.upr&&s.upr.no)||"tanpa UPR")+(s.fromTicket?(" · tiket "+s.fromTicket):"")); }catch(e){}
  closeDrawer(); renderAssigned(); renderProc(); renderPayment();
- alert("📧 SPK terkirim via Outlook ke "+toEmail+"\nSubject: [SPK] "+s.spkNo+" - "+s.item+" - "+s.vendor+"\ncc: Section Head, Dept Head\n\nStatus: SPK Terkirim");
+ alert("📧 SPK terkirim via Outlook ke "+toEmail+
+   "\nSubject: [SPK] "+s.spkNo+" - "+s.item+" - "+s.vendor+
+   "\ncc: Section Head, Dept Head"+
+   "\n\nJejak: "+s.no+((s.upr&&s.upr.no)?(" · "+s.upr.no):" · tanpa UPR")+(s.fromTicket?(" · "+s.fromTicket):"")+
+   "\nStatus: SPK Terkirim");
 }
 function openBAST(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
@@ -17199,13 +17286,65 @@ function paymentReminders(){
 }
 function payRemRole(){ return ['admin','budget','finance','section'].includes(gRole); }   // notif ditujukan ke PIC/staff Budget
 function payCanAct(){ return gRole==="finance"||gRole==="admin"; }   // Staff Budget (Salsa) + Administrator; non-admin lain view/monitor
-function invReceive(no){ const s=SO.find(x=>x.no===no); if(!s)return; s.invReceived=true; s.invNominal=invNom(s); s.invRecvDate=TODAY_STR; s.invStep=0; if(typeof closeDrawer==="function")closeDrawer(); renderPayment(); if(typeof renderProc==="function")renderProc(); renderReminder(); updateBell();
- alert("✅ Invoice DITERIMA dicatat ("+TODAY_STR+").\nMasuk Invoice Payment Pipeline — kelompok nominal: "+invClass(invNom(s)).tier+"."); }
-function invProcess(no){ const s=SO.find(x=>x.no===no); if(!s||!s.invReceived||s.invProcessed)return; s.invProcessed=true; s.invProcDate=TODAY_STR; s.invStep=1; renderPayment(); renderReminder(); updateBell();
- alert("✅ Invoice DI PROSES — BPH dibuat di SAP ("+TODAY_STR+").\nEst Pembayaran Release: "+fmtDay(invRelEst(s))+" (+"+invClass(invNom(s)).sla+" HK, s/d "+invClass(invNom(s)).tier+")"); }
-function invConfirmRelease(no){ const s=SO.find(x=>x.no===no); if(!s||!s.invProcessed||s.invReleased)return; s.invReleased=true; s.invReleaseDate=TODAY_STR; s.invStep=3; renderPayment(); renderReminder(); updateBell();
- alert("🏁 Pembayaran RELEASE dikonfirmasi ke vendor ("+TODAY_STR+")."); }
-function invUndo(no){ const s=SO.find(x=>x.no===no); if(!s)return; if(s.invReleased){s.invReleased=false;delete s.invReleaseDate;s.invStep=1;} else if(s.invProcessed){s.invProcessed=false;delete s.invProcDate;s.invStep=0;} else if(s.invReceived){s.invReceived=false;delete s.invRecvDate;delete s.invStep;} renderPayment(); renderReminder(); updateBell(); }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SATU PINTU UNTUK SETIAP PERUBAHAN STATUS PEMBAYARAN (21 Agu 2026)       ║
+   ║                                                                          ║
+   ║  Keempat fungsi di bawah dulu mengubah objek SO di memori lalu merender  ║
+   ║  ulang — TANPA menyimpan. Layarnya berubah, orangnya yakin tercatat, dan ║
+   ║  begitu halaman dimuat ulang seluruh status invoice kembali ke semula.   ║
+   ║  Tidak ada pesan galat, karena memang tidak ada yang gagal: menyimpannya ║
+   ║  yang tidak pernah diperintahkan.                                        ║
+   ║                                                                          ║
+   ║  Ini pola yang sama dengan insiden 20 Agu: bukan kode yang salah, tapi   ║
+   ║  KEWAJIBAN YANG BOLEH DILUPAKAN. Selama tiap fungsi harus ingat sendiri  ║
+   ║  memanggil soPersist(), cepat atau lambat ada yang lupa lagi.            ║
+   ║                                                                          ║
+   ║  Jadi jalannya dipersempit jadi satu: payUbah() yang mengubah, menyimpan,║
+   ║  mencatat ke jejak audit, dan merender — dalam urutan itu. Fungsi baru   ║
+   ║  di modul ini tidak punya jalan lain, jadi tidak punya kesempatan lupa.  ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function payUbah(no, aksi, ubah){
+ var s=SO.find(function(x){return x.no===no;}); if(!s) return null;
+ if(ubah(s)===false) return null;                 /* prasyarat tidak terpenuhi */
+ soPersist();                                     /* <- yang selama ini hilang */
+ try{ auditLog("payment-"+aksi, no+(s.spkNo?(" · "+s.spkNo):"")+" · Rp "+rpFmt(invNom(s))); }catch(e){}
+ try{ renderPayment(); }catch(e){}
+ try{ if(typeof renderProc==="function") renderProc(); }catch(e){}
+ try{ renderReminder(); updateBell(); }catch(e){}
+ return s;
+}
+function invReceive(no){
+ var s=payUbah(no,"invoice-diterima",function(s){
+   s.invReceived=true; s.invNominal=invNom(s); s.invRecvDate=TODAY_STR; s.invStep=0;
+ });
+ if(!s) return;
+ if(typeof closeDrawer==="function") closeDrawer();
+ alert("✅ Invoice DITERIMA dicatat ("+TODAY_STR+").\nMasuk Invoice Payment Pipeline — kelompok nominal: "+invClass(invNom(s)).tier+".");
+}
+function invProcess(no){
+ var s=payUbah(no,"invoice-diproses",function(s){
+   if(!s.invReceived||s.invProcessed) return false;
+   s.invProcessed=true; s.invProcDate=TODAY_STR; s.invStep=1;
+ });
+ if(!s) return;
+ alert("✅ Invoice DI PROSES — BPH dibuat di SAP ("+TODAY_STR+").\nEst Pembayaran Release: "+fmtDay(invRelEst(s))+" (+"+invClass(invNom(s)).sla+" HK, s/d "+invClass(invNom(s)).tier+")");
+}
+function invConfirmRelease(no){
+ var s=payUbah(no,"pembayaran-release",function(s){
+   if(!s.invProcessed||s.invReleased) return false;
+   s.invReleased=true; s.invReleaseDate=TODAY_STR; s.invStep=3;
+ });
+ if(!s) return;
+ alert("🏁 Pembayaran RELEASE dikonfirmasi ke vendor ("+TODAY_STR+").");
+}
+function invUndo(no){
+ payUbah(no,"mundur-satu-langkah",function(s){
+   if(s.invReleased){ s.invReleased=false; delete s.invReleaseDate; s.invStep=1; }
+   else if(s.invProcessed){ s.invProcessed=false; delete s.invProcDate; s.invStep=0; }
+   else if(s.invReceived){ s.invReceived=false; delete s.invRecvDate; delete s.invStep; }
+   else return false;
+ });
+}
 function invStepper(s){
  const recv=s.invRecvDate, proc=s.invProcDate, bph=invBphEst(s), rel=invRelEst(s), over=invReleaseOverdue(s);
  const def=[
@@ -19188,7 +19327,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.20-231";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.21-232";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║

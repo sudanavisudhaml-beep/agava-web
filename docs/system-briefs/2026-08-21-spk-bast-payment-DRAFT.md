@@ -67,6 +67,22 @@ Menyelesaikannya dengan membuka baca untuk vendor akan **membatalkan pekerjaan p
 
 ---
 
+## 3b. Jawaban Sudana, 21 Agu 2026 — dan apa yang sudah dikerjakan
+
+| Pertanyaan | Jawaban | Status |
+|---|---|---|
+| Siapa "PIC Project / Requester"? | **Yang menandatangani Pemohon SO — Section Head.** Sudah ada di kode sebagai `soSectionApprover(s)`, dipetakan dari kategori SO | Tidak butuh model data baru |
+| Nilai SPK boleh beda dari UPR? | **Tidak.** SPK = harga nego final di UPR | **Selesai (v232)** — diturunkan dari `uprNilaiKomit()` |
+| Ada SPK tanpa UPR? | **Ada** | **Selesai (v232)** — dilayani, nilainya diketik, ditandai `spkTanpaUpr` |
+| Bagaimana vendor menerima tautan BAST? | **Otomatis.** Prinsip AGAVA: lepas dari ketergantungan pada ingatan orang, bekerja dengan sistem dan otomasi | Belum dibangun |
+| PIC Invoice memantau? | **Ya, bisa memantau** — bacaan saya benar | Menunggu alur BAST |
+
+**Konsekuensi jawaban "SPK tanpa UPR ada":** Juklak CHCD menuntut *"Form UPR wajib dibuat sebelum proses SPK/PKS"*, jadi jalur tanpa UPR berada di luar Juklak. Kalau AGAVA membuatnya mulus dan senyap, ia **mengotomasi jalan pintas** (§8.2 Automating the mess). Karena itu jalur tersebut dilayani tetapi **tidak disembunyikan**: nilainya harus diketik, SO ditandai, dan jejak audit menuliskan "TANPA UPR — nilai diketik manual". Dilayani, tapi terlihat — sama seperti perlakuan Penunjukan Langsung.
+
+**Konsekuensi jawaban "semua otomatis":** ini menutup pilihan "Staff Procurement mengirim tautan manual ke vendor". Tautan BAST harus terbit sendiri saat SPK dikirim, dan pengembalian BAST ber-tanda-tangan ke vendor juga harus otomatis. Menaikkan bobot butir 4 §4 dari kenyamanan menjadi keharusan arsitektur.
+
+---
+
 ## 4. Pertanyaan yang wajib terjawab sebelum satu baris pun ditulis
 
 **Tentang vendor**
