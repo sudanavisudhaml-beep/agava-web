@@ -16522,9 +16522,13 @@ const UPR_GATES=[
    yang menyetujui" daripada "terlalu sedikit" — fail-safe, bukan fail-open.
    Config lain di aplikasi ini di-seed dari kode bila dokumennya belum ada;
    yang ini TIDAK BOLEH, karena seed-nya berarti menaruh angkanya di kode lagi. */
+/* `bawaan:true` menandai bahwa ini BUKAN pita sungguhan, melainkan keadaan
+   "belum dikonfigurasi". Penandanya perlu karena namanya tidak boleh bocor ke
+   dokumen UPR — lembar itu dibaca sampai Chief lalu diarsipkan, dan keadaan
+   konfigurasi internal tidak punya tempat di sana. */
 const UPR_AMBANG_BAWAAN=[
  {sampai:Infinity, rantai:["proc","dept","division","chief"],
-  nama:"seluruh nilai — ambang belum dikonfigurasi"}
+  nama:"seluruh nilai — ambang belum dikonfigurasi", bawaan:true}
 ];
 let UPR_AMBANG=UPR_AMBANG_BAWAAN.slice();
 /* Config yang cacat lebih berbahaya daripada config yang tidak ada: ia mengubah
@@ -16720,7 +16724,9 @@ function uprAjukan(){
  }
  s.upr.diajukan=true; s.upr.ajukanAt=nowStamp(); s.upr.by=(gUser&&gUser.name)||s.upr.by;
  s.upr.rantai=pita.rantai.slice();      /* dibekukan — lihat catatan di uprRantai() */
- s.upr.pita=pita.nama;
+ /* Kosong bila ambang belum dikonfigurasi — dokumen UPR hanya menyebut pita
+    ketika pitanya memang ada, bukan menyiarkan bahwa confignya belum diisi. */
+ s.upr.pita=pita.bawaan?"":pita.nama;
  s.upr.nilaiAjukan=nilai;               /* angka yang menentukan wewenang, ikut jadi jejak audit */
  s.upr.appr={}; s.upr.rantai.forEach(function(k,i){ s.upr.appr[k]=(i===0?"Pending":"—"); });
  s.upr.reject=null;
@@ -16733,7 +16739,8 @@ function uprAjukan(){
    d:(s.item||"")+" · usulan "+s.upr.pilih+" · Rp "+rpFmt(nilai),
    at:nowStamp(), sev:"warn", nav:"approvals", done:false, roles:["proc"]});
  renderApprovals(); renderAssigned(); renderProc(); updateBell(); renderUPR();
- alert("📑 "+s.upr.no+" diajukan.\n\nNilai Rp "+rpFmt(nilai)+" — pita "+pita.nama+".\n"+
+ alert("📑 "+s.upr.no+" diajukan.\n\nNilai Rp "+rpFmt(nilai)+
+   (pita.bawaan?"":" — pita "+pita.nama)+".\n"+
    "Gerbang yang harus dilewati: "+uprRantaiTeks(s)+".");
 }
 /* Nilai penawaran mentah rekanan yang diusulkan. Untuk urusan WEWENANG pakai
@@ -16895,7 +16902,8 @@ function renderUPR(){
     '<div class="field"><label>Alasan penunjukan <span style="color:var(--red)">*</span> <span class="muted small">— dibaca '+esc(rantaiKini)+'</span></label>'+
       '<textarea id="upr-alasan" rows="3" placeholder="mis. harga terbaik dengan garansi 12 bulan dan pengalaman pekerjaan serupa di AMDI"'+(bisaEdit?'':' disabled')+'>'+esc(s.upr.alasan||"")+'</textarea></div>'+
     (adaUsulan?('<div class="upr-pita">'+
-       '<b>Nilai yang diusulkan Rp '+rpFmt(nKomit)+'</b> — pita <b>'+esc(pitaKini.nama)+'</b>'+
+       '<b>Nilai yang diusulkan Rp '+rpFmt(nKomit)+'</b>'+
+       (pitaKini.bawaan?'':' — pita <b>'+esc(pitaKini.nama)+'</b>')+
        '<span>Gerbang yang harus dilewati: '+esc(rantaiKini)+'</span>'+
        (metodeLangsung?'<span>Metode: <b>Penunjukan Langsung</b>'+
           (s.upr.plSyarat?(' — '+esc(plSyaratTeks(s.upr.plSyarat))):' — <b style="color:var(--red)">dasarnya belum dipilih</b>')+'</span>':'')+
@@ -19180,7 +19188,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.20-230";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.20-231";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
