@@ -101,7 +101,7 @@ Mitigasi yang **belum** dipasang dan dicatat sebagai risiko terbuka: deteksi oto
 ## Second-order effects
 
 **1. Pemecahan UPR untuk menghindari ambang.**
-Deteksi dini: pantau distribusi nilai UPR. Penumpukan tepat di bawah Rp10 juta dan Rp100 juta adalah tanda paling awal dan paling mudah dibaca — jauh sebelum ada yang melapor.
+Deteksi dini: pantau distribusi nilai UPR. Penumpukan tepat di bawah setiap ambang pita adalah tanda paling awal dan paling mudah dibaca — jauh sebelum ada yang melapor.
 
 **2. Division Head dan Chief kehilangan gambaran menyeluruh.**
 Dengan berkurangnya dokumen yang lewat, keduanya kehilangan pandangan atas pengadaan bernilai kecil yang jumlahnya banyak — padahal totalnya bisa besar.
@@ -117,7 +117,7 @@ Dicegah dengan **membekukan rantai pada dokumen saat diajukan** (`s.upr.rantai`)
 
 Ketiganya dikodekan sebagai data di satu tempat (`UPR_AMBANG`), jadi koreksi berbiaya satu baris.
 
-1. **Batas pita inklusif ke bawah** — **terkonfirmasi.** SK memakai rumusan "s.d.", jadi tepat Rp10 juta masih pita terendah.
+1. **Batas pita inklusif ke bawah** — **terkonfirmasi.** SK memakai rumusan "s.d.", jadi nilai yang tepat sama dengan sebuah ambang masih masuk pita di bawahnya.
 2. **PIC Procurement ikut di semua pita** — **terkonfirmasi.** SK Wewenang Keuangan tidak menyebut Procurement sama sekali; ia matriks wewenang finansial. Procurement adalah langkah proses, bukan gerbang wewenang.
 3. **Nilai penentu = harga final hasil negosiasi bila ada** — **masih keputusan internal.** Tidak diatur dokumen mana pun; dipertahankan karena yang mengikat adalah angka yang akan dikomitkan.
 

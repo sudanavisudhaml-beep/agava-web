@@ -16497,8 +16497,9 @@ const UPR_GATES=[
    PIC Procurement ikut di SEMUA pita: perannya memverifikasi kelengkapan
    dokumen, bukan memikul wewenang finansial — jadi ia tidak disaring nilai.
 
-   Batas bersifat INKLUSIF KE BAWAH: tepat Rp10 juta masih pita pertama,
-   mengikuti rumusan "s.d." pada SK. DIKONFIRMASI 14 Agu 2026 terhadap teksnya.
+   Batas bersifat INKLUSIF KE BAWAH: nilai yang tepat sama dengan sebuah
+   ambang masih masuk pita di bawahnya, mengikuti rumusan "s.d." pada SK.
+   Dikonfirmasi terhadap teksnya; angkanya ada di agava_config/upr.
 
    RANTAI BERHENTI DI CHIEF, dan itu bukan kelalaian. Chief CHCD memegang Surat
    Kuasa Direksi untuk menandatangani perjanjian dengan pihak ketiga "hingga
@@ -16561,7 +16562,7 @@ try{
  if(_ua) uprAmbangPakai(JSON.parse(_ua), "simpanan lokal");
 }catch(e){}
 /* ╔══ PENUNJUKAN LANGSUNG: SYARAT, BUKAN AMBANG (14 Agu 2026) ═══════════════╗
-   v227 menahan Penunjukan Langsung di atas Rp10 juta. Itu SALAH, dan salahnya
+   v227 menahan Penunjukan Langsung di atas pita terendah. Itu SALAH, dan salahnya
    berbahaya: ia memblokir pengadaan yang sah — distributor tunggal senilai
    Rp50 juta, vendor sesama Grup Astra, keadaan darurat — lalu memaksa orang
    mengerjakannya di luar AGAVA. Sistem yang menghalangi pekerjaan yang benar
