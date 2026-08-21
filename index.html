@@ -1015,6 +1015,25 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   font-size:calc(12.5px*var(--fz));color:var(--ink);background:#fff}
 .tn-b{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .tn-b button{flex:1 1 130px;padding:8px 10px;font-size:calc(12px*var(--fz))}
+/* ══ Spanduk "cloud tidak tersambung" ══
+   Melintang penuh di atas segalanya (z-index di atas gerbang rating & kotak
+   isian) karena isinya bukan informasi tambahan: ia memberitahu bahwa yang
+   sedang dilihat dan dikerjakan orang mungkin tidak nyata. */
+.cloud-warn{position:fixed;top:0;left:0;right:0;z-index:2000;display:flex;gap:12px;
+  align-items:center;justify-content:space-between;flex-wrap:wrap;
+  background:#7a1220;color:#fff;padding:10px 16px;box-shadow:0 2px 14px rgba(0,0,0,.28);
+  font-family:var(--ff);font-size:calc(12.5px*var(--fz));line-height:1.5}
+.cloud-warn .cw-in{flex:1 1 280px;min-width:240px}
+.cloud-warn .cw-t{font-weight:800;font-size:calc(13px*var(--fz));letter-spacing:.01em}
+.cloud-warn .cw-d{margin-top:3px;opacity:.94}
+.cloud-warn .cw-d b{color:#ffd9df}
+.cloud-warn .cw-s{margin-top:4px;font-size:calc(11px*var(--fz));opacity:.7;
+  font-family:ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.cloud-warn .cw-b{flex:0 0 auto;background:#fff;color:#7a1220;border:0;border-radius:9px;
+  padding:9px 15px;font-weight:800;font-size:calc(12.5px*var(--fz));cursor:pointer;
+  font-family:var(--ff)}
+.cloud-warn .cw-b:disabled{opacity:.6;cursor:default}
+@media(max-width:820px){ .cloud-warn{padding:9px 12px} .cloud-warn .cw-b{width:100%} }
 /* ══ UPR ══ */
 /* Rantai kini bisa berisi 2, 3, atau 4 gerbang (tiering wewenang) — kolomnya
    ikut jumlah isinya, bukan dipatok empat yang menyisakan sel kosong. */
@@ -4937,6 +4956,12 @@ async function pinCocok(uid,pin){
 }
 function applyLogin(u){
  gUser=u; gRole=u.role;
+ /* Spanduk "cloud tidak tersambung" hanya berarti sesudah ada identitas, jadi
+    diperiksa di sini. DITUNDA 6 detik dengan sengaja: saat baru login koneksi
+    memang masih dalam perjalanan, dan spanduk yang berkedip lalu hilang justru
+    mengajari orang untuk mengabaikannya. Kegagalan yang PASTI (listener
+    ditolak) tidak menunggu jeda ini — cloudTurun() memunculkannya seketika. */
+ try{ setTimeout(function(){ try{ cloudSpanduk(); }catch(e){} }, 6000); }catch(e){}
  /* Tier approval SELALU ditetapkan ulang saat login. Dulu hanya ditimpa kalau
     role punya tier, sehingga akun tanpa wewenang approval (Analyst, Staff)
     mewarisi tier "Section Head" bawaan — dan bisa melihat antrean approval
@@ -19154,7 +19179,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.14-229";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.20-230";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -19257,6 +19282,86 @@ function appCheckInit(){
   console.info("App Check aktif — backend hanya melayani AGAVA asli dari domain terdaftar.");
  }catch(e){ console.warn("App Check:",e&&e.message); }
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  KESEHATAN CLOUD SEBAGAI KEADAAN YANG BERBICARA (20 Agu 2026)            ║
+   ║                                                                          ║
+   ║  Insiden malam ini — layar kosong sesudah login dari nol — adalah        ║
+   ║  kejadian KETIGA dengan bentuk yang sama. v223: layar blur tanpa isi     ║
+   ║  sesudah rating. v224/225: prompt() diblokir PWA, proses berhenti tanpa  ║
+   ║  pesan. Sekarang: listener mati, layar kosong tanpa pesan.               ║
+   ║                                                                          ║
+   ║  Tiga kali kita memperbaiki KEJADIANNYA, tidak pernah STRUKTURNYA.       ║
+   ║  Strukturnya: sebelas penanganan galat yang semuanya console.warn, dan   ║
+   ║  satu-satunya sinyal kesehatan (AGDB.on) dikirim ke pill yang            ║
+   ║  display:none. Aplikasi menghitung kesehatannya dengan benar, lalu       ║
+   ║  menyembunyikannya.                                                      ║
+   ║                                                                          ║
+   ║  Yang lebih berbahaya daripada layar kosong: AGDB.on juga menjaga 20+    ║
+   ║  jalur TULIS dengan pola `if(!AGDB.on) return;` — diam-diam. Jadi saat   ║
+   ║  cloud mati, orang tetap melihat "✅ berhasil" sementara datanya tidak   ║
+   ║  pernah sampai ke mana pun, dan tidak ada mekanisme sinkron ulang.       ║
+   ║                                                                          ║
+   ║  Karena itu pagarnya di sini bukan sekadar memperbaiki urutan, tapi      ║
+   ║  menjadikan "cloud tidak hidup" keadaan kelas satu: satu sumber          ║
+   ║  kebenaran, terlihat, dan bisa dipulihkan tanpa memuat ulang halaman.    ║
+   ║                                                                          ║
+   ║  Status "sehat" TETAP tidak ditampilkan — itu keputusan lama dan masih   ║
+   ║  benar. Yang ditambahkan hanya suara ketika sedang TIDAK sehat.          ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+AGDB.lepas = [];                 /* fungsi pelepas tiap listener */
+AGDB.turunSebab = "";            /* kenapa cloud dianggap mati — untuk spanduk */
+
+function dbLepasSemua(){
+ (AGDB.lepas||[]).forEach(function(f){ try{ f(); }catch(e){} });
+ AGDB.lepas = [];
+ AGDB.on = false;
+}
+/* Dipanggil listener mana pun yang berhasil. Satu keberhasilan sudah cukup
+   membuktikan identitas kita diterima backend. */
+function cloudNaik(sumber){
+ if(AGDB.on) return;
+ AGDB.on = true; AGDB.turunSebab = "";
+ try{ dbPill("Database: Firebase live",true); }catch(e){}
+ cloudSpanduk();
+}
+/* Dipanggil penanganan galat listener mana pun. Dulu kesebelasnya berhenti di
+   console.warn — itulah sebabnya kegagalan tidak pernah terdengar. */
+function cloudTurun(sumber, kode){
+ AGDB.on = false;
+ AGDB.turunSebab = String(kode||"") + (sumber?(" · "+sumber):"");
+ console.warn("Cloud TURUN — "+sumber+": "+kode);
+ try{ dbPill("Database: tidak tersambung — mode lokal",false); }catch(e){}
+ cloudSpanduk();
+}
+/* Spanduk hanya muncul bagi yang SUDAH LOGIN. Sebelum login, layar memang
+   belum berisi apa-apa dan spanduk hanya akan membingungkan. */
+function cloudSpanduk(){
+ var el=document.getElementById("cloudWarn");
+ if(!el){
+   el=document.createElement("div"); el.id="cloudWarn"; el.className="cloud-warn hide";
+   document.body.appendChild(el);
+ }
+ var perlu = (!AGDB.on) && !!(typeof gUser!=="undefined" && gUser && gUser.name);
+ if(!perlu){ el.classList.add("hide"); return; }
+ el.innerHTML =
+   '<div class="cw-in">'+
+     '<div class="cw-t">Data tidak tersambung ke cloud</div>'+
+     '<div class="cw-d">Yang tampil di layar mungkin <b>tidak lengkap atau usang</b>, dan '+
+       '<b>perubahan yang Anda buat belum tersimpan</b> ke server. Jangan menganggap '+
+       'daftar yang kosong berarti memang kosong.</div>'+
+     (AGDB.turunSebab?'<div class="cw-s">'+esc(AGDB.turunSebab)+'</div>':'')+
+   '</div>'+
+   '<button class="cw-b" onclick="cloudCobaLagi(this)">Coba sambungkan lagi</button>';
+ el.classList.remove("hide");
+}
+function cloudCobaLagi(btn){
+ if(btn){ btn.disabled=true; btn.textContent="Menyambungkan…"; }
+ try{ dbListen(); }catch(e){ console.warn("cobaLagi:",e); }
+ setTimeout(function(){
+   if(btn){ btn.disabled=false; btn.textContent="Coba sambungkan lagi"; }
+   cloudSpanduk();
+ },2500);
+}
 function dbInit(){
  try{
   /* SAFEGUARD: di localhost & file:// (uji coba) JANGAN pernah menulis ke Firestore
@@ -19279,8 +19384,28 @@ function dbInit(){
   }catch(e){ window._authPersistGagal=String(e&&e.message||e); }
   AGDB.db=firebase.firestore();
   dbPill("Database: menghubungkan…",false);
-  AGDB.db.collection("agava_tickets").orderBy("created","desc").limit(300).onSnapshot(snap=>{
-    AGDB.on=true; dbPill("Database: Firebase live · "+snap.size+" tiket",true);
+ }catch(e){ dbPill("Database: offline — mode lokal",false); console.warn("AGDB init:",e); }
+}
+/* ╔══ KENAPA LISTENER DIPISAH DARI dbInit() (20 Agu 2026) ═══════════════════╗
+   dbInit() berjalan saat halaman dimuat, SEBELUM status login diketahui.
+   Selama Firestore terbuka tanpa aturan, itu tidak terasa. Sejak rules aktif,
+   listener yang lahir tanpa identitas langsung ditolak — dan listener
+   onSnapshot yang kena permission-denied MATI PERMANEN. Ia tidak menyambung
+   sendiri ketika orangnya kemudian login.
+
+   Akibatnya, orang yang login dari nol mendapat layar kosong tanpa pesan, dan
+   yang jauh lebih berbahaya: AGDB.on tetap false sehingga 20+ pagar tulis
+   melewatkan tulisannya diam-diam. Ia melihat "berhasil", datanya tidak ke
+   mana-mana.
+
+   Sekarang pemasangannya menunggu identitas pasti, dan tiap listener menyimpan
+   fungsi pelepasnya supaya bisa dipasang ulang tanpa menumpuk. */
+function dbListen(){
+ if(!AGDB.db){ console.warn("dbListen: Firestore belum siap"); return; }
+ try{
+  dbLepasSemua();
+  AGDB.lepas.push(AGDB.db.collection("agava_tickets").orderBy("created","desc").limit(300).onSnapshot(snap=>{
+    cloudNaik("tiket · "+snap.size+" dok");
     let changed=false, arrivals=[];
     AGDB.tickCloud=AGDB.tickCloud||{};
     snap.docChanges().forEach(ch=>{
@@ -19315,9 +19440,9 @@ function dbInit(){
       }
     }
     AGDB.ticketsInit=true;
-  },err=>{ AGDB.on=false; dbPill("Database: rules tertutup — mode lokal",false); console.warn("AGDB rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("tiket",err&&err.code); }));
   /* Overtime — papan lembur harus sama di semua perangkat operator */
-  AGDB.db.collection("agava_overtime").limit(300).onSnapshot(snap=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_overtime").limit(300).onSnapshot(snap=>{
     let ubah=false;
     snap.docChanges().forEach(ch=>{
       const d=ch.doc.data(); d.no=d.no||ch.doc.id;
@@ -19336,9 +19461,9 @@ function dbInit(){
       try{ otAutoCek(); }catch(e){}
       agavaRenderAman(["renderFieldOps","renderMobileHome","renderApprovals","renderOvertime","updateBell"]);
     }
-  },err=>{ console.warn("Overtime rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("lembur",err&&err.code); }));
   /* Aksi Mandiri — dikumpulkan lintas perangkat supaya rasio swalayannya utuh */
-  AGDB.db.collection("agava_selfcare").limit(500).onSnapshot(snap=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_selfcare").limit(500).onSnapshot(snap=>{
     let ubah=false;
     snap.docChanges().forEach(ch=>{
       const d=ch.doc.data(); d.id=d.id||ch.doc.id;
@@ -19348,9 +19473,9 @@ function dbInit(){
       else { SELFCARE.push(d); ubah=true; }
     });
     if(ubah){ selfCarePersist(); try{ renderService(); }catch(e){} }
-  },err=>{ console.warn("selfcare rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("tuntas-di-tempat",err&&err.code); }));
   /* SO — sinkron antar perangkat (list, approval, PDCA review semua satu sumber) */
-  AGDB.db.collection("agava_so").limit(400).onSnapshot(snap=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_so").limit(400).onSnapshot(snap=>{
     AGDB.soEcho=AGDB.soEcho||{};
     let ch3=false, soNew=[];
     snap.docChanges().forEach(ch=>{
@@ -19373,9 +19498,9 @@ function dbInit(){
        → salinan berhari-hari menimpa approval semua orang. Kini unggah-balik
        hanya setelah snapshot SERVER pertama tiba. */
     if(!AGDB.soInit && !snap.metadata.fromCache){ AGDB.soInit=true; dbSaveSOAll(); }   // koneksi pertama → unggah SO lokal yang belum ada di cloud
-  },err=>{ console.warn("SO rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("SO",err&&err.code); }));
   /* KPI + review PDCA bulanan — satu dokumen bersama */
-  AGDB.db.collection("agava_config").doc("kpi").onSnapshot(doc=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_config").doc("kpi").onSnapshot(doc=>{
     if(!doc.exists){ if(!doc.metadata.fromCache) dbSaveKPI("seed-cloud-kosong"); return; }   // cloud kosong → seed (hanya jalan bila sudah login)
     const d=doc.data(); if(!d||!Array.isArray(d.cla)||!d.cla.length)return;
     AGDB.kpiCloud=d;                            // simpan utk re-apply bila loadDataFiles menimpa belakangan
@@ -19396,11 +19521,11 @@ function dbInit(){
     if(d.meta)Object.assign(KPI_YEAR_META,d.meta);
     try{ localStorage.setItem(KPI_STORE, JSON.stringify({cla:KPI_CLA, meta:KPI_YEAR_META})); }catch(e){}
     try{ renderOverview(); }catch(e){}
-  },err=>{ console.warn("KPI rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("KPI",err&&err.code); }));
   /* Project Development — timeline proyek, satu dokumen bersama.
      Perubahan dari perangkat mana pun langsung mendarat di semua layar; tidak
      ada lagi update yang terkubur di localStorage satu orang. */
-  AGDB.db.collection("agava_config").doc("projects").onSnapshot(doc=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_config").doc("projects").onSnapshot(doc=>{
     if(!doc.exists)return;
     const d=doc.data(); if(!d||!d.list)return;
     let list; try{ list=JSON.parse(d.list); }catch(e){ return; }
@@ -19430,9 +19555,9 @@ function dbInit(){
     }
     AGDB.pjInit=true;
     console.info("Project Development dimuat dari cloud:",list.length,"proyek · terakhir disimpan oleh",d.by||"—");
-  },err=>{ console.warn("Projects rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("proyek",err&&err.code); }));
   /* Master data (STNK/PBB/Izin/Kontrak/Maintenance) — satu dokumen bersama */
-  AGDB.db.collection("agava_config").doc("master").onSnapshot(doc=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_config").doc("master").onSnapshot(doc=>{
     if(!doc.exists){ if(!doc.metadata.fromCache) dbSaveMaster(); return; }
     const d=doc.data(); if(!d||!d.sets)return;
     const j=JSON.stringify(d.sets);
@@ -19451,18 +19576,18 @@ function dbInit(){
     if(izinLama){ console.info("Perizinan: dokumen cloud masih daftar lama — dinaikkan ke",PERMITS_SEED);
                   try{ dbSaveMaster(); }catch(e){} }
     try{ renderReminder(); renderVendor(); renderBuilding(); renderHSE(); renderOverview(); }catch(e){}
-  },err=>{ console.warn("Master rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("master",err&&err.code); }));
   /* Konfigurasi endpoint Power Automate — ikut pindah antar perangkat */
-  AGDB.db.collection("agava_config").doc("flow").onSnapshot(doc=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_config").doc("flow").onSnapshot(doc=>{
     if(!doc.exists){ if(!doc.metadata.fromCache) dbSaveFlow(); return; }
     const d=doc.data(); if(!d||!d.endpoints)return;
     const j=JSON.stringify(d.endpoints);
     if(j===AGDB.flowEcho)return;
     AGDB.flowEcho=j;
     try{ FLOW.endpoints=d.endpoints; localStorage.setItem("agava_flow_endpoints",JSON.stringify(d.endpoints)); }catch(e){}
-  },err=>{ console.warn("Flow rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("flow",err&&err.code); }));
   /* Master parameter & koefisien biaya — sumber tunggal angka turunan AGAVA */
-  AGDB.db.collection("agava_config").doc("params").onSnapshot(doc=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_config").doc("params").onSnapshot(doc=>{
     if(!doc.exists){ if(!doc.metadata.fromCache) dbSaveParam(); return; }
     const d=doc.data(); if(!d||!d.param)return;
     const j=JSON.stringify(d.param);
@@ -19471,12 +19596,12 @@ function dbInit(){
     paramMerge(d.param);
     try{ localStorage.setItem(GA_PARAM_STORE, JSON.stringify(GA_PARAM)); }catch(e){}
     try{ if(active==="params")renderParams(); renderOverview(); renderMobileHome(); }catch(e){}
-  },err=>{ console.warn("Param rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("parameter",err&&err.code); }));
   /* Ambang pita wewenang UPR — angkanya TIDAK ada di kode (lihat UPR_AMBANG).
      Berbeda dari config lain di atas: dokumen yang belum ada TIDAK di-seed dari
      sini, karena seed-nya berarti menaruh matriks wewenang kembali ke bundel
      yang tersaji publik. Belum ada dokumen = rantai penuh, dan itu disengaja. */
-  AGDB.db.collection("agava_config").doc("upr").onSnapshot(doc=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_config").doc("upr").onSnapshot(doc=>{
     if(!doc.exists){ console.info("UPR: agava_config/upr belum ada — memakai rantai penuh"); return; }
     const d=doc.data(); if(!d||!Array.isArray(d.ambang))return;
     const j=JSON.stringify(d.ambang);
@@ -19485,11 +19610,11 @@ function dbInit(){
     if(uprAmbangPakai(d.ambang,"cloud")){
       try{ localStorage.setItem(UPR_AMBANG_STORE,j); }catch(e){}
     }
-  },err=>{ console.warn("UPR ambang rules/err:",err&&err.code); });
+  },err=>{ cloudTurun("ambang UPR",err&&err.code); }));
   try{ chatInit(); }catch(e){ console.warn("chatInit:",e); }   // Chat GA Team real-time
   try{ notifSeenSync(); }catch(e){ console.warn("notifSeenSync:",e); }   // status "sudah dilihat" sinkron lintas-perangkat
   /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
-  AGDB.db.collection("agava_workpermits").limit(300).onSnapshot(snap=>{
+  AGDB.lepas.push(AGDB.db.collection("agava_workpermits").limit(300).onSnapshot(snap=>{
     let ch2=false, wpNew=[];
     snap.docChanges().forEach(ch=>{
       const d=ch.doc.data(); d.no=d.no||ch.doc.id;
@@ -19504,8 +19629,8 @@ function dbInit(){
     if(wpNew.length) agavaNotify("🦺 Izin kerja baru — risiko "+(wpNew[0].risiko||"-"),
       wpNew[0].no+" · "+(wpNew[0].judul||"")+" · "+(wpNew[0].vendor||"")+(wpNew[0].src==="qr"?" (via QR)":""));
     AGDB.wpInit=true;
-  },err=>{ console.warn("WP rules/err:",err&&err.code); });
- }catch(e){ dbPill("Database: offline — mode lokal",false); console.warn("AGDB init:",e); }
+  },err=>{ cloudTurun("izin kerja",err&&err.code); }));
+ }catch(e){ cloudTurun("pemasangan listener", (e&&e.message)||"gagal"); console.warn("dbListen:",e); }
 }
 /* ── Batas 1 MB per dokumen Firestore ──
    Selama Storage belum aktif, foto tersimpan sebagai data URL (base64) di dalam
@@ -21266,6 +21391,22 @@ function agavaBoot(){
    if(typeof firebase==="undefined"||!firebase.auth){ setTimeout(function(){ lanjut(null); },600); return; }
    var sekali=false;
    firebase.auth().onAuthStateChanged(function(fu){
+     /* ╔══ LISTENER MENUNGGU IDENTITAS (20 Agu 2026) ═══════════════════════╗
+        Ini titik yang dulu tidak ada, dan ketiadaannya yang membuat orang
+        mendapat layar kosong sesudah login dari nol: listener dipasang di
+        dbInit() saat halaman dimuat, ditolak karena belum ada identitas,
+        lalu mati permanen — dan tidak ada satu pun yang memasangnya lagi
+        ketika identitasnya akhirnya ada.
+
+        Sekarang pemasangan terikat pada siklus auth, bukan pada siklus
+        halaman. Masuk → pasang. Keluar → lepas. Ganti akun → lepas lalu
+        pasang lagi, jadi data akun lama tidak ikut terbawa.
+
+        Diletakkan SEBELUM pagar `sekali` karena panggilan pertama pun sudah
+        membawa status yang benar — menunda ke panggilan kedua berarti sesi
+        tersimpan tidak pernah memasang listener sama sekali. */
+     try{ if(fu) dbListen(); else dbLepasSemua(); }catch(e){ console.warn("auth→listen:",e); }
+     try{ cloudSpanduk(); }catch(e){}
      /* 2450ms: intro ikon selesai ±2,0s lalu logo mendarat ±2,44s. Menutup
         lebih cepat berarti membangun animasi yang tidak pernah dilihat orang.
         Batas kerasnya 3400ms, jadi tetap tidak pernah menahan startup lama. */
