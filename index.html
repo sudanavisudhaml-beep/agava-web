@@ -19638,7 +19638,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-236";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-237";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -20070,6 +20070,30 @@ function dbListen(){
       try{ localStorage.setItem(UPR_AMBANG_STORE,j); }catch(e){}
     }
   },err=>{ cloudTurun("ambang UPR",err&&err.code); }));
+  /* ╔══ MASTER REKANAN — HIDUP, BUKAN SEKALI BACA (25 Agu 2026) ══════════════╗
+     vendorMasterLoad() hanya terpanggil sesudah impor dan saat tombol "Muat
+     ulang" ditekan — tidak pernah saat aplikasi dimuat. Akibatnya satu orang
+     mengimpor daftar rekanan, dan semua orang lain tetap melihat daftar kosong
+     sampai mereka kebetulan menekan tombol yang tidak mereka tahu ada.
+
+     Datanya memang sudah bersama sejak awal (Firestore, bukan perangkat) —
+     yang tidak bersama adalah SAAT MELIHATNYA. Sebagai listener, daftar itu
+     hadir sendiri begitu identitas dikenali, dan ikut berubah seketika ketika
+     ada yang mengimpor — tanpa siapa pun perlu diberi tahu cara memuat ulang. */
+  AGDB.lepas.push(AGDB.db.collection("agava_vendors").limit(500).onSnapshot(snap=>{
+    if(!snap) return;
+    var arr=[]; snap.forEach(function(d){ arr.push(vendorNorm(Object.assign({id:d.id},d.data()))); });
+    /* Kosong dari cloud JANGAN menimpa daftar yang sudah ada dari SharePoint —
+       kosong berarti "belum diisi", bukan "memang tidak ada rekanan". */
+    if(!arr.length && VENDORS.length) return;
+    var j=JSON.stringify(arr.map(function(v){return v.id+"|"+v.nama;}));
+    if(j===AGDB.vendorEcho) return;
+    AGDB.vendorEcho=j;
+    VENDORS=arr;
+    VENDOR_SUMBER={dari:"Firestore", at:nowStamp(), n:VENDORS.length};
+    try{ if(active==="vendor") renderVendor(); }catch(e){}
+    try{ if(active==="sourcing") renderSourcing(); }catch(e){}
+  },err=>{ cloudTurun("master rekanan",err&&err.code); }));
   try{ chatInit(); }catch(e){ console.warn("chatInit:",e); }   // Chat GA Team real-time
   try{ notifSeenSync(); }catch(e){ console.warn("notifSeenSync:",e); }   // status "sudah dilihat" sinkron lintas-perangkat
   /* Work Permit — pengajuan dari QR eksternal masuk live ke sini */
