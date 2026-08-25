@@ -17079,6 +17079,85 @@ function uprDocHTML(s){
   (uprSelesai(s)?'':'<div class="ud-draft">DRAFT — belum disetujui penuh</div>')+
  '</div>';
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  DOKUMEN SPK — DIBANGKITKAN AGAVA (25 Agu 2026)                          ║
+   ║                                                                          ║
+   ║  Sebelum ini AGAVA tidak pernah membangkitkan dokumen SPK sama sekali:    ║
+   ║  yang ada hanya laci pengiriman dengan kolom "Upload SPK (PDF)". Artinya  ║
+   ║  SPK disusun di luar, lalu ditempelkan balik — dan setiap kali itu        ║
+   ║  terjadi, ada kesempatan nomor SO / UPR / Tiket tidak ikut tercantum,     ║
+   ║  atau nilainya menyimpang dari yang disetujui para approver.              ║
+   ║                                                                          ║
+   ║  Dokumen yang dibangkitkan sistem tidak pernah lupa mencantumkan jejak    ║
+   ║  nomornya, dan tidak pernah memakai angka selain yang tersimpan.          ║
+   ║                                                                          ║
+   ║  NOMOR SPK tetap diketik manusia — penomoran internal berjalan di luar    ║
+   ║  AGAVA, dan mengarang nomor tandingan lebih berbahaya daripada tidak      ║
+   ║  punya nomor. Yang dibangkitkan isinya, bukan identitasnya.               ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function spkDocHTML(s){
+ var logoSrc=(document.querySelector('.logo-img')||{}).src||'';
+ var win=(s.upr&&s.upr.pilih)||s.vendor||"—";
+ var nilai=(parseFloat(s.nilai)||0) || uprNilaiKomit(s);
+ var pw=(s.upr&&(s.upr.penawaran||[]).filter(function(x){return x.vendor===win;})[0])||null;
+ var noUpr=(s.upr&&s.upr.no)||"";
+ /* Baris jejak: setiap nomor yang pernah dilewati pekerjaan ini. Tanpa ini,
+    penelusuran balik dari tagihan menuntut seseorang yang kebetulan ingat. */
+ var jejak=[];
+ if(s.fromTicket) jejak.push("Tiket "+s.fromTicket);
+ jejak.push("SO "+s.no);
+ jejak.push(noUpr?("UPR "+noUpr):"UPR — (tanpa UPR)");
+ var metode=SRC_METODE_NAMA[soMetode(s)]||"—";
+ var dasarPL=(soMetode(s)==="langsung"&&s.upr&&s.upr.plSyarat)?plSyaratTeks(s.upr.plSyarat):"";
+ return '<div class="ud">'+
+  '<div class="ud-hd">'+(logoSrc?'<img src="'+logoSrc+'"/>':'')+
+    '<div><div class="ud-co">PT ASTRA INTERNATIONAL Tbk.</div><div class="ud-t">SURAT PERINTAH KERJA</div></div>'+
+    '<div class="ud-no">No <b>'+esc(s.spkNo||"— belum bernomor —")+'</b><br>Tanggal '+esc((s.tsf&&s.tsf.spk)||(s.ts&&s.ts.spk)||"—")+'</div></div>'+
+  '<div class="ud-pita">Jejak dokumen: <b>'+esc(jejak.join(" → "))+'</b></div>'+
+  '<table class="ud-meta">'+
+    '<tr><td>Kepada (Rekanan)</td><td colspan="3"><b>'+esc(win)+'</b>'+(pw&&pw.email?(' · '+esc(pw.email)):'')+'</td></tr>'+
+    '<tr><td>Uraian pekerjaan</td><td colspan="3"><b>'+esc(s.item||"—")+'</b></td></tr>'+
+    (s.spec?('<tr><td>Spesifikasi</td><td colspan="3">'+esc(s.spec)+(s.qty?(' · Qty '+esc(String(s.qty))):'')+'</td></tr>'):'')+
+    '<tr><td>Lokasi</td><td>'+esc(s.lokasi||"—")+'</td><td>Kategori</td><td>'+esc(s.kategori||"—")+'</td></tr>'+
+    '<tr><td>Metode pengadaan</td><td colspan="3">'+esc(metode)+(dasarPL?(' — dasar: <b>'+esc(dasarPL)+'</b>'):'')+'</td></tr>'+
+    '<tr><td>Dept/Divisi</td><td>'+esc(s.deptDiv||"GENERAL AFFAIR")+'</td><td>Pemohon</td><td>'+esc(soPemohon(s)||"—")+'</td></tr>'+
+  '</table>'+
+  '<div class="ud-sec">NILAI PEKERJAAN</div>'+
+  '<table class="ud-tbl"><thead><tr><th>URAIAN</th><th>REKANAN</th><th>NILAI (Rp)</th></tr></thead><tbody>'+
+    '<tr class="win"><td>'+esc(s.item||"—")+'</td><td><b>'+esc(win)+'</b></td><td class="r">'+rpFmt(nilai)+'</td></tr>'+
+  '</tbody></table>'+
+  /* Asal nilainya disebut terang-terangan. Kalau ia tidak berasal dari UPR,
+     pembaca dokumen berhak tahu bahwa angka itu tidak melewati perbandingan
+     penawaran — bukan disembunyikan di balik format yang sama. */
+  '<div class="ud-box" style="min-height:0">'+
+    (noUpr
+      ? ('Nilai di atas diambil dari <b>'+esc(noUpr)+'</b> yang telah disetujui berjenjang'+
+         ((pw&&parseFloat(pw.nilaiFinal)>0)?' — harga final hasil negosiasi.':'.'))
+      : '<b>Perhatian:</b> SPK ini terbit tanpa UPR, sehingga nilainya tidak melewati perbandingan penawaran. Dasar penetapan nilainya wajib dapat dipertanggungjawabkan tersendiri.')+
+  '</div>'+
+  (s.upr&&s.upr.alasan?('<div class="ud-sec">DASAR PENUNJUKAN</div><div class="ud-box">'+esc(s.upr.alasan)+'</div>'):'')+
+  '<div class="ud-sec">PENGESAHAN</div>'+
+  '<div class="ud-sigs">'+
+    ['Dibuat — Staff Procurement|'+((s.staffPIC||s.pic)||""),
+     'Diketahui — Section Head|'+(soSectionApprover(s)||""),
+     'Disetujui — GA Dept Head|'+(s.apprDeptBy||""),
+     'Menerima — '+win+'|'].map(function(x){
+      var p=x.split("|");
+      return '<div class="ud-sig"><div class="ud-sl">'+esc(p[0])+'</div>'+
+        '<div class="ud-sb">'+(p[1]?('<b>'+esc(p[1])+'</b>'):'<em>&nbsp;</em>')+'</div></div>';
+    }).join("")+
+  '</div>'+
+  (s.spkSent?'':'<div class="ud-draft">DRAFT — SPK belum diterbitkan</div>')+
+ '</div>';
+}
+function spkDocShow(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ if(!soBolehLihat(s)){ soTolakLihat(no); return; }
+ soDocCur=no;
+ var pg=document.getElementById("soDocPage"); if(pg)pg.innerHTML=spkDocHTML(s);
+ document.getElementById("soDoc").classList.remove("hide");
+ try{ soDocFit(); }catch(e){}
+}
 function openSPK(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
  /* Nomor TIDAK dikarang lagi. Penomoran SPK yang sah berjalan di luar AGAVA;
@@ -17111,7 +17190,8 @@ function openSPK(no){
     ${winNilai>0?`<div class="muted small" style="margin:-6px 0 12px">Nilai penawaran yang disetujui: <b style="color:var(--ink)">Rp ${rpFmt(winNilai)}</b></div>`:''}
     <div class="two" style="gap:0 12px"><div class="field"><label>Email vendor (To)</label><input id="spk-to" value="${esc(winMail)}" placeholder="vendor@email.com"/></div>
     <div class="field"><label>Cc</label><input id="spk-cc" value="Section Head; Dept Head"/></div></div>
-    <div class="field"><label>Upload SPK (PDF)</label><input id="spk-file" placeholder="Tempel nama file (simulasi upload)"/></div>
+    <button class="so-pdf" style="width:100%;margin-bottom:12px" onclick="spkDocShow('${String(s.no).replace(/"/g,'')}')">📄 Lihat / Cetak Dokumen SPK</button>
+    <div class="muted small" style="margin:-6px 0 12px;line-height:1.5">Dokumen dibangkitkan AGAVA — nomor SO, UPR, dan Tiket ikut tercantum otomatis, dan nilainya diambil dari UPR yang disetujui. Isi nomor SPK di atas lebih dulu agar tercetak di dokumennya.</div>
     <div class="panel-t" style="margin-top:6px">📧 Email otomatis via Outlook</div>
     <div class="card pad" style="background:#f8fafd;font-size:calc(12.5px*var(--fz));line-height:1.6">
       <div class="muted" style="font-size:calc(11.5px*var(--fz));margin-bottom:6px">Production: terkirim langsung dari AGAVA via konektor <b>Office 365 Outlook</b> (standar, tanpa admin/premium).</div>
@@ -19377,7 +19457,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-233";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-234";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
