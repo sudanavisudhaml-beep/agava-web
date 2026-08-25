@@ -1015,6 +1015,15 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   font-size:calc(12.5px*var(--fz));color:var(--ink);background:#fff}
 .tn-b{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .tn-b button{flex:1 1 130px;padding:8px 10px;font-size:calc(12px*var(--fz))}
+/* ══ Blok lampiran & jejak dokumen di kartu approval ══
+   Muncul di SETIAP gerbang tanpa kecuali — pejabat tidak boleh diminta
+   memutuskan tanpa bisa membuka berkasnya. */
+.ap-dok{border:1px solid var(--line);border-radius:11px;padding:9px 11px;background:#fafcfe}
+.ap-dok-t{font-size:calc(12px*var(--fz));font-weight:700;color:var(--ink)}
+.ap-dok-j{font-size:calc(10.5px*var(--fz));color:var(--muted);margin-top:3px;line-height:1.45;overflow-wrap:anywhere}
+.ap-dok-w{margin-top:7px;font-size:calc(11px*var(--fz));line-height:1.5;color:#8a2b2b;
+  background:var(--red-s);border:1px solid #e9c6c6;border-radius:8px;padding:6px 8px}
+.ap-dok .so-pdf{width:100%;margin-top:8px}
 /* ══ Jejak tiga nomor di laci SPK ══
    Satu pekerjaan bisa punya empat nomor: tiket → SO → UPR → SPK. Ditampilkan
    berjajar supaya penelusuran balik dari tagihan tidak bergantung pada ingatan
@@ -15572,6 +15581,48 @@ function soDocBtnMini(s){
  return '<button class="so-pdf ap-pdf" onclick="soDocShow(\''+String(s.no).replace(/"/g,'')+'\')"'+
    ' title="Buka Dokumen Supply Order beserta lampirannya">Tampilkan SO</button>';
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  SETIAP PEJABAT WAJIB BISA MELIHAT LAMPIRAN & JEJAK DOKUMENNYA           ║
+   ║                                                                          ║
+   ║  Tombol "Tampilkan SO" dulu ditempel DI DALAM cabang per gerbang: ada di ║
+   ║  Section Head dan Procurement, TIDAK ADA di Budget dan Dept Head. Jadi   ║
+   ║  Dept Head diminta menyetujui pengeluaran tanpa satu pun jalan membuka   ║
+   ║  dokumen beserta lampirannya.                                            ║
+   ║                                                                          ║
+   ║  Itu bukan salah ketik. Selama tombolnya milik cabang, SETIAP gerbang    ║
+   ║  baru harus ingat menambahkannya sendiri — dan cepat atau lambat ada     ║
+   ║  yang lupa. Blok ini dirakit SEKALI di luar percabangan, jadi gerbang    ║
+   ║  berikutnya mendapatkannya tanpa perlu diingat siapa pun.                ║
+   ║                                                                          ║
+   ║  Ia menyebut BERAPA lampirannya, bukan sekadar menyediakan tombol.       ║
+   ║  Tombol yang berdiri sendiri tidak memberi tahu ada sesuatu di baliknya. ║
+   ║                                                                          ║
+   ║  Dan bila ada lampiran yang tidak ikut tersinkron, itu DIKATAKAN —       ║
+   ║  lihat dbStripSO(). Tanpa itu, penyetuju tidak punya cara membedakan     ║
+   ║  "memang tidak ada lampiran" dari "lampirannya tidak sampai ke sini".    ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function soJejakDok(s){
+ var foto=(s&&s.attachments)||[], pdf=(s&&s.pdfAttachments)||[];
+ var isi=[];
+ if(foto.length) isi.push(foto.length+" foto");
+ if(pdf.length)  isi.push(pdf.length+" PDF");
+ /* Ditulis dbStripSO saat ada lampiran yang tertahan di perangkat pengirim. */
+ var hilang=parseInt(s&&s.attTakSinkron,10)||0;
+ /* Jejak dokumen: satu pekerjaan bisa punya empat nomor. Pejabat harus bisa
+    menelusuri asal-usulnya tanpa bertanya ke siapa pun. */
+ var jejak=[];
+ if(s.fromTicket) jejak.push("Tiket "+s.fromTicket);
+ jejak.push("SO "+s.no);
+ if(s.upr&&s.upr.no) jejak.push("UPR "+s.upr.no);
+ if(s.spkNo) jejak.push("SPK "+s.spkNo);
+ return '<div class="ap-dok">'+
+   '<div class="ap-dok-t">'+(isi.length?('📎 Lampiran: '+isi.join(" · ")):'Tanpa lampiran')+'</div>'+
+   '<div class="ap-dok-j">'+esc(jejak.join(" → "))+'</div>'+
+   (hilang?('<div class="ap-dok-w">⚠️ '+hilang+' lampiran TIDAK ikut tersinkron ke cloud dan tidak bisa ditampilkan di sini. '+
+            'Minta pemohon mengunggah ulang sebelum Anda memutuskan.</div>'):'')+
+   soDocBtnMini(s)+
+ '</div>';
+}
 function soApprovalCard(s){
  const g=soGateTier(s), tier=gTier, esc=!!s.escalated;
  /* ── BATAS WEWENANG OWNER ──
@@ -15607,7 +15658,6 @@ function soApprovalCard(s){
       lalu tombol Dokumen SO, baru dua tombol keputusan berjejer satu baris.
       Label cukup "Approve" — gerbangnya sudah tertulis persis di atasnya. */
    right=`<div class="ap-info">Section: <b>${soSectionApprover(s)}</b><br>Kategori: <b>${s.kategori||'—'}</b></div>
-          ${soDocBtnMini(s)}
           <div class="ap-2col">
             <button class="btn-act" onclick="approveSO('${s.no}','section','Approved')">Approve</button>
             <button class="btn-out" onclick="approveSO('${s.no}','section','Rejected')">Reject</button>
@@ -15620,7 +15670,6 @@ function soApprovalCard(s){
      right=`<span class="badge bd-info" style="text-align:center;padding:8px">Menunggu jawaban Requester</span><div class="muted small" style="text-align:center">Terkirim ke ${s.requester||s.req} (Reminder).</div>`;
    } else {
      right=`<select id="assign-${s.no}" style="border:1px solid var(--line);border-radius:9px;padding:9px;font-family:var(--ff);font-size:calc(13px*var(--fz))"><option value="">— Pilih Staff Procurement —</option>${STAFF_PROC.map(n=>`<option ${s.staffPIC===n?'selected':''}>${n}</option>`).join("")}</select>
-            ${soDocBtnMini(s)}
             <div class="ap-2col">
               <button class="btn-act" onclick="approveSO('${s.no}','proc','Approved')">Approve</button>
               <button class="btn-out" onclick="openClarify('${s.no}')">Klarifikasi</button>
@@ -15641,6 +15690,7 @@ function soApprovalCard(s){
    <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
      <div style="flex:1;min-width:240px">${head}${clarBox}</div>
      <div style="display:flex;flex-direction:column;gap:8px;min-width:230px">
+       ${soJejakDok(s)}
        ${right}</div>
    </div>
  </div>`;
@@ -19327,7 +19377,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.21-232";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-233";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -19870,6 +19920,17 @@ function dbStripSO(s){
     selalu berarti "tidak tahu", bukan "memang tidak ada". */
  if(img.length) c.attachments=img; else delete c.attachments;
  if(pdf.length) c.pdfAttachments=pdf; else delete c.pdfAttachments;
+ /* ── MENINGGALKAN PENANDA UNTUK YANG TERTINGGAL (25 Agu 2026) ──────────────
+    Lampiran yang masih berupa data URL — karena unggahan ke Storage gagal —
+    dibuang di atas. Selama ini ia hilang TANPA BEKAS: pemohon tetap melihat
+    fotonya di perangkatnya sendiri, sementara penyetuju menerima SO yang
+    tampak memang tidak berlampiran. Keduanya yakin melihat kebenaran.
+
+    Sekarang jumlah yang tertinggal ikut ditulis, supaya kartu approval bisa
+    mengatakan "3 lampiran tidak ikut tersinkron" alih-alih diam. Penyetuju
+    berhak tahu bahwa ia sedang memutuskan dengan berkas yang tidak lengkap. */
+ var tertinggal=((s.attachments||[]).length-img.length)+((s.pdfAttachments||[]).length-pdf.length);
+ if(tertinggal>0) c.attTakSinkron=tertinggal; else delete c.attTakSinkron;
  return c;
 }
 /* ══ FIREBASE STORAGE — wadah lampiran (foto & PDF SO, foto tiket) ══
