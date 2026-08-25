@@ -16165,8 +16165,22 @@ async function vendorMasterLoad(){
    satu tempat supaya sisa aplikasi tidak perlu tahu asal-usulnya. */
 function vendorNorm(v){
  v=v||{};
- var amb=function(){ for(var i=0;i<arguments.length;i++){ var k=arguments[i];
-   if(v[k]!==undefined&&v[k]!==null&&String(v[k]).trim()!=="") return String(v[k]).trim(); } return ""; };
+ /* ── PENCOCOKAN KOLOM TIDAK PEDULI HURUF BESAR-KECIL & SPASI (25 Agu 2026) ──
+    Dulu kuncinya dicocokkan persis, sehingga kolom "Vendor" tidak terbaca
+    padahal "vendor" terdaftar — dan seluruh barisnya hilang tanpa pesan.
+    Berkas Excel nyata datang dengan kapitalisasi dan spasi yang bermacam-macam;
+    yang tidak boleh berbeda adalah hasilnya. Baris yang gagal terbaca di sini
+    berarti rekanan yang tidak pernah muncul di Sourcing, dan tidak ada yang
+    akan tahu ia hilang. */
+ var peta={};
+ Object.keys(v).forEach(function(k){
+   var n=String(k).toLowerCase().replace(/[\s_.-]+/g,"");
+   if(peta[n]===undefined) peta[n]=v[k];
+ });
+ var amb=function(){ for(var i=0;i<arguments.length;i++){
+   var n=String(arguments[i]).toLowerCase().replace(/[\s_.-]+/g,"");
+   var val=peta[n];
+   if(val!==undefined&&val!==null&&String(val).trim()!=="") return String(val).trim(); } return ""; };
  return {id:amb("id","ID")||("VD"+Math.random().toString(36).slice(2,8)),
    nama:amb("nama","Nama","NamaVendor","Nama Vendor","vendor"),
    jenis:amb("jenis","Jenis"), bidang:amb("bidang","Bidang","Pekerjaan","PEKERJAAN"),
@@ -17880,6 +17894,71 @@ function periodPct(c){ const s=new Date(c.start+"T00:00:00"),e=new Date(c.end+"T
 function vendorBudget(){ const tot=VENDOR_CONTRACTS.reduce((s,c)=>s+c.value,0); return {tot, active:VENDOR_CONTRACTS.filter(c=>ctStatus(c)==="Active").length, expiring:VENDOR_CONTRACTS.filter(c=>ctStatus(c)==="Expiring").length, expired:VENDOR_CONTRACTS.filter(c=>ctStatus(c)==="Expired").length, avgP:Math.round(VENDOR_CONTRACTS.reduce((s,c)=>s+periodPct(c),0)/VENDOR_CONTRACTS.length)}; }
 function slaTier(s){ return vendorTier(s); }   // 0–3 → Silver/Gold/Platinum (Service card)
 function ctStatusBadge(st){ return st==="Active"?'<span class="badge bd-ok">Active</span>':st==="Expiring"?'<span class="badge bd-warn">Expiring ≤90d</span>':'<span class="badge bd-crit">Expired</span>'; }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  IMPOR MASTER REKANAN DARI EXCEL (25 Agu 2026)                           ║
+   ║                                                                          ║
+   ║  Daftar 98 rekanan dicabut dari kode karena repo web-nya publik dan       ║
+   ║  daftarnya memuat nama PIC, email, dan telepon. Pencabutan itu BENAR.     ║
+   ║  Yang tidak pernah dikerjakan: penggantinya.                             ║
+   ║                                                                          ║
+   ║  Akibatnya VENDORS selalu kosong — sumber SharePoint belum dikonfigurasi, ║
+   ║  cadangan Firestore belum pernah diisi — sehingga Sourcing tidak punya    ║
+   ║  apa pun untuk dipilih dan seluruh alur pengadaan berhenti di langkah     ║
+   ║  pertama. Keamanan naik, sistemnya mati. Itu bukan pertukaran yang sah;   ║
+   ║  itu pekerjaan yang belum selesai.                                       ║
+   ║                                                                          ║
+   ║  Impor ini menutupnya tanpa mengembalikan datanya ke kode: berkas Excel   ║
+   ║  masuk, tersimpan di koleksi agava_vendors, dan sejak firestore.rules     ║
+   ║  aktif ia hanya terbaca oleh yang sudah login. Tidak ada satu pun nama    ║
+   ║  atau email yang kembali ke bundel yang tersaji publik.                   ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function vendorImportBoleh(){
+ return isOwner() || ["admin","proc","section","dept","staff"].indexOf(gRole)>=0;
+}
+async function vendorImportPick(input){
+ var f=(input.files||[])[0]; input.value=""; if(!f) return;
+ if(!vendorImportBoleh()){ alert("⛔ Hanya Procurement, Section/Dept Head, atau Administrator yang dapat mengimpor master rekanan."); return; }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — impor ke cloud diblokir.\nJalankan dari situs AGAVA yang asli."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak tersambung — impor butuh koneksi."); return; }
+ try{
+   var buf=await f.arrayBuffer();
+   var wb=XLSX.read(buf,{type:"array",cellDates:true});
+   /* Sheet dipilih dari ISINYA, bukan dari namanya. Nama sheet berbeda-beda
+      antar berkas; yang tidak berubah adalah adanya kolom nama rekanan. */
+   var pakai="", rows=[];
+   for(var i=0;i<wb.SheetNames.length;i++){
+     var r=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{defval:""});
+     if(r.length && r.some(function(x){ return Object.keys(x).some(function(k){ return /nama.*(vendor|rekanan)|^\s*(nama|vendor|rekanan)\s*$/i.test(String(k)); }); })){
+       pakai=wb.SheetNames[i]; rows=r; break;
+     }
+   }
+   if(!rows.length){ alert("Tidak ada sheet yang memuat kolom nama rekanan.\n\nPastikan ada kolom berjudul \"Nama\", \"Vendor\", atau \"Nama Vendor\"."); return; }
+   var siap=rows.map(vendorNorm).filter(function(v){ return v.nama; });
+   if(!siap.length){ alert("Sheet \""+pakai+"\" terbaca, tetapi tidak ada baris dengan nama rekanan terisi."); return; }
+   /* Nama yang sama muncul berkali-kali di berkas kontrak — disatukan di sini
+      supaya tidak melahirkan rekanan kembar yang membingungkan saat Sourcing. */
+   var unik={}; siap.forEach(function(v){ var k=v.nama.trim().toLowerCase(); if(!unik[k]) unik[k]=v; });
+   var daftar=Object.keys(unik).map(function(k){ return unik[k]; });
+   if(!confirm("Impor "+daftar.length+" rekanan dari sheet \""+pakai+"\"?\n\n"+
+       daftar.slice(0,5).map(function(v){return "· "+v.nama;}).join("\n")+
+       (daftar.length>5?("\n… dan "+(daftar.length-5)+" lainnya"):"")+
+       "\n\nRekanan bernama sama akan diperbarui, bukan digandakan.")) return;
+
+   var b=AGDB.db.batch(), n=0;
+   daftar.forEach(function(v){
+     var id=String(v.nama).trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,90);
+     if(!id) return;
+     b.set(AGDB.db.collection("agava_vendors").doc(id), v, {merge:true}); n++;
+   });
+   await b.commit();
+   try{ auditLog("vendor-impor", n+" rekanan dari "+f.name+" · sheet "+pakai); }catch(e){}
+   await vendorMasterLoad();
+   alert("✅ "+n+" rekanan tersimpan.\n\nDaftar ini ada di Firestore, bukan di dalam kode — hanya terbaca oleh yang sudah login. Sourcing sekarang bisa memilih rekanan.");
+ }catch(e){
+   console.warn("vendorImport:",e);
+   alert("Gagal membaca berkas: "+((e&&e.message)||"tidak dikenali")+"\n\nPastikan berkasnya .xlsx dan tidak sedang terbuka di Excel.");
+ }
+}
 function renderVendor(){
  const el=document.getElementById("page-vendor"); if(!el)return;
  const b=vendorBudget();
@@ -18016,8 +18095,15 @@ function renderVendor(){
     <div class="card pad" style="margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       ${sumberBadge}${VENDOR_SUMBER.at?`<span class="muted small">dimuat ${esc(VENDOR_SUMBER.at)}</span>`:""}
       <span style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="btn-out" onclick="vendorMasterLoad()">↻ Muat ulang</button>${tombolSP}</span>
+        <button class="btn-out" onclick="vendorMasterLoad()">↻ Muat ulang</button>${tombolSP}
+        ${vendorImportBoleh()?`<label class="btn-act" style="cursor:pointer;display:inline-flex;align-items:center">📥 Impor dari Excel<input type="file" accept=".xlsx,.xls" style="display:none" onchange="vendorImportPick(this)"/></label>`:''}</span>
     </div>
+    ${VENDORS.length?'':`<div class="card pad" style="background:var(--amber-s);border:1px solid #f0dcb4;margin-bottom:14px;font-size:calc(12.5px*var(--fz));line-height:1.6">
+      <b>Daftar rekanan masih kosong — dan ini menghentikan Sourcing.</b><br>
+      Master rekanan sengaja tidak lagi disimpan di dalam kode aplikasi karena memuat nama PIC, email, dan telepon,
+      sementara kode AGAVA tersaji publik. Penggantinya belum diisi.<br><br>
+      ${vendorImportBoleh()?'Tekan <b>Impor dari Excel</b> di atas dan pilih berkas master rekanan Anda. Datanya tersimpan di database di balik login — tidak kembali ke dalam kode.':'Hubungi Procurement atau Administrator untuk mengimpor master rekanan.'}
+    </div>`}
     ${daftarRekanan}
     <button class="hse-lanjut" onclick="vendorGoPage(2)"><span class="hse-lanjut-t"><b>Halaman 3 — Integrasi</b>
       <i>Power Automate &amp; sumber data</i></span><span class="hse-lanjut-a">→</span></button>
@@ -19552,7 +19638,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-235";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-236";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
