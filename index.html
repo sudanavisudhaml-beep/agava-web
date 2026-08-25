@@ -17982,6 +17982,101 @@ async function vendorImportPick(input){
    alert("Gagal membaca berkas: "+((e&&e.message)||"tidak dikenali")+"\n\nPastikan berkasnya .xlsx dan tidak sedang terbuka di Excel.");
  }
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  IMPOR KONTRAK VENDOR (25 Agu 2026)                                      ║
+   ║                                                                          ║
+   ║  Ditemukan hari ini: Vendor Management selama ini menampilkan 3 dari 16   ║
+   ║  rekanan berkontrak. Delapan belas kontrak tertulis di dalam kode, tapi   ║
+   ║  listener cloud selalu menimpanya dengan 3 yang ada di agava_config/master║
+   ║  — jadi tiga belas kontrak tidak pernah terlihat siapa pun, nilainya tidak║
+   ║  pernah masuk hitungan KPI SLA, dan akhir kontraknya tidak pernah muncul  ║
+   ║  di pengingat.                                                           ║
+   ║                                                                          ║
+   ║  Tidak ada yang menyadarinya karena layarnya tetap terisi. Daftar yang    ║
+   ║  memuat 3 dari 16 terlihat persis seperti daftar yang lengkap.           ║
+   ║                                                                          ║
+   ║  DIPISAH dari impor master rekanan, bukan digabung dengan penebakan       ║
+   ║  bentuk sheet. Keduanya menulis ke tempat yang berbeda — rekanan ke       ║
+   ║  koleksi agava_vendors, kontrak ke agava_config/master — dan salah tebak  ║
+   ║  berarti data mendarat di tempat yang salah tanpa ada yang tahu.          ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+async function kontrakImportPick(input){
+ var f=(input.files||[])[0]; input.value=""; if(!f) return;
+ if(!vendorImportBoleh()){ alert("⛔ Hanya Procurement, Section/Dept Head, atau Administrator yang dapat mengimpor kontrak."); return; }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — impor ke cloud diblokir.\nJalankan dari situs AGAVA yang asli."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak tersambung — impor butuh koneksi."); return; }
+ /* Pagar yang sama dengan dbSaveMaster: jangan menulis sebelum mendengar.
+    Mengimpor sebelum salinan cloud tiba berarti menimpa kontrak yang ada
+    dengan daftar yang belum lengkap. */
+ if(!AGDB.masterEcho){ alert("Tunggu sebentar — salinan data dari cloud belum diterima.\n\nMengimpor sekarang berisiko menimpa kontrak yang sudah ada. Coba lagi beberapa detik."); return; }
+ try{
+   var wb=XLSX.read(await f.arrayBuffer(),{type:"array",cellDates:true});
+   var pola=/nama\s*vendor|^\s*vendor\s*$/i;
+   var rows=[], dipakai=[];
+   for(var i=0;i<wb.SheetNames.length;i++){
+     var sh=wb.Sheets[wb.SheetNames[i]];
+     var grid=XLSX.utils.sheet_to_json(sh,{header:1,defval:""});
+     for(var b=0;b<Math.min(grid.length,15);b++){
+       if((grid[b]||[]).some(function(c){ return pola.test(String(c||"").trim()); })){
+         var r=XLSX.utils.sheet_to_json(sh,{defval:"",range:b});
+         if(r.length){ rows=rows.concat(r); dipakai.push(wb.SheetNames[i]); }
+         break;
+       }
+     }
+   }
+   if(!rows.length){ alert("Tidak ada sheet dengan kolom \"Nama Vendor\".\n\nSheet diperiksa: "+wb.SheetNames.join(", ")); return; }
+
+   var norm=function(s){ return String(s).toLowerCase().replace(/[\s_.()-]+/g,""); };
+   var amb=function(r){ var ks=[].slice.call(arguments,1);
+     for(var a=0;a<ks.length;a++){ for(var k in r){
+       if(norm(k)===norm(ks[a])){ var v=r[k]; if(v!==""&&v!=null) return v; } } } return ""; };
+   var tgl=function(v){ if(!v) return "";
+     if(v instanceof Date){ return v.getFullYear()+"-"+String(v.getMonth()+1).padStart(2,"0")+"-"+String(v.getDate()).padStart(2,"0"); }
+     return String(v).trim(); };
+
+   var baru=rows.map(function(r){
+     var nama=String(amb(r,"nama vendor","vendor")||"").trim();
+     if(!nama) return null;
+     return { vendor:nama,
+       scope:String(amb(r,"lingkup","scope","pekerjaan")||"").trim(),
+       site:String(amb(r,"site","lokasi")||"").trim(),
+       start:tgl(amb(r,"mulai","start")), end:tgl(amb(r,"akhir","end","berakhir")),
+       value:(parseFloat(String(amb(r,"nilai (rp juta)","nilai","value")).replace(/[^0-9.]/g,""))||0),
+       type:String(amb(r,"tipe","type")||"").trim(),
+       pic:String(amb(r,"pic")||"").trim(),
+       email:String(amb(r,"email")||"").trim(),
+       sla:(function(){ var s=amb(r,"sla"); return (s===""||s==null)?null:(parseFloat(s)||null); })() };
+   }).filter(Boolean);
+   if(!baru.length){ alert("Sheet terbaca, tetapi tidak ada baris dengan nama vendor terisi."); return; }
+
+   /* Dicocokkan pada vendor+site+lingkup: yang sama DIPERBARUI, yang belum ada
+      DITAMBAH. Tidak ada yang dihapus — impor bukan perintah menghapus. */
+   var ada=DB_SETS.contracts.get();
+   var kunci=function(c){ return norm(c.vendor)+"|"+norm(c.site)+"|"+norm(c.scope); };
+   var peta={}; ada.forEach(function(c,i){ peta[kunci(c)]=i; });
+   var perbarui=0, tambah=0;
+   baru.forEach(function(c){ var k=kunci(c);
+     if(peta[k]!==undefined){ Object.assign(ada[peta[k]],c); perbarui++; }
+     else { ada.push(c); peta[k]=ada.length-1; tambah++; } });
+
+   if(!confirm("Impor kontrak dari sheet \""+dipakai.join(", ")+"\"?\n\n"+
+       "· "+tambah+" kontrak BARU ditambahkan\n"+
+       "· "+perbarui+" kontrak yang sudah ada diperbarui\n"+
+       "· total menjadi "+ada.length+" kontrak\n\n"+
+       "Tidak ada kontrak yang dihapus.")){
+     /* dibatalkan — kembalikan keadaan semula dengan memuat ulang dari cloud */
+     location.reload(); return;
+   }
+   dbSaveMaster();
+   try{ auditLog("kontrak-impor", tambah+" baru + "+perbarui+" diperbarui dari "+f.name); }catch(e){}
+   try{ renderVendor(); renderOverview(); renderReminder(); }catch(e){}
+   alert("✅ "+ada.length+" kontrak tersimpan ("+tambah+" baru, "+perbarui+" diperbarui).\n\n"+
+     "Tersimpan di cloud, bukan di dalam kode — hanya terbaca oleh yang sudah login.");
+ }catch(e){
+   console.warn("kontrakImport:",e);
+   alert("Gagal membaca berkas: "+((e&&e.message)||"tidak dikenali"));
+ }
+}
 function renderVendor(){
  const el=document.getElementById("page-vendor"); if(!el)return;
  const b=vendorBudget();
@@ -18119,7 +18214,8 @@ function renderVendor(){
       ${sumberBadge}${VENDOR_SUMBER.at?`<span class="muted small">dimuat ${esc(VENDOR_SUMBER.at)}</span>`:""}
       <span style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button class="btn-out" onclick="vendorMasterLoad()">↻ Muat ulang</button>${tombolSP}
-        ${vendorImportBoleh()?`<label class="btn-act" style="cursor:pointer;display:inline-flex;align-items:center">📥 Impor dari Excel<input type="file" accept=".xlsx,.xls" style="display:none" onchange="vendorImportPick(this)"/></label>`:''}</span>
+        ${vendorImportBoleh()?`<label class="btn-act" style="cursor:pointer;display:inline-flex;align-items:center">📥 Impor Rekanan<input type="file" accept=".xlsx,.xls" style="display:none" onchange="vendorImportPick(this)"/></label>
+        <label class="btn-out" style="cursor:pointer;display:inline-flex;align-items:center">📄 Impor Kontrak<input type="file" accept=".xlsx,.xls" style="display:none" onchange="kontrakImportPick(this)"/></label>`:''}</span>
     </div>
     ${VENDORS.length?'':`<div class="card pad" style="background:var(--amber-s);border:1px solid #f0dcb4;margin-bottom:14px;font-size:calc(12.5px*var(--fz));line-height:1.6">
       <b>Daftar rekanan masih kosong — dan ini menghentikan Sourcing.</b><br>
@@ -19661,7 +19757,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-239";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-240";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
