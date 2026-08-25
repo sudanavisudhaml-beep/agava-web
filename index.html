@@ -16057,10 +16057,15 @@ async function soStep(no){
    try{ auditLog("spk-terbit", no+" · "+nomor+" · Rp "+rpFmt(n)+
      " · "+(adaUpr?("nilai dari "+s.upr.no):"TANPA UPR — nilai diketik manual")); }catch(e){}
  } else if(w===3){
-   s.wstep=4; s.ts.bast=nowStamp(); s.tsf.bast=nowStampDoc();
-   s.bastDate=TODAY_STR; s.invStatus="Menunggu Invoice";
-   patch.bastDate=s.bastDate; patch.invStatus=s.invStatus;
-   patch["ts.bast"]=s.ts.bast; patch["tsf.bast"]=s.tsf.bast;
+   /* ── TOMBOL BAST MEMBUKA LAYARNYA, BUKAN MENSTEMPELNYA (25 Agu 2026) ──────
+      Dulu satu klik di sini langsung menyetel "Menunggu Invoice" — tanpa
+      berkas, tanpa tanda tangan, tanpa apa pun. SO masuk antrean pembayaran
+      hanya karena ada yang menekan tombol.
+
+      Ini pola yang sama yang sudah diperbaiki untuk Sourcing (w=0) dan UPR
+      (w=1): cap waktu dibubuhkan oleh langkah yang benar-benar menuntaskan
+      pekerjaan, bukan oleh klik yang melewatinya. BAST giliran terakhir. */
+   openBAST(no); return;
  } else return;
  soAgingSegarkan(s);
  patch.wstep=s.wstep; patch.aging=s.aging;
@@ -17230,24 +17235,114 @@ function sendSPK(no){
    "\n\nJejak: "+s.no+((s.upr&&s.upr.no)?(" · "+s.upr.no):" · tanpa UPR")+(s.fromTicket?(" · "+s.fromTicket):"")+
    "\nStatus: SPK Terkirim");
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  BAST — BERKAS SUNGGUHAN, BUKAN SIMULASI (25 Agu 2026)                   ║
+   ║                                                                          ║
+   ║  Sebelum ini laci BAST hanya punya satu kolom teks bertuliskan "Tempel    ║
+   ║  nama file (simulasi upload)". Nama berkasnya dicatat, berkasnya tidak    ║
+   ║  ada di mana pun. Padahal BAST-lah dokumen yang membuka pintu pembayaran: ║
+   ║  Juklak menuntutnya "lengkap dengan foto atau dokumentasi hasil kerja,    ║
+   ║  ditandatangani User Penerima minimal department head".                   ║
+   ║                                                                          ║
+   ║  Ironi yang harus disebut: tiket Field Ops senilai nol rupiah WAJIB foto  ║
+   ║  bukti untuk bisa ditutup. Pekerjaan puluhan juta tidak.                  ║
+   ║                                                                          ║
+   ║  Selama jalur vendor belum hidup, Staff yang mengunggah atas nama vendor  ║
+   ║  — vendor tetap mengirim BAST lewat email biasa. Yang berubah nanti hanya ║
+   ║  DARI MANA berkasnya datang, bukan alurnya.                              ║
+   ║                                                                          ║
+   ║  Unggahannya memakai jalur yang sama dengan lampiran SO, jadi ia mewarisi ║
+   ║  perilaku yang sudah terbukti — termasuk penandaan jujur ketika berkas    ║
+   ║  gagal naik ke cloud dan tidak akan terlihat pejabat lain.                ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+let BAST_PILIH=null;      /* {name,url} berkas yang sedang dipilih di laci */
+function bastPick(input){
+ var f=(input.files||[])[0]; input.value="";
+ if(!f) return;
+ if(f.size>8*1024*1024){ alert("Berkas terlalu besar ("+(f.size/1024/1024).toFixed(1)+" MB).\n\nBatas 8 MB — pindai ulang dengan resolusi lebih rendah."); return; }
+ var rd=new FileReader();
+ rd.onload=function(e){
+   BAST_PILIH={name:f.name, url:String(e.target.result||"")};
+   var el=document.getElementById("bast-nama");
+   if(el) el.innerHTML='📎 <b>'+esc(f.name)+'</b> · '+(f.size/1024).toFixed(0)+' KB';
+ };
+ rd.readAsDataURL(f);
+}
 function openBAST(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
+ BAST_PILIH=null;
+ var b=s.bast||null;
  document.getElementById("drawer").innerHTML=`
-  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">Kirim BAST — ${s.no}</div><div class="muted small" style="margin-top:4px">Upload BAST ber-ttd (Section → Dept Head), kirim balik ke vendor</div></div>
+  <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">BAST — ${s.no}</div><div class="muted small" style="margin-top:4px">Unggah BAST dari vendor; tersimpan sebagai berkas, bukan sekadar nama</div></div>
   <div class="db">
-    <div class="muted small">SPK: ${s.spkNo||'—'} · Vendor: ${s.vendor||'—'}</div>
-    <div class="field" style="margin-top:12px"><label>Upload BAST lengkap ttd (PDF)</label><input id="bast-file" placeholder="Tempel nama file (simulasi upload)"/></div>
-    <div class="card pad" style="background:#f8fafd;font-size:calc(12.5px*var(--fz));margin-top:8px">BAST akan dikirim balik ke <b>${s.vendor||'vendor'}</b> & tercatat di <b>Payment Tracker</b> (status: Menunggu Invoice).</div>
-    <button class="btn-act" style="width:100%;margin-top:14px" onclick="sendBAST('${s.no}')">Submit BAST & Kirim ke Vendor</button>
+    <div class="spk-jejak">
+      <div><span>No SO</span><b>${esc(s.no)}</b></div>
+      <div><span>No SPK</span><b>${esc(s.spkNo||"— belum ada —")}</b></div>
+      <div><span>Rekanan</span><b>${esc(s.vendor||(s.upr&&s.upr.pilih)||"—")}</b></div>
+    </div>
+    ${b&&b.file?`<div class="card pad" style="background:var(--green-s);border:1px solid #bfe3cd;font-size:calc(12.5px*var(--fz));margin-bottom:12px">
+      ✅ BAST tersimpan: <b>${esc(b.file.name||"berkas")}</b><br>
+      <span class="muted small">Diunggah ${esc(b.by||"—")} · ${esc(b.at||"—")}${b.ttdLengkap?" · sudah lengkap tanda tangan":" · <b>belum</b> lengkap tanda tangan"}</span>
+      ${String(b.file.url||"").indexOf("http")===0?`<br><a href="${b.file.url}" target="_blank" rel="noopener">Buka berkas →</a>`:'<br><span style="color:var(--red)">⚠️ Berkas hanya ada di perangkat pengunggah — belum naik ke cloud</span>'}
+    </div>`:''}
+    <div class="field"><label>${b&&b.file?'Ganti berkas BAST':'Unggah BAST'} <span class="muted small">— PDF atau hasil pindaian</span></label>
+      <input type="file" accept="image/*,.pdf,application/pdf" onchange="bastPick(this)"/>
+      <div id="bast-nama" class="muted small" style="margin-top:6px">belum ada berkas dipilih</div></div>
+    <div class="field"><label><input type="checkbox" id="bast-ttd" ${b&&b.ttdLengkap?'checked':''}/> BAST sudah lengkap ditandatangani (PIC penerima &amp; Dept Head)</label>
+      <div class="muted small" style="margin-top:4px;line-height:1.5">Selama belum dicentang, SO ini <b>tidak masuk Payment Tracker</b>. Vendor baru boleh menagih setelah BAST lengkap.</div></div>
+    <div class="field"><label>Catatan (opsional)</label><input id="bast-catatan" value="${esc((b&&b.catatan)||"")}" placeholder="mis. pekerjaan selesai 22 Agu, diperiksa bersama PIC"/></div>
+    <button class="btn-act" style="width:100%;margin-top:6px" onclick="simpanBAST('${String(s.no).replace(/"/g,'')}')">Simpan BAST</button>
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
-function sendBAST(no){
- var s=SO.find(x=>x.no===no); if(!s)return;
- s.ts.bast=nowStamp(); s.bastDate=TODAY_STR; s.wstep=4; s.invStatus="Menunggu Invoice"; s.stage=7;
- closeDrawer(); renderAssigned(); renderProc(); renderPayment(); navSetActive(); updateBell();
- alert("✅ BAST submitted & dikirim balik ke "+(s.vendor||"vendor")+".\nMuncul di Payment Tracker — status: Menunggu Invoice (SLA 5 hari kerja).");
+async function simpanBAST(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s)return;
+ var ttd=!!(document.getElementById("bast-ttd")||{}).checked;
+ var catatan=String((document.getElementById("bast-catatan")||{}).value||"").trim();
+ var lama=s.bast||null;
+ if(!BAST_PILIH && !(lama&&lama.file)){ alert("Pilih berkas BAST-nya dulu.\n\nBAST adalah dokumen yang membuka pintu pembayaran — ia harus benar-benar tersimpan, bukan sekadar dicatat namanya."); return; }
+ /* Ceklis tanda tangan adalah PERNYATAAN, bukan formalitas: ia yang membuka
+    Payment Tracker. Jadi ia diminta secara sadar, bukan tercentang diam-diam. */
+ await agavaSekaliJalan("bast-"+no,null,null,async function(){
+   var berkas=(lama&&lama.file)||null;
+   if(BAST_PILIH){
+     var hasil=await soUploadAttachments({images:[],pdfs:[BAST_PILIH]},no);
+     berkas=(hasil.pdfs&&hasil.pdfs[0])||BAST_PILIH;
+   }
+   s.bast={ file:berkas, by:(gUser&&gUser.name)||"", at:nowStamp(),
+            ttdLengkap:ttd, catatan:catatan };
+   s.ts=s.ts||{}; s.tsf=s.tsf||{};
+   if(!s.ts.bast){ s.ts.bast=nowStamp(); s.tsf.bast=nowStampDoc(); s.bastDate=TODAY_STR; }
+   s.wstep=Math.max(s.wstep||0,4); s.stage=Math.max(s.stage||0,7);
+   /* ── GERBANG PAYMENT TRACKER ────────────────────────────────────────────
+      Dulu status "Menunggu Invoice" dibubuhkan oleh satu klik tombol BAST,
+      tanpa berkas dan tanpa tanda tangan. Sekarang ia hanya terbuka bila BAST
+      benar-benar ada DAN dinyatakan lengkap ttd — sesuai Juklak: invoice
+      dibayar setelah SPK/PKS dan BAST lengkap dan disetujui. */
+   s.invStatus = ttd ? "Menunggu Invoice" : "";
+   soPersist();
+   try{ auditLog("bast-simpan", no+" · "+((berkas&&berkas.name)||"berkas")+
+     " · "+(ttd?"lengkap ttd → masuk Payment Tracker":"BELUM lengkap ttd")); }catch(e){}
+   closeDrawer();
+   try{ renderAssigned(); renderProc(); renderPayment(); renderReminder(); updateBell(); }catch(e){}
+   var cloud=(berkas&&String(berkas.url||"").indexOf("http")===0);
+   alert("✅ BAST tersimpan untuk "+no+
+     (ttd ? "\n\nLengkap tanda tangan → SO masuk Payment Tracker (Menunggu Invoice)."
+          : "\n\nBelum dicentang lengkap tanda tangan → SO BELUM masuk Payment Tracker.")+
+     (cloud ? "\n\n☁️ Berkas tersimpan di cloud — pejabat lain bisa membukanya."
+            : "\n\n⚠️ Berkas GAGAL naik ke cloud dan hanya ada di perangkat ini. Pejabat lain TIDAK akan bisa membukanya — coba lagi saat koneksi membaik."));
+ });
 }
+/* sendBAST() DIBUANG (25 Agu 2026) — ia menyetel "Menunggu Invoice" tanpa
+   berkas, tanpa tanda tangan, dan TANPA MENYIMPAN sama sekali (cacat yang sama
+   dengan modul Payment dan sendSPK). Satu klik memasukkan SO ke antrean
+   pembayaran, lalu hilang begitu halaman dimuat ulang.
+
+   Penggantinya simpanBAST(), yang menuntut berkas sungguhan dan pernyataan
+   kelengkapan tanda tangan sebelum gerbang Payment Tracker terbuka.
+
+   Nama "sendBAST" masih terdaftar sebagai endpoint Power Automate — itu hal
+   yang berbeda: pengiriman email BAST balik ke vendor, belum dihidupkan. */
 
 /* ============ AGAVA COPILOT (simulated AI + CHAT-TO-TICKET) ============
    Chat-to-ticket = simulasi Fase 2 (Copilot Studio di Teams): Copilot mengenali
@@ -19457,7 +19552,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-234";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-235";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
