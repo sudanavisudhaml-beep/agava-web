@@ -17923,23 +17923,45 @@ async function vendorImportPick(input){
  try{
    var buf=await f.arrayBuffer();
    var wb=XLSX.read(buf,{type:"array",cellDates:true});
-   /* Sheet dipilih dari ISINYA, bukan dari namanya. Nama sheet berbeda-beda
-      antar berkas; yang tidak berubah adalah adanya kolom nama rekanan. */
-   var pakai="", rows=[];
+   /* ── HEADER DICARI, BUKAN DIASUMSIKAN DI BARIS PERTAMA ────────────────────
+      Berkas Excel Astra hampir selalu diawali baris judul yang di-merge
+      ("VENDOR RUTIN GA DEPT 2025"), kadang diikuti baris kosong, baru
+      headernya. Membaca baris pertama sebagai header membuat seluruh kolom
+      terbaca sebagai __EMPTY dan berkasnya ditolak — padahal isinya benar.
+
+      Jadi header dicari: baris pertama dalam 15 baris teratas yang memuat sel
+      bernama vendor/rekanan. Sheet juga dipilih dari ISINYA, bukan namanya. */
+   /* SEMUA sheet yang cocok dibaca, bukan yang pertama saja. Berkas master
+      rekanan Astra lazim memisahkan "Rutin" dan "Non Rutin" ke sheet berbeda —
+      berhenti di sheet pertama berarti separuh rekanan hilang tanpa ada yang
+      menyadarinya, karena impornya tetap terlihat berhasil. */
+   var rows=[], dipakai=[];
+   var polaNama=/nama\s*(vendor|rekanan|partner|supplier)|^\s*(nama|vendor|rekanan|partner|supplier)\s*$/i;
    for(var i=0;i<wb.SheetNames.length;i++){
-     var r=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[i]],{defval:""});
-     if(r.length && r.some(function(x){ return Object.keys(x).some(function(k){ return /nama.*(vendor|rekanan)|^\s*(nama|vendor|rekanan)\s*$/i.test(String(k)); }); })){
-       pakai=wb.SheetNames[i]; rows=r; break;
+     var sh=wb.Sheets[wb.SheetNames[i]];
+     var grid=XLSX.utils.sheet_to_json(sh,{header:1,defval:""});
+     for(var b=0;b<Math.min(grid.length,15);b++){
+       if((grid[b]||[]).some(function(c){ return polaNama.test(String(c||"").trim()); })){
+         var r=XLSX.utils.sheet_to_json(sh,{defval:"",range:b});
+         if(r.length){ rows=rows.concat(r); dipakai.push(wb.SheetNames[i]+" (baris "+(b+1)+")"); }
+         break;
+       }
      }
    }
-   if(!rows.length){ alert("Tidak ada sheet yang memuat kolom nama rekanan.\n\nPastikan ada kolom berjudul \"Nama\", \"Vendor\", atau \"Nama Vendor\"."); return; }
+   if(!rows.length){
+     alert("Tidak ada sheet yang memuat kolom nama rekanan.\n\n"+
+       "Dicari kolom berjudul \"Nama Vendor\", \"Nama Rekanan\", \"Vendor\", atau \"Nama\" "+
+       "di 15 baris teratas tiap sheet.\n\nSheet yang diperiksa: "+wb.SheetNames.join(", "));
+     return;
+   }
+   var pakai=dipakai.join(" + ");
    var siap=rows.map(vendorNorm).filter(function(v){ return v.nama; });
    if(!siap.length){ alert("Sheet \""+pakai+"\" terbaca, tetapi tidak ada baris dengan nama rekanan terisi."); return; }
    /* Nama yang sama muncul berkali-kali di berkas kontrak — disatukan di sini
       supaya tidak melahirkan rekanan kembar yang membingungkan saat Sourcing. */
    var unik={}; siap.forEach(function(v){ var k=v.nama.trim().toLowerCase(); if(!unik[k]) unik[k]=v; });
    var daftar=Object.keys(unik).map(function(k){ return unik[k]; });
-   if(!confirm("Impor "+daftar.length+" rekanan dari sheet \""+pakai+"\"?\n\n"+
+   if(!confirm("Impor "+daftar.length+" rekanan?\n\nSumber: "+pakai+"\n\n"+
        daftar.slice(0,5).map(function(v){return "· "+v.nama;}).join("\n")+
        (daftar.length>5?("\n… dan "+(daftar.length-5)+" lainnya"):"")+
        "\n\nRekanan bernama sama akan diperbarui, bukan digandakan.")) return;
@@ -19638,7 +19660,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-237";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-238";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
