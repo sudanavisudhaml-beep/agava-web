@@ -17869,26 +17869,27 @@ window.agavaFlowCallback=applyFlowCallback;
    Running contracts + budget consumption (pulled into Overview) + SLA scoring
    form (feeds the vendor performance in Service once criteria file is loaded). */
 /* Real 2026 contracts (DATABASE PROCUREMENT — Monitoring Vendor Rutin). value in Rp juta. */
-let VENDOR_CONTRACTS=[
- {vendor:"PT ISS Indonesia",            scope:"Cleaning & Gondola",        site:"AMDI Sunter",  start:"2026-01-01", end:"2026-12-31", value:4279.2, type:"HK", pic:"Uhen",     email:"uhen.suhendra@id.issworld.com", sla:null},
- {vendor:"PT ISS Indonesia",            scope:"Cleaning & Gondola",        site:"Menara Astra", start:"2026-01-01", end:"2026-12-31", value:2300.4, type:"HK", pic:"Uhen",     email:"uhen.suhendra@id.issworld.com", sla:null},
- {vendor:"PT ISS Indonesia",            scope:"Cleaning & Gondola",        site:"ABC BSD",      start:"2026-01-01", end:"2026-12-31", value:860.5,  type:"HK", pic:"Uhen",     email:"uhen.suhendra@id.issworld.com", sla:null},
- {vendor:"PT Pro Pacific",              scope:"Cleaning Service",          site:"Bandung",      start:"2026-01-01", end:"2026-12-31", value:786.9,  type:"HK", pic:"Julius",   email:"julius@propac.co.id", sla:null},
- {vendor:"PT Postiga Sejahtera",        scope:"Pest Control",              site:"ABC BSD",      start:"2026-01-01", end:"2026-12-31", value:138.8,  type:"HK", pic:"Azis",     email:"azis.kamal@gmail.com", sla:null},
- {vendor:"PT Rentokil Indonesia",       scope:"Pest Control",              site:"AMDI Sunter",  start:"2026-01-01", end:"2026-12-31", value:120.8,  type:"HK", pic:"Oki",      email:"oki.arizky@rentokil-initial.com", sla:null},
- {vendor:"PT Ecocare",                  scope:"Hygiene Equipment Rental",  site:"AMDI Sunter",  start:"2026-01-01", end:"2026-12-31", value:220.8,  type:"HK", pic:"Rita Tetty",email:"rita.tettynurhayati@ecocare.co.id", sla:null},
- {vendor:"PT Frenkie Nursery Landscape",scope:"Garden Maintenance",        site:"ABC BSD",      start:"2026-01-01", end:"2026-12-31", value:538.1,  type:"HK", pic:"Ferdinand", email:"management@fnl.co.id", sla:null},
- {vendor:"PT Sinar Rajawali Sejahtera", scope:"Garden Maintenance",        site:"AMDI Sunter",  start:"2026-01-01", end:"2026-12-31", value:388.0,  type:"HK", pic:"Theo",     email:"sinarrajawalisejahtera@gmail.com", sla:null},
- {vendor:"PT Global Service Indonesia", scope:"Admin, Receptionist & LO",  site:"Menara Astra", start:"2026-01-01", end:"2026-12-31", value:604.9,  type:"GS", pic:"Ruth",     email:"ruth.ms@globalservice.co.id", sla:null},
- {vendor:"PT Berca Schindler Lifts",    scope:"Lift Maintenance",          site:"ABC BSD",      start:"2026-01-01", end:"2026-12-31", value:87.4,   type:"BM", pic:"Haris",    email:"haris.setyawan@schindler.com", sla:null},
- {vendor:"PT Jaya Kencana",             scope:"Lift Maintenance",          site:"AMDI Sunter",  start:"2026-01-01", end:"2026-12-31", value:199.6,  type:"BM", pic:"Eka Nur",   email:"eka.nur@jayakencana.com", sla:null},
- {vendor:"PT Master Engineering Service",scope:"Electrical Maintenance",   site:"AMDI Sunter",  start:"2026-01-01", end:"2026-12-31", value:1445.0, type:"BM", pic:"Christina", email:"christina21.mes@gmail.com", sla:null},
- {vendor:"PT Delta Enviro Indonesia",   scope:"STP Management",            site:"AMDI Sunter",  start:"2026-01-01", end:"2026-12-31", value:403.2,  type:"BM", pic:"",         email:"", sla:null},
- {vendor:"PT Metro Teknik Indonesia",   scope:"AC & Chiller Maintenance",  site:"AMDI Sunter",  start:"2026-01-01", end:"2026-05-31", value:221.2,  type:"BM", pic:"",         email:"", sla:null},
- {vendor:"PT Berca Carrier Indonesia",  scope:"AC & Chiller Maintenance",  site:"AMDI Sunter",  start:"2026-06-01", end:"2026-12-31", value:113.9,  type:"BM", pic:"",         email:"", sla:null},
- {vendor:"PT Secure Parking Indonesia", scope:"Parking System",            site:"ABC BSD",      start:"2026-01-01", end:"2026-12-31", value:636.6,  type:"GS", pic:"",         email:"", sla:null},
- {vendor:"PT APKI",                     scope:"Fitness Management",        site:"Menara Astra", start:"2026-01-01", end:"2026-12-31", value:187.3,  type:"GS", pic:"",         email:"", sla:null}
-];
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  KONTRAK VENDOR TIDAK LAGI DITULIS DI SINI (25 Agu 2026)                 ║
+   ║                                                                          ║
+   ║  Daftar ini dulu memuat 18 baris kontrak: nama rekanan, lingkup, site,   ║
+   ║  NILAI KONTRAK, nama PIC, dan alamat email mereka. Seluruhnya ikut       ║
+   ║  ter-compile ke berkas ini — dan berkas ini dilayani PUBLIK. Siapa pun   ║
+   ║  yang membuka alamat AGAVA menerima daftarnya, tanpa login, tanpa apa    ║
+   ║  pun. Menutup Firestore pada 20 Agu tidak menyentuh ini sama sekali,     ║
+   ║  karena datanya tidak pernah lewat Firestore untuk sampai ke peramban.   ║
+   ║                                                                          ║
+   ║  Sumbernya sekarang agava_config/master, yang memang SUDAH menyimpannya  ║
+   ║  selama ini lewat dbSaveMaster() — array di sini hanya benih awal yang    ║
+   ║  sudah lama tidak diperlukan. Sejak firestore.rules aktif, dokumen itu   ║
+   ║  hanya terbaca oleh yang sudah login.                                    ║
+   ║                                                                          ║
+   ║  Salinan cadangan sebelum pencabutan ada di AGAVA-Vault, di luar repo.   ║
+   ║                                                                          ║
+   ║  JANGAN mengisi array ini lagi. Menambah kontrak dilakukan lewat editor  ║
+   ║  Master Data di aplikasi, yang menulis ke cloud.                          ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+let VENDOR_CONTRACTS=[];
 function ctStatus(c){ const e=new Date(c.end+"T00:00:00"), t=new Date(TODAY_STR+"T00:00:00"); if(isNaN(e))return"Active"; const d=(e-t)/86400000; return d<0?"Expired":d<=90?"Expiring":"Active"; }
 function periodPct(c){ const s=new Date(c.start+"T00:00:00"),e=new Date(c.end+"T00:00:00"),t=new Date(TODAY_STR+"T00:00:00"); if(isNaN(s)||isNaN(e)||e<=s)return 0; return Math.max(0,Math.min(100,Math.round((t-s)/(e-s)*100))); }
 function vendorBudget(){ const tot=VENDOR_CONTRACTS.reduce((s,c)=>s+c.value,0); return {tot, active:VENDOR_CONTRACTS.filter(c=>ctStatus(c)==="Active").length, expiring:VENDOR_CONTRACTS.filter(c=>ctStatus(c)==="Expiring").length, expired:VENDOR_CONTRACTS.filter(c=>ctStatus(c)==="Expired").length, avgP:Math.round(VENDOR_CONTRACTS.reduce((s,c)=>s+periodPct(c),0)/VENDOR_CONTRACTS.length)}; }
@@ -19660,7 +19661,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-238";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-239";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -20039,7 +20040,10 @@ function dbListen(){
   },err=>{ cloudTurun("proyek",err&&err.code); }));
   /* Master data (STNK/PBB/Izin/Kontrak/Maintenance) — satu dokumen bersama */
   AGDB.lepas.push(AGDB.db.collection("agava_config").doc("master").onSnapshot(doc=>{
-    if(!doc.exists){ if(!doc.metadata.fromCache) dbSaveMaster(); return; }
+    /* Dokumen belum ada = memang perlu benih. Ditandai supaya pagar
+       "jangan menulis sebelum mendengar" di dbSaveMaster tidak menahannya. */
+    if(!doc.exists){ if(!doc.metadata.fromCache){ dbSaveMaster._benihAwal=true;
+        try{ dbSaveMaster(); } finally { dbSaveMaster._benihAwal=false; } } return; }
     const d=doc.data(); if(!d||!d.sets)return;
     const j=JSON.stringify(d.sets);
     if(j===AGDB.masterEcho)return;
@@ -20484,6 +20488,25 @@ function dbSimpanRiwayat(dok,sebelum,asal){
 function dbSaveMaster(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  if(!gUser||!gUser.name){ console.warn("Master: tulis cloud DITOLAK — belum login (pagar data bersama)"); return; }
+ /* ── JANGAN MENULIS SEBELUM MENDENGAR (25 Agu 2026) ────────────────────────
+    Sejak kontrak vendor dicabut dari kode, DB_SETS di perangkat yang baru
+    dimuat berisi array KOSONG sampai listener agava_config/master menyampaikan
+    isinya. Menulis pada jendela itu berarti mengirim kekosongan ke cloud dan
+    MENGHAPUS seluruh kontrak untuk semua orang — tanpa satu pun pesan galat,
+    karena tidak ada yang gagal.
+
+    Aturannya sama dengan yang sudah dipakai untuk lampiran dan master rekanan:
+    KOSONG BERARTI "BELUM TAHU", BUKAN "MEMANG TIDAK ADA". AGAVA tidak punya
+    fitur hapus-semua, jadi kosong tidak pernah menjadi perintah menghapus.
+
+    masterEcho hanya terisi oleh listener; selama ia kosong, kita belum pernah
+    mendengar apa pun dari cloud dan tidak berhak berbicara atas namanya.
+    Pengecualian: dokumennya memang belum ada — di situ menulis benih justru
+    yang diminta, dan pemanggilnya menandainya dengan benihAwal=true. */
+ if(!AGDB.masterEcho && !dbSaveMaster._benihAwal){
+   console.warn("Master: tulis DITAHAN — salinan cloud belum diterima, menulis sekarang berisiko mengosongkannya");
+   return;
+ }
  var out={}; Object.keys(DB_SETS).forEach(function(k){ out[k]=DB_SETS[k].get(); });
  var payload={sets:JSON.parse(JSON.stringify(out)), seed:{permits:PERMITS_SEED}, up:Date.now(), by:gUser.name};
  var j=JSON.stringify(payload.sets);
