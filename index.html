@@ -1024,6 +1024,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .ap-dok-w{margin-top:7px;font-size:calc(11px*var(--fz));line-height:1.5;color:#8a2b2b;
   background:var(--red-s);border:1px solid #e9c6c6;border-radius:8px;padding:6px 8px}
 .ap-dok .so-pdf{width:100%;margin-top:8px}
+/* ══ Daftar rekanan dikelompokkan per kategori layanan ══ */
+.vnd-grup-h{display:flex;align-items:center;gap:8px;margin:4px 0 7px;font-size:calc(12.5px*var(--fz));
+  font-weight:800;color:var(--ink);letter-spacing:.01em}
+.vnd-grup-h span{font-weight:700;font-size:calc(11px*var(--fz));color:var(--muted);
+  background:#eef2f7;border-radius:20px;padding:1px 9px}
+.vnd-klik{cursor:pointer;transition:background .12s}
+.vnd-klik:hover{background:#f4f8fc}
 /* ══ Jejak tiga nomor di laci SPK ══
    Satu pekerjaan bisa punya empat nomor: tiket → SO → UPR → SPK. Ditampilkan
    berjajar supaya penelusuran balik dari tagihan tidak bergantung pada ingatan
@@ -16161,6 +16168,59 @@ async function vendorMasterLoad(){
    }
  }catch(e){ console.warn("daftar rekanan dari Firestore gagal:",e&&e.code); }
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  KELOMPOK REKANAN = KATEGORI LAYANAN AGAVA (25 Agu 2026)                 ║
+   ║                                                                          ║
+   ║  Sebelum ini `grup` diisi apa adanya dari kolom BIDANG di berkas Excel.  ║
+   ║  Akibatnya 27 rekanan menghasilkan 27 kelompok berisi SATU anggota, dan  ║
+   ║  85 sisanya jatuh ke "Lainnya". Penyaring kelompok di Sourcing secara    ║
+   ║  teknis bekerja, tapi tidak menyaring apa pun — memilih dari 27 kelompok ║
+   ║  tunggal sama saja dengan memilih dari 112 nama.                          ║
+   ║                                                                          ║
+   ║  Sekarang kelompoknya memakai delapan kategori layanan yang SUDAH dipakai║
+   ║  di seluruh AGAVA (KATEGORI8) — sehingga kategori tiket, kategori SO,    ║
+   ║  dan kelompok rekanan berbicara dalam bahasa yang sama. Tiket "Building  ║
+   ║  & Utility" mengarah ke rekanan Building & Utility tanpa penerjemahan.   ║
+   ║                                                                          ║
+   ║  TEBAKAN ADALAH TEBAKAN. vendorTebakGrup() hanya membaca kata kunci dari ║
+   ║  bidang dan nama; ia sering benar dan kadang salah. Karena itu hasilnya  ║
+   ║  BISA DIKOREKSI per rekanan lewat layar detail, dan koreksi manusia      ║
+   ║  (v.grup yang tersimpan) SELALU menang atas tebakan mesin.               ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const VENDOR_GRUP_KOSONG="Belum dikelompokkan";
+const VENDOR_GRUP=KATEGORI8.concat([VENDOR_GRUP_KOSONG]);
+/* Kata kunci per kategori. Diurutkan dari yang paling khas ke paling umum —
+   pencocokan berhenti di yang pertama cocok, jadi urutannya bermakna. */
+const VENDOR_GRUP_KUNCI=[
+ ["HSE & Sustainability",        /limbah|b3|sampah|waste|solar\s*panel|lingkungan|k3|apar|damkar|safety/i],
+ ["Building & Utility",          /mekanikal|elektrikal|plumbing|chiller|\bac\b|genset|kelistrikan|listrik|lift|eskalator|fire\s*alarm|hidran|stp|pompa|utilitas|utility|gedung|building|sipil|konstruksi|hvac|panel|trafo/i],
+ ["Transport, Logistic & Document", /parkir|parking|kendaraan|motor|mobil|travel|tiket|kurir|ekspedisi|logistik|dokumen|arsip|fotocopy|percetakan/i],
+ ["Hospitality",                 /kopi|coffee|pantry|katering|catering|makan|fitnes|fitness|gym|kantin|kafe/i],
+ ["Room & Event",                /event|acara|sound|panggung|dekorasi|meeting|ruang\s*rapat/i],
+ ["Project Development",         /renovasi|proyek|project|interior|arsitek|desain|konsultan|rejuvenate/i],
+ /* Tenant & General Services SEBELUM Asset Management, dan bukan sebaliknya.
+    Diuji terhadap 112 rekanan nyata: "penyewaan alat hygiene" dan "jasa
+    pengamanan (… lahan asset)" tersedot ke Asset Management hanya karena kata
+    "penyewaan" dan "asset" muncul di teksnya — padahal keduanya jelas layanan
+    umum. Kata yang umum harus diperiksa BELAKANGAN, bukan duluan. */
+ ["Tenant & General Services",   /kebersihan|cleaning|gondola|taman|landscape|hama|pest|hygiene|pengharum|aquarium|roller\s*blind|dispenser|air\s*minum|amidis|administrasi|pengamanan|security|satpam|resepsionis|office\s*boy|\bob\b/i],
+ /* Dipersempit ke hal yang benar-benar soal pengelolaan aset — bukan setiap
+    kata "sewa" atau "asset" yang kebetulan lewat. */
+ ["Asset Management",            /inventar|kalibrasi|manajemen\s*aset|pengelolaan\s*aset|asset\s*management|aktiva/i]
+];
+function vendorTebakGrup(v){
+ var teks=[(v&&v.bidang)||"",(v&&v.jenis)||"",(v&&v.nama)||"",(v&&v.scope)||""].join(" ");
+ for(var i=0;i<VENDOR_GRUP_KUNCI.length;i++){
+   if(VENDOR_GRUP_KUNCI[i][1].test(teks)) return VENDOR_GRUP_KUNCI[i][0];
+ }
+ return VENDOR_GRUP_KOSONG;
+}
+/* Kelompok yang BERLAKU untuk satu rekanan: koreksi manusia dulu, baru tebakan. */
+function vendorGrup(v){
+ var g=(v&&v.grup)||"";
+ if(g && VENDOR_GRUP.indexOf(g)>=0) return g;
+ return vendorTebakGrup(v);
+}
 /* Bentuk baris dari SharePoint boleh berbeda-beda nama kolomnya — dirapikan di
    satu tempat supaya sisa aplikasi tidak perlu tahu asal-usulnya. */
 function vendorNorm(v){
@@ -16190,7 +16250,12 @@ function vendorNorm(v){
    akta:amb("akta","Akta"), spcv:amb("spcv","SPCV")||"Belum", spcvTgl:amb("spcvTgl","TanggalSPCV"),
    top:amb("top","SistemPembayaran"), adm:amb("adm","Administrasi")||"Belum",
    lampiran:amb("lampiran","Lampiran","Dokumen","Link","Hyperlink"),
-   catatan:amb("catatan","Catatan")};
+   catatan:amb("catatan","Catatan"),
+   /* Kelompok layanan. Kosong = biarkan vendorGrup() menebak dari bidang/nama;
+      begitu seseorang mengoreksinya lewat layar detail, nilainya tersimpan di
+      sini dan tebakan tidak lagi dipakai. */
+   grup:amb("grup","Grup","Kelompok","Kategori","KATEGORI"),
+   jabatan:amb("jabatan","Jabatan","JABATAN","Posisi")};
 }
 const VND_GRUP={HK:"Housekeeping & Kebersihan", BM:"Building Maintenance", GS:"General Services"};
 /* ── Daftar rekanan untuk Sourcing ─────────────────────────────────────────
@@ -16211,7 +16276,7 @@ function vendorDB(){
  });
  return ((typeof VENDORS!=="undefined")?VENDORS:[]).map(function(m){
    var k=String(m.nama||"").trim().toLowerCase(), c=kontrak[k]||{scope:[],site:[],nilai:0,sla:null,n:0};
-   return {vendor:m.nama, id:m.id||"", grup:m.bidang||"Lainnya", tipe:m.jenis||"",
+   return {vendor:m.nama, id:m.id||"", grup:vendorGrup(m), bidang:m.bidang||"", tipe:m.jenis||"",
      scope:(c.scope.length?c.scope:(m.bidang?[m.bidang]:[])),
      site:(c.site.length?c.site:(m.lokasi?[m.lokasi]:[])),
      pic:m.pic||"", email:m.email||"", telp:m.telp||"", alamat:m.alamat||"",
@@ -18000,6 +18065,80 @@ async function vendorImportPick(input){
    ║  koleksi agava_vendors, kontrak ke agava_config/master — dan salah tebak  ║
    ║  berarti data mendarat di tempat yang salah tanpa ada yang tahu.          ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  DETAIL & KOREKSI REKANAN (25 Agu 2026)                                  ║
+   ║                                                                          ║
+   ║  Impor Excel mengisi apa yang ADA di berkasnya. Berkas sumber Astra —    ║
+   ║  daftar kartu Lebaran dan monitoring kontrak — memuat nama PIC dan       ║
+   ║  alamat pos, tetapi TIDAK SATU PUN alamat email. Padahal Sourcing        ║
+   ║  membawa email rekanan ke UPR, dan permintaan penawaran dikirim ke sana. ║
+   ║                                                                          ║
+   ║  Tanpa layar ini, 112 rekanan masuk ke sistem tanpa cara menghubungi     ║
+   ║  mereka — daftar yang terlihat lengkap tetapi tidak bisa dipakai bekerja.║
+   ║                                                                          ║
+   ║  Disimpan per dokumen (merge), bukan menulis ulang seluruh koleksi:      ║
+   ║  dua orang boleh menyunting dua rekanan berbeda pada saat yang sama      ║
+   ║  tanpa saling menimpa.                                                   ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+let VENDOR_EDIT=null;
+function vendorDetail(id){
+ var v=(VENDORS||[]).filter(function(x){ return String(x.id)===String(id); })[0];
+ if(!v){ alert("Rekanan tidak ditemukan — coba muat ulang halaman."); return; }
+ VENDOR_EDIT=v;
+ var boleh=vendorImportBoleh();
+ var grupKini=vendorGrup(v), ditebak=!(v.grup&&VENDOR_GRUP.indexOf(v.grup)>=0);
+ var f=function(id,label,nilai,ph,tipe){
+   return '<div class="field"><label>'+esc(label)+'</label><input id="'+id+'" type="'+(tipe||"text")+
+     '" value="'+esc(nilai||"")+'" placeholder="'+esc(ph||"")+'"'+(boleh?"":" disabled")+'/></div>';
+ };
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+    '<div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">'+esc(v.nama)+'</div>'+
+    '<div class="muted small" style="margin-top:4px">'+(boleh?"Lengkapi keterangan yang dibutuhkan saat Sourcing &amp; UPR":"Mode baca — hanya Procurement/Section/Dept Head/Admin yang dapat menyunting")+'</div></div>'+
+  '<div class="db">'+
+    '<div class="field"><label>Kelompok layanan'+
+      (ditebak?' <span class="muted small">— saat ini <b>ditebak</b> dari bidang/nama; pilih untuk menetapkan</span>':'')+
+      '</label><select id="vd-grup" class="upr-pl-sel"'+(boleh?"":" disabled")+'>'+
+      VENDOR_GRUP.map(function(g){ return '<option value="'+esc(g)+'"'+(g===grupKini?' selected':'')+'>'+esc(g)+'</option>'; }).join("")+
+    '</select></div>'+
+    (v.bidang?'<div class="muted small" style="margin:-6px 0 12px">Bidang dari berkas sumber: <b>'+esc(v.bidang)+'</b></div>':'')+
+    '<div class="two" style="gap:0 12px">'+f("vd-pic","PIC",v.pic,"nama orang yang dihubungi")+f("vd-jabatan","Jabatan",v.jabatan,"mis. Direktur")+'</div>'+
+    '<div class="two" style="gap:0 12px">'+
+      f("vd-email","Email <span style=\"color:var(--red)\">*</span>",v.email,"dipakai kirim permintaan penawaran","email")+
+      f("vd-telp","Telepon",v.telp,"08xx / 021-xxx")+'</div>'+
+    (v.email?'':'<div class="ap-dok-w" style="margin:-6px 0 12px">⚠️ Belum ada email. Rekanan ini <b>tidak bisa dikirimi permintaan penawaran</b> dari Sourcing.</div>')+
+    f("vd-lokasi","Lokasi / site",v.lokasi,"mis. Menara Astra")+
+    f("vd-alamat","Alamat",v.alamat,"alamat kantor")+
+    '<div class="two" style="gap:0 12px">'+f("vd-npwp","NPWP",v.npwp,"")+f("vd-top","Sistem pembayaran",v.top,"mis. 30 hari")+'</div>'+
+    f("vd-catatan","Catatan",v.catatan,"hal yang perlu diketahui saat menunjuk rekanan ini")+
+    (boleh?'<button class="btn-act" style="width:100%;margin-top:6px" onclick="vendorSimpan()">Simpan</button>':'')+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+}
+async function vendorSimpan(){
+ var v=VENDOR_EDIT; if(!v) return;
+ if(!vendorImportBoleh()){ alert("⛔ Anda tidak berwenang menyunting data rekanan."); return; }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — penyimpanan ke cloud diblokir."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak tersambung — perubahan tidak dapat disimpan."); return; }
+ var g=function(id){ var e=document.getElementById(id); return e?String(e.value||"").trim():""; };
+ var email=g("vd-email");
+ if(email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ alert("Alamat email tidak berbentuk benar:\n"+email); return; }
+ var patch={ grup:g("vd-grup"), pic:g("vd-pic"), jabatan:g("vd-jabatan"), email:email,
+   telp:g("vd-telp"), lokasi:g("vd-lokasi"), alamat:g("vd-alamat"),
+   npwp:g("vd-npwp"), top:g("vd-top"), catatan:g("vd-catatan") };
+ try{
+   /* merge per dokumen — tidak menyentuh rekanan lain, jadi dua orang boleh
+      menyunting dua rekanan berbeda pada saat bersamaan. */
+   await AGDB.db.collection("agava_vendors").doc(String(v.id)).set(patch,{merge:true});
+   Object.assign(v,patch);
+   try{ auditLog("vendor-sunting", v.nama+" · kelompok "+patch.grup+(patch.email?(" · email "+patch.email):" · tanpa email")); }catch(e){}
+   closeDrawer();
+   try{ renderVendor(); if(active==="sourcing") renderSourcing(); }catch(e){}
+ }catch(e){
+   console.warn("vendorSimpan:",e);
+   alert("Gagal menyimpan: "+((e&&e.code)||e&&e.message||"tidak diketahui"));
+ }
+}
 async function kontrakImportPick(input){
  var f=(input.files||[])[0]; input.value=""; if(!f) return;
  if(!vendorImportBoleh()){ alert("⛔ Hanya Procurement, Section/Dept Head, atau Administrator yang dapat mengimpor kontrak."); return; }
@@ -18152,13 +18291,31 @@ function renderVendor(){
    ? `<a class="btn-act" href="${esc(VENDOR_SHAREPOINT_URL)}" target="_blank" rel="noopener">Buka & ubah di SharePoint</a>`
    : `<span class="muted small">alamat SharePoint belum diisi</span>`;
  const daftarRekanan = VENDORS.length
-   ? `<div class="svc-list">${VENDORS.map(v=>`<div class="due-row"><div>
-       <div class="dj">${esc(v.nama)}</div>
-       <div class="dm">${esc(v.bidang||"")}${v.pic?" · PIC "+esc(v.pic):""}${v.telp?" · "+esc(v.telp):""}${v.email?" · "+esc(v.email):""}</div></div>
-       <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-         ${v.spcv==="Ada"?`<span class="badge bd-ok">SPCV</span>`:`<span class="badge bd-info">SPCV belum</span>`}
-         ${v.lampiran?`<a class="btn-out" style="padding:5px 10px;font-size:calc(11.5px*var(--fz))" href="${esc(v.lampiran)}" target="_blank" rel="noopener">Dokumen</a>`:""}
-       </span></div>`).join("")}</div>`
+   ? (function(){
+       /* Dikelompokkan menurut kategori layanan AGAVA, bukan didaftar rata.
+          112 nama dalam satu daftar panjang tidak bisa dipakai memilih rekanan;
+          yang dicari orang selalu "siapa yang mengerjakan HAL INI". */
+       var perGrup={}; VENDORS.forEach(function(v){ var g=vendorGrup(v); (perGrup[g]=perGrup[g]||[]).push(v); });
+       var urut=VENDOR_GRUP.filter(function(g){ return perGrup[g]&&perGrup[g].length; });
+       var tanpaEmail=VENDORS.filter(function(v){ return !v.email; }).length;
+       return (tanpaEmail?`<div class="ap-dok-w" style="margin-bottom:12px">⚠️ <b>${tanpaEmail} dari ${VENDORS.length} rekanan belum punya email.</b>
+         Sourcing mengirim permintaan penawaran lewat email — tanpa itu mereka tidak bisa diikutkan.
+         Klik nama rekanan untuk melengkapinya.</div>`:"")+
+       urut.map(function(g){
+         var isi=perGrup[g].slice().sort(function(a,b){ return String(a.nama).localeCompare(String(b.nama)); });
+         return `<div class="vnd-grup-h">${esc(g)} <span>${isi.length}</span></div>`+
+          `<div class="svc-list" style="margin-bottom:14px">`+isi.map(function(v){
+            return `<div class="due-row vnd-klik" onclick="vendorDetail('${String(v.id).replace(/'/g,"")}')" title="Klik untuk melengkapi keterangan rekanan"><div>
+             <div class="dj">${esc(v.nama)}</div>
+             <div class="dm">${esc(v.bidang||"")}${v.pic?" · PIC "+esc(v.pic):""}${v.telp?" · "+esc(v.telp):""}${v.email?" · "+esc(v.email):""}</div></div>
+             <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+               ${v.email?"":`<span class="badge bd-crit">tanpa email</span>`}
+               ${v.spcv==="Ada"?`<span class="badge bd-ok">SPCV</span>`:`<span class="badge bd-info">SPCV belum</span>`}
+               ${v.lampiran?`<a class="btn-out" style="padding:5px 10px;font-size:calc(11.5px*var(--fz))" href="${esc(v.lampiran)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Dokumen</a>`:""}
+             </span></div>`;
+          }).join("")+`</div>`;
+       }).join("");
+     })()
    : `<div class="card pad" style="text-align:center;padding:34px">
        <div style="font-weight:700;color:var(--ink)">Daftar rekanan belum tersambung</div>
        <div class="muted small" style="margin-top:6px;line-height:1.6">Master rekanan kini hidup di <b>Excel + SharePoint</b>; AGAVA hanya menampilkannya.<br>
@@ -19757,7 +19914,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-240";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-242";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
