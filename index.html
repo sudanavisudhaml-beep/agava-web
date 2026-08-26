@@ -1024,6 +1024,16 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .ap-dok-w{margin-top:7px;font-size:calc(11px*var(--fz));line-height:1.5;color:#8a2b2b;
   background:var(--red-s);border:1px solid #e9c6c6;border-radius:8px;padding:6px 8px}
 .ap-dok .so-pdf{width:100%;margin-top:8px}
+/* ══ Kepala gerbang di kartu approval ══
+   Menyebut gerbang mana yang sedang menunggu — dan, bila akun ini memegang
+   lebih dari satu gerbang, menyebut bahwa ia sudah menyetujui di gerbang lain. */
+.ap-gate{border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:10px;
+  padding:8px 11px;background:var(--blue-s)}
+.ap-gate span{display:block;font-size:calc(10.5px*var(--fz));color:var(--muted)}
+.ap-gate b{display:block;font-size:calc(13px*var(--fz));color:var(--ink);margin-top:1px}
+.ap-gate i{display:block;margin-top:6px;font-style:normal;font-size:calc(11px*var(--fz));
+  line-height:1.5;color:#7a5a12;background:var(--amber-s);border:1px solid #f0dcb4;
+  border-radius:8px;padding:6px 8px}
 /* ══ Klarifikasi UPR — tanya-jawab antar gerbang ══ */
 .upr-klar{margin-top:9px;border-radius:10px;padding:9px 11px;font-size:calc(12px*var(--fz));line-height:1.55}
 .upr-klar b{display:block;color:var(--ink);font-size:calc(12px*var(--fz))}
@@ -14400,6 +14410,36 @@ async function _submitSO_inti(){
     Head lain. Itu terlalu longgar dan bertentangan dengan aturan yang
     ditetapkan Sudana: wewenang Section terikat KATEGORI. Penilaiannya pindah
     seluruhnya ke soAutoGerbang(). */
+ /* ── PAGAR SO KEMBAR (25 Agu 2026) ─────────────────────────────────────────
+    Diperiksa ke data produksi: ada 4 kelompok SO kembar, salah satunya TIGA
+    salinan untuk satu pekerjaan yang sama ("pompa booster mati total"). Ketiganya
+    lalu muncul bersamaan di antrean approval, dan penyetujunya menyimpulkan
+    sistemnya menggandakan SO.
+
+    Sebabnya sama dengan insiden 14 tiket kembar: orang menekan kirim lagi ketika
+    yang pertama terasa tidak terjadi. agavaSekaliJalan() sudah menutup ketukan
+    beruntun dalam satu sesi, tetapi TIDAK menutup pengiriman ulang di lain waktu
+    — dan justru itu yang terjadi di sini.
+
+    Ini PERINGATAN, bukan larangan. Dua SO serupa kadang memang sah: pekerjaan
+    berulang, lokasi berbeda, termin berbeda. Yang tidak boleh adalah membuatnya
+    TANPA SADAR. Jadi orangnya diberi tahu dan diminta memutuskan. */
+ var mirip=SO.filter(function(x){
+   if(!x||x.batal) return false;
+   if(String(x.item||"").toLowerCase().trim()!==itemStr.toLowerCase().trim()) return false;
+   if(String(x.requester||x.req||"").toLowerCase()!==String(req).toLowerCase()) return false;
+   /* hanya yang belum tuntas — SO tahun lalu untuk pekerjaan rutin bukan kembar */
+   return (x.wstep||0)<4;
+ });
+ if(mirip.length){
+   if(!confirm("⚠️ Sudah ada "+mirip.length+" SO berjalan dengan uraian yang sama atas nama Anda:\n\n"+
+       mirip.slice(0,4).map(function(x){ return "· "+x.no+" — "+soStatusLabel(x).t; }).join("\n")+
+       (mirip.length>4?("\n· … dan "+(mirip.length-4)+" lagi"):"")+
+       "\n\nLanjut membuat SO baru?\n\nTekan Batal bila yang Anda maksud adalah SO yang sudah ada di atas.")){
+     return;
+   }
+   try{ auditLog("so-kembar-dilanjutkan", no+" · serupa dengan "+mirip.map(function(x){return x.no;}).join(", ")); }catch(e){}
+ }
  const so={no,item:itemStr,items:rows,lokasi:lokasi,req:req,requester:req,deptDiv:deptDiv,pic:"",staffPIC:"",nilai:nilai,jenis:"Goods",kategori:kat,budgetFlag:budget,vendor:"",fup:"",attachments:att.images,pdfAttachments:att.pdfs,
    apprSection:"Pending",sectionBy:"",apprBudget:"—",apprProc:"—",apprDept:"—",wstep:0,ts:{created:nowStamp()},tsf:{},invStatus:"",spkNo:"",stage:0,aging:"On Track"};
  /* sectionBy SELALU dari peta kategori. Auto-approve tidak lagi diputuskan di
@@ -15646,6 +15686,41 @@ function soJejakDok(s){
    soDocBtnMini(s)+
  '</div>';
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  KARTU APPROVAL WAJIB MENYEBUT GERBANGNYA (25 Agu 2026)                  ║
+   ║                                                                          ║
+   ║  Laporan Yessy: "SO yang saya approve minggu lalu muncul lagi minggu ini, ║
+   ║  apakah ada double SO?"                                                   ║
+   ║                                                                          ║
+   ║  Diperiksa ke data: 7 SO yang sudah ia setujui sebagai Section Head       ║
+   ║  memang menunggunya lagi — sebagai PIC Budget. Ia memegang DUA gerbang    ║
+   ║  (role section + tiers:["Budget"]), dan rantai SO berjalan Section Head → ║
+   ║  Budget. Jadi setiap SO yang ia setujui langsung kembali ke antreannya    ║
+   ║  dengan wewenang yang berbeda.                                           ║
+   ║                                                                          ║
+   ║  Sistemnya BENAR. Yang tidak ada adalah penjelasannya: cabang Budget dan  ║
+   ║  Dept Head tidak pernah menyebut sedang di gerbang mana. Orang melihat    ║
+   ║  nomor SO yang sama, tombol yang berbeda, dan menyimpulkan ada duplikat.  ║
+   ║                                                                          ║
+   ║  Ini pola yang sama dengan sisa minggu ini: layarnya tidak salah, ia      ║
+   ║  hanya tidak mengatakan apa yang sedang terjadi. Dan orang yang tidak     ║
+   ║  diberi tahu akan menebak — biasanya menebak bahwa sistemnya rusak.       ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function soGerbangKepala(s,g){
+ if(!g) return "";
+ /* Gerbang yang SUDAH dilewati akun ini pada SO yang sama. Inilah yang membuat
+    "kok muncul lagi" berubah jadi "oh, sekarang giliran saya yang satunya". */
+ var saya=myTiers(), sudah=[];
+ if(saya.indexOf("Section Head")>=0 && s.apprSection==="Approved") sudah.push("Section Head");
+ if(saya.indexOf("Budget")>=0 && (s.apprBudget==="Approved"||s.apprBudget==="Escalated")) sudah.push("PIC Budget");
+ if(saya.indexOf("Procurement")>=0 && s.apprProc==="Approved") sudah.push("PIC Procurement");
+ if(saya.indexOf("Dept Head")>=0 && s.apprDept==="Approved") sudah.push("GA Dept Head");
+ return '<div class="ap-gate"><span>Menunggu keputusan</span><b>'+esc(g)+'</b>'+
+   (sudah.length
+     ? '<i>Anda sudah menyetujui SO ini sebagai '+esc(sudah.join(" & "))+' — ini gerbang Anda yang berbeda, bukan SO baru.</i>'
+     : '')+
+ '</div>';
+}
 function soApprovalCard(s){
  const g=soGateTier(s), tier=gTier, esc=!!s.escalated;
  /* ── BATAS WEWENANG OWNER ──
@@ -15713,6 +15788,7 @@ function soApprovalCard(s){
    <div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap">
      <div style="flex:1;min-width:240px">${head}${clarBox}</div>
      <div style="display:flex;flex-direction:column;gap:8px;min-width:230px">
+       ${soGerbangKepala(s,g)}
        ${soJejakDok(s)}
        ${right}</div>
    </div>
@@ -20166,7 +20242,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-245";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-246";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
