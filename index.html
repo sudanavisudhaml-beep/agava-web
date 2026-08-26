@@ -15581,6 +15581,24 @@ let APPROVALS=[];
    Normal (budget ada):   Budget → Procurement → Dept Head → selesai.
    Eskalasi (budget tdk): Budget(Escalated) → Dept Head → Procurement → selesai. */
 function soGateTier(s){
+ /* ── SO YANG DIBATALKAN TIDAK MENUNGGU SIAPA PUN (26 Agu 2026) ────────────
+    Sudana meminta SO-202606-0072-0000 dibatalkan, padahal ia SUDAH dibatalkan
+    sejak 11 Agustus dengan alasan "Sudah dibuat Sunaryo". Ia memintanya lagi
+    karena SO itu masih terlihat di inbox approval — dan memang benar: fungsi
+    ini memeriksa penolakan tetapi tidak pernah memeriksa s.batal, sehingga
+    dokumen yang sudah dibatalkan tetap dilaporkan menunggu gerbang berikutnya.
+    Pembatalan mengubah labelnya, tetapi tidak mengeluarkannya dari antrean
+    siapa pun.
+
+    Saat ditemukan, EMPAT SO batal masih duduk di antrean hidup: dua di Budget,
+    satu di Procurement, satu di Dept Head — satu dari tiga isi antrean
+    Procurement adalah hantu. Antrean yang memuat pekerjaan yang tidak perlu
+    dikerjakan mengajari orang untuk tidak mempercayai antreannya.
+
+    Dokumennya TETAP ada dan tetap terarsip: modul Procurement menampilkannya
+    lewat jalur `macet` (soDitolak||batal) berikut alasan & pelakunya. Yang
+    dicabut hanya kewajiban orang lain menindaklanjutinya. */
+ if(s.batal) return null;
  if(s.apprDept==="Rejected"||s.apprSection==="Rejected")return null;
  if(s.apprSection!=="Approved")return"Section Head";
  if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated")return"Budget";
@@ -20653,7 +20671,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.26-254";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.26-255";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
