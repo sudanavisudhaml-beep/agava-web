@@ -8387,7 +8387,31 @@ function normalizeSO(){SO.forEach(s=>{
 /* Persistensi SO — SO yang dibuat/di-approve di aplikasi tersimpan agar tidak hilang saat refresh */
 const SO_STORE="agava_so_v1";
 function soPersistLokal(){ try{ localStorage.setItem(SO_STORE, JSON.stringify(SO)); }catch(e){ console.warn("SO persist:",e.message); } }
-function soPersist(){ soPersistLokal(); try{ dbSaveSOAll(); }catch(e){} }
+/* ╔══ JANGAN MENGUMUMKAN SUKSES YANG TIDAK TERJADI (26 Agu 2026) ═════════════╗
+   Benang merah seluruh temuan hari ini: aksi yang mengubah keadaan lalu
+   menampilkan pesan sukses TANPA TAHU apakah tulisannya mendarat. Payment
+   (v232), escDone tiket (v250), klarifikasi SO & saveSLA (v252) — dan yang
+   paling mahal: revisi SO milik Sunaryo pada SO-202606-0066-0000.
+
+   dbSaveSOAll() keluar diam-diam saat AGDB.on false. Revisi lalu hanya hidup di
+   localStorage perangkat itu, sementara layarnya berkata "dikirim ulang". Dan
+   itu BUKAN sekadar tertunda: begitu cloud tersambung lagi, listener menyalin
+   dokumen server ke atas salinan lokal (Object.assign) — revisinya tertimpa
+   sebelum sempat terunggah. Hilang, bukan mengantre.
+
+   Karena itu jalur simpan SO sekarang MENJAWAB. Pemanggil yang mengumumkan
+   sesuatu kepada manusia wajib membaca jawabannya. */
+function awanSiap(){ return !(AGDB.ro||!AGDB.on||!AGDB.db); }
+/* Kalimat yang dipakai SEMUA pengumuman ketika tulisannya tidak mendarat.
+   Sengaja tidak menjanjikan "akan tersinkron otomatis" — itu tidak benar. */
+function awanPeringatan(){
+ if(AGDB.ro) return "\n\n🔒 Perangkat ini mode uji (localhost) — TIDAK ditulis ke server.";
+ if(!AGDB.on||!AGDB.db) return "\n\n⚠️ BELUM TERSIMPAN DI SERVER — koneksi terputus.\n"+
+   "Perubahan ini hanya ada di perangkat Anda dan BISA HILANG saat koneksi pulih.\n"+
+   "Sambungkan kembali, lalu ULANGI langkah ini.";
+ return "";
+}
+function soPersist(){ soPersistLokal(); try{ return dbSaveSOAll(); }catch(e){ return false; } }
 /* ── PATCH SATU SO, FIELD YANG BERUBAH SAJA (3 Agu 2026) ─────────────────────
    Insiden "approval Elok hilang": soPersist → dbSaveSOAll menulis SELURUH SO
    dari salinan lokal tiap ada satu perubahan. set(merge:true) menggabung map
@@ -8396,8 +8420,8 @@ function soPersist(){ soPersistLokal(); try{ dbSaveSOAll(); }catch(e){} }
    ditulis lewat sini: satu dokumen, field bertitik, tidak menyentuh yang lain.
    Pola yang sama dengan dbPatchTicket (insiden pic/stg tiket). */
 function dbPatchSO(no,fields){
- if(AGDB.ro||!AGDB.on||!AGDB.db)return;
- if(!gUser||!gUser.name){ console.warn("SO: patch DITOLAK — belum login (pagar data bersama)"); return; }
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return false;   /* menjawab, supaya pemanggil tidak mengumumkan sukses palsu */
+ if(!gUser||!gUser.name){ console.warn("SO: patch DITOLAK — belum login (pagar data bersama)"); return false; }
  var s=SO.find(function(x){return x.no===no;});
  /* echo disamakan supaya dbSaveSOAll berikutnya tidak menulis ulang dokumen ini */
  if(s){ AGDB.soEcho=AGDB.soEcho||{}; AGDB.soEcho[no]=JSON.stringify(dbStripSO(s)); }
@@ -8406,6 +8430,7 @@ function dbPatchSO(no,fields){
    if(e&&e.code==="not-found"&&s){ AGDB.db.collection("agava_so").doc(String(no)).set(dbStripSO(s),{merge:true}).catch(function(){}); }
    else console.warn("SO patch:",e&&e.code);
  });
+ return true;
 }
 /* Deteksi dokumen SO "mundur": ada jejak pelaku (aktor[gerbang] hanya ditulis
    saat tombol approve/reject BENAR-BENAR ditekan) tapi benderanya kosong lagi.
@@ -14705,19 +14730,24 @@ async function soRevisiSubmit(rows,f){
  var tujuanLabel = (tujuan==="section") ? ("Section Head "+(s.sectionBy||"")) : soGateLabel(tujuan);
 
  window._soRevisi=null;
- soPersist();
- try{ auditLog("so-revisi", no+" · Rev."+s.rev+" · lanjut ke "+tujuan+(naikJenjang?" (naik jenjang → ulang dari awal)":"")+" · "+catatan); }catch(e){}
+ /* Revisi adalah titik paling mahal untuk gagal diam-diam: pemohon sudah
+    memperbaiki isinya dan mengira dokumennya berjalan, sementara penyetuju
+    tidak pernah melihat apa pun. Kejadian nyata pada SO-202606-0066-0000. */
+ var tersimpan=soPersist();
+ try{ auditLog("so-revisi", no+" · Rev."+s.rev+" · lanjut ke "+tujuan+(naikJenjang?" (naik jenjang → ulang dari awal)":"")+" · "+catatan+(tersimpan?"":" · ⚠️ GAGAL TULIS SERVER")); }catch(e){}
  NOTIFS.unshift({ic:"🔁",t:"SO direvisi & dikirim ulang — "+no+" Rev."+s.rev,
    d:(s.item||"")+" · "+catatan+" · menunggu "+tujuanLabel,
    at:nowStamp(), sev:"warn", nav:"approvals", done:false,
    nama:(tujuan==="section")?s.sectionBy:"", namaRole:(tujuan==="section")?"section":"",
    roles:(tujuan==="section")?[]:[tujuan]});
  procFilter="all"; renderProc(); renderApprovals(); renderReminder(); navSetActive(); updateBell();
- notifySound(); go("procurement");
- alert("🔁 "+no+" dikirim ulang sebagai Rev."+s.rev+".\n\n"+
+ if(tersimpan) notifySound();
+ go("procurement");
+ alert((tersimpan?"🔁 ":"⚠️ ")+no+" dikirim ulang sebagai Rev."+s.rev+".\n\n"+
    "Nomornya tetap sama — riwayat penolakan & perbaikannya menempel di SO ini.\n"+
    "Langsung kembali ke: "+tujuanLabel+(idx>0?" — persetujuan sebelumnya tetap sah, tidak perlu diulang.":".")+
-   (naikJenjang?"\n\n⚠️ Nilainya berpindah jenjang approval, jadi rantai dimulai dari awal.":""));
+   (naikJenjang?"\n\n⚠️ Nilainya berpindah jenjang approval, jadi rantai dimulai dari awal.":"")+
+   awanPeringatan());
 }
 /* Baca lampiran dari form Create SO → foto (untuk grid Lampiran) + PDF (untuk dijahit ke Dokumen SO) */
 /* Sumbernya kini window._soAtt — apa yang tampil di pratinjau PERSIS yang
@@ -15745,7 +15775,12 @@ function approveSO(no,gate,decision,beralasan){
  else if(gate==="budget"){ patch.apprBudget=s.apprBudget; patch.escalated=!!s.escalated; }
  else if(gate==="proc"){ patch.apprProc=s.apprProc; patch.staffPIC=s.staffPIC||""; patch.pic=s.pic||""; patch.fup=s.fup||""; }
  else if(gate==="dept"){ patch.apprDept=s.apprDept; if(s.stage!==undefined)patch.stage=s.stage; }
- soPersistLokal(); dbPatchSO(no,patch);
+ soPersistLokal();
+ /* Keputusan approval yang gagal ditulis adalah kerusakan paling senyap di
+    AGAVA: dokumennya bergerak di layar penyetuju dan diam di mana pun lagi.
+    Kalau tulisannya tidak mendarat, katakan — jangan biarkan alert gerbang di
+    atas menjadi satu-satunya kalimat yang ia baca. */
+ if(!dbPatchSO(no,patch)) alert("⚠️ Keputusan Anda pada "+no+" BELUM tersimpan di server."+awanPeringatan());
  renderApprovals(); renderProc(); renderAssigned(); renderReminder(); navSetActive(); updateBell();
 }
 /* ===== Klarifikasi: PIC Proc kirim catatan → Requester (Reminder) → jawab → balik ke PIC Proc ===== */
@@ -15809,9 +15844,7 @@ function sendClarify(no){
    nama:tujuan, email:s.email||""});
  try{ agavaNotify("📝 Klarifikasi SO "+no, note.slice(0,90)); }catch(e){}
  closeDrawer();
- alert("📨 Klarifikasi terkirim ke "+tujuan+".\nMuncul di Reminder mereka"+
-   (AGDB.ro?" — CATATAN: perangkat ini mode uji, tulisan ke cloud diblokir.":
-    (!AGDB.on?" — ⚠️ cloud sedang tidak terhubung, akan tersinkron setelah tersambung.":".")));
+ alert((awanSiap()?"📨":"⚠️")+" Klarifikasi ke "+tujuan+".\nMuncul di Reminder mereka."+awanPeringatan());
 }
 function openClarifyAnswer(no){
  var s=SO.find(x=>x.no===no); if(!s||!s.clarify)return;
@@ -15840,9 +15873,7 @@ function submitClarifyAnswer(no){
    at:nowStamp(), sev:"info", nav:"approvals", done:false, nama:penanya});
  try{ agavaNotify("💬 Jawaban klarifikasi "+no, ans.slice(0,90)); }catch(e){}
  closeDrawer();
- alert("✅ Jawaban terkirim ke "+penanya+". SO "+no+" kembali ke review PIC Procurement."+
-   (AGDB.ro?"\n\nCATATAN: perangkat ini mode uji, tulisan ke cloud diblokir.":
-    (!AGDB.on?"\n\n⚠️ Cloud sedang tidak terhubung — akan tersinkron setelah tersambung.":"")));
+ alert((awanSiap()?"✅":"⚠️")+" Jawaban untuk "+penanya+". SO "+no+" kembali ke review PIC Procurement."+awanPeringatan());
 }
 function myClarifySO(){ const me=gUser?gUser.name:""; return SO.filter(s=>s.clarify&&!s.clarify.answered&&((s.requester||"")===me||(s.req||"")===me)); }
 function myClarifyCount(){ return myClarifySO().length; }
@@ -19094,9 +19125,8 @@ function saveSLA(){
  try{ dbPersist(); }catch(e){ console.warn("saveSLA persist:",e&&e.message); }
  try{ auditLog("sla-simpan", (c.vendor||"")+" · "+(c.scope||"")+" · nilai "+nilai.toFixed(2)+
       "/3 · "+band.n+" · periode "+(c.slaPeriod||"—")); }catch(e){}
- alert("✅ SLA tersimpan — "+c.vendor+"\nNILAI: "+nilai.toFixed(2)+"/3 · "+band.n+"\nTier Service: "+tier.n+
-   (AGDB.ro?"\n\nCATATAN: perangkat ini mode uji, tulisan ke cloud diblokir.":
-    (!AGDB.on?"\n\n⚠️ Cloud sedang tidak terhubung — akan tersinkron setelah tersambung.":"")));
+ alert((awanSiap()?"✅ SLA tersimpan — ":"⚠️ SLA BELUM tersimpan — ")+c.vendor+
+   "\nNILAI: "+nilai.toFixed(2)+"/3 · "+band.n+"\nTier Service: "+tier.n+awanPeringatan());
  go('vendor'); renderService();
 }
 
@@ -20623,7 +20653,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.26-252";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.26-254";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -21434,13 +21464,15 @@ function soTarikDariServer(no){
    console.warn("SO "+no+": salinan lokal disembuhkan dari server");
  }).catch(function(e){ console.warn("SO tarik:",e&&e.code); });
 }
+/* Mengembalikan TRUE hanya bila tulisan ke cloud benar-benar dikirim. Pemanggil
+   yang mengumumkan hasilnya kepada manusia wajib membacanya — lihat awanSiap. */
 function dbSaveSOAll(){
- if(AGDB.ro||!AGDB.on||!AGDB.db)return;
+ if(AGDB.ro||!AGDB.on||!AGDB.db)return false;
  /* Pagar login (audit 3 Agu 2026) — jejak agava_audit membuktikan pagar mundur
     sempat memblokir unggahan dengan user KOSONG, artinya jalur ini benar-benar
     jalan SEBELUM login. dbSaveKPI/Master/Flow/Param sudah dipagari sejak 31 Jul;
     SO & tiket terlewat. Tanpa identitas, tidak ada hak tulis. */
- if(!gUser||!gUser.name){ console.warn("SO: tulis cloud DITOLAK — belum login"); return; }
+ if(!gUser||!gUser.name){ console.warn("SO: tulis cloud DITOLAK — belum login"); return false; }
  AGDB.soEcho=AGDB.soEcho||{};
  SO.forEach(function(s){ if(!s||!s.no)return;
    if(goLivePre(s))return;                       // pra-live → sudah di Record Log, JANGAN unggah balik
@@ -21459,6 +21491,7 @@ function dbSaveSOAll(){
    AGDB.soEcho[s.no]=j;
    AGDB.db.collection("agava_so").doc(String(s.no)).set(c,{merge:true}).catch(function(e){ console.warn("SO cloud:",e&&e.code); });
  });
+ return true;
 }
 /* ╔══ PULIHKAN APPROVAL SO YANG HILANG (3 Agu 2026) ══════════════════════════╗
    Insiden: dbSaveSOAll dari perangkat basi menimpa bendera approval 17 SO

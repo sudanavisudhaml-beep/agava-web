@@ -18,7 +18,16 @@
  * Pakai:
  *   node cek-versi.js          → periksa saja; keluar dengan kode 1 bila beda
  *   node cek-versi.js --sync   → samakan version.json & sw.js mengikuti index.html
+ *   node cek-versi.js --naik   → naikkan nomor build di index.html, lalu samakan
  *   node cek-versi.js --pasang → aktifkan hook pre-commit (git config core.hooksPath)
+ *
+ * PAKAI --naik, JANGAN menyunting index.html lewat PowerShell.
+ * 26 Agu 2026, dua kali dalam satu hari: menaikkan nomor versi dengan
+ *   $h = Get-Content -Raw index.html ; ... ; WriteAllText(...)
+ * merusak SELURUH karakter non-ASCII berkas (20.000+ karakter). PowerShell 5.1
+ * membaca UTF-8 tanpa BOM sebagai codepage ANSI, lalu menulisnya balik sebagai
+ * UTF-8 — double-encoding. Em-dash jadi "â€”", emoji hancur. Node membaca dan
+ * menulis UTF-8 apa adanya, jadi jalur ini aman.
  *
  * Tiga lapis penegak, supaya tidak ada yang bergantung pada ingatan:
  *   1. hooks/pre-commit  → commit DITOLAK bila tidak selaras (POSIX sh, tanpa Node)
@@ -64,6 +73,22 @@ if (process.argv.includes("--pasang")) {
     console.error("✖ gagal memasang hook: " + e.message);
     process.exit(2);
   }
+  process.exit(0);
+}
+
+if (process.argv.includes("--naik")) {
+  const kini = ambil("index");
+  const m = String(kini || "").match(/^(v\d{4}\.\d{2}\.)(\d{2})(-)(\d+)$/);
+  if (!m) { console.error("✖ bentuk AGAVA_BUILD tidak dikenali: " + kini); process.exit(2); }
+  const d = new Date();
+  const hariIni = String(d.getDate()).padStart(2, "0");
+  const baru = m[1] + hariIni + m[3] + (parseInt(m[4], 10) + 1);
+  const isi = baca(F.index).replace(POLA.index, 'const AGAVA_BUILD="' + baru + '"');
+  fs.writeFileSync(F.index, isi, "utf8");
+  fs.writeFileSync(F.versi, JSON.stringify({ build: baru }) + "\n", "utf8");
+  fs.writeFileSync(F.sw, baca(F.sw).replace(POLA.sw, "const BUILD = '" + baru + "'"), "utf8");
+  console.log("✓ " + kini + "  →  " + baru);
+  console.log("  ketiga berkas disamakan. Silakan commit, push, lalu deploy.");
   process.exit(0);
 }
 
