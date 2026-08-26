@@ -2604,6 +2604,9 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .izn-aksi{text-align:right}
 .izn-close{padding:5px 12px;font-size:calc(11px*var(--fz));font-weight:700;white-space:nowrap}
 .izn-closed{font-size:calc(11px*var(--fz));font-weight:800;color:var(--green);line-height:1.3}
+/* Keadaan tengah — sedang diurus. Sengaja BUKAN hijau: pengurusan yang berjalan
+   bukan pekerjaan yang selesai, dan warnanya tidak boleh menyarankan begitu. */
+.izn-urus{font-size:calc(11px*var(--fz));font-weight:800;color:#0a6ad6;line-height:1.3}
 .izn-note{padding:11px 18px;font-size:calc(11px*var(--fz));color:var(--muted);background:#f8fafd;border-top:1px solid var(--line);line-height:1.6}
 /* Alat bantu daftar izin — pencarian + saringan keadaan + saringan area.
    66 baris terlalu banyak untuk digulir mencari satu izin; ini pintu masuknya. */
@@ -2623,6 +2626,7 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .ptab.izn-st.lewat.on{background:var(--red);border-color:var(--red)}
 .ptab.izn-st.segera.on{background:#c2740a;border-color:#c2740a}
 .ptab.izn-st.aman.on,.ptab.izn-st.permanen.on{background:#0a7d5e;border-color:#0a7d5e}
+.ptab.izn-st.diurus.on{background:#0a6ad6;border-color:#0a6ad6}
 /* Keterangan pengurusan apa adanya dari Database Perizinan — penjelas kenapa
    sebuah izin lewat tempo tapi sebenarnya sedang diurus. */
 .izn-ket{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:7px;background:#fff4e0;color:#8a5a00;
@@ -19340,11 +19344,18 @@ function rateGateSubmit(){
    PERMITS_SEED = versi daftar resmi. Salinan lama di localStorage perangkat dan
    di dokumen cloud agava_config/master yang belum bertanda versi ini SENGAJA
    diabaikan (lihat dbLoadAll & onSnapshot master). */
-const PERMITS_SEED="2026-08-26c";   /* b = koreksi manual Izin Lift 1-4 AMDI (Sudana, 10 Agu 2026)
+const PERMITS_SEED="2026-08-26d";   /* b = koreksi manual Izin Lift 1-4 AMDI (Sudana, 10 Agu 2026)
                                        c = koreksi 3 izin Cibitung IZ73-75 (Sudana, 26 Agu 2026):
                                            siklus 20 Des 2024/2025 → 14 Nov 2025 / uji 15 Nov 2026.
+                                       d = IZ70 SLO Rotunda jadi permanen (Sudana, 26 Agu 2026).
                                        Versi WAJIB naik tiap koreksi — salinan lama di localStorage
-                                       dan agava_config/master hanya tergantikan bila tandanya beda. */
+                                       dan agava_config/master hanya tergantikan bila tandanya beda.
+
+                                       Terbukti lagi 26 Agu 2026: koreksi IZ70 sudah ditulis di kode
+                                       tetapi TIDAK muncul di layar, karena perangkat masih memegang
+                                       salinan bertanda "c" dan salinan itu menang. Koreksi data tanpa
+                                       kenaikan seed = koreksi yang tidak pernah sampai ke siapa pun.
+                                       Tertangkap oleh uji, bukan oleh laporan pengguna. */
 let PERMITS=[
  {id:"IZ01", area:"AMDI", name:"Izin Lift 1", noIzin:"4400/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
  {id:"IZ02", area:"AMDI", name:"Izin Lift 2", noIzin:"4401/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
@@ -19415,7 +19426,23 @@ let PERMITS=[
  {id:"IZ67", area:"Bandung", name:"Izin Pengambilan Air Bawah Tanah Izusu", noIzin:"546.2/665/10.1.02.0/DPMPTSP/2017", berlaku:"Selamanya", terbit:"Akan terbit November 2025", uji:"November 2026", due:"2026-11-01", thn:2025, periode:"2 tahun", harga:0, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp Sudah SO dan sedang diurus oleh PT Dua Pola Putra"},
  {id:"IZ68", area:"Bandung", name:"Izin Dinas kebakaran Bandung", noIzin:"364.01/515-Diskar", berlaku:"Selamanya", terbit:"November 2025", uji:"November 2026", due:"2026-11-01", thn:2025, periode:"1 tahun", harga:52000000, st:"Done", so:"SO Bulan Agst 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
  {id:"IZ69", area:"Bandung", name:"Izin Reklame ABC Bandung", noIzin:"037/IPR/IV/2016/BPPT", berlaku:"Berkala", terbit:"September 2025", uji:"September 2026", due:"2026-09-01", thn:2025, periode:"1 Tahun", harga:70000000, st:"On Progress", so:"SO Bulan Juli 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
- {id:"IZ70", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Rotunda) NIDI : I.01.2024.TLB9", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : U030.0.P.J.427.3273.A24 Nomor Registrasi : A24JU03021105", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2026", due:"2026-01-13", thn:2025, periode:"15 tahun", harga:38000000, st:"Done", so:"SO Bulan Juli 2038", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp"},
+ /* ── KOREKSI SLO ROTUNDA (Sudana, 26 Agu 2026) ──────────────────────────────
+    Keputusan: SLO/NIDI ini TIDAK perlu perpanjangan berkala lagi selama tidak
+    ada perubahan aturan, perubahan bisnis, atau perubahan operasional. Jadi
+    due dikosongkan → permitStatus() membacanya "Permanent" dan ia keluar dari
+    hitung mundur di HSE, Reminder, Beranda, dan GA Calendar sekaligus.
+
+    Baris ini memang bertentangan dengan dirinya sendiri di register lama:
+    kembarannya IZ71 (Infra) terbit di hari yang sama, periode sama 15 tahun,
+    dan uji-nya 13 Jan 2039 — sementara baris ini tertulis 13 Jan 2026 padahal
+    rencana SO-nya sendiri berbunyi "SO Bulan Juli 2038". Dua tahun versus lima
+    belas tahun; yang 2026 tidak konsisten dengan kolom mana pun di barisnya.
+
+    SYARATNYA DICATAT DI ket DAN BUKAN DIBUANG: "permanen" di sini bersyarat,
+    bukan mutlak. Begitu ada perubahan aturan/bisnis/operasional, izin ini wajib
+    ditinjau ulang — dan orang yang membacanya tiga tahun lagi harus menemukan
+    syarat itu di barisnya, bukan menyimpulkan izin ini aman selamanya. */
+ {id:"IZ70", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Rotunda) NIDI : I.01.2024.TLB9", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : U030.0.P.J.427.3273.A24 Nomor Registrasi : A24JU03021105", berlaku:"Selamanya", terbit:"13 Januari 2024", uji:"", due:null, thn:2026, periode:"15 tahun", harga:38000000, st:"Done", so:"", ket:"Tidak perlu perpanjangan berkala selama tidak ada perubahan aturan, perubahan bisnis, atau perubahan operasional (keputusan 26 Agu 2026). Bila salah satu berubah, izin ini wajib ditinjau ulang."},
  {id:"IZ71", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Infra) I.01.2024.SGY5", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : S252.0.P.J.427.3201.A24 Nomor Registrasi : A24JS25271504", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2039", due:"2039-01-13", thn:2025, periode:"15 tahun", harga:0, st:"Done", so:"SO Bulan Jan 2039", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp"},
  {id:"IZ72", area:"Bandung", name:"SLF Bangunan Kawasan ABC BDG", noIzin:"SK-SLF-327311-13072023-001", berlaku:"Berkala", terbit:"13 Juli 2023", uji:"12 Juli 2028", due:"2028-07-12", thn:2025, periode:"5 Tahun", harga:1000000000, st:"Done", so:"", ket:"Uji Riksa 1 bulan Submit Dokumen dan sampai izin keluar 5 Bulan SO 6 Bulan sebelum Exp"},
  /* ── KOREKSI CIBITUNG (Sudana, 26 Agu 2026) ─────────────────────────────────
@@ -19482,6 +19509,19 @@ function permitGroup(p){ return /IPLC|B3|Limbah|Lingkungan|AMDAL|UKL|UPL|Air Baw
                 "SO Pembuatan Izin Baru". Menyebut ini "permanen" jelas salah:
                 yang satu tidak perlu tindakan, yang satu justru menunggu diurus. */
 function permitBaru(p){ return /pembuatan izin baru/i.test(String(p&&p.st||"")); }
+/* ── SEDANG DIURUS (26 Agu 2026) ────────────────────────────────────────────
+   Permintaan Sudana: "harus keliatan posisi saat ini." Sebelum ini daftar izin
+   cuma mengenal dua keadaan — belum diperpanjang, atau sudah. Padahal sebagian
+   besar waktu sebuah izin justru berada di ANTARA keduanya: berkas sudah
+   disubmit, vendor sudah jalan, tinggal menunggu terbit. Selama itu barisnya
+   tampak sama persis dengan izin yang belum disentuh siapa pun.
+   p.urus = {at, by} menandai jarak itu. */
+function permitDiurus(p){ return (p && p.urus && p.urus.at && !p.closedAt) ? p.urus : null; }
+/* permitStKey SENGAJA tidak diubah: izin yang sedang diurus TETAP dihitung
+   lewat tempo bila memang lewat tempo. Sedang diurus itu kabar baik, tapi ia
+   tidak memundurkan tanggal — menyembunyikannya dari chip "Lewat tempo" akan
+   membuat rapor hijau tanpa satu pun izin benar-benar beres. Chip "Diurus"
+   berdiri sendiri di samping, bukan menggantikan. */
 function permitStKey(p){
  if(permitBaru(p)) return "baru";
  var s=permitStatus(p&&p.due);
@@ -19499,7 +19539,10 @@ function permitKetRingkas(ket){
 /* Saringan daftar izin — 66 baris terlalu panjang untuk digulir mencari satu izin */
 function permitCocok(p){
  if(hseArea!=="All" && p.area!==hseArea) return false;
- if(hseIzinSt!=="all" && permitStKey(p)!==hseIzinSt) return false;
+ /* "diurus" adalah saringan yang berdiri sendiri, bukan salah satu nilai
+    permitStKey — lihat alasannya di atas permitStKey. */
+ if(hseIzinSt==="diurus"){ if(!permitDiurus(p)) return false; }
+ else if(hseIzinSt!=="all" && permitStKey(p)!==hseIzinSt) return false;
  var q=String(hseIzinQ||"").trim().toLowerCase(); if(!q) return true;
  return [p.name,p.area,p.noIzin,p.ket,p.uji,p.periode].join(" ").toLowerCase().indexOf(q)>=0;
 }
@@ -19602,13 +19645,33 @@ function hseIzinRow(o){
      (sisa!==null&&sisa>=0?'<div class="izn-x">'+sisa+' hari lagi</div>':
       sisa!==null?'<div class="izn-x" style="color:var(--red)">lewat '+Math.abs(sisa)+' hari</div>':'')
    : (permitBaru(o)?'<span class="izn-mut">belum terbit</span>':'<span class="izn-mut">—</span>');
+ /* ── TIGA POSISI, BUKAN DUA (26 Agu 2026) ─────────────────────────────────
+    Dulu hanya "belum" dan "sudah diperpanjang". Sekarang keadaan tengah —
+    sedang diurus — punya tempatnya sendiri, lengkap dengan sejak kapan dan
+    oleh siapa, supaya izin yang berkasnya sudah jalan tidak terbaca terlantar.
+    Tombol "Selesai" tetap ada di kedua keadaan: kadang pengurusan sudah
+    rampung sebelum sempat ditandai mulai, dan memaksa orang menekan dua tombol
+    berurutan hanya untuk mencatat satu kenyataan itu birokrasi, bukan kendali. */
  var aksi='<span class="izn-mut">—</span>';
+ var urus=o.urus&&o.urus.at&&!o.closedAt?o.urus:null;
  if(o.closedAt){
    aksi='<div class="izn-closed">✓ Diperpanjang</div><div class="izn-x">'+fmtDay(o.closedAt)+' '+o.closedAt.slice(0,4)+
         (o.closedBy?'<br>oleh '+esc(o.closedBy):'')+'</div>';
  } else if(o.closeFn && dbCanEdit()){
-   aksi='<button class="btn-out izn-close" onclick="'+o.closeFn+'" '+
-     'title="Catat bahwa izin ini sudah diperpanjang — tanggal berlaku berikutnya Anda isi sendiri">Perpanjang</button>';
+   var lamaUrus=urus?dueDays(urus.at):null;
+   aksi = urus
+     ? '<div class="izn-urus">⏳ Sedang diurus</div>'+
+       '<div class="izn-x">sejak '+fmtDay(urus.at)+' '+String(urus.at).slice(0,4)+
+         (lamaUrus!==null&&lamaUrus<0?' · '+Math.abs(lamaUrus)+' hari':'')+
+         (urus.by?'<br>oleh '+esc(urus.by):'')+'</div>'+
+       '<button class="btn-act izn-close" style="margin-top:6px" onclick="'+o.closeFn+'" '+
+         'title="Izin sudah terbit — catat tanggal berlaku berikutnya">Selesai</button>'+
+       '<div class="izn-x" style="margin-top:4px"><a href="javascript:void(0)" onclick="'+esc(o.urusBatalFn||'')+'" '+
+         'style="color:var(--muted);text-decoration:underline">batal</a></div>'
+     : '<button class="btn-out izn-close" onclick="'+esc(o.urusFn||'')+'" '+
+         'title="Tandai pengurusan perpanjangan sudah dimulai — posisinya jadi Sedang diurus">Perpanjang</button>'+
+       '<button class="btn-out izn-close" style="margin-top:6px" onclick="'+o.closeFn+'" '+
+         'title="Izin sudah terbit — catat tanggal berlaku berikutnya">Selesai</button>';
  }
  /* Baris keterangan: status pengurusan dari sheet (yang bukan "Done" saja, sebab
     Done adalah keadaan normal), rencana SO perpanjangannya, lalu catatan khas
@@ -19638,6 +19701,37 @@ function hseIzinRow(o){
    salah dan izin tampak Overdue padahal sudah diperpanjang.
    Sekarang: satu tahun ke depan hanya USULAN yang sudah terisi; tanggalnya
    boleh diubah, dan nomor izin barunya bisa sekalian dicatat. */
+/* ── TANDAI PENGURUSAN DIMULAI ──────────────────────────────────────────────
+   Sengaja TIDAK meminta tanggal: yang dicatat adalah "hari ini mulai diurus",
+   dan itu satu-satunya tanggal yang orangnya benar-benar tahu saat menekannya.
+   Tanggal yang penting — kapan izin barunya berlaku — diminta nanti di langkah
+   Selesai, dari sertifikat yang sudah di tangan. Meminta tebakan di muka hanya
+   melahirkan angka yang tidak ada yang percaya. */
+function hseMulaiUrus(id){
+ if(!dbCanEdit()){ alert("Anda tidak punya akses mengubah data izin."); return; }
+ var p=permitById(id);
+ if(!p){ alert("Izin tidak ditemukan: "+id); return; }
+ if(p.closedAt){ alert("Izin ini sudah dicatat diperpanjang."); return; }
+ if(permitDiurus(p)){ alert("Izin ini sudah bertanda sedang diurus sejak "+fmtDay(p.urus.at)+"."); return; }
+ p.urus={at:TODAY_STR, by:(gUser&&gUser.name)||""};
+ try{ dbPersist(); }catch(e){}
+ try{ auditLog("izin-mulai-urus", p.id+" · "+p.name+" ("+(p.area||"")+") · jatuh tempo "+(p.due||"—")); }catch(e){}
+ renderHSE();
+ try{ renderReminder(); renderOverview(); }catch(e){}
+ alert("⏳ "+p.name+"\n\nDitandai SEDANG DIURUS sejak "+fmtDay(TODAY_STR)+" "+TODAY_STR.slice(0,4)+
+   ".\n\nJatuh temponya tidak berubah — tekan Selesai setelah sertifikat barunya terbit, lalu isi tanggal berlakunya.");
+}
+function hseBatalUrus(id){
+ if(!dbCanEdit()){ alert("Anda tidak punya akses mengubah data izin."); return; }
+ var p=permitById(id);
+ if(!p||!permitDiurus(p)) return;
+ if(!confirm("Batalkan tanda 'sedang diurus' pada "+p.name+"?\n\nBaris ini kembali tampil sebagai belum diurus.")) return;
+ var sejak=p.urus.at; delete p.urus;
+ try{ dbPersist(); }catch(e){}
+ try{ auditLog("izin-batal-urus", p.id+" · "+p.name+" · tanda sejak "+sejak+" dicabut"); }catch(e){}
+ renderHSE();
+ try{ renderReminder(); renderOverview(); }catch(e){}
+}
 function hseCloseIzin(id){
  if(!dbCanEdit()){ alert("Anda tidak punya akses mengubah data izin."); return; }
  var p=permitById(id);
@@ -19653,6 +19747,9 @@ function hseCloseIzin(id){
      '<div>Berlaku sekarang: <b>'+esc(fmtDay(p.due)+" "+String(p.due||"").slice(0,4))+'</b>'+
        (lewat?' <span style="color:var(--red);font-weight:700">· lewat '+lewat+' hari</span>':'')+'</div>'+
      (p.noIzin?'<div class="muted">No. izin lama: '+esc(p.noIzin)+'</div>':'')+
+     (permitDiurus(p)?'<div style="color:#0a6ad6;font-weight:700;margin-top:4px">⏳ Sedang diurus sejak '+
+       esc(fmtDay(p.urus.at)+" "+String(p.urus.at).slice(0,4))+
+       (p.urus.by?' · '+esc(p.urus.by):'')+'</div>':'')+
    '</div>'+
    '<div class="field" style="margin-top:12px"><label>Berlaku sampai (tanggal perpanjangan) <span class="muted small">wajib</span></label>'+
      '<input type="date" id="izinDueBaru" value="'+esc(usul)+'"/></div>'+
@@ -19672,11 +19769,18 @@ function hseCloseIzinSimpan(id){
  if(!baru){ alert("Isi dulu tanggal berlaku berikutnya."); return; }
  if(baru<=TODAY_STR && !confirm("Tanggal yang Anda isi ("+fmtDay(baru)+" "+baru.slice(0,4)+") sudah lewat atau hari ini.\n\nIzin akan tetap tampil sebagai lewat tempo. Lanjutkan?")) return;
  var lama=p.due;
+ /* Berapa lama pengurusannya berjalan — dicatat SEBELUM tandanya dibuang.
+    Angka inilah yang nanti menjawab "sebenarnya perpanjangan izin ini makan
+    waktu berapa lama?", dan itu yang menentukan patokan H- berikutnya. */
+ var mulai=(p.urus&&p.urus.at)||"", hari=mulai?Math.abs(dueDays(mulai)||0):null;
  p.closedAt=TODAY_STR; p.closedBy=(gUser&&gUser.name)||""; p.due=baru; p.uji=ujiLabel(baru);
  p.thn=2026;                       // sudah diperbarui di AGAVA, bukan lagi acuan kolom 2025
  if(noBaru) p.noIzin=noBaru;
+ if(mulai){ p.urusMulai=mulai; p.urusHari=hari; }
+ delete p.urus;                    // keadaan tengah selesai — tandanya dilepas
  try{ dbPersist(); }catch(e){}
- try{ auditLog("izin-close", p.id+" · "+p.name+" ("+(p.area||"")+") · berlaku "+lama+" → "+baru+(noBaru?" · no "+noBaru:"")); }catch(e){}
+ try{ auditLog("izin-close", p.id+" · "+p.name+" ("+(p.area||"")+") · berlaku "+lama+" → "+baru+
+      (noBaru?" · no "+noBaru:"")+(mulai?" · diurus "+hari+" hari sejak "+mulai:"")); }catch(e){}
  closeDrawer(); renderHSE();
  try{ renderReminder(); renderOverview(); }catch(e){}
  alert("✅ "+p.name+"\n\nBerlaku sampai "+fmtDay(baru)+" "+baru.slice(0,4)+(noBaru?"\nNo. izin: "+noBaru:"")+
@@ -19723,11 +19827,14 @@ function renderHSE(){
  const agc=agcScore(), agcLvl=agcLevel(agc.pct);
  /* Saringan keadaan — angkanya dihitung dari SELURUH register, bukan dari yang
     sedang tampil, supaya tombolnya tetap memberi tahu apa yang ada di baliknya. */
- const cnt={all:PERMITS.length,lewat:0,segera:0,aman:0,permanen:0,baru:0};
- PERMITS.forEach(p=>{ cnt[permitStKey(p)]++; });
- /* "Izin baru" hanya muncul kalau memang ada yang sedang dibuat — jangan pajang
-    tombol saringan yang isinya nol. */
+ const cnt={all:PERMITS.length,lewat:0,segera:0,aman:0,permanen:0,baru:0,diurus:0};
+ PERMITS.forEach(p=>{ cnt[permitStKey(p)]++; if(permitDiurus(p)) cnt.diurus++; });
+ /* "Izin baru" dan "Diurus" hanya muncul kalau memang ada isinya — jangan pajang
+    tombol saringan yang angkanya nol.
+    Catatan: cnt.diurus MENUMPANG, tidak mengurangi lewat/segera/aman. Izin yang
+    sedang diurus tetap dihitung di keadaan aslinya — lihat permitStKey. */
  const stTabs=[["all","Semua"],["lewat","Lewat tempo"],["segera","≤2 bulan"],["aman","Aman"],["permanen","Permanen"]]
+   .concat(cnt.diurus?[["diurus","Sedang diurus"]]:[])
    .concat(cnt.baru?[["baru","Izin baru"]]:[]);
  /* Lokasi kini 8 (dulu 3), jadi saringannya dropdown — permintaan Sudana
     10 Agu 2026. Chip 8 buah memakan dua baris penuh di layar HP. */
@@ -19747,7 +19854,10 @@ function renderHSE(){
  const izinRow=p=>hseIzinRow({nama:p.name, sub:p.area+' · '+(p.noIzin||'tanpa no. izin'),
    berlaku:p.berlaku, periode:p.periode, terbit:p.terbit, due:p.due, thn:p.thn,
    harga:p.harga, ket:p.ket, st:p.st, so:p.so, closedAt:p.closedAt, closedBy:p.closedBy,
-   closeFn:"hseCloseIzin('"+esc(p.id)+"')"});
+   urus:p.urus,
+   closeFn:"hseCloseIzin('"+esc(p.id)+"')",
+   urusFn:"hseMulaiUrus('"+esc(p.id)+"')",
+   urusBatalFn:"hseBatalUrus('"+esc(p.id)+"')"});
  const byDue=(a,b)=>(a.due||'9999').localeCompare(b.due||'9999');   // paling dekat jatuh tempo di atas
  const rowsUtil=utilF.slice().sort(byDue).map(izinRow).join("");
  const rowsLing=lingF.slice().sort(byDue).map(izinRow).join("");
@@ -20370,7 +20480,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.26-248";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.26-249";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
