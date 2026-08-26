@@ -20554,7 +20554,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.26-250";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.26-251";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -20979,15 +20979,44 @@ function dbListen(){
        memuat 28 izin contoh. Jangan dipakai; pakai daftar resmi di kode, lalu
        naikkan isi dokumennya sekali (dbSaveMaster mengarsipkan yang lama ke
        agava_config_riwayat dan menolak menulis bila belum login). */
-    const izinLama=!(d.seed&&d.seed.permits===PERMITS_SEED);
-    AGDB.masterSeed=(d.seed&&d.seed.permits)||"";   // pembanding seed di dbSaveMaster
+    /* ── ARAH SEED, BUKAN SEKADAR BEDA (26 Agu 2026) ─────────────────────────
+       Dilaporkan Sudana: di modul HSE, halaman yang sedang terpilih berkedip
+       tidak normal.
+
+       Sebabnya di baris ini. Dulu SETIAP seed yang tidak sama dianggap "cloud
+       masih daftar lama", lalu perangkat ini menimpanya. Akibatnya dua
+       perangkat pada build BERBEDA saling menimpa tanpa henti: yang lama
+       membaca seed baru sebagai "lama" dan menuliskan daftarnya sendiri, yang
+       baru membalasnya, begitu seterusnya. Tiap tulisan memicu snapshot di
+       SEMUA perangkat, dan tiap snapshot memanggil renderHSE() di bawah —
+       #page-hse dibangun ulang berkali-kali per detik. Hover tidak
+       menyebabkannya; ia hanya membuat kedipnya kentara, karena transisi
+       .hse-tab ikut dimulai ulang tiap kali DOM-nya diganti.
+
+       Ini bentuk yang sama dengan bug pita versi: membandingkan BEDA, bukan
+       ARAH. Seed berformat tanggal+huruf sehingga bisa dibandingkan apa adanya
+       ("2026-08-10b" < "2026-08-26c" < "2026-08-26d"); seed kosong paling tua.
+         cloud == kita → sinkron, pakai cloud
+         cloud <  kita → daftar kita lebih baru: pakai kode, naikkan cloud
+         cloud >  kita → CLOUD lebih baru (perangkat ini build lama): pakai
+                         cloud, dan JANGAN menulis apa pun. Inilah cabang yang
+                         dulu tidak ada, dan yang menutup ping-pong itu. */
+    const seedCloud=(d.seed&&d.seed.permits)||"";
+    AGDB.masterSeed=seedCloud;                       // pembanding seed di dbSaveMaster
+    const cloudLebihBaru = seedCloud>PERMITS_SEED;
+    const izinLama = !cloudLebihBaru && seedCloud!==PERMITS_SEED;
     Object.keys(DB_SETS).forEach(k=>{ if(k==="permits"&&izinLama)return;
       if(Array.isArray(d.sets[k])){ const a=DB_SETS[k].get(); a.length=0; d.sets[k].forEach(x=>a.push(x)); } });
     try{ const sets=Object.assign({},d.sets); if(izinLama) sets.permits=JSON.parse(JSON.stringify(PERMITS));
-         sets._seed={permits:PERMITS_SEED};
+         /* cache lokal menyimpan seed yang BENAR-BENAR dipakai — kalau cloud
+            lebih baru, mengaku memakai seed kita sendiri hanya akan menipu
+            pemuatan berikutnya. */
+         sets._seed={permits: izinLama?PERMITS_SEED:(seedCloud||PERMITS_SEED)};
          localStorage.setItem(DB_STORE, JSON.stringify(sets)); }catch(e){}
-    if(izinLama){ console.info("Perizinan: dokumen cloud masih daftar lama — dinaikkan ke",PERMITS_SEED);
+    if(izinLama){ console.info("Perizinan: daftar di cloud lebih lama — dinaikkan ke",PERMITS_SEED);
                   try{ dbSaveMaster(); }catch(e){} }
+    else if(cloudLebihBaru) console.info("Perizinan: daftar di cloud LEBIH BARU ("+seedCloud+
+      ") daripada build perangkat ini ("+PERMITS_SEED+") — dipakai apa adanya, tidak ditimpa. Muat ulang untuk mendapat build terbaru.");
     try{ renderReminder(); renderVendor(); renderBuilding(); renderHSE(); renderOverview(); }catch(e){}
   },err=>{ cloudTurun("master",err&&err.code); }));
   /* Konfigurasi endpoint Power Automate — ikut pindah antar perangkat */
@@ -21498,7 +21527,11 @@ function dbSaveMaster(){
     penanda versinya tidak pernah naik. Tidak merusak data, tetapi membuat
     mekanisme seed berhenti bekerja diam-diam — dan seluruh gunanya justru
     memastikan koreksi sampai ke semua perangkat. */
- if(AGDB.masterEcho===j && AGDB.masterSeed===PERMITS_SEED)return;
+ /* ARAH, bukan beda — sama seperti di listener. Kalau isi sets sama DAN seed
+    kita tidak lebih baru dari cloud, tidak ada alasan menulis. Memakai "beda"
+    di sini akan membuat perangkat ber-build lama menurunkan seed cloud yang
+    justru lebih baru, dan ping-pong-nya hidup lagi dari sisi ini. */
+ if(AGDB.masterEcho===j && !(PERMITS_SEED>(AGDB.masterSeed||"")))return;
  try{ if(AGDB.masterEcho) dbSimpanRiwayat("master", AGDB.masterEcho, "edit-master"); }catch(e){}
  AGDB.masterEcho=j; AGDB.masterSeed=PERMITS_SEED;
  AGDB.db.collection("agava_config").doc("master").set(payload).catch(function(e){ console.warn("Master cloud:",e&&e.code); });
