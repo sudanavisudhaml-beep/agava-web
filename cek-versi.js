@@ -18,11 +18,20 @@
  * Pakai:
  *   node cek-versi.js          → periksa saja; keluar dengan kode 1 bila beda
  *   node cek-versi.js --sync   → samakan version.json & sw.js mengikuti index.html
+ *   node cek-versi.js --pasang → aktifkan hook pre-commit (git config core.hooksPath)
  *
- * Jalankan SEBELUM `git push` dan `firebase deploy`.
+ * Tiga lapis penegak, supaya tidak ada yang bergantung pada ingatan:
+ *   1. hooks/pre-commit  → commit DITOLAK bila tidak selaras (POSIX sh, tanpa Node)
+ *   2. firebase.json     → "predeploy": ["node cek-versi.js"], deploy dibatalkan
+ *   3. skrip ini         → dipanggil keduanya, dan bisa dijalankan sendiri
+ *
+ * Kenapa --pasang perlu: core.hooksPath adalah konfigurasi git LOKAL dan tidak
+ * ikut ter-commit. Repo yang di-clone ulang akan kehilangan penegaknya tanpa
+ * suara — jadi cara memasangnya ikut disimpan di dalam repo.
  */
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
 
 const dir = __dirname;
 const F = {
@@ -41,6 +50,21 @@ const POLA = {
 function ambil(k) {
   const m = baca(F[k]).match(POLA[k]);
   return m ? m[1] : null;
+}
+
+if (process.argv.includes("--pasang")) {
+  try {
+    execFileSync("git", ["config", "core.hooksPath", "hooks"], { cwd: dir });
+    const aktif = execFileSync("git", ["config", "--get", "core.hooksPath"], {
+      cwd: dir, encoding: "utf8"
+    }).trim();
+    console.log(`✓ hook aktif — core.hooksPath = ${aktif}`);
+    console.log("  Mulai sekarang commit dengan stempel tidak selaras akan DITOLAK.");
+  } catch (e) {
+    console.error("✖ gagal memasang hook: " + e.message);
+    process.exit(2);
+  }
+  process.exit(0);
 }
 
 const sync = process.argv.includes("--sync");

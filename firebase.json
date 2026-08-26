@@ -1,6 +1,9 @@
 {
   "hosting": {
     "public": ".",
+    "predeploy": [
+      "node cek-versi.js"
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -13,7 +16,9 @@
       "**/*.xlsx",
       "app.js",
       "index-prototype.html",
-      "posters/**"
+      "posters/**",
+      "cek-versi.js",
+      "hooks/**"
     ],
     "headers": [
       {

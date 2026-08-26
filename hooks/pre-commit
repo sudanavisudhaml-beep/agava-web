@@ -1,0 +1,65 @@
+#!/bin/sh
+# ── AGAVA · penegak stempel versi ──────────────────────────────────────────────
+#
+# Nomor build hidup di TIGA berkas yang harus selalu sama:
+#   index.html   → const AGAVA_BUILD    (yang dilihat pengguna)
+#   version.json → {"build": ...}       (yang ditanya aplikasi tiap beberapa menit)
+#   sw.js        → const BUILD          (mengikat nama CACHE service worker)
+#
+# 26 Agu 2026 — kenapa hook ini ada.
+# v247 dideploy dengan index.html saja. Dua akibatnya:
+#   1. version.json tertinggal, jadi SETIAP pengguna melihat pita "versi baru
+#      tersedia — terbaru v246": diajak TURUN versi.
+#   2. sw.js tertinggal, sehingga CACHE = 'agava-v246' tidak berganti nama.
+#      Service worker tidak membuang cache lama; perangkat bisa terus menyajikan
+#      index.html kemarin. Deploy "berhasil" di server tapi tidak mendarat.
+#
+# Sebelum ini sudah ADA peringatannya, tertulis di komentar index.html:
+# "WAJIB sama dengan version.json & BUILD di sw.js". Peringatan itu tetap
+# dilanggar. Peringatan tanpa penegak akan dilanggar lagi — jadi sekarang
+# commit-nya yang ditolak, bukan sekadar diingatkan.
+#
+# Sengaja POSIX sh murni tanpa Node: Node di mesin ini portabel dan tidak ada di
+# PATH, sedangkan hook harus jalan apa pun keadaannya. Penegak yang bisa gagal
+# jalan bukan penegak.
+
+dir=$(git rev-parse --show-toplevel) || exit 0
+cd "$dir" || exit 0
+
+for f in index.html version.json sw.js; do
+  if [ ! -f "$f" ]; then
+    echo "✖ AGAVA: $f tidak ditemukan — pemeriksaan versi dibatalkan." >&2
+    exit 1
+  fi
+done
+
+idx=$(grep -o 'const AGAVA_BUILD="[^"]*"' index.html   | head -1 | sed 's/.*="//; s/"$//')
+ver=$(grep -o '"build"[[:space:]]*:[[:space:]]*"[^"]*"' version.json | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+sw=$(grep  -o "const BUILD = '[^']*'"     sw.js        | head -1 | sed "s/.*'\([^']*\)'\$/\1/")
+
+if [ -z "$idx" ] || [ -z "$ver" ] || [ -z "$sw" ]; then
+  echo "✖ AGAVA: stempel versi tidak terbaca (index=$idx version=$ver sw=$sw)." >&2
+  echo "  Pola penulisannya berubah? Perbarui hooks/pre-commit dan cek-versi.js." >&2
+  exit 1
+fi
+
+if [ "$idx" = "$ver" ] && [ "$ver" = "$sw" ]; then
+  exit 0
+fi
+
+echo "" >&2
+echo "✖ COMMIT DITOLAK — stempel versi tidak selaras" >&2
+echo "" >&2
+echo "    index.html    $idx" >&2
+echo "    version.json  $ver" >&2
+echo "    sw.js         $sw" >&2
+echo "" >&2
+echo "  Yang tertinggal bukan cuma kosmetik:" >&2
+echo "    · version.json tertinggal  → pengguna diajak TURUN versi" >&2
+echo "    · sw.js tertinggal         → cache lama tidak dibuang, deploy tidak" >&2
+echo "                                 mendarat di perangkat" >&2
+echo "" >&2
+echo "  Samakan dulu:  node cek-versi.js --sync" >&2
+echo "  lalu:          git add index.html version.json sw.js" >&2
+echo "" >&2
+exit 1
