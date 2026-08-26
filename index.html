@@ -8408,11 +8408,21 @@ function dbPatchSO(no,fields){
    Revisi yang sah TIDAK terjebak di sini — soRevisiSubmit menghapus aktor
    untuk gerbang yang dibuka ulang. */
 function soCacatMundur(s){
- var ak=(s&&s.aktor)||{};
+ var ak=(s&&s.aktor)||{}, ts=(s&&s.ts)||{}, tsf=(s&&s.tsf)||{};
  var cek={section:s.apprSection,budget:s.apprBudget,proc:s.apprProc,dept:s.apprDept};
  for(var g in cek){ var v=cek[g];
    var sah=(v==="Approved"||v==="Rejected"||(g==="budget"&&v==="Escalated"));
-   if(ak[g]&&!sah) return g; }
+   /* ── JEJAK = aktor ATAU cap waktu (26 Agu 2026) ────────────────────────
+      Dulu hanya aktor[g] yang dibaca. 13 dari 134 dokumen tidak punya peta
+      aktor sama sekali (skema lama) — di sanalah pagar ini diam saja. Cap
+      waktu ts/tsf sama-sama hanya ditulis oleh approveSO, jadi sama sahnya
+      sebagai bukti "gerbang ini pernah diputuskan".
+      sectionBy SENGAJA tidak dipakai: baris 14525 menyetelnya saat revisi
+      sebagai PENUNJUKAN siapa yang harus approve, bukan tanda tangan —
+      memakainya akan mengunci setiap SO revisi selamanya.
+      Revisi sah tetap lolos: soRevisiSubmit menghapus aktor[g], ts[g], dan
+      tsf[g] untuk setiap gerbang yang dibuka kembali. */
+   if((ak[g]||ts[g]||tsf[g])&&!sah) return g; }
  return null;
 }
 /* Cache perangkat ini bisa saja masih menyimpan SO pra-live (mis. perangkat yang
@@ -10665,8 +10675,18 @@ function myTicketEscalate(no){
   '<div class="db">'+
    '<div class="mt-esk-st" style="margin-top:0">Tiket <b>tetap milik Anda</b> di My Tickets selama dieskalasi. '+
      'Yang berubah hanya statusnya — tiket baru benar-benar selesai setelah pemohon memberi rating.</div>'+
-   '<div class="field" style="margin-top:14px"><label>Dinaikkan ke siapa?</label></div>'+
-   '<div class="fo-pilih">'+pilih("koor",true)+pilih("section",false)+'</div>'+
+   /* ── OPERATOR SELALU MENDARAT DI KOORDINATOR (26 Agu 2026) ───────────────
+      Dulu operator boleh memilih langsung ke Section Head. Itu melompati anak
+      tangga dan membuat peran Koordinator hilang — dan memang begitu yang
+      terjadi: 35 dari 38 eskalasi berhenti di satu tingkat, tak pernah naik.
+      Aturan Sudana: Operator → Koordinator → Section. Yang naik dari operator
+      berhenti di Koordinator, dan Koordinator-lah yang membuat SO atau
+      menaikkannya. Jadi ini bukan lagi pilihan, melainkan keterangan tujuan.
+      SATU PENGECUALIAN: kategori yang belum punya Koordinator tidak punya anak
+      tangga itu — di situ eskalasi langsung dialamatkan ke Section Head, supaya
+      tiket tidak mendarat di ruang kosong. */
+   '<div class="field" style="margin-top:14px"><label>Dinaikkan ke</label></div>'+
+   '<div class="fo-pilih">'+(ticketKoordinator(t)?pilih("koor",true):pilih("section",true))+'</div>'+
    '<div class="field"><label>Alasan eskalasi <span style="color:var(--red)">*</span></label>'+
      '<textarea id="fo-esc-note" rows="3" placeholder="mis. Lampu perlu diganti — butuh pengadaan 3 unit LED 18W"></textarea></div>'+
    '<button class="btn-act" style="width:100%" onclick="myTicketEscalateSubmit(\''+esc(no)+'\')">⏫ Kirim Eskalasi</button>'+
@@ -10702,14 +10722,78 @@ function myTicketEscalateSubmit(no){
  renderMyTickets(); renderFieldOps(); renderService(); renderApprovals(); renderReminder(); renderOverview(); updateBell();
  alert("⏫ Tiket "+no+" dinaikkan ke "+tujuan+".\n\nTiket TETAP ada di My Tickets Anda — yang berubah hanya statusnya.\nAnda menutupnya nanti setelah tindak lanjutnya selesai.");
 }
-/* escNaikkan() DIBUANG (13 Agu 2026) — tombolnya sudah dicabut di v203 karena
-   eskalasi beralamat sejak awal, jadi anak tangga kedua tidak lagi diperlukan.
-   Fungsinya tertinggal tanpa satu pun pemanggil selama 10 versi: mati di layar,
-   tetapi masih bisa dijalankan dari konsol dan masih menulis ke Firestore.
-   Tombol yang sudah dicabut atas keputusan harus ikut kehilangan fungsinya —
-   kalau tidak, yang dicabut cuma tampilannya, bukan wewenangnya.
-   Kolom t.escUpBy / t.escUpAt SENGAJA masih dibaca perender kartu eskalasi:
-   tiket lama yang pernah dinaikkan tetap harus menampilkan riwayatnya. */
+/* ╔══ TANGGA DUA TINGKAT DIPULIHKAN (26 Agu 2026) ════════════════════════════╗
+   Aturan Sudana: **Operator → Koordinator → Section**, dan yang MEMEGANG
+   eskalasi dialah yang membuat SO. Naik dari Operator mendarat di Koordinator,
+   dan Koordinator yang membuat SO. Naik dari Koordinator mendarat di Section,
+   dan Section yang membuat SO.
+
+   escNaikkan() dibuang 13 Agu 2026 karena tombolnya dicabut di v203, dengan
+   alasan "eskalasi sudah beralamat sejak awal". Data membantah alasan itu:
+   35 dari 38 eskalasi berkategori Building dan SEMUANYA berhenti di
+   Koordinator — Section Head pemilik kategori praktis tidak pernah menerima
+   apa pun, dan tiket yang di luar wewenang Koordinator tidak punya jalan ke
+   mana pun. Yang dicabut ternyata bukan anak tangga yang tak perlu, melainkan
+   satu-satunya jalan naik.
+
+   Kembali dengan dua pengetatan yang dulu tidak ada:
+     · hanya Koordinator tiket itu (atau Owner) yang boleh menaikkan
+     · alasannya wajib — yang menerima berhak tahu kenapa ini sampai padanya
+   escNote milik operator TIDAK ditimpa; alasan naik disimpan terpisah di
+   escUpNote supaya kedua suara tetap terbaca. Kolom escUpBy/escUpAt yang
+   selama ini tetap dibaca perender kartu kini terisi lagi oleh jalur sah. */
+function escBolehNaikkan(t){
+ if(!t||!t.esc||t.escDone) return false;
+ var to=t.escTo||"koor"; if(to==="ga")to="koor";
+ if(to!=="koor") return false;                     /* sudah di anak tangga teratas */
+ if(!ticketSectionOwner(t)) return false;          /* tidak ada tujuan naik */
+ if(typeof isOwner==="function" && isOwner()) return true;
+ var k=ticketKoordinator(t);
+ return !!k && ((gUser&&gUser.name)||"")===k;
+}
+function escNaikkanBuka(no){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ if(!escBolehNaikkan(t)){ alert("⛔ Hanya Koordinator kategori ini yang dapat menaikkannya ke Section Head."); return; }
+ var sh=ticketSectionOwner(t);
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div class="sono" style="font-size:calc(15px*var(--fz))">'+esc(t.no)+'</div>'+
+   '<div style="font-size:calc(14.5px*var(--fz));color:var(--ink);font-weight:700;margin-top:5px">'+esc(t.judul||'')+'</div>'+
+   '<div class="muted small" style="margin-top:3px">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div></div>'+
+  '<div class="db">'+
+   '<div class="mt-esk-st" style="margin-top:0">Naik ke <b>Section Head '+esc(sh)+'</b>. '+
+     'Setelah naik, <b>Section Head yang membuat SO</b> — tiket ini keluar dari antrean eskalasi Anda.</div>'+
+   (t.escNote?'<div class="tk-brief-n" style="margin-top:12px"><b>⏫ Alasan operator:</b> '+esc(t.escNote)+(t.escBy?' — '+esc(t.escBy):'')+'</div>':'')+
+   '<div class="field" style="margin-top:14px"><label>Kenapa perlu naik ke Section Head? <span style="color:var(--red)">*</span></label>'+
+     '<textarea id="esc-naik-note" rows="3" placeholder="mis. nilainya di atas wewenang Koordinator — perlu keputusan Section Head"></textarea></div>'+
+   '<button class="btn-act" style="width:100%" onclick="escNaikkanSubmit(\''+esc(no)+'\')">⏫ Naikkan ke Section Head</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+ setTimeout(function(){ var x=document.getElementById("esc-naik-note"); if(x)x.focus(); },80);
+}
+function escNaikkanSubmit(no){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ if(!escBolehNaikkan(t)){ alert("⛔ Tidak berwenang menaikkan tiket ini."); return; }
+ var note=((document.getElementById("esc-naik-note")||{}).value||"").trim();
+ if(!note){ alert("Alasannya wajib diisi — inilah yang dibaca Section Head saat tiket ini sampai padanya."); return; }
+ var sh=ticketSectionOwner(t), dari=(gUser&&gUser.name)||"";
+ closeDrawer();
+ t.escTo="section"; t.escUpBy=dari; t.escUpAt=nowMs(); t.escUpNote=note;
+ try{ tkKomen(t,"Dinaikkan ke Section Head "+sh+" oleh Koordinator "+dari+": "+note,"eskalasi"); }catch(e){}
+ /* satu bidang masuk, satu bidang tertulis — aturan dbPatchTicket. escDone
+    sengaja TIDAK ikut ditulis: ia sudah false, dan menulis bendera false
+    secara sengaja adalah bentuk yang sama dengan salinan basi. */
+ dbPatchTicket(t,{escTo:"section", escUpBy:dari, escUpAt:t.escUpAt, escUpNote:note});
+ try{ triggerFlow("updateTicket",{ticketNo:t.no,escTo:"section",escUpBy:dari}); }catch(e){}
+ NOTIFS.unshift({ic:"⏫", t:"Eskalasi naik ke Section Head",
+   d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · dari Koordinator "+dari+" — "+note,
+   at:nowStamp(), sev:"crit", nav:"approvals", done:false, nama:sh, namaRole:"section"});
+ try{ agavaNotify("⏫ Eskalasi naik ke Anda", t.no+" · "+(t.judul||"")+" · dari Koordinator "+dari); }catch(e){}
+ try{ auditLog("escalation-naik", t.no+" · Koordinator "+dari+" → Section "+sh+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
+ try{ agavaRenderAman(["renderService","renderApprovals","renderMyTickets",
+                       "renderFieldOps","renderReminder","updateBell"]); }catch(e){}
+ alert("⏫ Tiket "+no+" naik ke Section Head "+sh+".\n\nSO-nya kini dibuat oleh Section Head — tiket ini keluar dari antrean eskalasi Anda.");
+}
 /* Selesaikan dari My Tickets — sama seperti Field Ops: WAJIB foto bukti dari kamera */
 function myTicketResolve(no){ foAskPhoto(no); }
 /* Supervisor buat SO dari tiket tereskalasi → prefill Create SO */
@@ -14457,7 +14541,17 @@ async function _submitSO_inti(){
    if(tk){
      tk.toProc=true; tk.soNo=no; tk.escDone=true; tk.escSoBy=(gUser&&gUser.name)||""; tk.escSoAt=nowStamp();
      so.fromTicket=_fromTk;
-     dbSaveTicket(tk);
+     /* ── PATCH, BUKAN SELURUH TIKET (26 Agu 2026) ───────────────────────────
+        Laporan Sudana: "sudah saya klik Buat SO, tapi eskalasinya muncul lagi."
+        Penyebabnya di sini. dbSaveTicket mengirim SELURUH tiket versi perangkat
+        ini dan tunduk pada pagar tkHapusDiamDiam — kalau SATU bidang lindung
+        kebetulan kosong di salinan lokal, SELURUH tulisan ditahan dan escDone
+        tidak pernah sampai ke cloud. Diam-diam: hanya console.warn.
+        Aturan di dbPatchTicket sudah menyebutkan ini — dbSaveTicket hanya untuk
+        saat seluruh tiket memang yang dimaksud. Membuat SO mengubah lima bidang,
+        jadi lima bidang itulah yang ditulis. */
+     dbPatchTicket(tk,{toProc:true, soNo:no, escDone:true,
+                       escSoBy:tk.escSoBy, escSoAt:tk.escSoAt});
      try{ auditLog("escalation-to-so", _fromTk+" → "+no); }catch(e){}
      try{ renderService(); renderMyTickets(); renderFieldOps(); }catch(e){}
    }
@@ -15558,7 +15652,18 @@ function approveSO(no,gate,decision,beralasan){
      nama:soPemohon(s), email:s.email||""});
    try{ agavaNotify("⛔ SO "+no+" ditolak — perlu revisi",((s.reject&&s.reject.perbaikan)||"Buka AGAVA untuk memperbaiki.")); }catch(e){}
    try{ auditLog("so-reject", no+" · gerbang "+gate+" · "+((s.reject&&s.reject.alasan)||"")); }catch(e){}
- } else notifySound();   // flow maju masuk ke gate/assigned berikutnya
+ } else {
+   notifySound();   // flow maju masuk ke gate/assigned berikutnya
+   /* ── APPROVAL IKUT DICATAT (26 Agu 2026) ──────────────────────────────
+      Selama ini HANYA penolakan yang masuk jejak audit. Akibatnya, ketika
+      ada yang melapor "SO yang sudah saya approve muncul lagi", tidak ada
+      satu pun catatan yang bisa membenarkan atau membantahnya — bukti satu-
+      satunya cuma aktor/ts di dokumen itu sendiri, yang justru ikut hilang
+      kalau dokumennya tertimpa. Persetujuan adalah keputusan berwenang;
+      ia berhak punya jejak yang berdiri di luar dokumennya. */
+   try{ auditLog("so-approve", no+" · gerbang "+gate+" · "+decision+
+        " · nilai "+(s.nilai||0)+(s.auto?" · otomatis":"")); }catch(e){}
+ }
  /* ── TULIS SATU BIDANG, BUKAN 47 DOKUMEN (3 Agu 2026) ──
     Dulu: soPersist() → dbSaveSOAll() → seluruh SO ditulis ulang dari salinan
     lokal perangkat ini tiap satu keputusan. Perangkat basi = 17 SO mundur.
@@ -15901,9 +16006,18 @@ function escTicketRow(t){
           jalan pintas itu untuk selamanya.
       Sisanya dua, ukuran sama, tanpa ikon. Hanya WARNA yang dipertahankan —
       "Buat SO" biru sebagai tindakan utama. */
+   /* Anak tangga ketiga muncul HANYA untuk Koordinator yang memegang eskalasi
+      tingkat pertama — sebaris penuh sendiri supaya kisi dua kolom di atasnya
+      tetap rapi, dan supaya tindakan yang memindahkan wewenang tidak tampak
+      sederajat dengan dua tombol biasa. */
    '<div class="esc-act">'+
      '<button class="btn-act" onclick="soFromTicket(\''+esc(t.no)+'\')">Buat SO</button>'+
      '<button class="btn-out" onclick="escDiskusiSection(\''+esc(t.no)+'\')" title="Buka Chat dengan Section Head pemilik kategori ini">Diskusi Section</button>'+
+     (escBolehNaikkan(t)
+       ? '<button class="btn-out" style="grid-column:1/-1" onclick="escNaikkanBuka(\''+esc(t.no)+'\')" '+
+         'title="Di luar wewenang Koordinator — teruskan ke Section Head pemilik kategori, dan SO dibuat olehnya">'+
+         '⏫ Naikkan ke Section Head '+esc(ticketSectionOwner(t))+'</button>'
+       : '')+
    '</div>'+
  '</div>';
 }
@@ -19226,7 +19340,11 @@ function rateGateSubmit(){
    PERMITS_SEED = versi daftar resmi. Salinan lama di localStorage perangkat dan
    di dokumen cloud agava_config/master yang belum bertanda versi ini SENGAJA
    diabaikan (lihat dbLoadAll & onSnapshot master). */
-const PERMITS_SEED="2026-08-10b";   // b = koreksi manual Izin Lift 1-4 AMDI (Sudana, 10 Agu 2026)
+const PERMITS_SEED="2026-08-26c";   /* b = koreksi manual Izin Lift 1-4 AMDI (Sudana, 10 Agu 2026)
+                                       c = koreksi 3 izin Cibitung IZ73-75 (Sudana, 26 Agu 2026):
+                                           siklus 20 Des 2024/2025 → 14 Nov 2025 / uji 15 Nov 2026.
+                                       Versi WAJIB naik tiap koreksi — salinan lama di localStorage
+                                       dan agava_config/master hanya tergantikan bila tandanya beda. */
 let PERMITS=[
  {id:"IZ01", area:"AMDI", name:"Izin Lift 1", noIzin:"4400/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
  {id:"IZ02", area:"AMDI", name:"Izin Lift 2", noIzin:"4401/I.PM-LF/09-B/2001", berlaku:"Selamanya", terbit:"20 April 2026", uji:"Maret 2027", due:"2027-03-01", thn:2026, periode:"1 Tahun", harga:2446875, st:"Done", so:"SO Bulan Feb 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
@@ -19300,9 +19418,19 @@ let PERMITS=[
  {id:"IZ70", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Rotunda) NIDI : I.01.2024.TLB9", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : U030.0.P.J.427.3273.A24 Nomor Registrasi : A24JU03021105", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2026", due:"2026-01-13", thn:2025, periode:"15 tahun", harga:38000000, st:"Done", so:"SO Bulan Juli 2038", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp"},
  {id:"IZ71", area:"Bandung", name:"SLO Instalasi Listrik Tegangan Rendah (Infra) I.01.2024.SGY5", noIzin:"Akreditasi Menteri Energi dan Sumber Daya Mineral Nomor 5.Stf/TL.07/DJL.4/2023 Tahun 2023 Nomor Sertifikat : S252.0.P.J.427.3201.A24 Nomor Registrasi : A24JS25271504", berlaku:"Berkala", terbit:"13 Januari 2024", uji:"13 Januari 2039", due:"2039-01-13", thn:2025, periode:"15 tahun", harga:0, st:"Done", so:"SO Bulan Jan 2039", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 2 Bulan SO 4 Bulan sebelum Exp"},
  {id:"IZ72", area:"Bandung", name:"SLF Bangunan Kawasan ABC BDG", noIzin:"SK-SLF-327311-13072023-001", berlaku:"Berkala", terbit:"13 Juli 2023", uji:"12 Juli 2028", due:"2028-07-12", thn:2025, periode:"5 Tahun", harga:1000000000, st:"Done", so:"", ket:"Uji Riksa 1 bulan Submit Dokumen dan sampai izin keluar 5 Bulan SO 6 Bulan sebelum Exp"},
- {id:"IZ73", area:"Cibitung", name:"Izin Ke Hydrant", noIzin:"566.10/2169/UPTD-WIL.II/XII/2024", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"20 Desember 2025", due:"2025-12-20", thn:2025, periode:"1 tahun", harga:7200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
- {id:"IZ74", area:"Cibitung", name:"Izin K3 Fire Alarm", noIzin:"566.10/2168/UPTD-WIL.II/XII/2024", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"20 Desember 2025", due:"2025-12-20", thn:2025, periode:"1 tahun", harga:8500000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
- {id:"IZ75", area:"Cibitung", name:"Izin K3 Genset", noIzin:"566.10/2170/UPTD-WIL.II/XII/2024", berlaku:"Selamanya", terbit:"20 Desember 2024", uji:"20 Desember 2025", due:"2025-12-20", thn:2025, periode:"1 tahun", harga:5200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ /* ── KOREKSI CIBITUNG (Sudana, 26 Agu 2026) ─────────────────────────────────
+    Sheet Rekap masih memuat siklus lama: terbit 20 Des 2024, uji kembali 20 Des
+    2025. Tanggal itu sudah lewat, jadi ketiganya menyala LEWAT TEMPO di rapor
+    HSE padahal pengurusannya sudah berjalan — pengurusan dilakukan 14 Nov 2025,
+    sehingga pemeriksaan berikutnya jatuh 15 Nov 2026. Rencana SO Oktober 2026
+    tetap sesuai: dua bulan sebelum uji kembali, di dalam patokan "SO 3 Bulan
+    sebelum Exp" pada kolom ket.
+    Dikoreksi di sini dan BUKAN menunggu sheet diperbarui, karena rapor yang
+    merah palsu menyembunyikan izin yang benar-benar lewat tempo. Kalau sheet
+    Rekap nanti diurai ulang, tiga baris ini harus dicocokkan lagi. */
+ {id:"IZ73", area:"Cibitung", name:"Izin Ke Hydrant", noIzin:"566.10/2169/UPTD-WIL.II/XII/2024", berlaku:"Selamanya", terbit:"14 November 2025", uji:"15 November 2026", due:"2026-11-15", thn:2025, periode:"1 tahun", harga:7200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ74", area:"Cibitung", name:"Izin K3 Fire Alarm", noIzin:"566.10/2168/UPTD-WIL.II/XII/2024", berlaku:"Selamanya", terbit:"14 November 2025", uji:"15 November 2026", due:"2026-11-15", thn:2025, periode:"1 tahun", harga:8500000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
+ {id:"IZ75", area:"Cibitung", name:"Izin K3 Genset", noIzin:"566.10/2170/UPTD-WIL.II/XII/2024", berlaku:"Selamanya", terbit:"14 November 2025", uji:"15 November 2026", due:"2026-11-15", thn:2025, periode:"1 tahun", harga:5200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
  {id:"IZ76", area:"Cibinong", name:"Izin K3 Lift", noIzin:"551/TK.04.03.01/PK-WIL.I. BGR", berlaku:"Selamanya", terbit:"08 Januari 2025", uji:"16 Desember 2026", due:"2026-12-16", thn:2025, periode:"1 tahun", harga:5200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
  {id:"IZ77", area:"Ex Pako", name:"Izin K3 Genset", noIzin:"17293/KT.05.0057/XII/2024", berlaku:"Selamanya", terbit:"27 Desember 2025", uji:"27 Desember 2026", due:"2026-12-27", thn:2025, periode:"1 tahun", harga:5200000, st:"Done", so:"SO Bulan Oktober 2026", ket:"Uji Riksa 1 Minggu Submit Dokumen dan sampai izin keluar 1 Bulan SO 3 Bulan sebelum Exp"},
  {id:"IZ78", area:"Ex Pako", name:"SLO Instalasi Listrik NIDI Instalasi Listrik", noIzin:"SLO : KR2.0.P.16.315.3172.25 NIDI : I.08.2025.252028", berlaku:"10 Tahun", terbit:"24 September 2025 s.d 24 September 2035 (SLO) NIDI selamanya", uji:"24 September 2035", due:"2035-09-24", thn:2025, periode:"10 Tahun", harga:0, st:"Done", so:"", ket:""},
@@ -20242,7 +20370,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-246";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.26-247";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -20754,10 +20882,24 @@ function dbStripTicket(t){
    Pagar ini membandingkan dengan salinan cloud terakhir yang kita lihat; kalau
    penulisan akan MENGOSONGKAN bidang yang di cloud sudah terisi, tulisan itu
    DITAHAN. Menambah/mengubah isi tetap bebas — yang dilarang hanya menghapus. */
-const TK_LINDUNG=["pic","stg","pickBy","rate","rating","closedBy","soNo","escTo","toProc","bukti"];
+const TK_LINDUNG=["pic","stg","pickBy","rate","rating","closedBy","soNo","escTo","toProc","bukti",
+ /* ── BENDERA IKUT DILINDUNGI (26 Agu 2026) ──────────────────────────────────
+    escDone menandai eskalasi yang SUDAH ditindaklanjuti — begitu ia mundur ke
+    false, tiketnya hidup lagi di antrean eskalasi orang. Persis laporan
+    "sudah saya klik Buat SO, tapi muncul lagi". */
+ "escDone","soDone"];
 function tkHapusDiamDiam(t){
  var c=(AGDB.tickCloud||{})[t.no]; if(!c) return null;
- var kosong=function(v){ return v===undefined||v===null||v===""||v===0||(Array.isArray(v)&&!v.length); };
+ /* ── TITIK BUTA BOOLEAN (26 Agu 2026) ───────────────────────────────────────
+    Dulu kosong() tidak menghitung `false`. Akibatnya perubahan true→false lolos
+    pagar untuk SEMUA bendera — termasuk toProc yang sejak awal ada di daftar
+    lindung, jadi perlindungannya selama ini hanya di atas kertas.
+    Untuk sebuah bendera, true→false adalah penghapusan: ia mencabut fakta bahwa
+    sesuatu sudah dikerjakan. Pencabutan yang SAH selalu lewat dbPatchTicket
+    (mis. soHapus menulis escDone:false secara sengaja), dan jalur itu memang
+    tidak melewati pagar ini — jadi memperketat di sini tidak memblokir apa pun
+    yang benar. */
+ var kosong=function(v){ return v===undefined||v===null||v===""||v===0||v===false||(Array.isArray(v)&&!v.length); };
  for(var i=0;i<TK_LINDUNG.length;i++){ var k=TK_LINDUNG[i];
    if(!kosong(c[k]) && kosong(t[k])) return k; }
  return null;
@@ -20939,6 +21081,42 @@ async function soDocLampiranCek(s){
  try{ await fetch(pdf[0].url,{method:"GET"}); return {ok:true, n:n}; }
  catch(e){ return {ok:false, n:n}; }
 }
+/* ╔══ SEMBUHKAN SALINAN BASI, JANGAN CUMA MENOLAKNYA (26 Agu 2026) ═══════════╗
+   Pagar mundur di dbSaveSOAll menahan unggahan salinan basi — jejak audit
+   mencatatnya menyala 82 kali. Tapi menahan saja hanya menyelamatkan DATABASE;
+   layar orang itu tetap memegang salinan yang salah, dan ia tidak diberi tahu.
+
+   Yang diandalkan komentar lama — "biarkan snapshot cloud yang menyembuhkan" —
+   ternyata tidak berlaku: onSnapshot memakai docChanges(), dan docChanges HANYA
+   mengabarkan dokumen yang BERUBAH. Dokumen yang sudah selesai diputuskan tidak
+   akan berubah lagi. Jadi tidak ada yang datang menyembuhkannya, dan SO yang
+   sudah di-approve bisa terus tampil "belum" di perangkat itu berhari-hari.
+
+   Itu persis bentuk laporan "SO yang sudah saya approve muncul lagi" — sementara
+   setiap pemeriksaan ke server menjawab bersih, karena server memang benar.
+   Kerusakannya ada di salinan perangkat, bukan di data.
+
+   Sekarang setiap penolakan diikuti tarik-paksa dari server: satu dokumen,
+   sumber server (bukan cache), lalu layar digambar ulang. Lingkarnya tertutup. */
+function soTarikDariServer(no){
+ if(!AGDB.db||!AGDB.on) return;
+ AGDB._tarik=AGDB._tarik||{};
+ if(AGDB._tarik[no]) return;                    /* cukup sekali per nomor per sesi */
+ AGDB._tarik[no]=1;
+ AGDB.db.collection("agava_so").doc(String(no)).get({source:"server"}).then(function(d){
+   if(!d.exists) return;
+   var srv=d.data(); srv.no=srv.no||no;
+   var i=SO.findIndex(function(x){ return x&&x.no===no; });
+   if(i<0) return;
+   Object.assign(SO[i],srv);                    /* server yang benar, bukan salinan ini */
+   AGDB.soEcho=AGDB.soEcho||{};
+   AGDB.soEcho[no]=JSON.stringify(dbStripSO(SO[i]));
+   try{ soPersistLokal(); }catch(e){}
+   try{ agavaRenderAman(["renderProc","renderApprovals","renderAssigned",
+                         "renderPayment","renderMobileHome","updateBell"]); }catch(e){}
+   console.warn("SO "+no+": salinan lokal disembuhkan dari server");
+ }).catch(function(e){ console.warn("SO tarik:",e&&e.code); });
+}
 function dbSaveSOAll(){
  if(AGDB.ro||!AGDB.on||!AGDB.db)return;
  /* Pagar login (audit 3 Agu 2026) — jejak agava_audit membuktikan pagar mundur
@@ -20957,6 +21135,7 @@ function dbSaveSOAll(){
    if(cacat){ console.warn("SO "+s.no+": unggah DITAHAN — gerbang "+cacat+" mundur (salinan basi)");
      try{ if(!AGDB._mundurLog||!AGDB._mundurLog[s.no]){ AGDB._mundurLog=AGDB._mundurLog||{}; AGDB._mundurLog[s.no]=1;
        auditLog("so-tahan-mundur", s.no+" · gerbang "+cacat+" · salinan basi tidak diunggah"); } }catch(e){}
+     soTarikDariServer(s.no);                    /* menahan saja tidak cukup — sembuhkan layarnya */
      return; }
    var c=dbStripSO(s), j=JSON.stringify(c);
    if(AGDB.soEcho[s.no]===j)return;              // tidak berubah → jangan tulis ulang
