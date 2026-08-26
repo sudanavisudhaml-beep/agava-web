@@ -1024,6 +1024,15 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .ap-dok-w{margin-top:7px;font-size:calc(11px*var(--fz));line-height:1.5;color:#8a2b2b;
   background:var(--red-s);border:1px solid #e9c6c6;border-radius:8px;padding:6px 8px}
 .ap-dok .so-pdf{width:100%;margin-top:8px}
+/* ══ Pengatur pita wewenang UPR ══ */
+.amb-tbl{width:100%;border-collapse:collapse;font-size:calc(12.5px*var(--fz))}
+.amb-tbl th{text-align:left;padding:7px 9px;background:#f2f5f9;border:1px solid var(--line);
+  font-size:calc(11.5px*var(--fz));color:var(--muted);font-weight:700}
+.amb-tbl td{padding:8px 9px;border:1px solid var(--line);vertical-align:middle}
+.amb-in{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;
+  font-family:var(--ff);font-size:calc(12.5px*var(--fz))}
+.amb-cb{display:inline-flex;align-items:center;gap:5px;margin:2px 12px 2px 0;
+  font-size:calc(12px*var(--fz));color:var(--ink);white-space:nowrap}
 /* ══ Daftar rekanan dikelompokkan per kategori layanan ══ */
 .vnd-grup-h{display:flex;align-items:center;gap:8px;margin:4px 0 7px;font-size:calc(12.5px*var(--fz));
   font-weight:800;color:var(--ink);letter-spacing:.01em}
@@ -16575,12 +16584,49 @@ function srcTandaiKirim(i){
  k.dikirim=true; k.kirimAt=nowStamp();
  soPersist(); srcTenderList();
 }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  KENAPA OUTLOOK DULU LAMA SEKALI TERBUKA (25 Agu 2026)                   ║
+   ║                                                                          ║
+   ║  Laporan tim: "email vendor bisa dibuka di Outlook, tapi loadingnya lama ║
+   ║  sekali." Dua sebab, dan keduanya di baris yang sama.                    ║
+   ║                                                                          ║
+   ║  1. window.location.href = "mailto:…" MENAVIGASI halaman. Peramban       ║
+   ║     memulai perpindahan halaman, menunggu sistem operasi menyerahkannya  ║
+   ║     ke Outlook, dan selama itu AGAVA tampak menggantung. Anchor yang     ║
+   ║     diklik tidak menyentuh navigasi halaman sama sekali.                 ║
+   ║                                                                          ║
+   ║  2. Badan suratnya ~1.200 karakter, dan encodeURIComponent melipatkannya ║
+   ║     jadi 3.000+ — jauh di atas batas praktis URL yang bisa diserahkan    ║
+   ║     Windows ke aplikasi (~2.048). Di atas itu ia melambat, dan kadang    ║
+   ║     memotong isinya diam-diam.                                          ║
+   ║                                                                          ║
+   ║  Jadi mailto kini hanya membawa yang RINGKAS — penerima, subjek, dan     ║
+   ║  paragraf pembuka. Surat lengkapnya otomatis disalin ke papan klip, jadi ║
+   ║  tinggal Ctrl+V bila diperlukan. Subjeknya sengaja tetap utuh: ia yang   ║
+   ║  nanti dipakai mencocokkan balasan vendor.                               ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
 function srcKirim(i){
  var m=srcSuratTeks(i);
  if(!m.to){ alert("Isi dulu email vendornya."); return; }
- try{ window.location.href="mailto:"+encodeURIComponent(m.to)+
-   "?subject="+encodeURIComponent(m.subject)+"&body="+encodeURIComponent(m.body); }catch(e){}
- srcTandaiKirim(i);
+ /* Ringkas untuk mailto; lengkap untuk papan klip. */
+ var ringkas=String(m.body||"").split("\n\n").slice(0,2).join("\n\n")+
+   "\n\n(Rincian pekerjaan, timeline, dan syarat penawaran menyusul di badan email ini —"+
+   " tempel dari papan klip, sudah otomatis tersalin.)";
+ var url="mailto:"+encodeURIComponent(m.to)+
+   "?subject="+encodeURIComponent(m.subject)+"&body="+encodeURIComponent(ringkas);
+ var lengkap="To: "+m.to+"\nSubject: "+m.subject+"\n\n"+m.body;
+ var buka=function(){
+   try{
+     var a=document.createElement("a");
+     a.href=url; a.style.display="none";
+     document.body.appendChild(a); a.click();
+     setTimeout(function(){ try{ a.remove(); }catch(e){} },0);
+   }catch(e){ console.warn("mailto:",e); }
+   srcTandaiKirim(i);
+ };
+ if(navigator.clipboard&&navigator.clipboard.writeText){
+   navigator.clipboard.writeText(lengkap).then(buka,buka);
+ } else buka();
 }
 function srcSalin(i){
  var m=srcSuratTeks(i);
@@ -16864,7 +16910,7 @@ function uprPilih(v){
 function uprSimpan(diam){
  var s=SO.find(function(x){return x.no===UPR_SO;}); if(!s||!s.upr)return;
  (s.upr.penawaran||[]).forEach(function(p,i){
-   ["nilai","tgl","plus","minus","catatan","email"].forEach(function(f){
+   ["nilai","nilaiFinal","tgl","plus","minus","catatan","email"].forEach(function(f){
      var el=document.getElementById("upr-"+f+"-"+i); if(el) p[f]=String(el.value||"").trim();
    });
  });
@@ -17064,6 +17110,20 @@ function renderUPR(){
        '<div class="field"><label>Email</label><input id="upr-email-'+i+'" value="'+esc(x.email||"")+'"'+(bisaEdit?'':' disabled')+'/></div>'+
        '<div class="two" style="gap:0 10px">'+
          '<div class="field"><label>Nilai penawaran (Rp)</label><input id="upr-nilai-'+i+'" type="number" min="0" step="1000" value="'+esc(String(x.nilai||""))+'" placeholder="mis. 12500000" oninput="uprEcho('+i+')"'+(bisaEdit?'':' disabled')+'/><div class="hint" id="uprEcho-'+i+'" style="font-size:calc(11px*var(--fz));color:var(--muted);margin-top:3px">'+(n>0?("Rp "+rpFmt(n)):"belum ada penawaran")+'</div></div>'+
+         /* ── HARGA FINAL HASIL NEGOSIASI (25 Agu 2026) ───────────────────────
+            Kolomnya sudah ada di model data sejak awal (nilaiFinal) dan sudah
+            dibaca uprNilaiKomit() untuk menentukan pita wewenang — tetapi tidak
+            pernah ada tempat mengisinya. Akibatnya hasil negosiasi tidak pernah
+            masuk ke mana pun: pita dihitung dari penawaran AWAL, dan SPK ikut
+            memakai angka yang sudah tidak berlaku.
+
+            Dikosongkan berarti "belum ada negosiasi" — bukan nol rupiah. */
+         '<div class="field"><label>Harga final (Rp) <span class="muted small">— setelah negosiasi, kosongkan bila belum</span></label>'+
+           '<input id="upr-nilaiFinal-'+i+'" type="number" min="0" step="1000" value="'+esc(String(x.nilaiFinal||""))+'" placeholder="kosong = pakai penawaran" oninput="uprEcho('+i+')"'+(bisaEdit?'':' disabled')+'/>'+
+           '<div class="hint" id="uprEchoF-'+i+'" style="font-size:calc(11px*var(--fz));color:var(--muted);margin-top:3px">'+
+             ((parseFloat(x.nilaiFinal)||0)>0?("Mengikat: Rp "+rpFmt(parseFloat(x.nilaiFinal))):"belum dinegosiasi")+'</div></div>'+
+       '</div>'+
+       '<div class="two" style="gap:0 10px">'+
          '<div class="field"><label>Tgl penawaran masuk</label><input id="upr-tgl-'+i+'" value="'+esc(x.tgl||"")+'" placeholder="dd/mm/yyyy"'+(bisaEdit?'':' disabled')+'/></div>'+
        '</div>'+
        '<div class="field"><label>Kelebihan (pro)</label><textarea id="upr-plus-'+i+'" rows="2"'+(bisaEdit?'':' disabled')+'>'+esc(x.plus||"")+'</textarea></div>'+
@@ -17102,8 +17162,15 @@ function renderUPR(){
 }
 function uprEcho(i){
  var el=document.getElementById("upr-nilai-"+i), h=document.getElementById("uprEcho-"+i);
- if(!el||!h)return; var n=parseFloat(el.value)||0;
- h.innerHTML=n>0?('Terbaca: <b style="color:var(--ink)">Rp '+rpFmt(n)+'</b>'):'belum ada penawaran';
+ if(el&&h){ var n=parseFloat(el.value)||0;
+   h.innerHTML=n>0?('Terbaca: <b style="color:var(--ink)">Rp '+rpFmt(n)+'</b>'):'belum ada penawaran'; }
+ /* Harga final punya barisnya sendiri karena ia yang MENGIKAT — pita wewenang
+    dan nilai SPK dihitung darinya. Menampilkannya sebagai angka kedua yang
+    setara akan menyembunyikan bahwa yang satu menggantikan yang lain. */
+ var ef=document.getElementById("upr-nilaiFinal-"+i), hf=document.getElementById("uprEchoF-"+i);
+ if(ef&&hf){ var f=parseFloat(ef.value)||0;
+   hf.innerHTML=f>0?('Mengikat: <b style="color:var(--ink)">Rp '+rpFmt(f)+'</b> — pita wewenang dihitung dari angka ini')
+                   :'belum dinegosiasi — pita dihitung dari nilai penawaran'; }
 }
 /* Dokumen UPR — dicetak lewat overlay yang sama dengan Dokumen SO, jadi ikut
    aturan @media print yang sudah ada (hanya dokumennya yang tercetak). */
@@ -19914,7 +19981,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-242";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-243";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
@@ -21736,6 +21803,73 @@ function kaPanelHTML(){
    '</div></div><div id="kaBody">'+kaIsiHTML()+'</div></div>';
 }
 
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  PENGATUR PITA WEWENANG UPR (25 Agu 2026)                                ║
+   ║                                                                          ║
+   ║  Laporan tim: "tiering approval UPR masih salah, semuanya sampai Chief."  ║
+   ║  Tiering-nya TIDAK salah — ia tidak pernah AKTIF. Angka ambang sengaja    ║
+   ║  tidak ditulis di kode (repo publik), sumbernya agava_config/upr — dan    ║
+   ║  dokumen itu tidak pernah dibuat, karena satu-satunya cara membuatnya     ║
+   ║  adalah menyunting Firebase Console secara manual.                        ║
+   ║                                                                          ║
+   ║  Mengharapkan orang menyunting JSON di Console bukan rancangan; itu       ║
+   ║  memindahkan pekerjaan ke tempat yang tidak akan dikunjungi siapa pun.    ║
+   ║  Selama pengaturnya tidak ada di dalam aplikasi, fiturnya tidak ada.      ║
+   ║                                                                          ║
+   ║  Angkanya tetap TIDAK masuk kode: yang ditambahkan hanya layar untuk      ║
+   ║  mengisinya, dan isinya tersimpan di cloud di balik login.                ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function uprAmbangBolehAtur(){ return isOwner() || gRole==="admin" || gRole==="dept" || gRole==="chief"; }
+function uprAmbangPanel(){
+ if(!uprAmbangBolehAtur()) return "";
+ var pakai=UPR_AMBANG, bawaan=!!(pakai[0]&&pakai[0].bawaan);
+ var gerbang=UPR_GATES.map(function(g){ return g; });
+ var baris=(bawaan?[{sampai:10000000,rantai:["proc","dept"],nama:""},
+                    {sampai:100000000,rantai:["proc","dept","division"],nama:""},
+                    {sampai:null,rantai:["proc","dept","division","chief"],nama:""}]
+                 :pakai).map(function(p,i){
+   var tak=(p.sampai===Infinity||p.sampai===null);
+   return '<tr>'+
+     '<td><input id="amb-s-'+i+'" type="number" min="0" step="1000000" value="'+(tak?"":esc(String(p.sampai)))+'" placeholder="kosong = tanpa batas atas" class="amb-in"></td>'+
+     '<td>'+gerbang.map(function(g){
+        return '<label class="amb-cb"><input type="checkbox" id="amb-'+g.k+'-'+i+'"'+((p.rantai||[]).indexOf(g.k)>=0?' checked':'')+'> '+esc(g.label.replace(/^PIC |^GA |^HCMS |^Chief of /,''))+'</label>';
+      }).join("")+'</td></tr>';
+ }).join("");
+ return '<div class="card sec" style="margin-top:16px"><div class="sec-h"><div>'+
+   '<h2>Pita Wewenang UPR</h2><div class="d">Berapa tanda tangan yang dibutuhkan, menurut nilai yang dikomitkan</div></div></div>'+
+   (bawaan?'<div class="ap-dok-w" style="margin-bottom:12px"><b>Belum dikonfigurasi — dan itu sebabnya semua UPR berjalan sampai Chief.</b><br>'+
+     'Angka di bawah ini contoh awal; periksa terhadap SK Wewenang Keuangan lalu Simpan.</div>':'')+
+   '<table class="amb-tbl"><thead><tr><th style="width:210px">Nilai s.d. (Rp)</th><th>Gerbang yang harus dilewati</th></tr></thead><tbody>'+baris+'</tbody></table>'+
+   '<div class="muted small" style="margin:10px 0;line-height:1.55">Batas bersifat <b>inklusif</b>: nilai yang tepat sama dengan sebuah ambang masuk pita itu. '+
+     'Baris terakhir wajib dikosongkan nilainya (tanpa batas atas). Rantai <b>dibekukan pada dokumen saat UPR diajukan</b>, jadi perubahan di sini tidak menggeser UPR yang sudah berjalan.</div>'+
+   '<button class="btn-act" onclick="uprAmbangSimpan()">Simpan pita wewenang</button></div>';
+}
+async function uprAmbangSimpan(){
+ if(!uprAmbangBolehAtur()){ alert("⛔ Hanya Owner, Administrator, Dept Head, atau Chief yang dapat mengubah pita wewenang."); return; }
+ if(AGDB.ro){ alert("🔒 Mode uji (localhost) — penyimpanan ke cloud diblokir."); return; }
+ if(!AGDB.on||!AGDB.db){ alert("⚠️ Cloud tidak tersambung."); return; }
+ var out=[];
+ for(var i=0;i<3;i++){
+   var s=document.getElementById("amb-s-"+i); if(!s) continue;
+   var v=String(s.value||"").trim();
+   var rantai=UPR_GATES.filter(function(g){ var c=document.getElementById("amb-"+g.k+"-"+i); return c&&c.checked; }).map(function(g){ return g.k; });
+   if(!rantai.length){ alert("Pita baris "+(i+1)+" belum punya satu gerbang pun.\n\nSetiap pita harus dilewati minimal satu pejabat."); return; }
+   out.push({sampai:(v===""?null:parseFloat(v)), rantai:rantai,
+     nama:(v===""?("di atas Rp "+rpFmt(out.length?out[out.length-1].sampai:0)):("s.d. Rp "+rpFmt(parseFloat(v))))});
+ }
+ /* Divalidasi dengan fungsi yang SAMA yang dipakai saat membaca dari cloud —
+    jadi tidak mungkin menyimpan bentuk yang nanti ditolak sendiri. */
+ if(!uprAmbangSah(out)){
+   alert("Bentuk pita belum sah.\n\nYang wajib: nilainya menaik dari atas ke bawah, dan baris terakhir dikosongkan (tanpa batas atas).");
+   return;
+ }
+ try{
+   await AGDB.db.collection("agava_config").doc("upr").set({ambang:out, by:(gUser&&gUser.name)||"", at:nowStamp()},{merge:true});
+   try{ auditLog("upr-ambang-ubah", out.map(function(p){ return (p.sampai===null?"∞":rpFmt(p.sampai))+"→"+p.rantai.join("+"); }).join(" · ")); }catch(e){}
+   alert("✅ Pita wewenang tersimpan.\n\nBerlaku untuk UPR yang diajukan MULAI SEKARANG. UPR yang sudah berjalan tetap memakai rantai yang dibekukan pada dokumennya.");
+   try{ renderParams(); }catch(e){}
+ }catch(e){ alert("Gagal menyimpan: "+((e&&e.code)||"tidak diketahui")); }
+}
 function renderParams(){
  var el=document.getElementById("page-params"); if(!el)return;
  if(!isOwner()){ el.innerHTML='<div class="card" style="padding:48px;text-align:center;color:var(--muted)">⛔ Halaman <b>Parameter &amp; Biaya</b> hanya dapat diakses pemilik sistem AGAVA.</div>'; return; }
@@ -21791,6 +21925,7 @@ function renderParams(){
        dan Master Rekanan (98 vendor, termasuk legalitas & SPCV). */
     dbPanel("permits","register izin resmi — sumbernya Database Perizinan; jatuh tempo &amp; pengingatnya mengalir ke HSE, GA Calendar, dan CODEC")+
   '</div>'+
+  uprAmbangPanel()+
   kaPanelHTML();
  el.innerHTML=html;
  paramPreview();
