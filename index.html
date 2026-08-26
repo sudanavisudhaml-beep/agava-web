@@ -1024,6 +1024,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
 .ap-dok-w{margin-top:7px;font-size:calc(11px*var(--fz));line-height:1.5;color:#8a2b2b;
   background:var(--red-s);border:1px solid #e9c6c6;border-radius:8px;padding:6px 8px}
 .ap-dok .so-pdf{width:100%;margin-top:8px}
+/* ══ Klarifikasi UPR — tanya-jawab antar gerbang ══ */
+.upr-klar{margin-top:9px;border-radius:10px;padding:9px 11px;font-size:calc(12px*var(--fz));line-height:1.55}
+.upr-klar b{display:block;color:var(--ink);font-size:calc(12px*var(--fz))}
+.upr-klar div{margin-top:3px;color:var(--text);overflow-wrap:anywhere}
+.upr-klar i{display:block;margin-top:5px;font-style:normal;font-size:calc(10.5px*var(--fz));color:var(--muted)}
+.upr-klar.tanya{background:var(--amber-s);border:1px solid #f0dcb4}
+.upr-klar.jawab{background:var(--green-s);border:1px solid #bfe3cd}
 /* ══ Pengatur pita wewenang UPR ══ */
 .amb-tbl{width:100%;border-collapse:collapse;font-size:calc(12.5px*var(--fz))}
 .amb-tbl th{text-align:left;padding:7px 9px;background:#f2f5f9;border:1px solid var(--line);
@@ -16680,6 +16687,18 @@ function renderAssigned(){
           <button class="so-pdf" style="align-self:center" onclick="soDocShow('${s.no}')" title="Dokumen Supply Order (sah) — cetak / simpan PDF">📄 SO PDF</button>
         </div>
       </div>
+      ${(function(){
+        /* Klarifikasi yang menunggu jawaban muncul DI SINI, di layar tempat PIC
+           Procurement bekerja — bukan hanya di inbox Approval yang bukan
+           miliknya. Pertanyaan yang menahan UPR harus terlihat oleh orang yang
+           bisa menjawabnya, di tempat ia berada. */
+        var k=uprKlarAktif(s); if(!k) return "";
+        return `<div class="upr-klar tanya" style="margin-top:12px">
+          <b>❓ ${esc(k.gateLabel)} — ${esc(k.by||"")} menunggu jawaban Anda</b>
+          <div>${esc(k.tanya)}</div><i>${esc(k.at||"")}</i>
+          <button class="btn-act" style="width:100%;margin-top:9px" onclick="uprKlarJawab('${String(s.no).replace(/'/g,"")}')">Jawab klarifikasi</button>
+        </div>`;
+      })()}
       <div style="margin-top:12px">${stepper}</div>
     </div>`;
   }).join(""):'<div class="card pad muted small" style="text-align:center;padding:46px">No SO assigned to you yet. New SO appears here after Dept Head approves & PIC Procurement assigns you.</div>'}
@@ -16863,12 +16882,74 @@ function uprRantaiTeks(s){ return uprRantai(s).map(function(g){return g.label;})
 function uprAda(s){ return !!(s&&s.upr); }
 function uprDitolak(s){ return !!(s&&s.upr&&uprRantai(s).some(function(g){return s.upr.appr[g.k]==="Rejected";})); }
 function uprSelesai(s){ return !!(s&&s.upr&&uprRantai(s).every(function(g){return s.upr.appr[g.k]==="Approved";})); }
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  KLARIFIKASI ADALAH STATUS, BUKAN CATATAN (25 Agu 2026)                  ║
+   ║                                                                          ║
+   ║  Permintaan Sudana: ketika sebuah gerbang bertanya, UPR-nya BERHENTI dan  ║
+   ║  kembali ke PIC Procurement. Sesudah dijawab, ia kembali ke gerbang yang  ║
+   ║  bertanya — bukan mengulang dari awal, dan bukan pula lanjut ke gerbang   ║
+   ║  berikutnya tanpa si penanya sempat membaca jawabannya.                   ║
+   ║                                                                          ║
+   ║  Kenapa status dan bukan sekadar komentar: pertanyaan yang tidak menahan  ║
+   ║  apa pun akan dilewati. Kalau Division Head bisa menyetujui sambil        ║
+   ║  pertanyaannya menggantung, maka pertanyaannya tidak pernah benar-benar   ║
+   ║  diajukan — ia hanya dicatat. Yang menahanlah yang membuatnya dijawab.    ║
+   ║                                                                          ║
+   ║  Satu klarifikasi terbuka pada satu waktu. Dua pertanyaan menggantung     ║
+   ║  dari dua gerbang berbeda akan membuat "kembali ke penanya" kehilangan    ║
+   ║  arti.                                                                    ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+function uprKlarAktif(s){
+ var k=s&&s.upr&&s.upr.klar;
+ return (k&&!k.jawabAt)?k:null;
+}
 /* gerbang yang sedang menunggu — null bila tuntas / ditolak / belum diajukan */
 function uprGate(s){
  if(!uprAda(s)||!s.upr.diajukan||uprDitolak(s)) return null;
  var R=uprRantai(s);
  for(var i=0;i<R.length;i++){ if(s.upr.appr[R[i].k]!=="Approved") return R[i]; }
  return null;
+}
+/* Meminta klarifikasi. Hanya boleh oleh gerbang yang SEDANG menunggu — bertanya
+   atas dokumen yang bukan giliran kita bukan klarifikasi, itu interupsi. */
+async function uprKlarMinta(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s||!s.upr)return;
+ var g=uprGate(s); if(!g){ alert("UPR ini sudah tidak menunggu keputusan."); return; }
+ if(uprKlarAktif(s)){ alert("Sudah ada klarifikasi yang belum dijawab."); return; }
+ var q=await agavaTanya({judul:"Klarifikasi — "+s.upr.no, ok:"Kirim pertanyaan", min:10,
+   pesan:"Pertanyaan ini dikirim ke PIC Procurement, dan UPR BERHENTI sampai dijawab. "+
+         "Sesudah dijawab, ia kembali ke gerbang Anda untuk diputuskan.",
+   ph:"mis. kenapa yang diusulkan bukan penawaran termurah?"});
+ if(q===null) return;
+ s.upr.klar={ gate:g.k, gateLabel:g.label, by:(gUser&&gUser.name)||"", at:nowStamp(),
+              tanya:String(q).trim(), jawab:"", jawabBy:"", jawabAt:"" };
+ soPersist();
+ try{ auditLog("upr-klarifikasi", s.upr.no+" · "+g.label+" bertanya · "+String(q).trim().slice(0,80)); }catch(e){}
+ NOTIFS.unshift({ic:"❓",t:"Klarifikasi UPR — "+s.upr.no, d:g.label+" bertanya: "+String(q).trim().slice(0,90),
+   at:nowStamp(), sev:"warn", nav:"assigned", done:false, nama:(s.staffPIC||s.pic||"")});
+ try{ renderApprovals(); renderAssigned(); renderProc(); updateBell(); }catch(e){}
+ alert("❓ Pertanyaan terkirim ke PIC Procurement.\n\n"+s.upr.no+" berhenti sampai dijawab, lalu kembali ke gerbang "+g.label+".");
+}
+/* Menjawab. Hanya PIC Procurement / Staff yang memegang SO ini. */
+async function uprKlarJawab(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s||!s.upr)return;
+ var k=uprKlarAktif(s); if(!k){ alert("Tidak ada klarifikasi yang menunggu jawaban."); return; }
+ var a=await agavaTanya({judul:"Jawaban klarifikasi — "+s.upr.no, ok:"Kirim jawaban", min:10,
+   pesan:k.gateLabel+" ("+(k.by||"—")+") bertanya:\n\n“"+k.tanya+"”\n\nJawaban Anda dibaca oleh penanya sebelum ia memutuskan.",
+   ph:"jawab selengkap mungkin — ini yang dipakai memutuskan"});
+ if(a===null) return;
+ s.upr.klar.jawab=String(a).trim();
+ s.upr.klar.jawabBy=(gUser&&gUser.name)||"";
+ s.upr.klar.jawabAt=nowStamp();
+ /* Riwayat disimpan supaya pertanyaan berikutnya tidak menghapus yang lalu —
+    jejak tanya-jawab adalah bagian dari pertanggungjawaban dokumen ini. */
+ s.upr.klarRiwayat=(s.upr.klarRiwayat||[]).concat([JSON.parse(JSON.stringify(s.upr.klar))]);
+ soPersist();
+ try{ auditLog("upr-klarifikasi-jawab", s.upr.no+" · dijawab "+(gUser&&gUser.name||"")); }catch(e){}
+ NOTIFS.unshift({ic:"💬",t:"Klarifikasi dijawab — "+s.upr.no, d:String(a).trim().slice(0,90),
+   at:nowStamp(), sev:"info", nav:"approvals", done:false, nama:k.by});
+ try{ renderApprovals(); renderAssigned(); renderProc(); updateBell(); }catch(e){}
+ alert("💬 Jawaban terkirim.\n\n"+s.upr.no+" kembali ke gerbang "+k.gateLabel+" untuk diputuskan.");
 }
 function uprStatusTeks(s){
  if(!uprAda(s)) return {t:"Belum ada UPR",c:"bd-neu"};
@@ -16916,6 +16997,7 @@ function uprSimpan(diam){
  });
  var al=document.getElementById("upr-alasan"); if(al) s.upr.alasan=String(al.value||"").trim();
  var pl=document.getElementById("upr-plsyarat"); if(pl) s.upr.plSyarat=String(pl.value||"").trim();
+ var st=document.getElementById("upr-strategis"); if(st) s.strategis=!!st.checked;
  soPersist();
  if(!diam) alert("💾 Draft UPR tersimpan.");
  renderUPR();
@@ -16993,6 +17075,17 @@ async function uprAksi(no,keputusan){
  var s=SO.find(function(x){return x.no===no;}); if(!s||!s.upr)return;
  var g=uprGate(s); if(!g){ alert("UPR ini sudah tidak menunggu keputusan."); return; }
  if(isOwner()){ alert("👀 Mode pantau — gerbang UPR bukan wewenang akun Owner.\n\nGunakan akun pemegang gerbangnya."); return; }
+ /* Klarifikasi terbuka MENAHAN keputusan. Kalau tidak menahan, pertanyaannya
+    akan dilewati — dan pertanyaan yang bisa dilewati tidak pernah benar-benar
+    diajukan. Penolakan tetap diizinkan: kalau jawabannya tak kunjung datang,
+    menolak dengan alasan lebih jujur daripada menggantung selamanya. */
+ var kAktif=uprKlarAktif(s);
+ if(kAktif && keputusan!=="Rejected"){
+   alert("⏸ Masih menunggu jawaban klarifikasi.\n\n"+
+     kAktif.gateLabel+" bertanya: “"+kAktif.tanya+"”\n\n"+
+     "UPR ini baru bisa disetujui setelah PIC Procurement menjawab.");
+   return;
+ }
  if(keputusan==="Rejected"){
    var a=await agavaTanya({judul:"Tolak "+s.upr.no, ok:"Tolak UPR", min:10,
      pesan:"Alasan ini dibaca Staff Procurement dan tercatat di jejak audit — tuliskan yang bisa ditindaklanjuti.",
@@ -17037,6 +17130,8 @@ async function uprAksi(no,keputusan){
 function uprApprovalCard(s){
  var g=uprGate(s); if(!g) return "";
  var pantau=isOwner();
+ var kAktif=uprKlarAktif(s);
+ var kTerakhir=(s.upr.klarRiwayat||[])[(s.upr.klarRiwayat||[]).length-1];
  var p=(s.upr.penawaran||[]).slice().sort(function(a,b){ return (parseFloat(a.nilai)||0)-(parseFloat(b.nilai)||0); });
  var menang=s.upr.pilih, termurah=p.length?p[0].vendor:"";
  return '<div class="card pad" style="margin-bottom:12px;border:1px solid var(--line)">'+
@@ -17053,6 +17148,13 @@ function uprApprovalCard(s){
       }).join("")+'</div>'+
      '<div class="upr-alasan"><b>Alasan penunjukan:</b> '+esc(s.upr.alasan||"—")+'</div>'+
      (menang&&termurah&&menang!==termurah?'<div class="upr-catat">⚠️ Yang diusulkan bukan penawaran termurah — alasannya wajib dibaca.</div>':'')+
+     /* Tanya-jawab tampil di kartu, bukan disembunyikan di balik tombol:
+        penanya berikutnya berhak melihat apa yang sudah ditanyakan sebelumnya. */
+     (kAktif?('<div class="upr-klar tanya"><b>❓ '+esc(kAktif.gateLabel)+' — '+esc(kAktif.by||"")+'</b>'+
+        '<div>'+esc(kAktif.tanya)+'</div><i>'+esc(kAktif.at||"")+' · menunggu jawaban PIC Procurement</i></div>'):'')+
+     (!kAktif&&kTerakhir?('<div class="upr-klar jawab"><b>💬 '+esc(kTerakhir.gateLabel)+' bertanya:</b><div>'+esc(kTerakhir.tanya)+'</div>'+
+        '<b style="margin-top:6px;display:block">Dijawab '+esc(kTerakhir.jawabBy||"")+':</b><div>'+esc(kTerakhir.jawab||"")+'</div>'+
+        '<i>'+esc(kTerakhir.jawabAt||"")+'</i></div>'):'')+
    '</div>'+
    '<div style="display:flex;flex-direction:column;gap:8px;min-width:230px">'+
      '<button class="so-pdf" style="align-self:stretch;text-align:center" onclick="uprDocShow(\''+esc(s.no)+'\')">📑 Buka Dokumen UPR</button>'+
@@ -17060,8 +17162,15 @@ function uprApprovalCard(s){
        ? '<span class="badge bd-info" style="text-align:center;padding:9px 12px">👀 Menunggu '+esc(g.label)+'</span>'+
          '<div class="muted small" style="text-align:center">Mode pantau — wewenang ini bukan milik Owner</div>'
        : '<div class="muted small" style="text-align:center">Gerbang: <b>'+esc(g.label)+'</b></div>'+
-         '<button class="btn-act" onclick="uprAksi(\''+esc(s.no)+'\',\'Approved\')">Approve UPR</button>'+
-         '<button class="btn-out" onclick="uprAksi(\''+esc(s.no)+'\',\'Rejected\')">Reject</button>')+
+         (kAktif
+           ? '<span class="badge bd-warn" style="text-align:center;padding:9px 12px">⏸ Menunggu jawaban klarifikasi</span>'+
+             '<div class="muted small" style="text-align:center">Approve terkunci sampai PIC Procurement menjawab</div>'+
+             '<button class="btn-out" onclick="uprAksi(\''+esc(s.no)+'\',\'Rejected\')">Reject</button>'
+           : '<button class="btn-act" onclick="uprAksi(\''+esc(s.no)+'\',\'Approved\')">Approve UPR</button>'+
+             '<div class="ap-2col">'+
+               '<button class="btn-out" onclick="uprKlarMinta(\''+esc(s.no)+'\')">Klarifikasi</button>'+
+               '<button class="btn-out" onclick="uprAksi(\''+esc(s.no)+'\',\'Rejected\')">Reject</button>'+
+             '</div>'))+
    '</div></div></div>';
 }
 function renderUPR(){
@@ -17145,6 +17254,12 @@ function renderUPR(){
            return '<option value="'+esc(o.k)+'"'+(s.upr.plSyarat===o.k?' selected':'')+'>'+esc(o.t)+'</option>';
          }).join("")+
        '</select></div>'):'')+
+    /* Penanda strategis diletakkan di UPR, bukan di SPK: ia harus diketahui
+       para approver SAAT memutuskan, bukan ditemukan belakangan saat tagihan
+       tertahan karena PKS-nya ternyata wajib. */
+    '<div class="field"><label><input type="checkbox" id="upr-strategis"'+(s.strategis?' checked':'')+(bisaEdit?'':' disabled')+'/> '+
+      'Pekerjaan bersifat <b>strategis / high risk</b></label>'+
+      '<div class="muted small" style="margin-top:4px;line-height:1.5">Mewajibkan <b>PKS</b> selain SPK. PKS tidak menahan penerbitan SPK — ia disusun paralel bersama Legal — tetapi <b>Payment Tracker tidak terbuka</b> sampai PKS terlampir. Nilai di atas Rp'+rpFmt(PKS_AMBANG)+' juga mewajibkannya dengan sendirinya.</div></div>'+
     '<div class="field"><label>Alasan penunjukan <span style="color:var(--red)">*</span> <span class="muted small">— dibaca '+esc(rantaiKini)+'</span></label>'+
       '<textarea id="upr-alasan" rows="3" placeholder="mis. harga terbaik dengan garansi 12 bulan dan pengalaman pekerjaan serupa di AMDI"'+(bisaEdit?'':' disabled')+'>'+esc(s.upr.alasan||"")+'</textarea></div>'+
     (adaUsulan?('<div class="upr-pita">'+
@@ -17194,11 +17309,20 @@ function uprDocHTML(s){
      '<td>'+esc(x.plus||"—")+'</td><td>'+esc(x.minus||"—")+'</td>'+
      '<td class="c">'+(win?'<b>DIUSULKAN</b>':'')+'</td></tr>';
  }).join("");
+ /* ── TANDA TANGAN, BUKAN SEKADAR NAMA (25 Agu 2026) ────────────────────────
+    Dokumen UPR dulu hanya mencetak nama penyetuju. Dokumen SO sudah lama
+    mencetak tanda tangan ber-stempel "e-signed via AGAVA" beserta tanggalnya —
+    dan itu yang membuatnya bisa diperlakukan sebagai lembar persetujuan, bukan
+    catatan. Dua dokumen dalam satu alur yang sama tidak boleh punya derajat
+    keabsahan yang berbeda; keduanya kini memakai perender yang sama. */
  var ttd=uprRantai(s).map(function(g){
    var ok=u.appr[g.k]==="Approved";
+   var nama=u.aktor[g.k]||"";
+   var sig=SO_SIGN[nama]||(nama?{label:nama,role:g.label}:null);
    return '<div class="ud-sig"><div class="ud-sl">'+esc(g.label)+'</div>'+
-     '<div class="ud-sb">'+(ok?('<b>'+esc(u.aktor[g.k]||"")+'</b><span>'+esc(u.ts[g.k]||"")+'</span>')
-       :'<em>'+(u.appr[g.k]==="Rejected"?"ditolak":"menunggu")+'</em>')+'</div></div>';
+     '<div class="ud-sb">'+(ok
+       ? (soSigMark(sig,u.ts[g.k]||"")+'<b>'+esc(nama)+'</b>')
+       : '<em>'+(u.appr[g.k]==="Rejected"?"ditolak":"menunggu")+'</em>')+'</div></div>';
  }).join("");
  return '<div class="ud">'+
   '<div class="ud-hd">'+(logoSrc?'<img src="'+logoSrc+'"/>':'')+
@@ -17401,6 +17525,50 @@ function sendSPK(no){
    ║  perilaku yang sudah terbukti — termasuk penandaan jujur ketika berkas    ║
    ║  gagal naik ke cloud dan tidak akan terlihat pejabat lain.                ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
+/* ╔══════════════════════════════════════════════════════════════════════════╗
+   ║  PKS — MENAHAN PEMBAYARAN, BUKAN SPK (25 Agu 2026)                       ║
+   ║                                                                          ║
+   ║  Keputusan Sudana: idealnya PKS terbit sebelum SPK, tetapi karena ia      ║
+   ║  melewati Legal, prakteknya SPK rilis dulu dan PKS disusun paralel. Jadi  ║
+   ║  PKS TIDAK menahan SPK — ia menahan PEMBAYARAN.                          ║
+   ║                                                                          ║
+   ║  Menaruh gerbangnya di tempat yang benar itu penting: kalau PKS menahan  ║
+   ║  SPK, pekerjaan tertunda menunggu dokumen yang memang lambat karena       ║
+   ║  melibatkan pihak lain — dan orang akan mencari jalan memutar. Kalau ia   ║
+   ║  menahan pembayaran, pekerjaan tetap jalan sementara dokumennya dikejar,  ║
+   ║  dan yang tertahan hanya uang. Itu tekanan yang tepat pada pihak yang     ║
+   ║  tepat.                                                                  ║
+   ║                                                                          ║
+   ║  CATATAN PENTING soal syaratnya: Sudana menyebut "nilai >300 juta DAN     ║
+   ║  pekerjaan strategis". Juklak Pengadaan CHCD mencantumkan keduanya       ║
+   ║  sebagai ALTERNATIF (konsultasi ATAU >=300 juta ATAU multi-year ATAU      ║
+   ║  strategis). Diterapkan sebagai ATAU — melewatkan PKS yang seharusnya ada ║
+   ║  lebih mahal daripada memintanya pada pekerjaan yang ternyata tidak       ║
+   ║  memerlukannya. Kalau memang harus DAN, ubah di satu baris pksWajib().    ║
+   ╚══════════════════════════════════════════════════════════════════════════╝ */
+const PKS_AMBANG=300000000;
+function pksWajib(s){
+ if(!s) return false;
+ var nilai=(parseFloat(s.nilai)||0)||uprNilaiKomit(s);
+ return (nilai>PKS_AMBANG) || !!s.strategis;
+}
+function pksAda(s){ return !!(s&&s.pks&&s.pks.file); }
+function pksAlasan(s){
+ var a=[];
+ var nilai=(parseFloat(s.nilai)||0)||uprNilaiKomit(s);
+ if(nilai>PKS_AMBANG) a.push("nilai di atas Rp"+rpFmt(PKS_AMBANG));
+ if(s.strategis) a.push("pekerjaan strategis / high risk");
+ return a.join(" · ");
+}
+let PKS_PILIH=null;
+function pksPick(input){
+ var f=(input.files||[])[0]; input.value=""; if(!f) return;
+ if(f.size>8*1024*1024){ alert("Berkas terlalu besar ("+(f.size/1024/1024).toFixed(1)+" MB). Batas 8 MB."); return; }
+ var rd=new FileReader();
+ rd.onload=function(e){ PKS_PILIH={name:f.name,url:String(e.target.result||"")};
+   var el=document.getElementById("pks-nama"); if(el) el.innerHTML='📎 <b>'+esc(f.name)+'</b> · '+(f.size/1024).toFixed(0)+' KB'; };
+ rd.readAsDataURL(f);
+}
 let BAST_PILIH=null;      /* {name,url} berkas yang sedang dipilih di laci */
 function bastPick(input){
  var f=(input.files||[])[0]; input.value="";
@@ -17416,7 +17584,7 @@ function bastPick(input){
 }
 function openBAST(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
- BAST_PILIH=null;
+ BAST_PILIH=null; PKS_PILIH=null;
  var b=s.bast||null;
  document.getElementById("drawer").innerHTML=`
   <div class="dh"><button class="x" onclick="closeDrawer()">✕</button><div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">BAST — ${s.no}</div><div class="muted small" style="margin-top:4px">Unggah BAST dari vendor; tersimpan sebagai berkas, bukan sekadar nama</div></div>
@@ -17436,6 +17604,14 @@ function openBAST(no){
       <div id="bast-nama" class="muted small" style="margin-top:6px">belum ada berkas dipilih</div></div>
     <div class="field"><label><input type="checkbox" id="bast-ttd" ${b&&b.ttdLengkap?'checked':''}/> BAST sudah lengkap ditandatangani (PIC penerima &amp; Dept Head)</label>
       <div class="muted small" style="margin-top:4px;line-height:1.5">Selama belum dicentang, SO ini <b>tidak masuk Payment Tracker</b>. Vendor baru boleh menagih setelah BAST lengkap.</div></div>
+    ${pksWajib(s)?`<div class="${pksAda(s)?'upr-klar jawab':'ap-dok-w'}" style="margin-bottom:12px">
+      <b>${pksAda(s)?'✅ PKS terlampir':'📄 PKS WAJIB untuk pekerjaan ini'}</b>
+      <div>Alasan: ${esc(pksAlasan(s))}. Juklak menuntut PKS ditandatangani Chief of CHCD.${pksAda(s)?'':' <b>Payment Tracker tidak akan terbuka</b> sampai PKS terlampir — SPK boleh jalan lebih dulu, PKS disusun paralel bersama Legal.'}</div>
+      ${pksAda(s)?`<i>${esc(s.pks.file.name||"berkas")} · diunggah ${esc(s.pks.by||"—")} · ${esc(s.pks.at||"—")}</i>`:''}
+      <div class="field" style="margin-top:8px"><label>${pksAda(s)?'Ganti berkas PKS':'Unggah PKS'}</label>
+        <input type="file" accept="image/*,.pdf,application/pdf" onchange="pksPick(this)"/>
+        <div id="pks-nama" class="muted small" style="margin-top:6px">belum ada berkas dipilih</div></div>
+    </div>`:''}
     <div class="field"><label>Catatan (opsional)</label><input id="bast-catatan" value="${esc((b&&b.catatan)||"")}" placeholder="mis. pekerjaan selesai 22 Agu, diperiksa bersama PIC"/></div>
     <button class="btn-act" style="width:100%;margin-top:6px" onclick="simpanBAST('${String(s.no).replace(/"/g,'')}')">Simpan BAST</button>
   </div>`;
@@ -17457,6 +17633,10 @@ async function simpanBAST(no){
    }
    s.bast={ file:berkas, by:(gUser&&gUser.name)||"", at:nowStamp(),
             ttdLengkap:ttd, catatan:catatan };
+   if(PKS_PILIH){
+     var hp=await soUploadAttachments({images:[],pdfs:[PKS_PILIH]},no);
+     s.pks={ file:((hp.pdfs&&hp.pdfs[0])||PKS_PILIH), by:(gUser&&gUser.name)||"", at:nowStamp() };
+   }
    s.ts=s.ts||{}; s.tsf=s.tsf||{};
    if(!s.ts.bast){ s.ts.bast=nowStamp(); s.tsf.bast=nowStampDoc(); s.bastDate=TODAY_STR; }
    s.wstep=Math.max(s.wstep||0,4); s.stage=Math.max(s.stage||0,7);
@@ -17465,7 +17645,12 @@ async function simpanBAST(no){
       tanpa berkas dan tanpa tanda tangan. Sekarang ia hanya terbuka bila BAST
       benar-benar ada DAN dinyatakan lengkap ttd — sesuai Juklak: invoice
       dibayar setelah SPK/PKS dan BAST lengkap dan disetujui. */
-   s.invStatus = ttd ? "Menunggu Invoice" : "";
+   /* Gerbang pembayaran menuntut DUA hal: BAST lengkap ttd, dan PKS bila
+      pekerjaan ini mewajibkannya. Kekurangan salah satu berarti belum boleh
+      ditagih — dan alasannya dikatakan terus terang, bukan sekadar tidak
+      muncul di Payment Tracker tanpa penjelasan. */
+   var pksKurang = pksWajib(s) && !pksAda(s);
+   s.invStatus = (ttd && !pksKurang) ? "Menunggu Invoice" : "";
    soPersist();
    try{ auditLog("bast-simpan", no+" · "+((berkas&&berkas.name)||"berkas")+
      " · "+(ttd?"lengkap ttd → masuk Payment Tracker":"BELUM lengkap ttd")); }catch(e){}
@@ -19981,7 +20166,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.25-243";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.25-245";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
