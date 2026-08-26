@@ -20370,8 +20370,14 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.26-247";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
-                                          WAJIB sama dengan version.json & BUILD di sw.js */
+const AGAVA_BUILD="v2026.08.26-248";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+                                          WAJIB sama dengan version.json & BUILD di sw.js.
+                                          Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
+                                          akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
+                                          worker tidak berubah sehingga perangkat bisa tetap menyajikan versi
+                                          lama. Sejak 26 Agu 2026 ada pemeriksanya — jalankan sebelum deploy:
+                                              node cek-versi.js            (periksa)
+                                              node cek-versi.js --sync     (samakan) */
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  PENJAGA VERSI — "di iPad kok masih versi lama?"                          ║
    ║  30 Jul 2026: iPad menyajikan index.html tanggal 27 Juli, lengkap dengan  ║
@@ -20386,6 +20392,24 @@ const AGAVA_BUILD="v2026.08.26-247";   /* stempel build — naikkan tiap deploy 
    ║  memuat ulang. Perangkat tidak lagi perlu menunggu iOS berbaik hati.      ║
    ╚══════════════════════════════════════════════════════════════════════════╝ */
 let AGAVA_VERSI_BARU=null;
+/* ── ARAH, BUKAN SEKADAR BEDA (26 Agu 2026) ─────────────────────────────────
+   Dilaporkan Sudana: perangkat memuat v2026.08.26-247 tetapi pita berkata
+   "terbaru v2026.08.25-246" — pengguna diajak TURUN versi.
+
+   Sebabnya `baru!==AGAVA_BUILD`: pita menyala pada setiap perbedaan, tak peduli
+   arahnya. Cukup satu deploy yang menaikkan index.html tanpa version.json — dan
+   itu persis yang terjadi pada v247 — untuk membuat seluruh pengguna menerima
+   nasihat yang salah arah.
+
+   Nasihat yang salah arah lebih buruk daripada tidak ada nasihat. Sekali orang
+   menekan "Perbarui sekarang" dan tidak ada yang berubah, pita ini kehilangan
+   wibawanya untuk pembaruan yang benar-benar mendesak — dan pita inilah satu-
+   satunya cara kita memberi tahu perangkat yang cache-nya membeku.
+
+   Yang dibandingkan nomor urut build (-247), karena itulah yang monotonik;
+   tanggalnya keterangan. Kalau versi server tidak terbaca polanya, skemanya
+   dianggap berubah = server lebih baru, dan pita tetap menyala. */
+function agavaVersiSeq(v){ var m=String(v||"").match(/-(\d+)\s*$/); return m?parseInt(m[1],10):null; }
 function agavaCekVersi(){
  if(agavaReadOnlyEnv()) return;                       // salinan lokal tidak punya version.json yang berarti
  try{
@@ -20394,6 +20418,16 @@ function agavaCekVersi(){
      .then(function(j){
        var baru=j&&j.build;
        if(!baru||baru===AGAVA_BUILD){ AGAVA_VERSI_BARU=null; agavaVersiBar(); return; }
+       var sBaru=agavaVersiSeq(baru), sKini=agavaVersiSeq(AGAVA_BUILD);
+       if(sBaru!==null && sKini!==null && sBaru<=sKini){
+         /* server TERTINGGAL dari perangkat — diam, dan tinggalkan jejak supaya
+            ketidaksinkronan version.json ketahuan saat deploy, bukan lewat
+            laporan pengguna. */
+         AGAVA_VERSI_BARU=null; agavaVersiBar();
+         console.warn("AGAVA: version.json ("+baru+") tertinggal dari build yang berjalan ("+
+                      AGAVA_BUILD+") — pita perbarui ditahan. Samakan version.json & sw.js.");
+         return;
+       }
        AGAVA_VERSI_BARU=baru; agavaVersiBar();
      }).catch(function(){});
  }catch(e){}
