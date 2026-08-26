@@ -8936,7 +8936,12 @@ function kelompokHari(arr){
 }
 const HARI_TUTUP_STORE="agava_hari_tutup_v1";
 let HARI_TUTUP=(function(){ try{ return JSON.parse(localStorage.getItem(HARI_TUTUP_STORE))||{}; }catch(e){ return {}; } })();
-let HARI_KEYS={proc:[],svc:[],ot:[]};           // kunci hari yang sedang tampil per modul
+/* 'vendor' memakai mesin yang sama walau kuncinya BUKAN tanggal melainkan nama
+   kelompok layanan. Yang dibutuhkan Daftar Rekanan persis sama dengan yang
+   dibutuhkan Procurement — separator jelas, bisa dilipat, dan pilihan user
+   diingat — jadi menyalin mekanismenya hanya akan melahirkan dua perilaku yang
+   lambat laun menyimpang. */
+let HARI_KEYS={proc:[],svc:[],ot:[],vendor:[]};  // kunci kelompok yang sedang tampil per modul
 function hariSimpan(){ try{ localStorage.setItem(HARI_TUTUP_STORE,JSON.stringify(HARI_TUTUP)); }catch(e){} }
 /* ── DEFAULT: HANYA HARI INI YANG TERBUKA (3 Agu 2026) ──────────────────────
    Permintaan Sudana: "Halaman terbuka hanya tiket di tanggal Hari ini, tanggal
@@ -8963,6 +8968,7 @@ function hariTutup(modul,k){
 function hariRender(modul){
  if(modul==="proc"){ renderProc(); return; }
  if(modul==="ot"){ agavaRenderAman(["renderFieldOps","renderMobileHome"]); return; }
+ if(modul==="vendor"){ renderVendor(); return; }
  renderService();
 }
 function hariToggle(modul,k){
@@ -9011,13 +9017,16 @@ function hariSepHTML(modul,g,satuan,pakaiTR,kolom){
    '<b>'+esc(g.label)+'</b><span class="hr-n">'+g.rows.length+' '+satuan+'</span></button>';
  return pakaiTR ? '<tr class="bl-trsep"><td colspan="'+(kolom||6)+'">'+isi+'</td></tr>' : '<div class="bl-sep">'+isi+'</div>';
 }
-function hariBarHTML(modul,grup){
+/* satuan: kata untuk kelompoknya — "hari" untuk SO/tiket/lembur, "kelompok"
+   untuk Daftar Rekanan. Bawaannya "hari" supaya pemanggil lama tidak berubah. */
+function hariBarHTML(modul,grup,satuan){
  if(!grup.length) return "";
+ satuan=satuan||"hari";
  var n=grup.filter(function(g){ return hariTutup(modul,g.key); }).length;
- return '<div class="hr-bar"><span>'+grup.length+' hari</span>'+
-   '<button onclick="hariSemua(\''+modul+'\',true)" title="Tutup semua hari — sisakan tanggalnya saja">⊟ Tutup semua</button>'+
-   '<button onclick="hariSemua(\''+modul+'\',false)" title="Buka semua hari">⊞ Buka semua</button>'+
-   (n?'<em>'+n+' hari tertutup</em>':'')+'</div>';
+ return '<div class="hr-bar"><span>'+grup.length+' '+esc(satuan)+'</span>'+
+   '<button onclick="hariSemua(\''+modul+'\',true)" title="Tutup semua '+esc(satuan)+'">⊟ Tutup semua</button>'+
+   '<button onclick="hariSemua(\''+modul+'\',false)" title="Buka semua '+esc(satuan)+'">⊞ Buka semua</button>'+
+   (n?'<em>'+n+' '+esc(satuan)+' tertutup</em>':'')+'</div>';
 }
 /* ══ PENCARIAN daftar SO & tiket ══════════════════════════════════════════
    Semua kata harus cocok (bukan frasa utuh) — "lampu amdi" menemukan baris
@@ -10138,6 +10147,58 @@ function tkPhotoView(no,i){
    '<span class="muted">'+(mdIsVideo(ph[i])?'🎬 video':'📷 foto')+' pemohon '+(i+1)+' dari '+ph.length+
    ' · 🙋 '+esc(ticketReqName(t))+(ph[i].at?' · 🕐 '+esc(ph[i].at):'')+'</span>');
 }
+/* ╔══ BUKTI OPERATOR — PENAMPIL BERSAMA (26 Agu 2026) ════════════════════════╗
+   Laporan Sudana: "user tidak bisa melihat foto yang dilampirkan dari operator
+   lapangan ketika nutup tiket."
+
+   Akarnya bukan penyimpanan. Datanya utuh: dari 320 tiket yang ditutup, NOL
+   tanpa bukti, nol yang terpangkas, dan 431 dari 486 foto sudah berupa tautan
+   Storage. Fotonya ada di cloud dan terbaca semua orang.
+
+   Akarnya di penampil. `t.photos` (lampiran PEMOHON) punya rumahnya sendiri di
+   tkBriefHTML, sedangkan `t.proof` (bukti OPERATOR) hanya punya SATU penampil —
+   svcProofStrip — yang terpasang di SATU tempat: baris daftar Services. Begitu
+   pemohon membuka tiketnya lewat openTicket, yang paling wajar ia lakukan,
+   buktinya tidak ada di sana sama sekali. Dua aliran bukti dibangun pada waktu
+   yang berbeda dan tidak pernah disatukan.
+
+   ── ATURAN YANG BERLAKU UNTUK SELURUH MODUL ────────────────────────────────
+   Bukti yang menempel pada sebuah catatan WAJIB punya SATU penampil bersama,
+   dan penampil itu dipasang di berkas induknya — bukan disalin ke tiap layar.
+   Bidang data dengan penampil dadakan di satu tempat SELALU melahirkan data
+   yang tak terlihat; ini kejadian ketiga dengan bentuk yang sama (lampiran SO
+   di kartu approval, spanduk eskalasi di My Tickets, dan sekarang bukti tiket).
+   Karena tkBuktiHTML dipanggil dari DALAM tkBriefHTML, kelima pemakainya —
+   openTicket, tkDetail, drawer ambil tiket, kartu Field Ops, My Tickets —
+   ikut sekaligus dan tidak bisa lagi menyimpang sendiri-sendiri.             */
+function tkProof(t){ return (t&&t.proof&&t.proof.length)?t.proof:[]; }
+function tkBuktiHTML(t,full){
+ var pr=tkProof(t), hilang=+((t&&t.proofLokal)||0);
+ if(!pr.length && !hilang && !(t&&t.closeNote)) return '';
+ var lim=full?pr.length:3;
+ var h='<div class="tk-brief" style="margin-top:10px">'+
+   '<div class="tk-brief-l">📸 Bukti pekerjaan operator'+
+     (t.closedBy?' · <b>'+esc(t.closedBy)+'</b>':'')+
+     (t.closed?' <span class="muted" style="font-weight:400">· '+esc(fmtDay(t.closed))+'</span>':'')+'</div>';
+ if(t.closeNote) h+='<div class="tk-brief-n"><b>📝 Catatan penyelesaian:</b> '+esc(t.closeNote)+'</div>';
+ /* Sama seperti lampiran pemohon: yang tertinggal DIKATAKAN, tidak didiamkan.
+    Pemohon berhak tahu bahwa ia sedang melihat bukti yang tidak lengkap. */
+ if(hilang>0) h+='<div class="tk-noatt">⚠️ '+hilang+' bukti lain hanya tersimpan di perangkat operator (belum tersinkron)</div>';
+ if(pr.length){
+   var nv=pr.filter(mdIsVideo).length, nf=pr.length-nv;
+   h+='<div class="tk-att"><span class="tk-att-lb">'+
+     (nf?'📷 '+nf+' foto':'')+(nf&&nv?' · ':'')+(nv?'🎬 '+nv+' video':'')+'</span>'+
+     pr.slice(0,lim).map(function(im,i){
+       /* entri tanpa url dilewati, bukan dirender jadi gambar rusak */
+       var u=(im&&typeof im==="object")?(im.url||""):String(im||"");
+       if(!u) return '';
+       return mdThumbHTML(im,i,"event.stopPropagation();proofView('"+t.no+"',"+i+")",
+         (mdIsVideo(im)?"putar video bukti ":"lihat foto bukti ")+(i+1));
+     }).join('')+
+     (pr.length>lim?'<span class="tk-att-more">+'+(pr.length-lim)+' lagi</span>':'')+'</div>';
+ } else if(!hilang) h+='<div class="tk-noatt">belum ada bukti dari operator</div>';
+ return h+'</div>';
+}
 /* full=false → deskripsi dipangkas 3 baris + maks 3 foto (kartu Field Ops)
    full=true  → deskripsi utuh + semua foto (My Tickets, drawer detail) */
 function tkBriefHTML(t,full){
@@ -10160,7 +10221,9 @@ function tkBriefHTML(t,full){
      (ph.length>lim?'<span class="tk-att-more">+'+(ph.length-lim)+' lagi</span>':'')+'</div>';
  }
  else h+='<div class="tk-noatt">tanpa lampiran dari pemohon</div>';
- return h+'</div>'+tkKomenHTML(t,!full);
+ /* Bukti operator menempel di sini — satu titik sisip untuk kelima pemakai
+    tkBriefHTML. Lihat catatan panjang di atas tkBuktiHTML. */
+ return h+'</div>'+tkBuktiHTML(t,full)+tkKomenHTML(t,!full);
 }
 /* ══ CATATAN OPERATOR — utas komentar pada tiket ══════════════════════════
    Ditulis saat mengambil tiket, saat eskalasi, dan saat eskalasi ditindaklanjuti.
@@ -18744,13 +18807,24 @@ function renderVendor(){
        var perGrup={}; VENDORS.forEach(function(v){ var g=vendorGrup(v); (perGrup[g]=perGrup[g]||[]).push(v); });
        var urut=VENDOR_GRUP.filter(function(g){ return perGrup[g]&&perGrup[g].length; });
        var tanpaEmail=VENDORS.filter(function(v){ return !v.email; }).length;
+       /* ── SEPARATOR YANG BISA DILIPAT (26 Agu 2026) ────────────────────────
+          Permintaan Sudana: separator yang jelas dan bisa dilipat, seperti di
+          Procurement. Dipakai PERSIS mesin yang sama (hariSepHTML + hariTutup
+          + hariBarHTML, modul "vendor") — bukan salinannya. Menyalin berarti
+          dua perilaku yang lambat laun menyimpang: pilihan lipat yang tidak
+          diingat di satu sisi, atau default berbeda antar layar.
+          Kuncinya nama kelompok, bukan tanggal; hariTutup menanganinya sama —
+          di HP semua terlipat sampai dibuka, di desktop terbuka semua. */
+       HARI_KEYS.vendor=urut.slice();
        return (tanpaEmail?`<div class="ap-dok-w" style="margin-bottom:12px">⚠️ <b>${tanpaEmail} dari ${VENDORS.length} rekanan belum punya email.</b>
          Sourcing mengirim permintaan penawaran lewat email — tanpa itu mereka tidak bisa diikutkan.
          Klik nama rekanan untuk melengkapinya.</div>`:"")+
+       hariBarHTML("vendor",urut.map(function(g){ return {key:g,label:g,rows:perGrup[g]}; }),"kelompok")+
        urut.map(function(g){
          var isi=perGrup[g].slice().sort(function(a,b){ return String(a.nama).localeCompare(String(b.nama)); });
-         return `<div class="vnd-grup-h">${esc(g)} <span>${isi.length}</span></div>`+
-          `<div class="svc-list" style="margin-bottom:14px">`+isi.map(function(v){
+         var tutup=hariTutup("vendor",g);
+         return hariSepHTML("vendor",{key:g,label:g,rows:isi},"rekanan",false)+
+          (tutup?"":`<div class="svc-list" style="margin-bottom:14px">`+isi.map(function(v){
             return `<div class="due-row vnd-klik" onclick="vendorDetail('${String(v.id).replace(/'/g,"")}')" title="Klik untuk melengkapi keterangan rekanan"><div>
              <div class="dj">${esc(v.nama)}</div>
              <div class="dm">${esc(v.bidang||"")}${v.pic?" · PIC "+esc(v.pic):""}${v.telp?" · "+esc(v.telp):""}${v.email?" · "+esc(v.email):""}</div></div>
@@ -18759,7 +18833,7 @@ function renderVendor(){
                ${v.spcv==="Ada"?`<span class="badge bd-ok">SPCV</span>`:`<span class="badge bd-info">SPCV belum</span>`}
                ${v.lampiran?`<a class="btn-out" style="padding:5px 10px;font-size:calc(11.5px*var(--fz))" href="${esc(v.lampiran)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Dokumen</a>`:""}
              </span></div>`;
-          }).join("")+`</div>`;
+          }).join("")+`</div>`);
        }).join("");
      })()
    : `<div class="card pad" style="text-align:center;padding:34px">
@@ -20480,7 +20554,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.26-249";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.26-250";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -20906,6 +20980,7 @@ function dbListen(){
        naikkan isi dokumennya sekali (dbSaveMaster mengarsipkan yang lama ke
        agava_config_riwayat dan menolak menulis bila belum login). */
     const izinLama=!(d.seed&&d.seed.permits===PERMITS_SEED);
+    AGDB.masterSeed=(d.seed&&d.seed.permits)||"";   // pembanding seed di dbSaveMaster
     Object.keys(DB_SETS).forEach(k=>{ if(k==="permits"&&izinLama)return;
       if(Array.isArray(d.sets[k])){ const a=DB_SETS[k].get(); a.length=0; d.sets[k].forEach(x=>a.push(x)); } });
     try{ const sets=Object.assign({},d.sets); if(izinLama) sets.permits=JSON.parse(JSON.stringify(PERMITS));
@@ -21414,9 +21489,18 @@ function dbSaveMaster(){
  var out={}; Object.keys(DB_SETS).forEach(function(k){ out[k]=DB_SETS[k].get(); });
  var payload={sets:JSON.parse(JSON.stringify(out)), seed:{permits:PERMITS_SEED}, up:Date.now(), by:gUser.name};
  var j=JSON.stringify(payload.sets);
- if(AGDB.masterEcho===j)return;
+ /* ── SEED IKUT DIBANDINGKAN (26 Agu 2026) ─────────────────────────────────
+    Dulu hanya isi `sets` yang dibandingkan. Kalau isinya kebetulan sama tetapi
+    penanda versinya berbeda — persis yang terjadi saat seed dinaikkan tanpa
+    mengubah data — fungsi ini keluar lebih awal dan seed BARU tidak pernah
+    tertulis ke cloud. Akibatnya listener terus membaca dokumen itu sebagai
+    "daftar lama", mencatat peringatan yang sama tiap kali halaman dimuat, dan
+    penanda versinya tidak pernah naik. Tidak merusak data, tetapi membuat
+    mekanisme seed berhenti bekerja diam-diam — dan seluruh gunanya justru
+    memastikan koreksi sampai ke semua perangkat. */
+ if(AGDB.masterEcho===j && AGDB.masterSeed===PERMITS_SEED)return;
  try{ if(AGDB.masterEcho) dbSimpanRiwayat("master", AGDB.masterEcho, "edit-master"); }catch(e){}
- AGDB.masterEcho=j;
+ AGDB.masterEcho=j; AGDB.masterSeed=PERMITS_SEED;
  AGDB.db.collection("agava_config").doc("master").set(payload).catch(function(e){ console.warn("Master cloud:",e&&e.code); });
 }
 /* ── KONFIGURASI FLOW Power Automate → Firestore (jangan hilang saat ganti perangkat) ── */
