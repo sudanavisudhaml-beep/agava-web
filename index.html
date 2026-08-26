@@ -15760,13 +15760,58 @@ function openClarify(no){
   </div>`;
  document.getElementById("ovl").classList.add("show");
 }
+/* ╔══ KLARIFIKASI SO — SATU PINTU YANG MENULIS (26 Agu 2026) ═════════════════╗
+   Laporan Sudana pada SO-202606-0066-0000: "sempat saya klarifikasi dan masuk
+   balik ke Naryo, menurut Naryo sudah direvisi dan diajukan balik, tapi isinya
+   tidak berubah."
+
+   Dokumennya menjawab: rev 0, revLog kosong, tidak ada reject, tidak ada
+   ts.revisi, dan NOL jejak audit menyebut 0066 dalam 1.883 baris audit pada
+   rentang 6–20 Agustus — padahal reject & revisi milik orang lain di rentang
+   yang sama tercatat rapi.
+
+   Sebabnya di sini. sendClarify dan submitClarifyAnswer hanya menyetel
+   s.clarify DI MEMORI: tidak ada soPersistLokal, tidak ada dbPatchSO, tidak
+   ada auditLog — lalu keduanya menampilkan alert "terkirim". Klarifikasinya
+   tidak pernah meninggalkan tab yang mengirimnya; requester tidak pernah
+   melihat apa pun di Reminder-nya, dan pada muat ulang berikutnya catatan itu
+   lenyap bahkan bagi pengirimnya. Fitur ini tidak pernah bekerja lintas
+   perangkat sejak dibangun.
+
+   Ini penyakit yang SAMA dengan persistensi Payment (v232) dan escDone tiket
+   (v250): aksi yang mengubah keadaan tetapi tidak pernah menuliskannya, dan
+   menutupinya dengan pesan sukses. Karena itu keduanya kini lewat SATU pintu
+   di bawah — mutasi, simpan lokal, patch cloud, dan jejak audit terjadi
+   bersama, atau tidak terjadi sama sekali.                                   */
+function soKlarUbah(no,aksi,ubah,detail){
+ var s=SO.find(function(x){return x.no===no;}); if(!s) return null;
+ if(ubah(s)===false) return null;
+ soPersistLokal();
+ try{ dbPatchSO(no,{clarify:s.clarify}); }catch(e){ console.warn("klarifikasi patch:",e&&e.message); }
+ try{ auditLog(aksi, no+" · "+detail); }catch(e){}
+ try{ agavaRenderAman(["renderApprovals","renderProc","renderReminder","updateBell"]); }catch(e){}
+ try{ navSetActive(); }catch(e){}
+ return s;
+}
 function sendClarify(no){
  var s=SO.find(x=>x.no===no); if(!s)return;
  var note=(document.getElementById("clar-note").value||"").trim();
  if(!note){ alert("Isi catatan klarifikasi dulu."); return; }
- s.clarify={ note:note, by:(gUser?gUser.name:"PIC Procurement"), date:nowStamp(), answer:"", answered:false };
- closeDrawer(); renderApprovals(); renderReminder(); navSetActive(); updateBell();
- alert("📨 Klarifikasi terkirim ke "+(s.requester||s.req)+". Muncul di Reminder mereka.");
+ var tujuan=s.requester||s.req||"";
+ soKlarUbah(no,"so-klarifikasi",function(x){
+   x.clarify={ note:note, by:(gUser?gUser.name:"PIC Procurement"), date:nowStamp(), answer:"", answered:false };
+ }, "ke "+tujuan+" · "+note.slice(0,70));
+ /* Pertanyaan yang hanya menunggu dibuka di Reminder gampang terlewat —
+    alamatkan juga sebagai notifikasi ke orangnya, seperti penolakan SO. */
+ NOTIFS.unshift({ic:"📝", t:"Klarifikasi SO — perlu jawaban Anda",
+   d:no+" · "+(s.item||"")+" · dari "+((gUser&&gUser.name)||"PIC Procurement")+": "+note,
+   at:nowStamp(), sev:"warn", nav:"reminder", done:false,
+   nama:tujuan, email:s.email||""});
+ try{ agavaNotify("📝 Klarifikasi SO "+no, note.slice(0,90)); }catch(e){}
+ closeDrawer();
+ alert("📨 Klarifikasi terkirim ke "+tujuan+".\nMuncul di Reminder mereka"+
+   (AGDB.ro?" — CATATAN: perangkat ini mode uji, tulisan ke cloud diblokir.":
+    (!AGDB.on?" — ⚠️ cloud sedang tidak terhubung, akan tersinkron setelah tersambung.":".")));
 }
 function openClarifyAnswer(no){
  var s=SO.find(x=>x.no===no); if(!s||!s.clarify)return;
@@ -15783,9 +15828,21 @@ function submitClarifyAnswer(no){
  var s=SO.find(x=>x.no===no); if(!s||!s.clarify)return;
  var ans=(document.getElementById("clar-ans").value||"").trim();
  if(!ans){ alert("Isi jawaban dulu."); return; }
- s.clarify.answer=ans; s.clarify.answered=true; s.clarify.ansDate=nowStamp();
- closeDrawer(); renderReminder(); renderApprovals(); navSetActive(); updateBell();
- alert("✅ Jawaban terkirim. SO "+no+" kembali ke review PIC Procurement.");
+ var penanya=(s.clarify&&s.clarify.by)||"PIC Procurement";
+ soKlarUbah(no,"so-klarifikasi-jawab",function(x){
+   x.clarify.answer=ans; x.clarify.answered=true; x.clarify.ansDate=nowStamp();
+   x.clarify.ansBy=(gUser&&gUser.name)||"";
+ }, "dijawab "+((gUser&&gUser.name)||"")+" untuk "+penanya+" · "+ans.slice(0,70));
+ /* Jawaban yang tidak diberitahukan sama saja dengan pertanyaan yang tidak
+    terkirim — penanyanya harus tahu bahwa gilirannya kembali. */
+ NOTIFS.unshift({ic:"💬", t:"Jawaban klarifikasi masuk — "+no,
+   d:(s.item||"")+" · "+((gUser&&gUser.name)||"")+": "+ans,
+   at:nowStamp(), sev:"info", nav:"approvals", done:false, nama:penanya});
+ try{ agavaNotify("💬 Jawaban klarifikasi "+no, ans.slice(0,90)); }catch(e){}
+ closeDrawer();
+ alert("✅ Jawaban terkirim ke "+penanya+". SO "+no+" kembali ke review PIC Procurement."+
+   (AGDB.ro?"\n\nCATATAN: perangkat ini mode uji, tulisan ke cloud diblokir.":
+    (!AGDB.on?"\n\n⚠️ Cloud sedang tidak terhubung — akan tersinkron setelah tersambung.":"")));
 }
 function myClarifySO(){ const me=gUser?gUser.name:""; return SO.filter(s=>s.clarify&&!s.clarify.answered&&((s.requester||"")===me||(s.req||"")===me)); }
 function myClarifyCount(){ return myClarifySO().length; }
@@ -19027,7 +19084,19 @@ function saveSLA(){
  const nilai=recalcSLA();
  c.sla=nilai; c.slaPeriod=(document.getElementById("sla-period")||{}).value||"";
  const band=slaBand(nilai), tier=slaTier(nilai);
- alert("✅ SLA tersimpan — "+c.vendor+"\nNILAI: "+nilai.toFixed(2)+"/3 · "+band.n+"\nTier Service: "+tier.n);
+ /* ── DULU HANYA BERKATA "TERSIMPAN" (26 Agu 2026) ─────────────────────────
+    Penilaian SLA disetel di memori lalu diumumkan sukses, tanpa satu pun
+    penulisan — jadi hasil evaluasi vendor lenyap pada muat ulang berikutnya
+    dan tidak pernah terlihat orang lain. Ditemukan oleh sapuan setelah bug
+    klarifikasi SO; penyakit yang sama, tempat ketiga.
+    VENDOR_CONTRACTS adalah master data, jadi dbPersist() sudah cukup: ia
+    menulis localStorage DAN menaikkan agava_config/master ke Firestore. */
+ try{ dbPersist(); }catch(e){ console.warn("saveSLA persist:",e&&e.message); }
+ try{ auditLog("sla-simpan", (c.vendor||"")+" · "+(c.scope||"")+" · nilai "+nilai.toFixed(2)+
+      "/3 · "+band.n+" · periode "+(c.slaPeriod||"—")); }catch(e){}
+ alert("✅ SLA tersimpan — "+c.vendor+"\nNILAI: "+nilai.toFixed(2)+"/3 · "+band.n+"\nTier Service: "+tier.n+
+   (AGDB.ro?"\n\nCATATAN: perangkat ini mode uji, tulisan ke cloud diblokir.":
+    (!AGDB.on?"\n\n⚠️ Cloud sedang tidak terhubung — akan tersinkron setelah tersambung.":"")));
  go('vendor'); renderService();
 }
 
@@ -20554,7 +20623,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.26-251";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.26-252";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
