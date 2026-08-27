@@ -9109,6 +9109,16 @@ let HARI_TUTUP=(function(){ try{ return JSON.parse(localStorage.getItem(HARI_TUT
    diingat — jadi menyalin mekanismenya hanya akan melahirkan dua perilaku yang
    lambat laun menyimpang. */
 let HARI_KEYS={proc:[],svc:[],ot:[],vendor:[]};  // kunci kelompok yang sedang tampil per modul
+/* Jumlah baris per kelompok — dipakai hariTutup untuk melipat berdasarkan
+   PANJANG daftar, bukan umur barisnya. Diisi perender bersama HARI_KEYS. */
+let HARI_ROWS={proc:null,svc:null,ot:null,vendor:null};
+/* Berapa baris yang pantas terbuka di HP sebelum sisanya dilipat. Cukup untuk
+   beberapa hari kerja, masih jinak untuk digulir dengan satu ibu jari. */
+const HARI_ANGGARAN=25;
+function hariIsiJumlah(modul,grup){
+ try{ var m={}; (grup||[]).forEach(function(g){ m[String(g.key)]=(g.rows||[]).length; });
+      HARI_ROWS[modul]=m; }catch(e){ HARI_ROWS[modul]=null; }
+}
 function hariSimpan(){ try{ localStorage.setItem(HARI_TUTUP_STORE,JSON.stringify(HARI_TUTUP)); }catch(e){} }
 /* ── DEFAULT: HANYA HARI INI YANG TERBUKA (3 Agu 2026) ──────────────────────
    Permintaan Sudana: "Halaman terbuka hanya tiket di tanggal Hari ini, tanggal
@@ -9131,6 +9141,32 @@ function hariTutup(modul,k){
     render, jadi mengubah ukuran jendela langsung mengikuti. */
  if(window.innerWidth>820) return false;
  if(String(k)===String(TODAY_STR)) return false;      // hari ini selalu terbuka
+ /* ── YANG DILIPAT ADALAH PANJANGNYA, BUKAN TANGGALNYA (27 Agu 2026) ───────
+    Laporan Maria: "list tiketnya tidak bertambah." Diperiksa — ia berhak
+    melihat 300 tiket (pantau), tetapi di layarnya hanya tergambar 11: ada 21
+    kelompok tanggal dan hanya SATU yang terbuka, yaitu hari ini.
+
+    Jadi setiap hari ia melihat segenggam tiket hari itu saja, dan tiket kemarin
+    lenyap dari pandangan. Daftarnya tidak terasa bertambah karena ia selalu
+    menampilkan satu hari — untuk seorang koordinator yang memantau kategorinya,
+    itu sama saja dengan tidak punya daftar.
+
+    Alasan melipat sejak awal adalah PANJANG daftar, bukan umur barisnya. Maka
+    aturannya dikembalikan ke alasannya: buka kelompok terbaru satu per satu
+    sampai kira-kira ANGGARAN baris terpenuhi, sisanya dilipat. Daftar pendek
+    terbuka seluruhnya; daftar panjang tetap jinak; dan tidak ada lagi keadaan
+    di mana orang membuka modul lalu melihat hampir tidak ada apa-apa. */
+ var jml=(HARI_ROWS&&HARI_ROWS[modul])||null;
+ if(jml){
+   var urutan=(HARI_KEYS&&HARI_KEYS[modul])||[], pakai=0;
+   for(var i=0;i<urutan.length;i++){
+     var kk=String(urutan[i]);
+     if(kk===String(k)) return false;                 // masih dalam anggaran → terbuka
+     pakai+=(jml[kk]||0);
+     if(pakai>=HARI_ANGGARAN) break;                  // anggaran habis sebelum sampai k
+   }
+   if(pakai>=HARI_ANGGARAN) return true;              // di luar anggaran → terlipat
+ }
  /* ── KELOMPOK TERBARU SELALU TERBUKA (27 Agu 2026) ────────────────────────
     Laporan Maria: "SO yang saya buat tidak listing." Diperiksa ke data — SO-nya
     ADA (18 buah), semuanya lolos penuh sampai fase kerja, dan soVisible()
@@ -9336,7 +9372,7 @@ function renderProc(){
  const tampil=selB?grup.filter(g=>g.key===selB):grup;
  /* …lalu per HARI di dalam bulan yang tampil, tiap hari bisa dilipat */
  const hariP=kelompokHari([].concat.apply([],tampil.map(g=>g.rows)));
- HARI_KEYS.proc=hariP.map(g=>g.key);
+ HARI_KEYS.proc=hariP.map(g=>g.key); hariIsiJumlah('proc',hariP);
  el.innerHTML=`
  <div style="display:flex;justify-content:flex-end;gap:10px;margin-bottom:14px">${soImportBoleh()?'<button class="btn-out" onclick="soImportPanel()" title="Tempelkan foto / dokumen PDF ke SO yang sudah ada">📎 Impor Lampiran</button>':''}${viewerOnly()?'':'<button class="btn-act" onclick="go(\'createso\')">+ Create SO</button>'}</div>
  <div class="funnel">
@@ -13203,7 +13239,7 @@ function renderService(){
  const tampil=selB?grup.filter(g=>g.key===selB):grup;
  /* …lalu per HARI, tiap hari bisa dilipat sendiri */
  const hariS=kelompokHari([].concat.apply([],tampil.map(g=>g.rows)));
- HARI_KEYS.svc=hariS.map(g=>g.key);
+ HARI_KEYS.svc=hariS.map(g=>g.key); hariIsiJumlah('svc',hariS);
  const pills=[["all","All",total],["open","Ongoing",ongoing],["esc","Escalated",esc],["resolved","Resolved",resolved]];
  /* Antrean eskalasi ikut turun ke Services untuk akun yang TIDAK punya modul
     Approvals — Staff GA (Dedi/Susi) sengaja hanya berbekal Service & Procurement,
@@ -19379,6 +19415,7 @@ function renderVendor(){
           Kuncinya nama kelompok, bukan tanggal; hariTutup menanganinya sama —
           di HP semua terlipat sampai dibuka, di desktop terbuka semua. */
        HARI_KEYS.vendor=urut.slice();
+       hariIsiJumlah('vendor',urut.map(function(k){return {key:k,rows:perGrup[k]};}));
        return (tanpaEmail?`<div class="ap-dok-w" style="margin-bottom:12px">⚠️ <b>${tanpaEmail} dari ${VENDORS.length} rekanan belum punya email.</b>
          Sourcing mengirim permintaan penawaran lewat email — tanpa itu mereka tidak bisa diikutkan.
          Klik nama rekanan untuk melengkapinya.</div>`:"")+
@@ -21128,7 +21165,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-263";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-264";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
