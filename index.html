@@ -10748,6 +10748,23 @@ function akuKoordinator(t){
    tertentu (Koordinator kategori, Section Head pemilik kategori). Bila kosong,
    `role` yang menentukan siapa penerimanya.                                  */
 const ESC_TANGGA=[
+ /* ── ANAK TANGGA NOL: FIELD OPS (27 Agu 2026) ─────────────────────────────
+    Ditambahkan atas permintaan Sudana: "pastikan mulainya dari level paling
+    bawah yaitu Field Ops."
+
+    Sebelum ini tangganya dimulai dari Koordinator, dan operator lapangan cuma
+    titik asal yang tersirat — tidak punya nama di dalam tangga. Akibatnya dua
+    hal: label naik berbunyi "dari Koordinator" seolah Koordinator yang memulai,
+    dan tingkat pertama tidak bisa disebut ketika menjelaskan alurnya.
+
+    Sekarang tingkat 0 adalah operator yang MEMEGANG tiket. Selama tiket belum
+    dieskalasi, ia memang berada di tangan operator — itu keadaan yang nyata,
+    bukan ketiadaan. Eskalasi pertama adalah perpindahan 0 → 1, sama sifatnya
+    dengan perpindahan 1 → 2 dan 2 → 3. Satu tangga, satu aturan. */
+ {k:"fieldops", label:"Field Ops", nav:"myticket",
+  ket:"operator lapangan yang memegang tiket ini",
+  pemegang:function(t){ return (t&&(t.pic||t.pickBy))||""; },
+  roleCadangan:["fieldops","fieldsup"]},
  {k:"koor",    label:"Koordinator Kategori", nav:"service",
   ket:"koordinator operator kategori ini — berwenang mengajukan SO atau menaikkan ke Section Head",
   pemegang:function(t){ return (typeof ticketKoordinator==="function")?ticketKoordinator(t):""; },
@@ -10768,8 +10785,14 @@ const ESC_TANGGA=[
 const ESC_TUJUAN=(function(){ var m={}; ESC_TANGGA.forEach(function(d){
   m[d.k]={label:d.label, ket:d.ket, nav:d.nav,
           roles:d.role?[d.role]:(d.roleCadangan||[])}; }); return m; })();
-/* `ga` adalah nama lama anak tangga pertama — catatan lama tetap terbaca */
-function escKunci(t){ var k=(t&&t.escTo)||"koor"; return k==="ga"?"koor":k; }
+/* Tiket yang BELUM dieskalasi berada di tingkat 0 — di tangan operator. Itu
+   keadaan yang nyata, bukan ketiadaan, dan menyebutnya membuat tangga ini utuh
+   dari bawah. Tiket lama yang sudah dieskalasi tanpa escTo tetap dibaca sebagai
+   "koor", sesuai artinya dulu; `ga` adalah nama lama tingkat itu. */
+function escKunci(t){
+ if(!t || !t.esc) return "fieldops";
+ var k=t.escTo||"koor"; return k==="ga"?"koor":k;
+}
 function escTingkat(t){
  var k=escKunci(t);
  for(var i=0;i<ESC_TANGGA.length;i++) if(ESC_TANGGA[i].k===k) return i;
@@ -10784,15 +10807,15 @@ function escTujuan(t){
  return ESC_TUJUAN[escKunci(t)]||ESC_TUJUAN.koor;
 }
 /* Label yang ditampilkan: sebutkan NAMA koordinatornya bila sudah ditentukan */
+/* Siapa yang MEMEGANG tiket ini sekarang, dalam bahasa manusia. Diturunkan dari
+   tangga, bukan dari cabang if per tingkat — dulu hanya "section" yang dikenali,
+   sehingga tingkat Dept akan salah menampilkan nama Koordinator. */
 function escTujuanLabel(t){
- var d=escTujuan(t);
- if(((t&&t.escTo)||"koor")!=="section"){
-   /* Namanya saja — kolomnya sudah berlabel "Supervisor", jadi menulis
-      "Koordinator" lagi cuma mengulang apa yang sudah tertulis di atasnya. */
-   var k=ticketKoordinator(t);
-   return k||"belum ditentukan → Staff GA";
- }
- return d.label;
+ var d=escAnak(t), nama=escPemegang(t,d);
+ /* Tingkat Koordinator: namanya saja — kolomnya sudah berlabel "Supervisor",
+    jadi menulis "Koordinator" lagi cuma mengulang label di atasnya. */
+ if(d.k==="koor") return nama||"belum ditentukan → Staff GA";
+ return d.label+(nama?" "+nama:"");
 }
 function myTicketEscalate(no){
  var t=TICKETS.find(x=>x.no===no); if(!t)return;
@@ -10851,19 +10874,25 @@ function myTicketEscalateSubmit(no){
  var t=TICKETS.find(x=>x.no===no); if(!t)return;
  var note=((document.getElementById("fo-esc-note")||{}).value||"").trim();
  if(!note){ alert("Alasan eskalasi wajib diisi — inilah yang dibaca orang yang menindaklanjuti."); return; }
- var r=document.querySelector('input[name="esc-to"]:checked');
- var to=(r&&r.value)||"koor", d=ESC_TUJUAN[to]||ESC_TUJUAN.koor;
+ /* ── EKSKALASI PERTAMA = PERPINDAHAN 0 → 1 (27 Agu 2026) ──────────────────
+    Tujuannya diambil dari ESC_TANGGA, bukan dari nilai radio yang dipatok.
+    Dengan Field Ops sebagai tingkat 0, eskalasi pertama sifatnya sama persis
+    dengan naik tingkat berikutnya: satu anak tangga, dari pemegang sekarang
+    ke pemegang berikutnya. Satu tangga, satu aturan — dan labelnya jujur
+    menyebut "dari Field Ops", bukan seolah Koordinator yang memulai. */
+ var dariAnak=ESC_TANGGA[0], naik=ESC_TANGGA[1];
+ var to=naik.k, d=ESC_TUJUAN[to];
  closeDrawer();
  t.esc=true; t.escTo=to; t.escBy=fieldOpName(); t.escNote=note; t.escAt=nowMs(); t.escDone=false;
- var koor=ticketKoordinator(t);
- var tujuan=(to==="section")?d.label:(koor?("Koordinator "+koor):"Koordinator kategori (belum ditentukan)");
- tkKomen(t,"Dieskalasi ke "+tujuan+": "+note,"eskalasi");
+ var terima=escPemegang(t,naik);
+ var tujuan=naik.label+(terima?" "+terima:" (belum ditentukan — sementara Staff GA)");
+ tkKomen(t,"Dieskalasi dari "+dariAnak.label+" "+(t.escBy||"")+" ke "+tujuan+": "+note,"eskalasi");
  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,esc:true,escTo:to,escBy:t.escBy,escNote:t.escNote});
- var pesan=t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · oleh "+t.escBy+" — "+note;
- var n={ic:"⏫",t:"Eskalasi tiket → "+tujuan,d:pesan,at:nowStamp(),sev:"crit",nav:d.nav,done:false,roles:d.roles};
- if(to==="section"){ n.nama=ticketSectionOwner(t); n.namaRole="section"; }
- /* Beralamat ke NAMA koordinatornya — bukan disiarkan ke seluruh role */
- else if(koor){ n.nama=koor; n.roles=[]; }
+ var pesan=t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · dari "+dariAnak.label+" "+t.escBy+" — "+note;
+ var n={ic:"⏫",t:"Eskalasi tiket → "+naik.label,d:pesan,at:nowStamp(),sev:"crit",nav:naik.nav,done:false};
+ /* Beralamat ke NAMA penerimanya bila anak tangga itu dipegang orang tertentu;
+    ke peran cadangan bila koordinatornya belum ditentukan. Tidak disiarkan ke keduanya. */
+ if(terima){ n.nama=terima; n.roles=[]; } else { n.roles=(naik.roleCadangan||d.roles||[]); }
  NOTIFS.unshift(n);
  agavaNotify("⏫ Eskalasi tiket → "+tujuan, t.no+" · "+(t.judul||"")+" · oleh "+t.escBy);
  try{ auditLog("escalation", t.no+" → "+tujuan+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
@@ -20757,7 +20786,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-256";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-257";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
