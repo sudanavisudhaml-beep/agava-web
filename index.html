@@ -14737,7 +14737,29 @@ async function _submitSO_inti(){
     di kategori Yessy tetap harus lewat Yessy. */
  so.sectionBy=soSectionApprover(so);
  soAutoGerbang(so);          // gerbang yang MEMANG dipegang pembuatnya → lewat otomatis
- draftClearAfterSubmit(); SO.unshift(so); soPersist();
+ /* ── PEMBUATAN SO WAJIB MENJAWAB (27 Agu 2026) ────────────────────────────
+    Laporan: "akun Maria tidak bisa create SO — SO yang dia buat tidak muncul",
+    dan "Leonardus tidak menerima SO yang disubmit". Satu sebab menjelaskan
+    keduanya: soPersist() dipanggil dan nilai baliknya DIBUANG, lalu di bawah
+    ditampilkan alert "✅ SO dibuat" tanpa syarat.
+
+    Kalau tulisan ke cloud tidak mendarat — koneksi putus, sesi auth kedaluwarsa,
+    perangkat read-only — SO itu hanya hidup di localStorage perangkat pembuatnya.
+    Pembuatnya melihatnya di layar sendiri dan yakin sudah terkirim, sementara
+    TIDAK SATU PUN gerbang di hilir pernah melihatnya. Section, Budget,
+    Procurement, Dept Head — semuanya kosong, bukan karena rantainya rusak,
+    melainkan karena dokumennya tidak pernah ada di luar satu HP.
+
+    Ini titik tulis paling mahal di seluruh AGAVA: semua yang lain mengalir
+    darinya. Karena itu ia sekarang menjawab, dan jawabannya dibaca. */
+ draftClearAfterSubmit(); SO.unshift(so);
+ var soTersimpan=soPersist();
+ /* Pembuatan SO belum pernah masuk jejak audit sama sekali — padahal seluruh
+    forensik hari ini bertumpu pada audit. Sekarang tercatat, berikut penanda
+    bila tulisannya gagal, supaya SO hantu seperti ini bisa ditemukan tanpa
+    menunggu orangnya melapor. */
+ try{ auditLog("so-buat", no+" · "+req+" · "+kat+" · "+(lokasi||"tanpa lokasi")+
+      " · "+att.images.length+" foto"+(soTersimpan?"":" · ⚠️ GAGAL TULIS SERVER")); }catch(e){}
  /* SO ini lahir dari tiket eskalasi → tautkan balik supaya eskalasinya tertutup
     dan pemohon bisa melihat tiketnya berlanjut ke Procurement. */
  var _fromTk=window._soFromTicket; window._soFromTicket=null;
@@ -14762,9 +14784,12 @@ async function _submitSO_inti(){
    }
  }
  procFilter="all"; renderProc(); renderApprovals(); renderReminder(); navSetActive(); updateBell();
- notifySound();   // SO baru masuk ke inbox approval Section/Budget
+ if(soTersimpan) notifySound();   // SO baru masuk ke inbox approval Section/Budget
  go("procurement");
- alert("✅ SO "+no+" dibuat."+(isSec?"\nAnda Section Head → langsung ke PIC Budget.":"\nMasuk approval Section: "+soSectionApprover(so)+" (kategori "+kat+").")+((att.images.length||att.pdfs.length)?"\n"+att.images.length+" foto + "+att.pdfs.length+" PDF terlampir"+(att.pdfs.length?" (dijahit ke SO PDF)":"")+"."+uploadNote():""));
+ alert((soTersimpan?"✅ SO "+no+" dibuat.":"⚠️ SO "+no+" BELUM sampai ke server.")+
+   (isSec?"\nAnda Section Head → langsung ke PIC Budget.":"\nMasuk approval Section: "+soSectionApprover(so)+" (kategori "+kat+").")+
+   ((att.images.length||att.pdfs.length)?"\n"+att.images.length+" foto + "+att.pdfs.length+" PDF terlampir"+(att.pdfs.length?" (dijahit ke SO PDF)":"")+"."+uploadNote():"")+
+   (soTersimpan?"":awanPeringatan()+"\n\nSelama belum tersimpan, SO ini TIDAK terlihat oleh Section Head, Budget, Procurement, maupun Dept Head."));
 }
 /* ── Kirim ulang SO yang ditolak ────────────────────────────────────────────
    Nomor SO TIDAK berubah. Yang direset adalah seluruh rantai persetujuan, sebab
@@ -16134,8 +16159,25 @@ function soApprovalCard(s){
  const tierDipegang = (function(){ try{ return userTiers(gUser,gRole)||[]; }catch(e){ return []; } })();
  const punyaGerbang = tierDipegang.indexOf(g)>=0;
  const pantauSaja = isOwner() && !punyaGerbang && OWNER_OVERRIDE.indexOf(g)<0;
+ /* ── LOKASI & KATEGORI WAJIB TAMPIL DI SETIAP GERBANG (27 Agu 2026) ────────
+    Permintaan Sudana. Sebelum ini kartu approval memuat requester, jenis,
+    estimasi nilai, dan spec — tetapi TIDAK lokasi dan TIDAK kategori.
+    Approver diminta memutuskan pengadaan tanpa tahu pekerjaannya di mana.
+
+    Keduanya bukan hiasan: lokasi menentukan apakah pekerjaan itu masuk akal
+    (dan sudah pernah menjadi alasan pembatalan — "kesalahan lokasi" pada
+    SO-202606-0101), sementara kategori menentukan Section Head mana yang
+    sebenarnya berwenang atasnya.
+
+    Ditaruh di `head`, yang berada DI LUAR percabangan gerbang — jadi Section,
+    Budget, Procurement, dan Dept Head mendapatkannya sekaligus dan tidak bisa
+    lagi menyimpang sendiri-sendiri. Pola yang sama dengan soJejakDok dan
+    soGerbangKepala. Lokasi yang kosong DIKATAKAN kosong, bukan disembunyikan —
+    approver berhak tahu bahwa ia memutuskan tanpa keterangan itu. */
+ const lokTeks = String(s.lokasi||"").trim();
  const head=`<div><b class="sono">${s.no}</b> · <span style="font-weight:600;color:var(--ink)">${s.item}</span></div>
-   <div class="muted small" style="margin-top:4px">Requester: ${s.requester||s.req} · ${s.jenis||"—"} · Est. <b style="color:var(--ink)">${soNilaiTeks(s)}</b>${s.budgetFlag?` · Budget: ${s.budgetFlag}`:""}${esc?` · <span class="badge bd-warn">Eskalasi (budget tdk ada)</span>`:""}${s.spec?`<br>Spec: ${s.spec}${s.qty?` · Qty: ${s.qty}`:""}`:""}</div>`;
+   <div class="muted small" style="margin-top:4px">📍 <b style="color:var(--ink)">${lokTeks||'<span style="color:var(--red)">lokasi tidak diisi</span>'}</b>${s.kategori?` · ${s.kategori}`:""}${s.deptDiv?` · ${s.deptDiv}`:""}</div>
+   <div class="muted small" style="margin-top:3px">Requester: ${s.requester||s.req} · ${s.jenis||"—"} · Est. <b style="color:var(--ink)">${soNilaiTeks(s)}</b>${s.budgetFlag?` · Budget: ${s.budgetFlag}`:""}${esc?` · <span class="badge bd-warn">Eskalasi (budget tdk ada)</span>`:""}${s.spec?`<br>Spec: ${s.spec}${s.qty?` · Qty: ${s.qty}`:""}`:""}</div>`;
  const clarBox = s.clarify ? `<div class="card pad" style="background:#f8fafd;margin-top:8px;font-size:calc(12.5px*var(--fz))"><b>📝 Klarifikasi (${s.clarify.by}):</b> ${s.clarify.note}${s.clarify.answered?`<br><b style="color:var(--green)">Jawaban ${s.requester||s.req}:</b> ${s.clarify.answer}`:` <span class="badge bd-info" style="margin-left:4px">menunggu jawaban requester</span>`}</div>` : "";
  let right="";
  if(pantauSaja){
@@ -20786,7 +20828,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-257";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-258";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
