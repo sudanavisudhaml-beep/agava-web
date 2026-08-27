@@ -2550,6 +2550,7 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .ka-tag{flex:0 0 auto;font-size:calc(10px*var(--fz));font-weight:800;letter-spacing:.04em;padding:3px 8px;border-radius:6px;background:#eef4fb;color:#3d5673;text-transform:uppercase}
 .ka-tag.off{background:#fde8e8;color:#9b2c2c}
 .ka-tag.own{background:#0b2447;color:#fff}
+.ka-act button.ka-perlu{background:#fef2f2;border-color:#f3b8b8;color:#b42318;font-weight:800}
 .ka-tag.yatim{background:#fff4e0;color:#8a5a00}
 .ka-when{flex:0 0 auto;font-size:calc(10.5px*var(--fz));color:var(--muted);text-align:right;line-height:1.4;min-width:112px}
 .ka-act{flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap}
@@ -21213,7 +21214,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-265";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-266";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -23118,6 +23119,53 @@ function kaTanggal(s){
  var d=new Date(s); if(isNaN(d)) return "—";
  return ('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();
 }
+/* Peran yang boleh dipilih — SAMA PERSIS dengan PERAN_SAH di Cloud Function.
+   Kalau salah satu berubah, yang lain harus ikut; server menolak yang tidak
+   dikenalinya, jadi ketidakcocokan akan berbunyi, bukan diam. */
+const KA_PERAN=[
+ ["general",  "Staff (Non-GA) — pemohon & koordinator lapangan"],
+ ["staffga",  "Staff GA — Services & Procurement"],
+ ["staff",    "Staff Procurement — + Assigned SO"],
+ ["analyst",  "Analyst"],
+ ["fieldops", "Field Operator (mobile)"],
+ ["fieldsup", "Field Ops Supervisor"],
+ ["section",  "Section Head"],
+ ["budget",   "PIC Budget"],
+ ["proc",     "PIC Procurement"],
+ ["dept",     "GA Dept Head"],
+ ["division", "HCMS Division Head"],
+ ["chief",    "Chief of CHCD"],
+ ["finance",  "Staff Finance"],
+ ["admin",    "Administrator"]
+];
+function kaUbahPeran(email,roleLama){
+ var pil=KA_PERAN.map(function(p){
+   return '<label class="fo-opt'+(p[0]===roleLama?' on':'')+'" onclick="foOptPilih(this)">'+
+     '<input type="radio" name="ka-peran" value="'+p[0]+'"'+(p[0]===roleLama?' checked':'')+'>'+
+     '<span style="flex:1;min-width:0"><b>'+esc(p[0])+'</b><span>'+esc(p[1])+'</span></span></label>';
+ }).join("");
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div style="font-weight:700;color:var(--ink);font-size:calc(16px*var(--fz))">🎫 Ubah Peran</div>'+
+   '<div class="muted small" style="margin-top:4px">'+esc(email)+' · sekarang <b>'+esc(roleLama||"TANPA PERAN")+'</b></div></div>'+
+  '<div class="db">'+
+   (roleLama?'':'<div class="ap-dok-w" style="margin-bottom:12px"><b>⚠️ Akun ini tanpa peran.</b> '+
+     'Aturan keamanan Firestore membaca peran dari sini — selama kosong, <b>setiap tulisannya ditolak server</b>: '+
+     'tidak bisa membuat SO, tidak bisa menyimpan master data.</div>')+
+   '<div class="muted small" style="margin-bottom:10px;line-height:1.6">Peran menentukan menu yang terlihat DAN apa yang boleh ditulis ke server. '+
+     'Modul tambahan per orang tetap diatur terpisah lewat daftar akun di kode.</div>'+
+   '<div class="fo-pilih">'+pil+'</div>'+
+   '<button class="btn-act" style="width:100%;margin-top:6px" onclick="kaUbahPeranSimpan(\''+esc(email)+'\')">Simpan Peran</button>'+
+   '<button class="btn-out" style="width:100%;margin-top:8px" onclick="closeDrawer()">Batal</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+}
+function kaUbahPeranSimpan(email){
+ var r=document.querySelector('input[name="ka-peran"]:checked');
+ if(!r){ alert("Pilih perannya dulu."); return; }
+ closeDrawer();
+ kaAksi({aksi:"peran",email:email,role:r.value},null);
+}
 function kaBarisHTML(a){
  var kelas="ka-row"+(a.nonaktif?" mati":"")+(a.owner?" aku":"");
  var tag = a.owner ? '<span class="ka-tag own">OWNER</span>'
@@ -23127,7 +23175,17 @@ function kaBarisHTML(a){
    ? '<span class="ka-tag yatim" title="Ada di Firebase Auth tapi tidak ada di agava_users — kemungkinan akun lama">TANPA PETA PERAN</span>' : '';
  var aksi = a.owner
    ? '<span class="muted small">akun Anda — diubah lewat Firebase Console</span>'
-   : '<button onclick="kaPassword(\''+a.email+'\')">🔑 Password baru</button>'+
+   /* ── UBAH PERAN (27 Agu 2026) ────────────────────────────────────────────
+      Server sudah lama mendukung aksi "peran" berikut validasi 14 peran sah,
+      tetapi TOMBOLNYA tidak pernah ada di layar. Akibatnya akun yang perannya
+      kosong — seperti Sunaryo Bara, Koordinator Building — tidak bisa
+      diperbaiki dari dalam AGAVA sama sekali, padahal rules membaca peran dari
+      sanalah. Panel ini bisa mengganti password, menonaktifkan, dan menghapus;
+      satu-satunya yang benar-benar dibutuhkan justru tidak tersedia. */
+   : '<button onclick="kaUbahPeran(\''+a.email+'\',\''+(a.role||"")+'\')" '+
+       (a.role?'':'class="ka-perlu" title="Akun ini TANPA PERAN — setiap tulisannya ditolak server"')+
+       '>🎫 Ubah Peran</button>'+
+     '<button onclick="kaPassword(\''+a.email+'\')">🔑 Password baru</button>'+
      '<button onclick="kaToggle(\''+a.email+'\','+(a.nonaktif?'false':'true')+')">'+(a.nonaktif?'✔ Aktifkan':'⏸ Nonaktifkan')+'</button>'+
      '<button class="bahaya" onclick="kaHapus(\''+a.email+'\')">🗑 Hapus</button>';
  return '<div class="'+kelas+'">'+
