@@ -10719,7 +10719,8 @@ function koordinatorEmail(nama){
 /* Akun ini koordinator untuk kategori tiket t? */
 function akuKoordinator(t){
  var k=ticketKoordinator(t); if(!k) return false;
- return ((gUser&&gUser.name)||"")===k;
+ /* orangSama: peta memakai nama pendek, akun memakai nama lengkap */
+ return orangSama((gUser&&gUser.name)||"", k);
 }
 /* ╔══ TANGGA ESKALASI — SATU ANAK TANGGA PADA SATU WAKTU (26 Agu 2026) ══════╗
    Aturan Sudana, ditegaskan ulang:
@@ -10792,6 +10793,101 @@ const ESC_TUJUAN=(function(){ var m={}; ESC_TANGGA.forEach(function(d){
 function escKunci(t){
  if(!t || !t.esc) return "fieldops";
  var k=t.escTo||"koor"; return k==="ga"?"koor":k;
+}
+/* ╔══ NAMA PENDEK vs NAMA AKUN (27 Agu 2026) ════════════════════════════════╗
+   Ditemukan saat menelusuri "Leonardus tidak menerima SO" dan "eskalasi tidak
+   pernah bergerak":
+
+     KOORDINATOR["Building & Utility"] = "Sunaryo"
+     nama akun yang sebenarnya        = "Sunaryo Bara"
+
+   Dicocokkan dengan === persis, jadi TIDAK PERNAH cocok. Akibatnya seluruh
+   eskalasi Building dialamatkan kepada nama yang tidak dipegang siapa pun —
+   35 dari 38 eskalasi mengendap di tingkat Koordinator karena penerimanya
+   secara harfiah tidak ada. Sistemnya tidak melapor apa-apa; ia hanya diam.
+
+   Nama tampilan adalah penanda yang rapuh: orang menambahkan nama belakang,
+   gelar, atau singkatan, dan seluruh perutean patah tanpa suara. Selama peta
+   koordinator/section masih memakai nama, pencocokannya harus memaafkan
+   perbedaan itu — TETAPI tidak boleh menebak.
+
+   Aturannya: cocok bila sama persis (setelah dirapikan), atau bila salah satu
+   merupakan awalan kata dari yang lain DAN hanya ada SATU akun yang cocok.
+   Dua orang dengan nama depan sama membuat pencocokan dibatalkan, bukan
+   ditebak — menebak berarti mengirim wewenang ke orang yang salah. */
+function namaRapi(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g," "); }
+function orangSama(a,b){
+ a=namaRapi(a); b=namaRapi(b);
+ if(!a||!b) return false;
+ if(a===b) return true;
+ /* awalan KATA, bukan awalan huruf: "sunaryo" cocok "sunaryo bara",
+    tetapi "sun" tidak cocok "sunaryo". */
+ return (b+" ").indexOf(a+" ")===0 || (a+" ").indexOf(b+" ")===0;
+}
+/* Nama peta (mis. "Sunaryo") → nama akun yang sebenarnya, bila TEPAT SATU cocok.
+   Lebih dari satu = ambigu → kembalikan apa adanya dan catat, jangan menebak. */
+function namaAkun(nama){
+ if(!nama) return "";
+ try{
+   var cocok=(USERS||[]).filter(function(u){ return orangSama(u.name,nama); });
+   if(cocok.length===1) return cocok[0].name;
+   if(cocok.length>1){
+     AGAVA_NAMA_AMBIGU=AGAVA_NAMA_AMBIGU||{};
+     if(!AGAVA_NAMA_AMBIGU[nama]){ AGAVA_NAMA_AMBIGU[nama]=1;
+       console.warn("AGAVA: nama \""+nama+"\" cocok dengan "+cocok.length+" akun — perutean dibatalkan, bukan ditebak:",
+         cocok.map(function(u){return u.name;})); }
+   }
+ }catch(e){}
+ return nama;
+}
+var AGAVA_NAMA_AMBIGU=null;
+/* ╔══ PEMERIKSA PETA WEWENANG (27 Agu 2026) ═════════════════════════════════╗
+   Tiga kerusakan hari ini semuanya berbentuk sama: peta wewenang menunjuk ke
+   sesuatu yang tidak ada, dan sistem DIAM.
+
+     · KOORDINATOR menunjuk "Sunaryo"      → akunnya bernama "Sunaryo Bara"
+     · Maria & M Zhaenuri ber-role general → tidak punya menu Procurement,
+       padahal keduanya pembuat SO aktif (18 dan 10 SO)
+     · satu akun tanpa role sama sekali    → peran() kosong di rules
+
+   Tidak satu pun melapor. Ketiganya baru ketahuan setelah orangnya mengeluh,
+   dan di antaranya ada 35 eskalasi yang mengendap berminggu-minggu karena
+   penerimanya secara harfiah tidak ada.
+
+   Peta yang menunjuk ke ruang kosong harus BERSUARA, bukan menunggu ditemukan.
+   Dijalankan sekali setelah login; hasilnya juga bisa dipanggil kapan saja
+   lewat konsol: agavaPeriksaPeta(). */
+function agavaPeriksaPeta(diam){
+ var lapor={namaTakBerpemilik:[], tanpaRole:[], pembuatSOTanpaAkses:[]};
+ try{
+  var U=USERS||[];
+  var adaAkun=function(n){ return U.some(function(u){ return orangSama(u.name,n); }); };
+  Object.keys(KOORDINATOR||{}).forEach(function(kat){
+    var n=KOORDINATOR[kat]; if(n && !adaAkun(n)) lapor.namaTakBerpemilik.push("Koordinator "+kat+" → \""+n+"\""); });
+  Object.keys(SECTION_MAP||{}).forEach(function(kat){
+    var n=SECTION_MAP[kat]; if(n && !adaAkun(n)) lapor.namaTakBerpemilik.push("Section "+kat+" → \""+n+"\""); });
+  U.forEach(function(u){ if(!u.role) lapor.tanpaRole.push(u.name||u.email||"(tanpa nama)"); });
+  /* Siapa yang PERNAH membuat SO tetapi perannya kini tidak punya menu
+     Procurement — ia akan mendapati tombolnya hilang tanpa penjelasan. */
+  var pernah={}; (typeof SO!=="undefined"?SO:[]).forEach(function(s){
+    var n=s.req||s.requester; if(n) pernah[n]=(pernah[n]||0)+1; });
+  Object.keys(pernah).forEach(function(n){
+    var u=U.filter(function(x){ return orangSama(x.name,n); })[0];
+    var R=u?ROLES[u.role]:null;
+    if(!u) lapor.pembuatSOTanpaAkses.push(n+" ("+pernah[n]+" SO) — tidak ada akun");
+    else if(!R || (R.menus||[]).indexOf("procurement")<0)
+      lapor.pembuatSOTanpaAkses.push(n+" ("+pernah[n]+" SO) — role "+(u.role||"kosong")+", tanpa menu Procurement");
+  });
+ }catch(e){ lapor.err=e.message; }
+ var jml=lapor.namaTakBerpemilik.length+lapor.tanpaRole.length+lapor.pembuatSOTanpaAkses.length;
+ if(!diam && jml){
+   console.warn("⚠️ AGAVA — peta wewenang menunjuk ke sesuatu yang tidak ada ("+jml+" temuan):");
+   if(lapor.namaTakBerpemilik.length) console.warn("   nama tanpa akun:", lapor.namaTakBerpemilik);
+   if(lapor.tanpaRole.length)         console.warn("   akun tanpa role:", lapor.tanpaRole);
+   if(lapor.pembuatSOTanpaAkses.length)console.warn("   pembuat SO kehilangan akses:", lapor.pembuatSOTanpaAkses);
+   console.warn("   Perbaiki di Parameter → Kelola Akun. Jalankan agavaPeriksaPeta() untuk memeriksa ulang.");
+ }
+ return lapor;
 }
 function escTingkat(t){
  var k=escKunci(t);
@@ -10931,7 +11027,7 @@ function escBolehNaikkan(t){
  if(!naik.role && !escPemegang(t,naik)) return false;
  if(typeof isOwner==="function" && isOwner()) return true;
  var d=escAnak(t), aku=(gUser&&gUser.name)||"", pemegang=escPemegang(t,d);
- if(pemegang) return aku===pemegang;
+ if(pemegang) return orangSama(aku,pemegang);
  if(d.role) return gRole===d.role;
  if(d.roleCadangan) return d.roleCadangan.indexOf(gRole)>=0;
  return false;
@@ -15185,7 +15281,7 @@ function ticketNotifFor(t){
  /* Pemilik kategori (SECTION_MAP) menerima tiket kategorinya saat role-nya
     Section Head. Yessy kini satu akun (Section Head + tier Budget), jadi ia
     tetap menerima kategori miliknya lewat jalur ini. */
- if(gRole==="section" && ticketSectionOwner(t)===gUser.name) return true;
+ if(gRole==="section" && orangSama(ticketSectionOwner(t),gUser.name)) return true;
  return ticketMine(t);                                            // pemohon: tiketnya sendiri
 }
 /* Angka gelembung di ikon modul Services */
@@ -15751,7 +15847,7 @@ function soGateTier(s){
  }
 }
 /* SO yang dieskalasi & masih di Dept Head juga muncul di Inbox PIC Procurement (read-only "waiting"). */
-function soApprovalsForTier(t){ const me=gUser?gUser.name:""; return SO.filter(s=>{ const g=soGateTier(s); if(!g)return false; if(g==="Section Head")return soSectionApprover(s)===me; if(g===t)return true; if(t==="Procurement"&&s.escalated&&g==="Dept Head")return true; return false; }); }
+function soApprovalsForTier(t){ const me=gUser?gUser.name:""; return SO.filter(s=>{ const g=soGateTier(s); if(!g)return false; if(g==="Section Head")return orangSama(soSectionApprover(s),me); if(g===t)return true; if(t==="Procurement"&&s.escalated&&g==="Dept Head")return true; return false; }); }
 function soPendingAll(){ return SO.filter(s=>soGateTier(s)).map(s=>({approval:true,tier:soGateTier(s),item:s.no+" — "+s.item,source:"SO",status:soGateTier(s)})); }
 /* ╔══════════════════════════════════════════════════════════════════════════╗
    ║  SATU ORANG BISA MEMEGANG LEBIH DARI SATU GERBANG APPROVAL               ║
@@ -16259,7 +16355,7 @@ function escUntukSaya(t){
  if(isOwner()) return true;                       // hanya Owner yang melihat semuanya
  var d=escAnak(t), aku=(gUser&&gUser.name)||"";
  var pemegang=escPemegang(t,d);
- if(pemegang) return aku===pemegang;              // dipegang orang tertentu → hanya dia
+ if(pemegang) return orangSama(aku,pemegang);              // dipegang orang tertentu → hanya dia
  if(d.role) return gRole===d.role;                // dipegang peran → semua pemegang peran itu
  if(d.roleCadangan) return d.roleCadangan.indexOf(gRole)>=0;
  return false;
@@ -20828,7 +20924,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-258";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-259";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -23312,6 +23408,9 @@ function agavaBoot(){
         tersimpan tidak pernah memasang listener sama sekali. */
      try{ if(fu) dbListen(); else dbLepasSemua(); }catch(e){ console.warn("auth→listen:",e); }
      try{ cloudSpanduk(); }catch(e){}
+     /* Peta wewenang yang menunjuk ke ruang kosong harus bersuara sendiri —
+        lihat catatan di agavaPeriksaPeta. Ditunda sampai USERS & SO termuat. */
+     try{ if(fu) setTimeout(function(){ try{ agavaPeriksaPeta(); }catch(e){} },4000); }catch(e){}
      /* 2450ms: intro ikon selesai ±2,0s lalu logo mendarat ±2,44s. Menutup
         lebih cepat berarti membangun animasi yang tidak pernah dilihat orang.
         Batas kerasnya 3400ms, jadi tetap tidak pernah menahan startup lama. */
