@@ -10721,16 +10721,67 @@ function akuKoordinator(t){
  var k=ticketKoordinator(t); if(!k) return false;
  return ((gUser&&gUser.name)||"")===k;
 }
-const ESC_TUJUAN={
- koor:    {label:"Koordinator Kategori", ket:"koordinator operator kategori ini — berwenang mengajukan SO atau berdiskusi dengan Section Head",
-           roles:["staffga","fieldsup"], nav:"service"},
- section: {label:"Section Head", ket:"keputusan atau anggaran di atas wewenang Koordinator",
-           roles:["dept","fieldsup"], nav:"approvals"}
-};
-/* `ga` adalah nama lama tangga pertama — catatan lama tetap terbaca */
+/* ╔══ TANGGA ESKALASI — SATU ANAK TANGGA PADA SATU WAKTU (26 Agu 2026) ══════╗
+   Aturan Sudana, ditegaskan ulang:
+
+       Operator  →  Koordinator  →  Section Head  →  Dept Head  →  dst
+
+   Tidak ada yang boleh melompat. Operator hanya bisa sampai Koordinator;
+   hanya Koordinator yang bisa menaikkan ke Section Head; hanya Section Head
+   yang bisa menaikkan ke Dept Head.
+
+   Dua pelanggaran yang diperbaiki di sini:
+     1. Dept Head DULU sudah ikut melihat eskalasi tingkat Section sebelum
+        Section Head menaikkannya (escUntukSaya memakai gRole==="dept" pada
+        cabang section). Tangganya bocor satu tingkat: orang yang belum
+        menerima estafet sudah memegang tongkatnya.
+     2. Section Head tidak punya anak tangga di atasnya — mentok, padahal ada
+        keputusan yang memang di atas wewenangnya.
+
+   Sekarang tangganya DATA, bukan rangkaian if. Menambah anak tangga di atas
+   Dept Head cukup menambah satu baris di sini — sesuai Prinsip 4 (atur,
+   jangan program ulang). Sengaja BERHENTI di Dept Head: menaikkan lampu mati
+   ke Division/Chief bukan eskalasi, itu kehilangan akal sehat. Kalau nanti
+   memang dibutuhkan, barisnya ditambahkan setelah pemegangnya ditetapkan.
+
+   `pemegang` mengembalikan NAMA orang bila anak tangga itu dipegang orang
+   tertentu (Koordinator kategori, Section Head pemilik kategori). Bila kosong,
+   `role` yang menentukan siapa penerimanya.                                  */
+const ESC_TANGGA=[
+ {k:"koor",    label:"Koordinator Kategori", nav:"service",
+  ket:"koordinator operator kategori ini — berwenang mengajukan SO atau menaikkan ke Section Head",
+  pemegang:function(t){ return (typeof ticketKoordinator==="function")?ticketKoordinator(t):""; },
+  /* Kategori yang koordinatornya belum ditentukan tetap punya anak tangga ini —
+     penerimanya sementara Staff GA, supaya tiket tidak menggantung tanpa alamat
+     DAN tanpa melompati tangga. */
+  roleCadangan:["staffga","fieldsup","proc"]},
+ {k:"section", label:"Section Head", nav:"approvals",
+  ket:"keputusan atau anggaran di atas wewenang Koordinator",
+  pemegang:function(t){ return (typeof ticketSectionOwner==="function")?ticketSectionOwner(t):""; },
+  role:"section"},
+ {k:"dept",    label:"GA Dept Head", nav:"approvals",
+  ket:"keputusan lintas seksi atau di atas wewenang Section Head",
+  pemegang:function(){ return ""; },              // ditentukan peran, bukan nama
+  role:"dept"}
+];
+/* Peta lama tetap disediakan supaya pemanggil yang sudah ada tidak berubah. */
+const ESC_TUJUAN=(function(){ var m={}; ESC_TANGGA.forEach(function(d){
+  m[d.k]={label:d.label, ket:d.ket, nav:d.nav,
+          roles:d.role?[d.role]:(d.roleCadangan||[])}; }); return m; })();
+/* `ga` adalah nama lama anak tangga pertama — catatan lama tetap terbaca */
+function escKunci(t){ var k=(t&&t.escTo)||"koor"; return k==="ga"?"koor":k; }
+function escTingkat(t){
+ var k=escKunci(t);
+ for(var i=0;i<ESC_TANGGA.length;i++) if(ESC_TANGGA[i].k===k) return i;
+ return 0;
+}
+function escAnak(t){ return ESC_TANGGA[escTingkat(t)]||ESC_TANGGA[0]; }
+/* Anak tangga BERIKUTNYA, atau null bila sudah di puncak. */
+function escAnakBerikut(t){ return ESC_TANGGA[escTingkat(t)+1]||null; }
+/* Siapa yang memegang sebuah anak tangga untuk tiket ini. */
+function escPemegang(t,d){ try{ return (d&&d.pemegang)?(d.pemegang(t)||""):""; }catch(e){ return ""; } }
 function escTujuan(t){
- var k=(t&&t.escTo)||"koor"; if(k==="ga")k="koor";
- return ESC_TUJUAN[k]||ESC_TUJUAN.koor;
+ return ESC_TUJUAN[escKunci(t)]||ESC_TUJUAN.koor;
 }
 /* Label yang ditampilkan: sebutkan NAMA koordinatornya bila sudah ditentukan */
 function escTujuanLabel(t){
@@ -10778,7 +10829,12 @@ function myTicketEscalate(no){
       tangga itu — di situ eskalasi langsung dialamatkan ke Section Head, supaya
       tiket tidak mendarat di ruang kosong. */
    '<div class="field" style="margin-top:14px"><label>Dinaikkan ke</label></div>'+
-   '<div class="fo-pilih">'+(ticketKoordinator(t)?pilih("koor",true):pilih("section",true))+'</div>'+
+   /* TANGGA KETAT (26 Agu 2026): operator SELALU mendarat di anak tangga
+      pertama — Koordinator. Tidak ada lagi cabang "kalau koordinator belum
+      ditentukan, lompat ke Section": kategori tanpa koordinator tetap berada
+      di tingkat Koordinator, hanya penerimanya sementara Staff GA. Melompat
+      berarti Koordinator kehilangan perannya, dan itu yang dulu terjadi. */
+   '<div class="fo-pilih">'+pilih("koor",true)+'</div>'+
    '<div class="field"><label>Alasan eskalasi <span style="color:var(--red)">*</span></label>'+
      '<textarea id="fo-esc-note" rows="3" placeholder="mis. Lampu perlu diganti — butuh pengadaan 3 unit LED 18W"></textarea></div>'+
    '<button class="btn-act" style="width:100%" onclick="myTicketEscalateSubmit(\''+esc(no)+'\')">⏫ Kirim Eskalasi</button>'+
@@ -10834,31 +10890,49 @@ function myTicketEscalateSubmit(no){
    escNote milik operator TIDAK ditimpa; alasan naik disimpan terpisah di
    escUpNote supaya kedua suara tetap terbaca. Kolom escUpBy/escUpAt yang
    selama ini tetap dibaca perender kartu kini terisi lagi oleh jalur sah. */
+/* Boleh menaikkan HANYA bila: (a) masih ada anak tangga di atasnya, dan
+   (b) yang menekan adalah PEMEGANG anak tangga saat ini. Estafet hanya boleh
+   diserahkan oleh yang sedang memegang tongkatnya. */
 function escBolehNaikkan(t){
  if(!t||!t.esc||t.escDone) return false;
- var to=t.escTo||"koor"; if(to==="ga")to="koor";
- if(to!=="koor") return false;                     /* sudah di anak tangga teratas */
- if(!ticketSectionOwner(t)) return false;          /* tidak ada tujuan naik */
+ var naik=escAnakBerikut(t);
+ if(!naik) return false;                           /* sudah di puncak tangga */
+ /* Anak tangga tujuan harus punya penerima yang jelas — kalau dipegang orang
+    tertentu, orangnya harus ada. Kalau dipegang peran, selalu ada penerimanya. */
+ if(!naik.role && !escPemegang(t,naik)) return false;
  if(typeof isOwner==="function" && isOwner()) return true;
- var k=ticketKoordinator(t);
- return !!k && ((gUser&&gUser.name)||"")===k;
+ var d=escAnak(t), aku=(gUser&&gUser.name)||"", pemegang=escPemegang(t,d);
+ if(pemegang) return aku===pemegang;
+ if(d.role) return gRole===d.role;
+ if(d.roleCadangan) return d.roleCadangan.indexOf(gRole)>=0;
+ return false;
+}
+/* Label tujuan naik: sebut namanya bila anak tangga itu dipegang orang tertentu. */
+function escNaikLabel(t){
+ var naik=escAnakBerikut(t); if(!naik) return "";
+ var nama=escPemegang(t,naik);
+ return naik.label+(nama?" "+nama:"");
 }
 function escNaikkanBuka(no){
  var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
- if(!escBolehNaikkan(t)){ alert("⛔ Hanya Koordinator kategori ini yang dapat menaikkannya ke Section Head."); return; }
- var sh=ticketSectionOwner(t);
+ if(!escBolehNaikkan(t)){
+   var d0=escAnak(t), n0=escAnakBerikut(t);
+   alert(n0 ? ("⛔ Hanya pemegang tingkat "+d0.label+" pada tiket ini yang dapat menaikkannya ke "+n0.label+".")
+            : ("⛔ Tiket ini sudah berada di tingkat teratas tangga eskalasi ("+d0.label+")."));
+   return; }
+ var naik=escAnakBerikut(t), sh=escNaikLabel(t);
  document.getElementById("drawer").innerHTML=
   '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
    '<div class="sono" style="font-size:calc(15px*var(--fz))">'+esc(t.no)+'</div>'+
    '<div style="font-size:calc(14.5px*var(--fz));color:var(--ink);font-weight:700;margin-top:5px">'+esc(t.judul||'')+'</div>'+
    '<div class="muted small" style="margin-top:3px">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div></div>'+
   '<div class="db">'+
-   '<div class="mt-esk-st" style="margin-top:0">Naik ke <b>Section Head '+esc(sh)+'</b>. '+
-     'Setelah naik, <b>Section Head yang membuat SO</b> — tiket ini keluar dari antrean eskalasi Anda.</div>'+
+   '<div class="mt-esk-st" style="margin-top:0">Dari <b>'+esc(escAnak(t).label)+'</b> naik ke <b>'+esc(sh)+'</b>. '+
+     'Setelah naik, <b>'+esc(naik.label)+' yang membuat SO</b> — tiket ini keluar dari antrean eskalasi Anda.</div>'+
    (t.escNote?'<div class="tk-brief-n" style="margin-top:12px"><b>⏫ Alasan operator:</b> '+esc(t.escNote)+(t.escBy?' — '+esc(t.escBy):'')+'</div>':'')+
-   '<div class="field" style="margin-top:14px"><label>Kenapa perlu naik ke Section Head? <span style="color:var(--red)">*</span></label>'+
-     '<textarea id="esc-naik-note" rows="3" placeholder="mis. nilainya di atas wewenang Koordinator — perlu keputusan Section Head"></textarea></div>'+
-   '<button class="btn-act" style="width:100%" onclick="escNaikkanSubmit(\''+esc(no)+'\')">⏫ Naikkan ke Section Head</button>'+
+   '<div class="field" style="margin-top:14px"><label>Kenapa perlu naik ke '+esc(naik.label)+'? <span style="color:var(--red)">*</span></label>'+
+     '<textarea id="esc-naik-note" rows="3" placeholder="mis. nilainya di atas wewenang '+esc(escAnak(t).label)+' — perlu keputusan '+esc(naik.label)+'"></textarea></div>'+
+   '<button class="btn-act" style="width:100%" onclick="escNaikkanSubmit(\''+esc(no)+'\')">⏫ Naikkan ke '+esc(naik.label)+'</button>'+
   '</div>';
  document.getElementById("ovl").classList.add("show");
  setTimeout(function(){ var x=document.getElementById("esc-naik-note"); if(x)x.focus(); },80);
@@ -10867,24 +10941,34 @@ function escNaikkanSubmit(no){
  var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
  if(!escBolehNaikkan(t)){ alert("⛔ Tidak berwenang menaikkan tiket ini."); return; }
  var note=((document.getElementById("esc-naik-note")||{}).value||"").trim();
- if(!note){ alert("Alasannya wajib diisi — inilah yang dibaca Section Head saat tiket ini sampai padanya."); return; }
- var sh=ticketSectionOwner(t), dari=(gUser&&gUser.name)||"";
+ var dariAnak=escAnak(t), naik=escAnakBerikut(t);
+ if(!naik){ alert("⛔ Sudah di tingkat teratas."); return; }
+ if(!note){ alert("Alasannya wajib diisi — inilah yang dibaca "+naik.label+" saat tiket ini sampai padanya."); return; }
+ var terima=escPemegang(t,naik), dari=(gUser&&gUser.name)||"";
+ var labelTerima=naik.label+(terima?" "+terima:"");
  closeDrawer();
- t.escTo="section"; t.escUpBy=dari; t.escUpAt=nowMs(); t.escUpNote=note;
- try{ tkKomen(t,"Dinaikkan ke Section Head "+sh+" oleh Koordinator "+dari+": "+note,"eskalasi"); }catch(e){}
+ /* SATU anak tangga, bukan lompat ke puncak. Tujuan diambil dari ESC_TANGGA —
+    jadi menambah tingkat baru tidak menuntut perubahan di fungsi ini. */
+ t.escTo=naik.k; t.escUpBy=dari; t.escUpAt=nowMs(); t.escUpNote=note;
+ try{ tkKomen(t,"Dinaikkan ke "+labelTerima+" oleh "+dariAnak.label+" "+dari+": "+note,"eskalasi"); }catch(e){}
  /* satu bidang masuk, satu bidang tertulis — aturan dbPatchTicket. escDone
     sengaja TIDAK ikut ditulis: ia sudah false, dan menulis bendera false
     secara sengaja adalah bentuk yang sama dengan salinan basi. */
- dbPatchTicket(t,{escTo:"section", escUpBy:dari, escUpAt:t.escUpAt, escUpNote:note});
- try{ triggerFlow("updateTicket",{ticketNo:t.no,escTo:"section",escUpBy:dari}); }catch(e){}
- NOTIFS.unshift({ic:"⏫", t:"Eskalasi naik ke Section Head",
-   d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · dari Koordinator "+dari+" — "+note,
-   at:nowStamp(), sev:"crit", nav:"approvals", done:false, nama:sh, namaRole:"section"});
- try{ agavaNotify("⏫ Eskalasi naik ke Anda", t.no+" · "+(t.judul||"")+" · dari Koordinator "+dari); }catch(e){}
- try{ auditLog("escalation-naik", t.no+" · Koordinator "+dari+" → Section "+sh+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
+ dbPatchTicket(t,{escTo:naik.k, escUpBy:dari, escUpAt:t.escUpAt, escUpNote:note});
+ try{ triggerFlow("updateTicket",{ticketNo:t.no,escTo:naik.k,escUpBy:dari}); }catch(e){}
+ var n={ic:"⏫", t:"Eskalasi naik ke "+naik.label,
+   d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · dari "+dariAnak.label+" "+dari+" — "+note,
+   at:nowStamp(), sev:"crit", nav:naik.nav, done:false};
+ /* Beralamat ke ORANGNYA bila anak tangga itu dipegang orang tertentu;
+    ke perannya bila dipegang peran. Tidak pernah disiarkan ke keduanya. */
+ if(terima){ n.nama=terima; n.namaRole=naik.role||""; } else if(naik.role){ n.roles=[naik.role]; }
+ NOTIFS.unshift(n);
+ try{ agavaNotify("⏫ Eskalasi naik ke Anda", t.no+" · "+(t.judul||"")+" · dari "+dariAnak.label+" "+dari); }catch(e){}
+ try{ auditLog("escalation-naik", t.no+" · "+dariAnak.label+" "+dari+" → "+labelTerima+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
  try{ agavaRenderAman(["renderService","renderApprovals","renderMyTickets",
                        "renderFieldOps","renderReminder","updateBell"]); }catch(e){}
- alert("⏫ Tiket "+no+" naik ke Section Head "+sh+".\n\nSO-nya kini dibuat oleh Section Head — tiket ini keluar dari antrean eskalasi Anda.");
+ alert("⏫ Tiket "+no+" naik ke "+labelTerima+".\n\nSO-nya kini dibuat oleh "+naik.label+
+       " — tiket ini keluar dari antrean eskalasi Anda."+awanPeringatan());
 }
 /* Selesaikan dari My Tickets — sama seperti Field Ops: WAJIB foto bukti dari kamera */
 function myTicketResolve(no){ foAskPhoto(no); }
@@ -16086,26 +16170,28 @@ function otherApprovalRow(a){
    Operator tak sanggup menyelesaikan sendiri → tiket naik ke sini. Approver
    (admin AGAVA / kelompok Super) menindaklanjuti dengan membuat SO ke Procurement. */
 /* Eskalasi punya ALAMAT, seperti notifikasi & approval — bukan disiarkan ke
-   semua akun Super. Tangga 1 (Staff GA) hanya muncul di Dedi/Susi & supervisor
-   lapangan; tangga 2 (Section Head) di pemilik kategorinya & Dept Head.
-   Owner tetap melihat keduanya. */
+   semua akun Super. SENGAJA tidak memakai isSuper(): kelompok Super boleh
+   MELIHAT semua tiket, tetapi eskalasi adalah antrean AKSI — ia harus punya
+   satu penerima yang jelas, sama seperti approval. */
+/* ── SATU ANAK TANGGA, SATU PENERIMA (26 Agu 2026) ──────────────────────────
+   Yang melihat sebuah eskalasi HANYA pemegang anak tangga tempat ia berada
+   sekarang — bukan pemegang anak tangga di atasnya.
+
+   Dulu cabang "section" berbunyi gRole==="dept" || (section && pemilik===saya),
+   sehingga Dept Head sudah melihat tiket yang belum dinaikkan Section Head.
+   Itu membuat anak tangga Section kehilangan artinya: kalau atasannya toh sudah
+   melihat, menaikkan tidak lagi berarti apa-apa, dan tanggung jawabnya kabur.
+
+   Owner tetap melihat semuanya — ia pemilik sistem, bukan bagian dari tangga. */
 function escUntukSaya(t){
  if(!t) return false;
  if(isOwner()) return true;                       // hanya Owner yang melihat semuanya
- var to=t.escTo||"koor"; if(to==="ga")to="koor";
- /* SENGAJA tidak memakai isSuper(): kelompok Super boleh MELIHAT semua tiket,
-    tetapi eskalasi adalah antrean AKSI — ia harus punya satu alamat yang jelas,
-    sama seperti approval. Kalau Section Head sudah melihatnya di tangga pertama,
-    tangganya kehilangan arti; dan Section Head kategori lain tidak berkepentingan. */
- if(to==="koor"){
-   var k=ticketKoordinator(t);
-   /* Sudah ada koordinatornya → HANYA dia (+ Owner). Belum ditentukan → jatuh
-      ke Staff GA / supervisor lapangan sebagai penerima sementara, supaya tiket
-      tidak pernah menggantung tanpa alamat. */
-   if(k) return ((gUser&&gUser.name)||"")===k;
-   return gRole==="staffga"||gRole==="fieldsup"||gRole==="proc";
- }
- return gRole==="dept"||(gRole==="section"&&ticketSectionOwner(t)===((gUser&&gUser.name)||""));
+ var d=escAnak(t), aku=(gUser&&gUser.name)||"";
+ var pemegang=escPemegang(t,d);
+ if(pemegang) return aku===pemegang;              // dipegang orang tertentu → hanya dia
+ if(d.role) return gRole===d.role;                // dipegang peran → semua pemegang peran itu
+ if(d.roleCadangan) return d.roleCadangan.indexOf(gRole)>=0;
+ return false;
 }
 function escalatedTickets(){
  return TICKETS.filter(function(t){ return t.esc && !t.escDone && (t.stg||0)<3 && escUntukSaya(t); })
@@ -16188,8 +16274,8 @@ function escTicketRow(t){
      '<button class="btn-out" onclick="escDiskusiSection(\''+esc(t.no)+'\')" title="Buka Chat dengan Section Head pemilik kategori ini">Diskusi Section</button>'+
      (escBolehNaikkan(t)
        ? '<button class="btn-out" style="grid-column:1/-1" onclick="escNaikkanBuka(\''+esc(t.no)+'\')" '+
-         'title="Di luar wewenang Koordinator — teruskan ke Section Head pemilik kategori, dan SO dibuat olehnya">'+
-         '⏫ Naikkan ke Section Head '+esc(ticketSectionOwner(t))+'</button>'
+         'title="Di luar wewenang '+esc(escAnak(t).label)+' — teruskan satu tingkat ke atas, dan SO dibuat oleh penerimanya">'+
+         '⏫ Naikkan ke '+esc(escNaikLabel(t))+'</button>'
        : '')+
    '</div>'+
  '</div>';
@@ -20671,7 +20757,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.26-255";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-256";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
