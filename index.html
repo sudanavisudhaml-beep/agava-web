@@ -8069,11 +8069,46 @@ function notifEnable(){
  });
 }
 /* uji notifikasi manual — memastikan sound + tray benar-benar muncul di perangkat ini */
+/* ╔══ TES YANG MEMBUKTIKAN HAL YANG BENAR (27 Agu 2026) ═════════════════════╗
+   Tombol tes lama memanggil agavaNotify() — notifikasi LOKAL, dibuat oleh
+   halaman yang sedang terbuka. Ia tetap muncul walaupun push server sama
+   sekali mati, lalu berkata "notifikasi sudah berfungsi".
+
+   Itu rasa aman yang palsu, dan justru menutupi satu-satunya hal yang ingin
+   dibuktikan orang: apakah notifikasi tetap masuk ketika HP tidur, terkunci,
+   atau aplikasinya sudah ditutup. Yang membuktikannya hanya push yang DIKIRIM
+   SERVER — dan itulah yang dipanggil di sini.
+
+   Tes lokal tetap disediakan, tetapi disebut apa adanya: ia hanya memeriksa
+   izin dan tampilan, bukan jalur push. */
 function notifTest(){
  var s=notifState();
  if(!s.ok){ notifEnable(); return; }
- agavaNotify("🎫 Tes Notifikasi AGAVA","Kalau Anda melihat pesan ini di tray HP, notifikasi sudah berfungsi.");
- alert("📨 Notifikasi percobaan dikirim.\nCek tray notifikasi perangkat Anda.\n\nCatatan: saat aplikasi sedang dibuka, sebagian HP menampilkan notifikasi hanya sebagai suara + badge.");
+ agavaNotify("🎫 Tes tampilan notifikasi","Ini notifikasi LOKAL — belum membuktikan push saat HP terkunci.",{noSound:true});
+ alert("📨 Tes TAMPILAN terkirim.\n\nCatatan penting: ini notifikasi lokal dari halaman yang sedang terbuka. "+
+   "Ia TIDAK membuktikan notifikasi tetap masuk saat HP tidur.\n\nUntuk menguji itu, pakai tombol "+
+   "\"Tes Push Server\" — lalu kunci HP Anda dan tunggu.");
+}
+/* Push sungguhan dari server, dikirim HANYA ke perangkat pemanggil sendiri. */
+async function notifTestServer(){
+ var s=notifState();
+ if(!s.ok){ notifEnable(); return; }
+ if(!AGDB.fcmToken){
+   alert("⚠️ Perangkat ini belum terdaftar untuk push server.\n\nPastikan izin notifikasi aktif, lalu muat ulang AGAVA sekali.");
+   try{ fcmInit(); }catch(e){}
+   return;
+ }
+ try{
+   if(typeof firebase==="undefined"||!firebase.functions){ alert("Modul Functions belum termuat."); return; }
+   var fn=firebase.app().functions("asia-southeast2").httpsCallable("testPush");
+   var r=await fn({});
+   var d=(r&&r.data)||{};
+   alert((d.ok?"✅ ":"⚠️ ")+(d.pesan||"Tidak ada jawaban dari server.")+
+     (d.ok?"\n\nSEKARANG KUNCI HP ANDA dan tunggu beberapa detik. Kalau notifikasinya muncul di layar terkunci, jalur push sudah benar-benar hidup.":""));
+ }catch(e){
+   alert("⚠️ Tes push server gagal: "+((e&&e.message)||"tidak diketahui")+
+     "\n\nIni berarti jalur push server sedang bermasalah — notifikasi saat HP terkunci kemungkinan tidak masuk.");
+ }
 }
 /* ╔══ NOTIFIKASI HARUS MENDARAT DI TEMPATNYA (27 Agu 2026) ══════════════════╗
    Laporan Sudana: "ketika kita klik, dia tidak mendarat di tempat yang
@@ -11723,7 +11758,7 @@ function renderMyTickets(){
    (esk?' · <b style="color:var(--red)">'+esk+'</b> dieskalasi':'')+
    (nunggu?' · <b style="color:#b45309">'+nunggu+'</b> menunggu rating':'')+
    ' · '+done.length+' tutup · <b style="color:var(--red)">'+breached+'</b> SLA breach · tercatat di Services</div></div>'+
-   '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="notifTest()">🔔 Tes Notif</button>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-out" onclick="notifTest()">🔔 Tes Notif</button><button class="btn-out" onclick="notifTestServer()" title="Push SUNGGUHAN dari server — kunci HP setelah menekan ini untuk membuktikan notifikasi tetap masuk saat layar mati">📡 Tes Push Server</button>'+
    '<button class="btn-out" onclick="fieldOpReset()">Ganti Operator</button>'+
    '<button class="btn-out" onclick="agavaLogout()" title="Keluar dari AGAVA">⎋ Keluar</button></div></div>';
  /* urutan: yang masih perlu tindakan di atas, yang menunggu rating di tengah,
@@ -21051,7 +21086,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-261";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-262";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
