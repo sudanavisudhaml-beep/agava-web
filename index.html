@@ -948,6 +948,13 @@ body{font-family:var(--ff);background:var(--bg);color:var(--text);-webkit-font-s
   font-size:calc(11.5px*var(--fz));color:#24486f;line-height:1.5}
 .fo-taken.pantau{background:#f4f8fd;border-color:#cfe0f5;color:#24486f}
 /* Pita "versi baru tersedia" — melayang di bawah, di atas bottom bar mobile */
+#agavaTolakBar{position:fixed;left:12px;right:12px;bottom:12px;z-index:2400;display:flex;gap:12px;
+  align-items:center;background:#7f1d1d;color:#fff;border-radius:14px;padding:12px 16px;
+  font-size:calc(12.5px*var(--fz));line-height:1.55;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#agavaTolakBar b{font-weight:800}
+#agavaTolakBar span{flex:1;min-width:0}
+#agavaTolakBar button{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;
+  border-radius:999px;width:30px;height:30px;font-size:15px;cursor:pointer;flex:0 0 auto}
 #agavaVersiBar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9998;
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#0b2447,#124a8f);
   color:#fff;border-radius:14px;padding:12px 14px;box-shadow:0 8px 28px rgba(10,30,60,.34);
@@ -5772,7 +5779,7 @@ function pjCloudSave(list){
    AGDB.db.collection("agava_config").doc("projects").set({
      list:j, n:list.length,
      by:(gUser&&gUser.name)||"", email:(gUser&&gUser.email)||"", up:new Date().toISOString()
-   },{merge:true}).catch(function(e){ console.warn("simpan proyek:",e&&e.code); });
+   },{merge:true}).catch(function(e){ tulisGagal("Project Development",e); });
    try{ auditLog("project-update", list.length+" proyek · "+list.map(function(p){return p.name;}).join(" · ").slice(0,160)); }catch(e){}
  }catch(e){ console.warn("pjCloudSave:",e&&e.message); }
 }
@@ -8543,6 +8550,47 @@ function soPersistLokal(){ try{ localStorage.setItem(SO_STORE, JSON.stringify(SO
 
    Karena itu jalur simpan SO sekarang MENJAWAB. Pemanggil yang mengumumkan
    sesuatu kepada manusia wajib membaca jawabannya. */
+/* ╔══ PENOLAKAN RULES TIDAK BOLEH SENYAP (27 Agu 2026) ══════════════════════╗
+   Pertanyaan Sudana: "apa perlu rules-nya dicabut saja, dan bisa dijamin tidak
+   terjadi lagi?"
+
+   Rules TIDAK boleh dicabut — mencabutnya berarti membuka kembali seluruh data
+   GA ke siapa pun tanpa login, lubang yang justru ditutup 20 Agustus. Yang
+   membuat minggu ini kacau bukan keberadaan rules, melainkan CARA
+   PENOLAKANNYA: sembilan jalur tulis menangkap galat lalu memanggil
+   console.warn dan berhenti di situ.
+
+   Akibatnya sebuah penolakan berbunyi persis seperti keberhasilan. Maria
+   membuat SO selama seminggu, layarnya berkata berhasil setiap kali, dan tidak
+   satu pun sampai ke server. Tidak ada yang bisa menduganya — termasuk saya,
+   yang butuh tiga jam dan sebuah screenshot untuk menemukannya.
+
+   Jaminan yang bisa saya berikan bukan "rules tidak akan pernah salah lagi" —
+   itu janji yang tidak bisa ditepati siapa pun. Yang bisa dijamin: kalau rules
+   menolak, orangnya TAHU SEKARANG, bukan seminggu kemudian lewat keluhan.
+
+   Satu spanduk per sumber per sesi supaya tidak menjadi hujan peringatan, dan
+   jejaknya masuk audit supaya bisa ditemukan tanpa menunggu orangnya melapor. */
+let AGAVA_TOLAK=[];
+function tulisGagal(sumber,e){
+ var kode=(e&&e.code)||"";
+ console.warn("AGAVA tulis gagal ["+sumber+"]:", kode||e);
+ if(kode!=="permission-denied") return;
+ if(AGAVA_TOLAK.indexOf(sumber)>=0) return;          // sudah dilaporkan sesi ini
+ AGAVA_TOLAK.push(sumber);
+ try{ auditLog("tulis-ditolak-rules", sumber+" · peran "+(gRole||"?")+" · "+((gUser&&gUser.email)||"?")); }catch(x){}
+ try{ tolakSpanduk(); }catch(x){}
+}
+function tolakSpanduk(){
+ var el=document.getElementById("agavaTolakBar");
+ if(!AGAVA_TOLAK.length){ if(el)el.remove(); return; }
+ if(!el){ el=document.createElement("div"); el.id="agavaTolakBar"; document.body.appendChild(el); }
+ el.innerHTML='<span>⛔ <b>Perubahan Anda DITOLAK server</b> — '+esc(AGAVA_TOLAK.join(", "))+
+   '. Akun Anda (<b>'+esc((gUser&&gUser.name)||"?")+'</b>, peran <b>'+esc(gRole||"?")+
+   '</b>) tidak berwenang menulis data ini, jadi perubahannya <b>tidak tersimpan</b> dan tidak terlihat orang lain. '+
+   'Laporkan ke Administrator AGAVA — jangan diulang, hasilnya akan sama.</span>'+
+   '<button onclick="AGAVA_TOLAK=[];tolakSpanduk()" aria-label="Tutup">✕</button>';
+}
 function awanSiap(){ return !(AGDB.ro||!AGDB.on||!AGDB.db); }
 /* Kalimat yang dipakai SEMUA pengumuman ketika tulisannya tidak mendarat.
    Sengaja tidak menjanjikan "akan tersinkron otomatis" — itu tidak benar. */
@@ -8570,7 +8618,7 @@ function dbPatchSO(no,fields){
  AGDB.db.collection("agava_so").doc(String(no)).update(fields).catch(function(e){
    /* dokumen belum pernah sampai cloud (dibuat saat offline) → tulis utuh sekali */
    if(e&&e.code==="not-found"&&s){ AGDB.db.collection("agava_so").doc(String(no)).set(dbStripSO(s),{merge:true}).catch(function(){}); }
-   else console.warn("SO patch:",e&&e.code);
+   else tulisGagal("Supply Order",e);
  });
  return true;
 }
@@ -14520,7 +14568,7 @@ function dbSaveOT(){
    if(AGDB.otEcho[o.no]===j)return;                  // tidak berubah → jangan tulis ulang
    AGDB.otEcho[o.no]=j;
    AGDB.db.collection("agava_overtime").doc(String(o.no)).set(o,{merge:true})
-     .catch(function(e){ console.warn("OT cloud:",e&&e.code); });
+     .catch(function(e){ tulisGagal("Lembur / Overtime",e); });
  });
 }
 /* ══ PAPAN LEMBUR DI BERANDA OPERATOR ═══════════════════════════════════════
@@ -21165,7 +21213,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-264";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-265";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -21773,7 +21821,8 @@ function dbSaveTicket(t){
    try{ AGDB._tkTahan=AGDB._tkTahan||{}; if(!AGDB._tkTahan[t.no]){ AGDB._tkTahan[t.no]=1;
      auditLog("tiket-tahan-hapus", t.no+" · bidang "+hilang+" · salinan basi tidak diunggah"); } }catch(e){}
    return; }
- try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(dbStripTicket(t),{merge:true}); }catch(e){ console.warn("AGDB save:",e); }
+ try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(dbStripTicket(t),{merge:true})
+   .catch(function(e){ tulisGagal("Tiket layanan",e); }); }catch(e){ tulisGagal("Tiket layanan",e); }
 }
 /* ── Tulis HANYA bidang yang berubah ────────────────────────────────────────
    Pelajaran 28 Jul 2026 (GA-202607-0144): proses latar yang cuma perlu menandai
@@ -21791,8 +21840,11 @@ function dbSaveTicket(t){
 function dbPatchTicket(t,fields){
  if(AGDB.ro||!AGDB.on||!AGDB.db||!t||!t.no||!fields)return;
  if(!gUser||!gUser.name){ console.warn("Tiket: patch DITOLAK — belum login"); return; }
- try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(fields,{merge:true}); }
- catch(e){ console.warn("AGDB patch:",e); }
+ /* .catch WAJIB: penolakan Firestore datang sebagai promise yang ditolak, bukan
+    lemparan — tanpa ini ia menjadi unhandled rejection dan tidak terlihat. */
+ try{ AGDB.db.collection("agava_tickets").doc(String(t.no)).set(fields,{merge:true})
+   .catch(function(e){ tulisGagal("Tiket layanan",e); }); }
+ catch(e){ tulisGagal("Tiket layanan",e); }
 }
 /* ── SO & KPI ikut sinkron Firestore ──
    SO: koleksi agava_so, 1 dokumen per SO. Lampiran foto/PDF TIDAK ikut ke cloud
@@ -22002,7 +22054,7 @@ function dbSaveSOAll(){
    var c=dbStripSO(s), j=JSON.stringify(c);
    if(AGDB.soEcho[s.no]===j)return;              // tidak berubah → jangan tulis ulang
    AGDB.soEcho[s.no]=j;
-   AGDB.db.collection("agava_so").doc(String(s.no)).set(c,{merge:true}).catch(function(e){ console.warn("SO cloud:",e&&e.code); });
+   AGDB.db.collection("agava_so").doc(String(s.no)).set(c,{merge:true}).catch(function(e){ tulisGagal("Supply Order",e); });
  });
  return true;
 }
@@ -22089,7 +22141,7 @@ function dbSaveKPI(asal){
  AGDB.kpiEcho=j;
  try{ dbSimpanRiwayat("kpi", AGDB.kpiCloud, asal); }catch(e){}
  try{ auditLog("kpi-simpan", asal+" · "+payload.cla.length+" indikator"); }catch(e){}
- AGDB.db.collection("agava_config").doc("kpi").set(payload).catch(function(e){ console.warn("KPI cloud:",e&&e.code); });
+ AGDB.db.collection("agava_config").doc("kpi").set(payload).catch(function(e){ tulisGagal("KPI / CODEC",e); });
 }
 /* ── LOG OVERRIDE dokumen bersama — arsip versi lama SEBELUM ditimpa ────────
    Permintaan Sudana 31 Jul 2026: data live tidak boleh bisa dioverride tanpa
@@ -22149,7 +22201,7 @@ function dbSaveMaster(){
  if(AGDB.masterEcho===j && !(PERMITS_SEED>(AGDB.masterSeed||"")))return;
  try{ if(AGDB.masterEcho) dbSimpanRiwayat("master", AGDB.masterEcho, "edit-master"); }catch(e){}
  AGDB.masterEcho=j; AGDB.masterSeed=PERMITS_SEED;
- AGDB.db.collection("agava_config").doc("master").set(payload).catch(function(e){ console.warn("Master cloud:",e&&e.code); });
+ AGDB.db.collection("agava_config").doc("master").set(payload).catch(function(e){ tulisGagal("Master data (izin, kontrak, aset)",e); });
 }
 /* ── KONFIGURASI FLOW Power Automate → Firestore (jangan hilang saat ganti perangkat) ── */
 function dbSaveFlow(){
@@ -22160,7 +22212,7 @@ function dbSaveFlow(){
  if(AGDB.flowEcho===j)return;
  try{ if(AGDB.flowEcho) dbSimpanRiwayat("flow", AGDB.flowEcho, "edit-flow"); }catch(e){}
  AGDB.flowEcho=j;
- AGDB.db.collection("agava_config").doc("flow").set(payload).catch(function(e){ console.warn("Flow cloud:",e&&e.code); });
+ AGDB.db.collection("agava_config").doc("flow").set(payload).catch(function(e){ tulisGagal("Konfigurasi Power Automate",e); });
 }
 /* ── JEJAK AKTIVITAS: login, perubahan penting → koleksi agava_audit ── */
 function auditLog(action,detail){
@@ -22595,7 +22647,7 @@ function dbSaveParam(){
  if(AGDB.paramEcho===j)return;
  try{ if(AGDB.paramEcho) dbSimpanRiwayat("params", AGDB.paramEcho, "edit-param"); }catch(e){}
  AGDB.paramEcho=j;
- AGDB.db.collection("agava_config").doc("params").set(payload).catch(function(e){ console.warn("Param cloud:",e&&e.code); });
+ AGDB.db.collection("agava_config").doc("params").set(payload).catch(function(e){ tulisGagal("Parameter & koefisien biaya",e); });
 }
 /* ── MESIN BIAYA SUMBER DAYA & JEJAK KARBON — semua baca GA_PARAM ──
    Kembalikan {rp, co2, rinci} agar seragam dipakai kartu/tag mana pun. */
