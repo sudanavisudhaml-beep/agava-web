@@ -11693,7 +11693,23 @@ function renderFieldOps(){
     return '<div class="fo-chan"><div class="fo-chan-h"><b>'+esc(k)+'</b><span class="fo-badge">'+list.length+'</span>'+(pri?'<span class="fo-new">'+pri+' baru</span>':'')+'</div>'+
       '<div class="fo-chan-body">'+(list.length?list.map(foTicketCard).join(''):'<div class="muted small" style="text-align:center;padding:18px">Belum ada tiket masuk</div>')+'</div></div>';
   }).join('') : '<div class="card pad muted small" style="text-align:center;padding:40px;grid-column:1/-1">Tidak ada tiket aktif. 🎉</div>';
-  el.innerHTML=head+'<div class="fo-grid'+(myCat?' fo-grid-single':'')+'">'+chans+'</div>';
+  /* ── ANTREAN ESKALASI IKUT DI FIELD OPS (27 Agu 2026) ─────────────────────
+     Koordinator kategori — Sunaryo di Building, Maria di Tenant & GS — tidak
+     punya modul Approvals, dan hari-harinya dihabiskan di papan Field Ops,
+     bukan di Services. Selama panel eskalasi hanya ada di Services, tiket yang
+     dinaikkan operator mendarat di ruangan yang tidak pernah ia masuki.
+
+     Panel yang SAMA dipakai, bukan salinannya — supaya keduanya tidak bisa
+     menyimpang. Hanya untuk yang tidak punya Approvals; yang punya sudah
+     menanganinya di sana dan tidak perlu melihatnya dua kali. */
+  var eskFO="";
+  try{
+    if(myMenus().indexOf("approvals")<0){
+      var daftarFO=escalatedTickets();
+      if(daftarFO.length) eskFO='<div class="svc-esc" style="margin-bottom:14px">'+escPanelHTML(daftarFO)+'</div>';
+    }
+  }catch(e){}
+  el.innerHTML=head+eskFO+'<div class="fo-grid'+(myCat?' fo-grid-single':'')+'">'+chans+'</div>';
 }
 function myTicketCard(t){
  var sla=ticketSLA(t), st=t.status||TSTAGES[t.stg||0];
@@ -15447,13 +15463,39 @@ function ticketNotifFor(t){
  return ticketMine(t);                                            // pemohon: tiketnya sendiri
 }
 /* Angka gelembung di ikon modul Services */
+/* ╔══ ESKALASI WAJIB IKUT DIHITUNG LENCANA (27 Agu 2026) ════════════════════╗
+   Laporan Sudana: "Sunaryo tidak punya menu Approvals, jadi tiket yang
+   dieskalasikan operator tidak punya tempat mendarat."
+
+   Diperiksa: tempatnya SEBENARNYA ADA — panel "Eskalasi Tiket Lapangan"
+   memang tergambar di modul Services miliknya, lengkap dengan tombol Buat SO,
+   dan enam eskalasi Building memang sudah mendarat di sana.
+
+   Yang tidak ada adalah PENUNJUKNYA. serviceBadgeCount memakai ticketNotifFor,
+   yang untuk peran biasa jatuh ke "tiket saya sendiri" — sehingga eskalasi
+   yang dialamatkan kepadanya tidak terhitung satu pun. Enam tiket menunggu
+   keputusannya, dan tidak ada satu angka pun di layar yang mengatakannya.
+
+   Sebuah antrean yang tidak pernah memanggil sama saja dengan tidak ada.
+   Orangnya tidak akan membuka modul yang tampak sepi setiap hari, lalu
+   menyimpulkan — dengan sangat masuk akal — bahwa eskalasinya tidak mendarat
+   di mana pun. */
 function serviceBadgeCount(){
  if(typeof TICKETS==="undefined") return 0;
- return TICKETS.filter(function(t){
+ var n=TICKETS.filter(function(t){
    if(!t||(t.stg||0)>=3) return false;                            // hanya yang belum selesai
    if(gRole==="fieldops"||gRole==="fieldsup") return true;        // antrian kerja lapangan
    return ticketNotifFor(t);
  }).length;
+ /* Eskalasi yang menunggu KEPUTUSAN saya — hanya untuk yang tidak punya modul
+    Approvals, sebab yang punya sudah dihitung di lencana Approvals-nya. */
+ try{
+   if(myMenus().indexOf("approvals")<0){
+     var esk=escalatedTickets();
+     esk.forEach(function(t){ if(!ticketNotifFor(t)) n++; });   // jangan dihitung dua kali
+   }
+ }catch(e){}
+ return n;
 }
 /* Daftar tunggal item notifikasi (approval · payment · notif sistem) — dipakai
    modul Notifikasi (web+mobile) DAN penghitung gelembung, supaya selalu konsisten. */
@@ -21086,7 +21128,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-262";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-263";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
