@@ -16,7 +16,7 @@
      3. Ada pintu PURGE lewat postMessage, dipakai tombol "Perbarui sekarang"
         di aplikasi untuk membersihkan semuanya tanpa menunggu iOS berbaik hati.
    ══════════════════════════════════════════════════════════════════════════ */
-const BUILD = 'v2026.08.27-259';
+const BUILD = 'v2026.08.27-261';
 const CACHE = 'agava-' + BUILD;          /* WAJIB ikut naik tiap deploy */
 const ASSETS = [
   './', './index.html',
@@ -57,11 +57,33 @@ self.addEventListener('message', e => {
   }
 });
 /* klik notifikasi di tray → fokuskan aplikasi (atau buka baru bila sudah tertutup) */
+/* ── KLIK NOTIFIKASI MENDARAT DI TEMPATNYA (27 Agu 2026) ─────────────────────
+   Dulu handler ini mengabaikan data notifikasi dan hanya memanggil focus(),
+   sehingga pengguna dikembalikan ke halaman terakhir yang kebetulan ia buka —
+   bukan ke hal yang baru saja diberitahukan kepadanya. Notifikasi yang tidak
+   mendarat di tempatnya membuat orang harus mencari sendiri apa yang terjadi,
+   dan itu mengubah notifikasi dari penolong menjadi gangguan.
+
+   Sekarang tujuannya dibawa di notification.data.nav:
+     · ada tab terbuka  → fokuskan, lalu postMessage {type:'NAV'} supaya
+       aplikasinya berpindah halaman tanpa memuat ulang apa pun.
+     · tidak ada tab    → buka jendela baru dengan hash tujuan, dan aplikasi
+       membacanya saat boot. */
 self.addEventListener('notificationclick', e => {
   e.notification.close();
+  const d = e.notification.data || {};
+  const nav = d.nav || '';
+  const url = d.url || ('./index.html' + (nav ? '#' + nav : ''));
   e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-    for (const c of list) { if ('focus' in c) return c.focus(); }
-    return clients.openWindow('./index.html');
+    for (const c of list) {
+      if ('focus' in c) {
+        return c.focus().then(cl => {
+          try { (cl || c).postMessage({ type: 'NAV', nav: nav }); } catch (err) {}
+          return cl || c;
+        });
+      }
+    }
+    return clients.openWindow(url);
   }));
 });
 /* Web Push / FCM (server-initiated) — dukung payload polos {title,body}
@@ -70,9 +92,10 @@ self.addEventListener('push', e => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch (err) { d = { body: e.data && e.data.text() }; }
   const n = d.notification || d;
+  const nav = (d.data && d.data.nav) || '';
   e.waitUntil(self.registration.showNotification(n.title || 'AGAVA', {
     body: n.body || '', icon: './icon-192.png', badge: './icon-192.png', vibrate: [120, 60, 120],
-    data: { url: (d.data && d.data.url) || './index.html' }
+    data: { url: (d.data && d.data.url) || ('./index.html' + (nav ? '#' + nav : '')), nav: nav }
   }));
 });
 self.addEventListener('fetch', e => {

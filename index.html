@@ -7956,12 +7956,49 @@ function audioUnlock(){
 ["pointerdown","touchstart","keydown","click"].forEach(function(ev){
  window.addEventListener(ev,audioUnlock,{once:false,passive:true});
 });
+/* ╔══ SUARA TIDAK BOLEH MELAMPAUI SAKLAR SENYAP (27 Agu 2026) ═══════════════╗
+   Laporan Sudana: "walaupun HP di-silent, notifikasinya tetap berbunyi tanpa
+   bisa kita cegah."
+
+   Benar, dan sebabnya mendasar. notifySound memutar elemen <audio> langsung —
+   itu jalur MEDIA, bukan jalur NOTIFIKASI. Saklar senyap dan Do Not Disturb
+   mengatur jalur notifikasi; media tetap berbunyi. Jadi AGAVA memang menerobos
+   keputusan yang sudah diambil pemiliknya atas perangkatnya sendiri.
+   navigator.vibrate() menerobos dengan cara yang sama.
+
+   Dua pagar sekarang:
+
+   1. HANYA BERBUNYI SAAT APLIKASI TERLIHAT. Kalau AGAVA di latar belakang,
+      yang berhak berbunyi adalah notifikasi sistem di tray — dan itu memang
+      tunduk pada senyap/DND. Memutar audio sendiri di saat itu bukan
+      "penguat", melainkan mengambil alih hak yang bukan milik kita.
+
+   2. BISA DIMATIKAN. Preferensi tersimpan di perangkat masing-masing; tidak
+      ada satu pun keadaan di mana pengguna kehilangan kendali atas suara di
+      HP-nya sendiri.
+
+   Getaran mengikuti aturan yang sama. Notifikasi tray tetap membawa pola
+   vibrate-nya sendiri — itu sah, karena OS yang memutuskan apakah dijalankan. */
+const SUARA_STORE="agava_suara_v1";
+function suaraAktif(){
+ try{ var v=localStorage.getItem(SUARA_STORE); return v===null ? true : v==="1"; }
+ catch(e){ return true; }
+}
+function suaraSet(on){
+ try{ localStorage.setItem(SUARA_STORE, on?"1":"0"); }catch(e){}
+ try{ agavaRenderAman(["renderReminder"]); }catch(e){}
+ return suaraAktif();
+}
 function notifySound(){
- try{ var a=document.getElementById('notifSound'); if(!a)return;
+ try{
+   if(!suaraAktif()) return;                       // dimatikan pengguna
+   /* Aplikasi di latar → biarkan notifikasi sistem yang bersuara, karena
+      hanya ia yang menghormati saklar senyap. */
+   if(typeof document!=="undefined" && document.visibilityState && document.visibilityState!=="visible") return;
+   var a=document.getElementById('notifSound'); if(!a)return;
    a.currentTime=0;
    var p=a.play();
    if(p&&p.catch)p.catch(function(){ /* belum ada gesture user — notifikasi tray tetap muncul */ });
-   /* getar di HP/tablet Android sebagai penguat kalau suara diredam */
    if(navigator.vibrate)try{ navigator.vibrate([120,60,120]); }catch(e){}
  }catch(e){}
 }
@@ -7991,15 +8028,32 @@ function notifState(){
  if(Notification.permission==="denied")  return {ok:false,code:'denied',ios:ios,std:std};
  return {ok:false,code:'ask',ios:ios,std:std};
 }
+/* Saklar suara — pengguna wajib bisa mematikannya sendiri. Ditempel di tempat
+   notifikasi memang dibicarakan (Field Ops & My Tickets), bukan disembunyikan
+   di menu pengaturan yang tidak pernah dibuka orang lapangan. */
+function suaraTombolHTML(){
+ var on=suaraAktif();
+ return '<div class="notif-bn" style="background:'+(on?'#f4f8fd':'#f6f7f9')+';border-color:'+(on?'#cfe0f5':'#e0e4ea')+'">'+
+   '<span class="notif-bn-ic">'+(on?'🔊':'🔇')+'</span>'+
+   '<div class="notif-bn-t">Suara dalam aplikasi <b>'+(on?'aktif':'mati')+'</b>. '+
+     (on?'Hanya berbunyi saat AGAVA sedang terbuka di layar — saat di latar belakang, notifikasi HP yang bersuara dan itu mengikuti mode senyap Anda.'
+        :'AGAVA tidak akan mengeluarkan suara sendiri. Notifikasi HP tetap masuk seperti biasa.')+'</div>'+
+   '<button class="btn-out" onclick="suaraSet('+(on?'false':'true')+')">'+(on?'🔇 Matikan suara':'🔊 Nyalakan suara')+'</button></div>';
+}
 function notifBanner(){
  var s=notifState();
- if(s.ok) return '';
+ if(s.ok) return suaraTombolHTML();
  var msg,act='';
  if(s.code==='ask'){ msg='Notifikasi tiket belum diaktifkan di perangkat ini.'; act='<button class="btn-act" onclick="notifEnable()">🔔 Aktifkan Notifikasi</button>'; }
  else if(s.code==='ios-home'){ msg='Di iPhone/iPad, notifikasi hanya jalan bila AGAVA dibuka dari <b>Home Screen</b>. Buka menu <b>Bagikan</b> ⬆️ di Safari → <b>Add to Home Screen</b>, lalu buka AGAVA dari ikonnya.'; }
  else if(s.code==='denied'){ msg='Izin notifikasi <b>ditolak</b> di perangkat ini. Buka pengaturan situs/aplikasi di browser → izinkan <b>Notifications</b> untuk AGAVA, lalu muat ulang.'; }
  else { msg='Browser ini tidak mendukung notifikasi. Gunakan Chrome (Android) atau Safari 16.4+ (iOS, dari Home Screen).'; }
- return '<div class="notif-bn"><span class="notif-bn-ic">🔕</span><div class="notif-bn-t">'+msg+'</div>'+act+'</div>';
+ /* Saklar suara ikut ditampilkan APA PUN keadaan izinnya. Suara dalam aplikasi
+    tidak bergantung pada izin notifikasi — justru di perangkat yang izinnya
+    belum aktif, satu-satunya suara yang terdengar adalah suara kita sendiri,
+    dan di situlah pengguna paling butuh cara mematikannya. */
+ return '<div class="notif-bn"><span class="notif-bn-ic">🔕</span><div class="notif-bn-t">'+msg+'</div>'+act+'</div>'+
+        suaraTombolHTML();
 }
 function notifEnable(){
  if(!("Notification" in window)){ alert("Browser ini tidak mendukung notifikasi."); return; }
@@ -8021,12 +8075,32 @@ function notifTest(){
  agavaNotify("🎫 Tes Notifikasi AGAVA","Kalau Anda melihat pesan ini di tray HP, notifikasi sudah berfungsi.");
  alert("📨 Notifikasi percobaan dikirim.\nCek tray notifikasi perangkat Anda.\n\nCatatan: saat aplikasi sedang dibuka, sebagian HP menampilkan notifikasi hanya sebagai suara + badge.");
 }
+/* ╔══ NOTIFIKASI HARUS MENDARAT DI TEMPATNYA (27 Agu 2026) ══════════════════╗
+   Laporan Sudana: "ketika kita klik, dia tidak mendarat di tempat yang
+   seharusnya."
+
+   Dua sebab, dan keduanya harus diperbaiki bersama:
+     · agavaNotify SELALU menulis data:{url:"./index.html"} — tanpa tujuan,
+       apa pun isi notifikasinya.
+     · sw.js pada notificationclick bahkan tidak MEMBACA data itu; ia hanya
+       memanggil c.focus(), yang mengembalikan pengguna ke halaman terakhir
+       yang kebetulan ia buka.
+
+   Jadi notifikasi tentang eskalasi, approval, atau klarifikasi semuanya
+   mendarat di tempat yang sama: di mana pun aplikasi ditinggalkan. Orang yang
+   menekan notifikasi lalu harus mencari sendiri apa yang baru saja diberitahukan
+   kepadanya — dan itu membuat notifikasi terasa mengganggu, bukan membantu.
+
+   Sekarang tujuan dibawa sebagai `nav`, diteruskan lewat postMessage ke tab
+   yang sudah terbuka, dan lewat hash URL bila aplikasinya tertutup. */
 function agavaNotify(title,body,opt){
  opt=opt||{};
  if(!opt.noSound)notifySound();
  try{
   if(!("Notification" in window)||Notification.permission!=="granted")return;
-  var o={body:body||"",icon:"icon-192.png",badge:"icon-192.png",tag:opt.tag||("agava-"+Date.now()),vibrate:[120,60,120],data:{url:"./index.html"}};
+  var tujuan=String(opt.nav||"").replace(/[^a-z0-9_-]/gi,"");
+  var o={body:body||"",icon:"icon-192.png",badge:"icon-192.png",tag:opt.tag||("agava-"+Date.now()),vibrate:[120,60,120],
+         data:{url:"./index.html"+(tujuan?("#"+tujuan):""), nav:tujuan}};
   if(navigator.serviceWorker&&navigator.serviceWorker.ready){
     navigator.serviceWorker.ready.then(function(reg){
       if(reg&&reg.showNotification)reg.showNotification(title,o); else new Notification(title,o);
@@ -8034,6 +8108,39 @@ function agavaNotify(title,body,opt){
   } else { new Notification(title,o); }
  }catch(e){}
 }
+/* ── SISI PENERIMA: pindah halaman saat notifikasi diklik ────────────────────
+   Dua jalur, karena keadaannya memang dua:
+     · aplikasi SUDAH terbuka → service worker mengirim {type:'NAV'}
+     · aplikasi TERTUTUP      → dibuka dengan #hash, dibaca sekali saat boot
+   Halaman tujuan divalidasi terhadap menu yang memang dimiliki akun ini —
+   notifikasi tidak boleh menjadi jalan pintas ke modul yang bukan haknya. */
+function agavaNavKe(nav){
+ try{
+   nav=String(nav||"").replace(/[^a-z0-9_-]/gi,"");
+   if(!nav) return false;
+   if(!gUser) return false;                       // belum login → biarkan alur login
+   var boleh=(typeof myMenus==="function")?myMenus():[];
+   /* halaman yang selalu boleh walau bukan "menu": detail milik sendiri */
+   var bebas=["reminder","myticket","mhome","overview","notif"];
+   if(boleh.indexOf(nav)<0 && bebas.indexOf(nav)<0) return false;
+   go(nav); return true;
+ }catch(e){ return false; }
+}
+function agavaNavDariHash(){
+ try{
+   var h=String(location.hash||"").replace(/^#/,"");
+   if(!h) return;
+   if(agavaNavKe(h)){ try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} }
+ }catch(e){}
+}
+try{
+ if(navigator.serviceWorker&&navigator.serviceWorker.addEventListener){
+   navigator.serviceWorker.addEventListener("message",function(ev){
+     var d=(ev&&ev.data)||{};
+     if(d.type==="NAV") agavaNavKe(d.nav);
+   });
+ }
+}catch(e){}
 /* badge angka di ikon aplikasi (Android/Windows, PWA ter-install) — ikut angka lonceng */
 function appBadge(n){ try{ if("setAppBadge" in navigator){ if(n>0)navigator.setAppBadge(n); else navigator.clearAppBadge(); } }catch(e){} }
 /* ── FCM server push (notifikasi saat aplikasi TERTUTUP) ──
@@ -8988,7 +9095,27 @@ function hariTutup(modul,k){
     ruangnya memang cukup untuk menampilkan semua hari sekaligus. Dibaca saat
     render, jadi mengubah ukuran jendela langsung mengikuti. */
  if(window.innerWidth>820) return false;
- return String(k)!==String(TODAY_STR); // HP: selain hari ini, terlipat
+ if(String(k)===String(TODAY_STR)) return false;      // hari ini selalu terbuka
+ /* ── KELOMPOK TERBARU SELALU TERBUKA (27 Agu 2026) ────────────────────────
+    Laporan Maria: "SO yang saya buat tidak listing." Diperiksa ke data — SO-nya
+    ADA (18 buah), semuanya lolos penuh sampai fase kerja, dan soVisible()
+    mengembalikan seluruhnya. Yang salah bukan datanya, melainkan tampilannya:
+    SO terbarunya dibuat 20 Agustus, hari ini 27 Agustus, dan aturan lama
+    melipat SEMUA kelompok selain HARI INI. Keenam kelompoknya terlipat, jadi
+    di HP ia melihat penghitung berkata 17 di atas daftar yang tampak kosong.
+
+    "Hari ini" ternyata cuma perkiraan kasar untuk "yang paling relevan", dan
+    perkiraan itu gagal justru pada keadaan yang paling lazim: orang membuka
+    modul pada hari ketika ia tidak membuat apa pun. Untuk daftar yang sudah
+    disaring ke milik sendiri — pemohon biasa hanya punya belasan baris — itu
+    berarti tidak melihat apa-apa sama sekali.
+
+    Yang selalu ada, sebaliknya, adalah kelompok TERBARU. HARI_KEYS diisi urut
+    dari yang terbaru sebelum baris digambar, jadi anggota pertamanya dipakai
+    sebagai jangkar. Sekarang layar tidak pernah kosong tanpa alasan. */
+ var urut=(HARI_KEYS&&HARI_KEYS[modul])||[];
+ if(urut.length && String(urut[0])===String(k)) return false;
+ return true;                                          // HP: sisanya terlipat
 }
 function hariRender(modul){
  if(modul==="proc"){ renderProc(); return; }
@@ -10990,7 +11117,7 @@ function myTicketEscalateSubmit(no){
     ke peran cadangan bila koordinatornya belum ditentukan. Tidak disiarkan ke keduanya. */
  if(terima){ n.nama=terima; n.roles=[]; } else { n.roles=(naik.roleCadangan||d.roles||[]); }
  NOTIFS.unshift(n);
- agavaNotify("⏫ Eskalasi tiket → "+tujuan, t.no+" · "+(t.judul||"")+" · oleh "+t.escBy);
+ agavaNotify("⏫ Eskalasi tiket → "+tujuan, t.no+" · "+(t.judul||"")+" · oleh "+t.escBy, {nav:naik.nav});
  try{ auditLog("escalation", t.no+" → "+tujuan+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
  renderMyTickets(); renderFieldOps(); renderService(); renderApprovals(); renderReminder(); renderOverview(); updateBell();
  alert("⏫ Tiket "+no+" dinaikkan ke "+tujuan+".\n\nTiket TETAP ada di My Tickets Anda — yang berubah hanya statusnya.\nAnda menutupnya nanti setelah tindak lanjutnya selesai.");
@@ -11088,7 +11215,7 @@ function escNaikkanSubmit(no){
     ke perannya bila dipegang peran. Tidak pernah disiarkan ke keduanya. */
  if(terima){ n.nama=terima; n.namaRole=naik.role||""; } else if(naik.role){ n.roles=[naik.role]; }
  NOTIFS.unshift(n);
- try{ agavaNotify("⏫ Eskalasi naik ke Anda", t.no+" · "+(t.judul||"")+" · dari "+dariAnak.label+" "+dari); }catch(e){}
+ try{ agavaNotify("⏫ Eskalasi naik ke Anda", t.no+" · "+(t.judul||"")+" · dari "+dariAnak.label+" "+dari, {nav:naik.nav}); }catch(e){}
  try{ auditLog("escalation-naik", t.no+" · "+dariAnak.label+" "+dari+" → "+labelTerima+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
  try{ agavaRenderAman(["renderService","renderApprovals","renderMyTickets",
                        "renderFieldOps","renderReminder","updateBell"]); }catch(e){}
@@ -11156,7 +11283,7 @@ function ticketSoSync(){
    if((s.wstep||0)>=4 || s.stage>=6){
      t.soDone=true; t.soDoneAt=nowStamp(); ubah=true;
      try{ dbPatchTicket(t,{soDone:true,soDoneAt:t.soDoneAt}); }catch(e){}   // proses latar → satu bidang saja
-     try{ agavaNotify("✅ SO selesai — tiket siap ditutup", t.no+" · "+(t.judul||"")+" · SO "+t.soNo); }catch(e){}
+     try{ agavaNotify("✅ SO selesai — tiket siap ditutup", t.no+" · "+(t.judul||"")+" · SO "+t.soNo, {nav:"myticket"}); }catch(e){}
    }
  });
  if(ubah){ try{ renderFieldOps(); renderMyTickets(); renderService(); updateBell(); }catch(e){} }
@@ -11228,7 +11355,7 @@ function fieldOpsPickupSubmit(no){
       d:(t.judul||"")+" · "+me+": "+catatan,
       at:nowStamp(), sev:"info", nav:"service", done:false,
       nama:ticketReqName(t), email:t.email||""});
-    try{ agavaNotify("💬 "+me+" — "+t.no, catatan); }catch(e){}
+    try{ agavaNotify("💬 "+me+" — "+t.no, catatan, {nav:"service"}); }catch(e){}
   }
   renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
   /* briefing singkat saat tiket diambil: apa masalahnya, catatan pemohon, ada berapa foto */
@@ -15999,7 +16126,7 @@ function approveSO(no,gate,decision,beralasan){
        " · Perbaiki: "+((s.reject&&s.reject.perbaikan)||"")+" → buka SO ini lalu tekan Revisi & Kirim Ulang",
      at:nowStamp(), sev:"crit", nav:"procurement", done:false,
      nama:soPemohon(s), email:s.email||""});
-   try{ agavaNotify("⛔ SO "+no+" ditolak — perlu revisi",((s.reject&&s.reject.perbaikan)||"Buka AGAVA untuk memperbaiki.")); }catch(e){}
+   try{ agavaNotify("⛔ SO "+no+" ditolak — perlu revisi",((s.reject&&s.reject.perbaikan)||"Buka AGAVA untuk memperbaiki."),{nav:"procurement"}); }catch(e){}
    try{ auditLog("so-reject", no+" · gerbang "+gate+" · "+((s.reject&&s.reject.alasan)||"")); }catch(e){}
  } else {
    notifySound();   // flow maju masuk ke gate/assigned berikutnya
@@ -16094,7 +16221,7 @@ function sendClarify(no){
    d:no+" · "+(s.item||"")+" · dari "+((gUser&&gUser.name)||"PIC Procurement")+": "+note,
    at:nowStamp(), sev:"warn", nav:"reminder", done:false,
    nama:tujuan, email:s.email||""});
- try{ agavaNotify("📝 Klarifikasi SO "+no, note.slice(0,90)); }catch(e){}
+ try{ agavaNotify("📝 Klarifikasi SO "+no, note.slice(0,90), {nav:"reminder"}); }catch(e){}
  closeDrawer();
  alert((awanSiap()?"📨":"⚠️")+" Klarifikasi ke "+tujuan+".\nMuncul di Reminder mereka."+awanPeringatan());
 }
@@ -16123,7 +16250,7 @@ function submitClarifyAnswer(no){
  NOTIFS.unshift({ic:"💬", t:"Jawaban klarifikasi masuk — "+no,
    d:(s.item||"")+" · "+((gUser&&gUser.name)||"")+": "+ans,
    at:nowStamp(), sev:"info", nav:"approvals", done:false, nama:penanya});
- try{ agavaNotify("💬 Jawaban klarifikasi "+no, ans.slice(0,90)); }catch(e){}
+ try{ agavaNotify("💬 Jawaban klarifikasi "+no, ans.slice(0,90), {nav:"approvals"}); }catch(e){}
  closeDrawer();
  alert((awanSiap()?"✅":"⚠️")+" Jawaban untuk "+penanya+". SO "+no+" kembali ke review PIC Procurement."+awanPeringatan());
 }
@@ -20735,7 +20862,7 @@ function wpSave(){
   WORK_PERMITS.unshift(rec); wpPersist();
   wpDbSave(rec);
   triggerFlow("workPermit",{mode:"create",record:rec});
-  agavaNotify("🦺 Izin kerja baru — "+rec.risiko, rec.no+" · "+rec.judul+" · "+rec.vendor);
+  agavaNotify("🦺 Izin kerja baru — "+rec.risiko, rec.no+" · "+rec.judul+" · "+rec.vendor, {nav:"hse"});
   try{ auditLog("workpermit-create",rec.no+" · "+rec.jenis+" · risiko "+rec.risiko); }catch(e){}
   closeDrawer(); renderHSE(); renderOverview();
   alert("✅ Izin Kerja "+rec.no+" diajukan — menunggu review PIC HSE.");
@@ -20924,7 +21051,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-259";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.27-261";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -21214,7 +21341,8 @@ function dbListen(){
       if(utk.length){
         var a0=utk[0];
         agavaNotify("🎫 Tiket baru — "+foNormCat(a0.cat||""),
-          (a0.judul||"")+(utk.length>1?" · +"+(utk.length-1)+" tiket lainnya":"")+" · "+(a0.lokasi||"")+" · ambil dalam "+SLA_PICK_MAX+" menit");
+          (a0.judul||"")+(utk.length>1?" · +"+(utk.length-1)+" tiket lainnya":"")+" · "+(a0.lokasi||"")+" · ambil dalam "+SLA_PICK_MAX+" menit",
+          {nav:(gRole==="fieldops"?"fieldops":"service")});
         try{ foFlash(utk.map(function(x){return x.no;})); }catch(e){}
       }
     }
@@ -21271,7 +21399,7 @@ function dbListen(){
       /* renderMobileHome ikut — daftar "Permintaan Pembelian" di Beranda HP */
       agavaRenderAman(["renderProc","renderApprovals","renderAssigned","renderPayment","renderOverview","renderMobileHome","updateBell"]);
     }
-    if(soNew.length) agavaNotify("📋 SO baru masuk", soNew[0].no+" · "+(soNew[0].item||"")+(soNew.length>1?" · +"+(soNew.length-1)+" lainnya":""));
+    if(soNew.length) agavaNotify("📋 SO baru masuk", soNew[0].no+" · "+(soNew[0].item||"")+(soNew.length>1?" · +"+(soNew.length-1)+" lainnya":""), {nav:"approvals"});
     /* ── PAGAR CACHE (3 Agu 2026) ── snapshot pertama bisa datang DARI CACHE
        (perangkat baru dibuka / sinyal jelek). Dulu unggah-balik jalan di situ
        → salinan berhari-hari menimpa approval semua orang. Kini unggah-balik
@@ -21463,7 +21591,7 @@ function dbListen(){
     if(ch2){ wpPersist(); try{ renderHSE(); renderOverview(); updateBell(); }catch(e){} }
     /* pengajuan baru (mis. vendor scan QR) → bunyi + notif tray ke PIC HSE */
     if(wpNew.length) agavaNotify("🦺 Izin kerja baru — risiko "+(wpNew[0].risiko||"-"),
-      wpNew[0].no+" · "+(wpNew[0].judul||"")+" · "+(wpNew[0].vendor||"")+(wpNew[0].src==="qr"?" (via QR)":""));
+      wpNew[0].no+" · "+(wpNew[0].judul||"")+" · "+(wpNew[0].vendor||"")+(wpNew[0].src==="qr"?" (via QR)":""), {nav:"hse"});
     AGDB.wpInit=true;
   },err=>{ cloudTurun("izin kerja",err&&err.code); }));
  }catch(e){ cloudTurun("pemasangan listener", (e&&e.message)||"gagal"); console.warn("dbListen:",e); }
@@ -23411,6 +23539,8 @@ function agavaBoot(){
      /* Peta wewenang yang menunjuk ke ruang kosong harus bersuara sendiri —
         lihat catatan di agavaPeriksaPeta. Ditunda sampai USERS & SO termuat. */
      try{ if(fu) setTimeout(function(){ try{ agavaPeriksaPeta(); }catch(e){} },4000); }catch(e){}
+     /* Dibuka dari notifikasi saat aplikasi tertutup → mendarat di tujuannya. */
+     try{ if(fu) setTimeout(function(){ try{ agavaNavDariHash(); }catch(e){} },900); }catch(e){}
      /* 2450ms: intro ikon selesai ±2,0s lalu logo mendarat ±2,44s. Menutup
         lebih cepat berarti membangun animasi yang tidak pernah dilihat orang.
         Batas kerasnya 3400ms, jadi tetap tidak pernah menahan startup lama. */
