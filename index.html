@@ -11897,8 +11897,25 @@ function foAskMulai(no){
    '<div class="panel-t" style="margin-bottom:4px">📷 Foto Kondisi Terkini <span style="color:var(--red)">*wajib</span></div>'+
    '<div class="muted small" style="margin-bottom:12px">Foto keadaan SEBELUM dikerjakan — inilah bukti Anda benar-benar sudah di lokasi dan mulai bekerja. '+
      'Ia juga menjadi pasangan foto hasil saat tiket ditutup nanti.</div>'+
-   '<label class="fo-cam"><input type="file" accept="image/*" capture="environment" onchange="foMulaiPick(this)"/>'+
-     '<span class="fo-cam-ic">📷</span><b>Buka Kamera</b><small>foto langsung, bukan dari galeri</small></label>'+
+   /* ── GALERI IKUT DIBUKA (31 Agu 2026, permintaan Sudana) ──────────────────
+      Semula kamera saja, supaya foto benar-benar diambil di lokasi. Alasannya
+      masih berlaku — tetapi memaksanya menabrak kenyataan lapangan: orang
+      sering memotret dulu saat melihat masalahnya, baru membuka AGAVA beberapa
+      menit kemudian. Menolak foto itu berarti menyuruhnya memotret ulang benda
+      yang sama, dan pada akhirnya mendorongnya melewati langkah ini sama
+      sekali.
+
+      Jadi galerinya dibuka, TETAPI sumbernya dicatat (bukti.sumber). Nilai
+      buktinya tidak melemah diam-diam: yang membaca rapor tetap bisa
+      membedakan foto yang diambil saat itu juga dari foto yang dipilih dari
+      galeri. Melonggarkan syarat boleh; melonggarkannya tanpa mengatakannya
+      tidak boleh. */
+   '<div class="md-pick">'+
+     '<label class="fo-cam"><input type="file" accept="image/*" capture="environment" onchange="foMulaiPick(this,\'kamera\')"/>'+
+       '<span class="fo-cam-ic">📷</span><b>Kamera</b><small>foto langsung di lokasi</small></label>'+
+     '<label class="fo-cam galeri"><input type="file" accept="image/*" onchange="foMulaiPick(this,\'galeri\')"/>'+
+       '<span class="fo-cam-ic">🖼️</span><b>Galeri HP</b><small>foto yang sudah Anda ambil</small></label>'+
+   '</div>'+
    '<div id="foMulaiPrev" class="fo-prev" style="margin-top:10px"></div>'+
    '<div id="foMulaiGeo" class="muted small" style="margin-top:8px">📍 lokasi perangkat akan disertakan bila Anda mengizinkan</div>'+
    '<div class="field" style="margin-top:12px"><label>Catatan awal (opsional)</label>'+
@@ -11915,14 +11932,18 @@ function foAskMulai(no){
                  :'📍 Lokasi tidak tersedia — tidak masalah, fotonya yang menjadi bukti';
  });
 }
-async function foMulaiPick(input){
+async function foMulaiPick(input,sumber){
  var f=(input.files||[])[0]; input.value=""; if(!f)return;
  var m=await agavaMediaDari(f,1000,0.72);
  if(!m) return;
- window._foMulai=window._foMulai||{}; window._foMulai.img=m;
+ window._foMulai=window._foMulai||{};
+ window._foMulai.img=m;
+ window._foMulai.sumber=sumber||"kamera";
  var box=document.getElementById("foMulaiPrev");
  if(box) box.innerHTML='<div class="fo-prev-i"><img src="'+(mdThumb(m)||"")+'"/>'+
-   '<button type="button" onclick="foMulaiHapus()" title="hapus">✕</button></div>';
+   '<button type="button" onclick="foMulaiHapus()" title="hapus">✕</button></div>'+
+   '<div class="muted small" style="width:100%;margin-top:6px">'+
+     (window._foMulai.sumber==="kamera"?'📷 diambil langsung dari kamera':'🖼️ dipilih dari galeri')+'</div>';
  var b=document.getElementById("foMulaiBtn");
  if(b){ b.disabled=false; b.style.opacity=1; }
 }
@@ -11943,8 +11964,9 @@ function foMulaiSubmit(){
  if(!t.slaMs.start) t.slaMs.start=nowMs();     // ← awal hitungan Resolution Time
  /* Buktinya menempel pada tiketnya, bukan disimpan terpisah (Prinsip 5). */
  t.mulaiBukti={img:d.img, at:nowStamp(), by:fieldOpName(),
-               geo:d.geo||null, note:note||""};
- try{ tkKomen(t,"Mulai dikerjakan"+(d.geo?(" · lokasi tercatat ±"+d.geo.acc+" m"):" · tanpa data lokasi")+
+               sumber:d.sumber||"kamera", geo:d.geo||null, note:note||""};
+ try{ tkKomen(t,"Mulai dikerjakan · bukti "+(d.sumber==="galeri"?"foto dari galeri":"foto kamera")+
+   (d.geo?(" · lokasi tercatat ±"+d.geo.acc+" m"):" · tanpa data lokasi")+
    (note?(": "+note):""),"kerja"); }catch(e){}
  dbSaveTicket(t);
  try{ triggerFlow("updateTicket",{ticketNo:t.no,stg:2,status:t.status,ts:t.ts[2]}); }catch(e){}
