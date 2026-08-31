@@ -2764,6 +2764,21 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .esc-strip-l.tunggu{color:#B54708}
 /* Lewat batas 3 jam — merah, sederajat dengan tombol terkuncinya. */
 .esc-strip-l.lewat{color:#B42318;font-weight:600}
+/* ── RAPOR KINERJA PER ORANG ─────────────────────────────────────────────── */
+.fo-oplog-r{cursor:pointer}
+.fo-oplog-r:hover{background:#f5f8ff}
+.fo-th-s{font-size:calc(9.5px*var(--fz));font-weight:500;color:var(--muted);letter-spacing:0}
+.rap-kartu-w{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.rap-kartu{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.rap-k-t{font-size:calc(11.5px*var(--fz));color:var(--muted);font-weight:600}
+.rap-k-v{font-size:calc(23px*var(--fz));font-weight:800;color:var(--ink);line-height:1.2;margin:3px 0 2px}
+.rap-k-s{font-size:calc(11px*var(--fz));color:var(--muted);line-height:1.45}
+/* Kotak penjelas keadilan response time — jawaban atas pertanyaan Edwin,
+   ditaruh di halamannya sendiri supaya tidak perlu dijelaskan berulang lisan. */
+.rap-adil{background:#eef4ff;border:1px solid #c7dbff;border-radius:14px;padding:14px 16px;margin-bottom:14px;
+  font-size:calc(12px*var(--fz));color:#1e3a5f;line-height:1.6}
+.rap-adil b{display:block;margin-bottom:4px;color:#12305e}
+.rap-adil b+b{display:inline;margin:0}
 /* Tombol "Buat SO" milik Koordinator yang kelewat: merah & mati. Sengaja tetap
    TERLIHAT — menghilangkannya membuat orang mengira aplikasinya rusak, padahal
    yang terjadi adalah wewenangnya yang berpindah. */
@@ -4630,6 +4645,10 @@ html,body{max-width:100%}
       <div id="page-service" class="hide"></div>
       <div id="page-fieldops" class="hide"></div>
       <div id="page-myticket" class="hide"></div>
+      <!-- Rapor per orang — dibuka dengan mengklik baris di rekap Field Ops.
+           Permintaan Edwin (30 Agu 2026): "ingin bisa melihat detil breakdown
+           angka avg time respon yang didapat oleh seorang operator." -->
+      <div id="page-rapor" class="hide"></div>
       <div id="page-createticket" class="hide"></div>
       <div id="page-roombook" class="hide"></div>
       <div id="page-transport" class="hide"></div>
@@ -5285,7 +5304,7 @@ function go(id){
    /* Tiga ini dulu TIDAK ADA di daftar (ketahuan 10 Agu 2026): begitu dibuka,
       halamannya tidak pernah disembunyikan lagi — berpindah menu membuat dua
       halaman menumpuk di layar yang sama. */
-   "page-impact","page-sourcing","page-upr"].forEach(p=>{ var e=document.getElementById(p); if(e) e.classList.add("hide"); });
+   "page-impact","page-sourcing","page-upr","page-rapor"].forEach(p=>{ var e=document.getElementById(p); if(e) e.classList.add("hide"); });
   const t=document.getElementById("pgTitle"),s=document.getElementById("pgSub");
   document.body.classList.toggle("on-mhome", id==="mhome");
   if(id==="mhome"){renderMobileHome();document.getElementById("page-mhome").classList.remove("hide");t.textContent="AGAVA";s.textContent="Beranda";mTopSync();}
@@ -5304,6 +5323,7 @@ function go(id){
   else if(id==="service"){renderService();document.getElementById("page-service").classList.remove("hide");t.textContent="Services";s.textContent="4 layanan GA · Ticket, Room Booking, Transport, Rating · response time, PIC & escalations";}
   else if(id==="fieldops"){renderFieldOps();document.getElementById("page-fieldops").classList.remove("hide");t.textContent="Field Ops";s.textContent="Tim lapangan terima lemparan tiket per channel · realtime dari Firebase";}
   else if(id==="myticket"){renderMyTickets();document.getElementById("page-myticket").classList.remove("hide");t.textContent="My Tickets";s.textContent="Tiket yang Anda pick up · pantau SLA, eskalasi & selesaikan · tercatat di Services";}
+  else if(id==="rapor"){active="fieldops";navSetActive();renderRapor();document.getElementById("page-rapor").classList.remove("hide");t.textContent="Rapor Kinerja";s.textContent="Rincian tiap tiket di balik angka rata-rata · dasar penilaian yang bisa ditelusuri";}
   else if(id==="createticket"){active="service";navSetActive();renderCreateTicket();document.getElementById("page-createticket").classList.remove("hide");t.textContent="Create Service Ticket";s.textContent="New GA service request";}
   else if(id==="roombook"){active="service";navSetActive();renderRoomBook();document.getElementById("page-roombook").classList.remove("hide");t.textContent="Room Booking";s.textContent="Pilih ruang dari denah lantai · powered by ERSUS";}
   else if(id==="transport"){active="service";navSetActive();renderTransport();document.getElementById("page-transport").classList.remove("hide");t.textContent="Transportation";s.textContent="Kendaraan Pool · Voucher Blue Bird · Voucher GoCorp";}
@@ -11132,9 +11152,15 @@ function fieldOpSubmitReg(){
 /* Koordinator per kategori. Kosong = belum ditentukan → jatuh ke Staff GA
    sebagai penerima sementara, supaya tiket tidak pernah menggantung tanpa
    alamat. Nama harus SAMA PERSIS dengan `name` di USERS. */
+/* Nilainya boleh SATU nama atau DAFTAR nama (31 Agu 2026, permintaan Sudana:
+   "Kategori Tenant & General Service cukup besar, saya mau ada 2 Koordinator").
+   Dua koordinator berbagi SATU antrean: keduanya melihat eskalasi yang sama,
+   siapa pun boleh membuat SO-nya, dan begitu salah satu membuatnya yang lain
+   tidak bisa lagi — bukan dibagi dua daftar, karena membagi antrean berarti
+   ada tiket yang menunggu orang tertentu padahal rekannya sedang senggang. */
 const KOORDINATOR={
  "Building & Utility":            "Sunaryo",
- "Tenant & General Services":     "Maria",
+ "Tenant & General Services":     ["Maria","Nuzul Hariadi"],
  "Project Development":           "",
  "Transport, Logistic & Document":"",
  "Hospitality":                   "",
@@ -11142,19 +11168,32 @@ const KOORDINATOR={
  "Room & Event":                  "",
  "Asset Management":              ""
 };
-function ticketKoordinator(t){
- var kat=(typeof foNormCat==="function")?foNormCat(t&&t.cat):((t&&t.cat)||"");
- return KOORDINATOR[kat]||"";
+/* Daftar koordinator sebuah kategori — SELALU array, walau petanya menulis satu
+   nama. Satu bentuk untuk semua pemanggil; yang menerjemahkan string→array
+   hanya fungsi ini, jadi tidak ada lagi tempat lain yang perlu tahu bahwa peta
+   itu boleh dua bentuk. */
+function koordinatorKategori(kat){
+ var v=KOORDINATOR[kat];
+ if(!v) return [];
+ return (Array.isArray(v)?v:[v]).filter(Boolean);
 }
+function ticketKoordinatorList(t){
+ var kat=(typeof foNormCat==="function")?foNormCat(t&&t.cat):((t&&t.cat)||"");
+ return koordinatorKategori(kat);
+}
+/* Satu nama untuk keperluan lama (label, e-mail tunggal). Dengan dua
+   koordinator ia mengembalikan yang pertama — pemanggil yang butuh KEDUANYA
+   memakai ticketKoordinatorList. */
+function ticketKoordinator(t){ return ticketKoordinatorList(t)[0]||""; }
 function koordinatorEmail(nama){
  var u=USERS.filter(function(x){return x.name===nama;})[0];
  return u?u.email:"";
 }
-/* Akun ini koordinator untuk kategori tiket t? */
+/* Akun ini koordinator untuk kategori tiket t? (salah satu dari daftarnya) */
 function akuKoordinator(t){
- var k=ticketKoordinator(t); if(!k) return false;
+ var aku=(gUser&&gUser.name)||"";
  /* orangSama: peta memakai nama pendek, akun memakai nama lengkap */
- return orangSama((gUser&&gUser.name)||"", k);
+ return ticketKoordinatorList(t).some(function(n){ return orangSama(aku,n); });
 }
 /* ╔══ TANGGA ESKALASI — SATU ANAK TANGGA PADA SATU WAKTU (26 Agu 2026) ══════╗
    Aturan Sudana, ditegaskan ulang:
@@ -11202,6 +11241,9 @@ const ESC_TANGGA=[
   roleCadangan:["fieldops","fieldsup"]},
  {k:"koor",    label:"Koordinator Kategori", nav:"service",
   ket:"koordinator operator kategori ini — berwenang mengajukan SO atau menaikkan ke Section Head",
+  /* pemegangList: anak tangga ini boleh dipegang LEBIH DARI SATU orang yang
+     berbagi satu antrean. pemegang (tunggal) tetap ada untuk pemanggil lama. */
+  pemegangList:function(t){ return (typeof ticketKoordinatorList==="function")?ticketKoordinatorList(t):[]; },
   pemegang:function(t){ return (typeof ticketKoordinator==="function")?ticketKoordinator(t):""; },
   /* DIUBAH 31 Agu 2026. Dulu: kategori tanpa koordinator tetap mendarat di anak
      tangga ini dengan penerima "sementara Staff GA". Akibatnya setiap eskalasi
@@ -11305,7 +11347,8 @@ function agavaPeriksaPeta(diam){
   var U=USERS||[];
   var adaAkun=function(n){ return U.some(function(u){ return orangSama(u.name,n); }); };
   Object.keys(KOORDINATOR||{}).forEach(function(kat){
-    var n=KOORDINATOR[kat]; if(n && !adaAkun(n)) lapor.namaTakBerpemilik.push("Koordinator "+kat+" → \""+n+"\""); });
+    koordinatorKategori(kat).forEach(function(n){
+      if(n && !adaAkun(n)) lapor.namaTakBerpemilik.push("Koordinator "+kat+" → \""+n+"\""); }); });
   Object.keys(SECTION_MAP||{}).forEach(function(kat){
     var n=SECTION_MAP[kat]; if(n && !adaAkun(n)) lapor.namaTakBerpemilik.push("Section "+kat+" → \""+n+"\""); });
   U.forEach(function(u){ if(!u.role) lapor.tanpaRole.push(u.name||u.email||"(tanpa nama)"); });
@@ -11401,12 +11444,24 @@ function escLewatSLA(t){
  return s!==null && s<0;
 }
 /* Akun yang sedang melihat adalah Koordinator pemegang tiket ini? */
-function escAkuPemegang(t){
- var p=escPemegang(t,escAnak(t));
- return !!(p && (typeof orangSama==="function") && orangSama((gUser&&gUser.name)||"",p));
-}
+function escAkuPemegang(t){ return escAkuDiantaraPemegang(t,escAnak(t)); }
 /* Siapa yang memegang sebuah anak tangga untuk tiket ini. */
 function escPemegang(t,d){ try{ return (d&&d.pemegang)?(d.pemegang(t)||""):""; }catch(e){ return ""; } }
+/* SEMUA pemegang anak tangga ini — satu anak tangga boleh dipegang beberapa
+   orang yang berbagi antrean (mis. dua Koordinator Tenant & GS). */
+function escPemegangList(t,d){
+ try{
+   if(d&&d.pemegangList){ var l=d.pemegangList(t); if(l&&l.length) return l; }
+   var p=escPemegang(t,d);
+   return p?[p]:[];
+ }catch(e){ return []; }
+}
+/* Akun yang sedang melihat termasuk pemegang anak tangga ini? */
+function escAkuDiantaraPemegang(t,d){
+ var aku=(gUser&&gUser.name)||"";
+ return escPemegangList(t,d).some(function(n){
+   return n && (typeof orangSama==="function") && orangSama(aku,n); });
+}
 function escTujuan(t){
  return ESC_TUJUAN[escKunci(t)]||ESC_TUJUAN.koor;
 }
@@ -11415,7 +11470,11 @@ function escTujuan(t){
    tangga, bukan dari cabang if per tingkat — dulu hanya "section" yang dikenali,
    sehingga tingkat Dept akan salah menampilkan nama Koordinator. */
 function escTujuanLabel(t){
- var d=escAnak(t), nama=escPemegang(t,d);
+ var d=escAnak(t), daftar=escPemegangList(t,d);
+ /* Dua koordinator: sebut KEDUANYA dengan "atau" — antreannya memang bersama,
+    dan menyebut satu nama saja akan membuat rekannya mengira itu bukan
+    urusannya. */
+ var nama=daftar.join(" atau ");
  /* Tingkat Koordinator: namanya saja — kolomnya sudah berlabel "Supervisor",
     jadi menulis "Koordinator" lagi cuma mengulang label di atasnya. */
  if(d.k==="koor") return nama||"belum ditentukan → Staff GA";
@@ -11423,7 +11482,7 @@ function escTujuanLabel(t){
 }
 function myTicketEscalate(no){
  var t=TICKETS.find(x=>x.no===no); if(!t)return;
- var koor=ticketKoordinator(t);
+ var koor=ticketKoordinatorList(t).join(" atau ");
  var pilih=function(k,on){
    var d=ESC_TUJUAN[k];
    var judul=(k==="koor")
@@ -11491,16 +11550,26 @@ function myTicketEscalateSubmit(no){
  var to=naik.k, d=ESC_TUJUAN[to];
  closeDrawer();
  t.esc=true; t.escTo=to; t.escBy=fieldOpName(); t.escNote=note; t.escAt=nowMs(); t.escDone=false;
- var terima=escPemegang(t,naik);
+ var daftarTerima=escPemegangList(t,naik);
+ var terima=daftarTerima.join(" atau ");
  var tujuan=naik.label+(terima?" "+terima:" (belum ditentukan — sementara Staff GA)");
  tkKomen(t,"Dieskalasi dari "+dariAnak.label+" "+(t.escBy||"")+" ke "+tujuan+": "+note,"eskalasi");
  dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,esc:true,escTo:to,escBy:t.escBy,escNote:t.escNote});
  var pesan=t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · dari "+dariAnak.label+" "+t.escBy+" — "+note;
- var n={ic:"⏫",t:"Eskalasi tiket → "+naik.label,d:pesan,at:nowStamp(),sev:"crit",nav:naik.nav,done:false};
  /* Beralamat ke NAMA penerimanya bila anak tangga itu dipegang orang tertentu;
-    ke peran cadangan bila koordinatornya belum ditentukan. Tidak disiarkan ke keduanya. */
- if(terima){ n.nama=terima; n.roles=[]; } else { n.roles=(naik.roleCadangan||d.roles||[]); }
- NOTIFS.unshift(n);
+    ke peran cadangan bila koordinatornya belum ditentukan. Tidak disiarkan ke
+    keduanya. Dengan DUA koordinator, masing-masing mendapat notifikasinya
+    sendiri — antreannya bersama, tetapi kabarnya tetap beralamat, bukan
+    disiarkan ke seluruh peran. */
+ if(daftarTerima.length){
+   daftarTerima.forEach(function(nm){
+     NOTIFS.unshift({ic:"⏫",t:"Eskalasi tiket → "+naik.label,d:pesan,at:nowStamp(),
+                     sev:"crit",nav:naik.nav,done:false,nama:nm,roles:[],ref:t.no});
+   });
+ } else {
+   NOTIFS.unshift({ic:"⏫",t:"Eskalasi tiket → "+naik.label,d:pesan,at:nowStamp(),
+                   sev:"crit",nav:naik.nav,done:false,roles:(naik.roleCadangan||d.roles||[]),ref:t.no});
+ }
  agavaNotify("⏫ Eskalasi tiket → "+tujuan, t.no+" · "+(t.judul||"")+" · oleh "+t.escBy, {nav:naik.nav});
  try{ auditLog("escalation", t.no+" → "+tujuan+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
  renderMyTickets(); renderFieldOps(); renderService(); renderApprovals(); renderReminder(); renderOverview(); updateBell();
@@ -11545,6 +11614,21 @@ function myTicketResolve(no){ foAskPhoto(no); }
 /* Supervisor buat SO dari tiket tereskalasi → prefill Create SO */
 function soFromTicket(no){
  var t=TICKETS.find(x=>x.no===no); if(!t)return;
+ /* ── SATU TIKET, SATU SO (31 Agu 2026) ────────────────────────────────────
+    Dengan dua Koordinator berbagi satu antrean, keduanya bisa membuka kartu
+    yang sama pada saat yang sama. Begitu salah satu membuat SO-nya, escDone
+    menjadi true dan kartunya lenyap dari antrean rekannya — tetapi perangkat
+    yang layarnya belum tersegarkan masih memegang tombol yang bisa ditekan.
+    Tanpa pagar ini, dua SO lahir untuk satu pekerjaan dan baru ketahuan di
+    gerbang Budget. Diperiksa di SINI (saat tombol ditekan) dan sekali lagi
+    saat SO disimpan — layar bisa basi, data tidak. */
+ if(t.soNo||t.so){
+   alert("📋 SO untuk tiket "+no+" sudah dibuat.\n\nNomor: "+(t.soNo||t.so)+
+         (t.escSoBy?("\nOleh: "+t.escSoBy):"")+
+         "\n\nSatu tiket hanya boleh punya satu SO — silakan buka SO itu bila perlu diubah.");
+   try{ agavaRenderAman(["renderApprovals","renderService","renderFieldOps"]); }catch(e){}
+   return;
+ }
  window._soFromTicket=no;
  go('createso');
  var row=document.querySelector('#so-items tr');
@@ -11817,13 +11901,32 @@ function foOperatorStats(){
       sebagai barisnya sendiri supaya ketahuan ada catatan yang perlu dibetulkan. */
    if(!who) who="⚠️ operator tidak tercatat";
    var s=m[who]=m[who]||{name:who,role:t.opRole||"",shift:t.opShift||"",pick:0,done:0,open:0,esc:0,
-     respSum:0,respN:0,resSum:0,resN:0,respBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0};
+     respSum:0,respN:0,startSum:0,startN:0,resSum:0,resN:0,
+     respAntreLewat:0,startBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0,tiket:[]};
+   s.tiket.push(t.no);
    var sla=ticketSLA(t);
    s.pick++;
    if((t.stg||0)>=3)s.done++; else s.open++;
    if(t.esc)s.esc++;
    if(t.opRole&&!s.role)s.role=t.opRole; if(t.opShift&&!s.shift)s.shift=t.opShift;
-   if(sla.respDone&&sla.respMin!=null){ s.respSum+=sla.respMin; s.respN++; if(sla.respBreach)s.respBreach++; }
+   /* ── PERTANYAAN EDWIN, 30 Agu 2026 ────────────────────────────────────────
+      "Kalau breach respon dibebankan ke 1 operator, padahal operator sudah
+      inisiatif mengambil tiketnya karena melihat tidak ada yang ambil, apakah
+      itu fair jika dihitung dari Respon Time?"
+
+      Tidak fair, dan ini memperbaikinya. respMin mengukur created → pickup:
+      berapa lama tiket MENGANGGUR sebelum ada yang mengambilnya. Itu ukuran
+      ANTREAN, bukan ukuran orang. Membebankannya kepada siapa pun yang akhirnya
+      mengambil berarti menghukum justru orang yang menyelamatkan tiket itu —
+      dan lebih buruk lagi, mengajari tim untuk TIDAK menyentuh tiket tua.
+
+      Sekarang respMin tetap DICATAT dan tetap ditampilkan (di rapor ia menjadi
+      konteks: "tiket ini sudah menunggu 38 menit saat Anda mengambilnya"),
+      tetapi TIDAK ikut menghitung SLA orangnya. Yang membebani orang hanyalah
+      dua tahap yang benar-benar ada di tangannya setelah ia mengambil:
+        start → pickup..mulai kerja      resolution → mulai..selesai   */
+   if(sla.respDone&&sla.respMin!=null){ s.respSum+=sla.respMin; s.respN++; if(sla.respBreach)s.respAntreLewat++; }
+   if(sla.startDone&&sla.startMin!=null){ s.startSum+=sla.startMin; s.startN++; if(sla.startBreach)s.startBreach++; }
    if(sla.resDone&&sla.resMin!=null){ s.resSum+=sla.resMin; s.resN++; if(sla.resBreach)s.resBreach++; }
    if(t.rating){ s.rateSum+=t.rating; s.rateN++; }
    if(t.proof&&t.proof.length)s.proof++;
@@ -11842,20 +11945,26 @@ function foOperatorStats(){
     Barisnya digabung ke tabel yang sama, ditandai "Koordinator" di kolom Role
     supaya tidak tertukar dengan operator lapangan. */
  Object.keys(KOORDINATOR).forEach(function(kat){
-   var nama=KOORDINATOR[kat]; if(!nama) return;
+  koordinatorKategori(kat).forEach(function(nama){
    var s=m[nama];
    if(!s){ s=m[nama]={name:nama,role:"Koordinator",shift:"",koorKat:[],pick:0,done:0,open:0,esc:0,
-     respSum:0,respN:0,resSum:0,resN:0,respBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0}; }
+     respSum:0,respN:0,startSum:0,startN:0,resSum:0,resN:0,
+     respAntreLewat:0,startBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0,tiket:[]}; }
    if(!s.koorKat) s.koorKat=[];
    if(s.koorKat.indexOf(kat)<0) s.koorKat.push(kat);
    if(!s.role) s.role="Koordinator";
+  });
  });
  TICKETS.forEach(function(t){
    if(!t||!t.esc) return;
    if(escKunci(t)!=="koor") return;                 // hanya yang mendarat di anak tangga Koordinator
-   var nama=ticketKoordinator(t); if(!nama) return;
+   /* Antrean BERSAMA: eskalasi yang sama masuk ke hitungan SETIAP koordinator
+      kategori itu. Kalau hanya dibebankan ke satu orang, yang lain terlihat
+      tidak pernah kebagian pekerjaan — padahal ia memang ikut memegangnya. */
+   ticketKoordinatorList(t).forEach(function(nama){
    var s=m[nama]; if(!s||!s.koorKat) return;
    s.pick++; s.esc++;
+   if(s.tiket.indexOf(t.no)<0) s.tiket.push(t.no);
    var beres=!!(t.soNo||t.so||t.escDone);
    if(beres) s.done++; else s.open++;
    /* DUA ukuran yang berbeda, bukan satu angka disalin ke dua kolom:
@@ -11890,12 +11999,14 @@ function foOperatorStats(){
       punya satu pun angka untuk dilanggar. */
    if(!beres && (t.escBreachAt || escLewatSLA(t))) lewat=true;
    if(lewat) s.escBreach=(s.escBreach||0)+1;
+   });
  });
  return Object.keys(m).map(function(k){
    var s=m[k];
    var koor=!!(s.koorKat&&s.koorKat.length);
    if(koor) s.shift=s.shift||s.koorKat.join(", ");
    s.respAvg=s.respN?Math.round(s.respSum/s.respN):null;
+   s.startAvg=s.startN?Math.round(s.startSum/s.startN):null;
    s.resAvg=s.resN?Math.round(s.resSum/s.resN):null;
    s.rateAvg=s.rateN?(s.rateSum/s.rateN):null;
    /* ── PENYEBUT SLA HARUS SEDERAJAT DENGAN PEMBILANGNYA ────────────────────
@@ -11914,11 +12025,266 @@ function foOperatorStats(){
      s.breachTotal=langgar;
      s.slaPct=s.pick?Math.max(0,Math.round((1-(langgar/s.pick))*100)):null;
    } else {
-     s.breachTotal=(s.respBreach||0)+(s.resBreach||0);
-     s.slaPct=(s.respN||s.resN)?Math.round((1-(s.breachTotal/Math.max(1,s.respN+s.resN)))*100):null;
+     /* SLA operator dihitung dari tahap yang ADA DI TANGANNYA saja: mulai kerja
+        dan penyelesaian. Lamanya tiket menganggur sebelum diambil (respAntreLewat)
+        sengaja TIDAK ikut — lihat catatan pertanyaan Edwin di atas. Angkanya
+        tetap disimpan supaya terlihat di rapor sebagai konteks antrean. */
+     s.breachTotal=(s.startBreach||0)+(s.resBreach||0);
+     var tahap=(s.startN||0)+(s.resN||0);
+     s.slaPct=tahap?Math.round((1-(s.breachTotal/tahap))*100):null;
    }
    return s;
  }).sort(function(a,b){return b.pick-a.pick;});
+}
+/* ╔══ RAPOR KINERJA PER ORANG ═══════════════════════════════════════════════╗
+   Pertanyaan pertama Edwin, 30 Agustus: ia ingin melihat rincian di balik
+   angka rata-rata seorang operator. Itu permintaan yang benar — sebuah rata-
+   rata tanpa rinciannya tidak bisa dibantah maupun dibenarkan, jadi ia tidak
+   layak dipakai menilai orang.
+
+   Halaman ini menampilkan SETIAP tiket penyusun angka itu, dengan tiap tahap
+   waktunya berdiri sendiri. Yang penting bukan kolomnya, melainkan bahwa
+   jumlah baris di sini harus PERSIS menghasilkan angka di tabel rekap. */
+/* Section rekap yang sedang dibuka — dipisah karena ketiganya punya kolom dan
+   aturan SLA sendiri (lihat catatan di renderFieldOps). */
+var FO_REKAP_SEC="operator";
+function foRekapSec(k){ FO_REKAP_SEC=k; try{ renderFieldOps(); }catch(e){} }
+function foRekapKepala(sec){
+ if(sec==="koordinator")
+   return '<th>Nama</th><th>Wilayah</th><th>Eskalasi</th><th>Jadi SO</th><th>Terbuka</th>'+
+          '<th>Respons pertama</th><th>Sampai SO</th><th>Lewat '+ESC_KOOR_SLA_JAM+'j</th><th>SLA</th>';
+ if(sec==="procurement")
+   return '<th>Nama</th><th>Peran</th><th>SO dipegang</th><th>Selesai (BAST)</th><th>Berjalan</th>'+
+          '<th>Rata-rata sampai BAST</th><th>Lewat '+SLA_PROC_HARI+'h</th><th>SLA</th>';
+ return '<th>Nama</th><th>Peran · Shift</th><th>Tiket</th><th>Selesai</th><th>Terbuka</th><th>Eskalasi</th>'+
+        '<th>Antre<div class="fo-th-s">bukan beban</div></th><th>Mulai kerja</th><th>Penyelesaian</th>'+
+        '<th>Breach</th><th>SLA</th><th>Rating</th>';
+}
+function foRekapBaris(s,sec){
+ var sc=s.slaPct==null?'#9aa7b8':(s.slaPct>=90?'var(--green)':s.slaPct>=75?'#F59E0B':'var(--red)');
+ /* Baris bisa diklik → rapor orangnya. Permintaan Sudana: "tiap saya klik di
+    tabel rekap field ops saya akan masuk ke Page Rapor". */
+ var buka=' class="fo-oplog-r" onclick="raporBuka(\''+esc(s.name).replace(/'/g,"\\'")+'\')" '+
+          'title="Buka rapor '+esc(s.name)+'"';
+ var sla='<td style="color:'+sc+';font-weight:800">'+(s.slaPct==null?'—':s.slaPct+'%')+'</td>';
+ if(sec==="koordinator")
+   return '<tr'+buka+'><td><b>'+esc(s.name)+'</b></td>'+
+     '<td class="muted small">'+esc((s.koorKat||[]).join(", "))+'</td>'+
+     '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+'</td>'+
+     '<td>'+(s.respAvg==null?'—':fmtDur(s.respAvg))+'</td>'+
+     '<td>'+(s.resAvg==null?'—':fmtDur(s.resAvg))+'</td>'+
+     '<td>'+(s.breachTotal||'0')+'</td>'+sla+'</tr>';
+ if(sec==="procurement")
+   return '<tr'+buka+'><td><b>'+esc(s.name)+'</b></td>'+
+     '<td class="muted small">'+esc(s.role||'Staff Procurement')+'</td>'+
+     '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+'</td>'+
+     '<td>'+(s.durAvg==null?'—':fmtDur(s.durAvg))+'</td>'+
+     '<td>'+(s.breach||'0')+'</td>'+sla+'</tr>';
+ return '<tr'+buka+'><td><b>'+esc(s.name)+'</b></td>'+
+   '<td class="muted small">'+esc(s.role||'—')+(s.shift?' · '+esc(s.shift):'')+'</td>'+
+   '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+(s.open>=FO_WIP_MAX?' 🚧':'')+'</td><td>'+s.esc+'</td>'+
+   '<td class="muted">'+(s.respAvg==null?'—':fmtDur(s.respAvg))+'</td>'+
+   '<td>'+(s.startAvg==null?'—':fmtDur(s.startAvg))+'</td>'+
+   '<td>'+(s.resAvg==null?'—':fmtDur(s.resAvg))+'</td>'+
+   '<td>'+(s.breachTotal||'0')+'</td>'+sla+
+   '<td>'+(s.rateAvg==null?'—':'★ '+s.rateAvg.toFixed(1))+'</td></tr>';
+}
+var RAPOR_ORANG="";
+function raporBuka(nama){ RAPOR_ORANG=String(nama||""); go("rapor"); }
+function raporKembali(){ go("fieldops"); }
+/* Satu baris rincian untuk operator: tahap-tahap sebuah tiket. */
+function raporBarisOperator(t){
+ var sla=ticketSLA(t);
+ var sel=function(v,br,pakaiWarna){
+   if(v==null) return '<span class="muted">—</span>';
+   return '<b'+(br&&pakaiWarna?' style="color:var(--red)"':'')+'>'+esc(fmtDur(v))+'</b>';
+ };
+ return '<tr onclick="tkBrief(\''+esc(t.no)+'\')" style="cursor:pointer">'+
+   '<td><b class="sono">'+esc(t.no)+'</b><div class="muted small">'+esc(foNormCat(t.cat))+'</div></td>'+
+   '<td>'+esc(String(t.judul||"").slice(0,46))+'</td>'+
+   '<td>'+esc(t.prio||t.priority||"Medium")+'</td>'+
+   /* Antre TIDAK diwarnai merah walau lewat: itu bukan pelanggarannya. */
+   '<td>'+sel(sla.respMin,sla.respBreach,false)+
+     (sla.respBreach?'<div class="muted small">antre lama — bukan beban Anda</div>':'')+'</td>'+
+   '<td>'+sel(sla.startMin,sla.startBreach,true)+'</td>'+
+   '<td>'+sel(sla.resMin,sla.resBreach,true)+'</td>'+
+   '<td>'+(t.rating?('★ '+t.rating):'<span class="muted">—</span>')+'</td>'+
+   '<td>'+((sla.startBreach||sla.resBreach)
+     ? '<span class="badge bd-crit">Breach</span>'
+     : ((t.stg||0)>=3?'<span class="badge bd-ok">OK</span>':'<span class="badge bd-info">Berjalan</span>'))+'</td>'+
+ '</tr>';
+}
+/* Satu baris rincian untuk koordinator: perjalanan sebuah eskalasi. */
+function raporBarisKoordinator(t){
+ var mnt=function(a,b){ return (a&&b)?Math.round((b-a)/60000):null; };
+ var aksi=t.diskusiAt||t.escSoAt||"";
+ var respMin=(t.escAt&&aksi)?mnt(t.escAt,goLiveMs({ts:{created:aksi}})):null;
+ var resMin=(t.escAt&&t.escSoAt)?mnt(t.escAt,goLiveMs({ts:{created:t.escSoAt}})):null;
+ var batas=ESC_KOOR_SLA_JAM*60;
+ var lewat=escLewatSLA(t)||!!t.escBreachAt||(resMin!=null&&resMin>batas)||(respMin!=null&&respMin>batas);
+ var sel=function(v,br){ return v==null?'<span class="muted">—</span>'
+   :'<b'+(br?' style="color:var(--red)"':'')+'>'+esc(fmtDur(v))+'</b>'; };
+ return '<tr onclick="tkBrief(\''+esc(t.no)+'\')" style="cursor:pointer">'+
+   '<td><b class="sono">'+esc(t.no)+'</b><div class="muted small">'+esc(foNormCat(t.cat))+'</div></td>'+
+   '<td>'+esc(String(t.judul||"").slice(0,46))+'</td>'+
+   '<td>'+esc(t.escBy||t.pic||"—")+'</td>'+
+   '<td>'+sel(respMin,respMin!=null&&respMin>batas)+
+     (t.diskusiAt?'<div class="muted small">diskusi Section</div>':(t.escSoAt?'<div class="muted small">langsung SO</div>':''))+'</td>'+
+   '<td>'+sel(resMin,resMin!=null&&resMin>batas)+'</td>'+
+   '<td>'+(t.soNo?('<b class="sono">'+esc(t.soNo)+'</b>'):'<span class="muted">belum</span>')+'</td>'+
+   '<td>'+(lewat?'<span class="badge bd-crit">Lewat '+ESC_KOOR_SLA_JAM+'j</span>'
+                :(t.soNo?'<span class="badge bd-ok">OK</span>':'<span class="badge bd-info">Berjalan</span>'))+'</td>'+
+ '</tr>';
+}
+/* ╔══ SLA STAFF PROCUREMENT ═════════════════════════════════════════════════╗
+   Permintaan Sudana: "SLA untuk staff procurement dalam menyelesaikan SO nya."
+
+   Jamnya mulai saat gerbang Procurement menugaskan orangnya (ts.proc) dan
+   berhenti saat pekerjaannya diterima (bastDate). Dua penanda itu sudah ada di
+   dokumen SO — tidak ada penanda baru yang perlu diisi manusia, jadi ukurannya
+   tidak bisa "lupa dicatat".
+
+   Sengaja TIDAK memakai tanggal SO dibuat sebagai awal: rentang Section →
+   Budget → Procurement bukan pekerjaan staff itu, dan membebankannya akan
+   mengulang persis kekeliruan response-time yang ditanyakan Edwin. */
+const SLA_PROC_HARI=7;
+const SLA_PROC_MENIT=SLA_PROC_HARI*24*60;
+function soProcDur(s){
+ if(!s||!s.ts||!s.ts.proc) return null;
+ var mulai=goLiveMs({ts:{created:s.ts.proc}}); if(!mulai) return null;
+ /* bastDate berbentuk ISO "2026-08-12", BUKAN "DD/MM HH:MM" seperti ts.proc.
+    goLiveMs mengurai ISO lewat bidang `created`, dan DD/MM lewat `ts.created` —
+    memberi ISO ke jalur yang salah mengembalikan 0, dan seluruh SO ber-BAST
+    tampak belum selesai (9 SO sempat hilang begitu saja dari hitungan). */
+ var selesaiMs=s.bastDate?goLiveMs({created:s.bastDate}):0;
+ var akhir=selesaiMs||nowMs();
+ var menit=Math.round((akhir-mulai)/60000);
+ return {menit:menit<0?0:menit, selesai:!!selesaiMs};
+}
+function procStaffStats(){
+ var m={};
+ (SO||[]).forEach(function(s){
+   if(!s||s.batalAt) return;                 // SO batal tidak dinilai
+   var who=s.staffPIC||s.pic; if(!who) return;
+   var x=m[who]=m[who]||{name:who,role:"Staff Procurement",shift:"",
+     pick:0,done:0,open:0,durSum:0,durN:0,breach:0,so:[]};
+   x.pick++; x.so.push(s.no);
+   var d=soProcDur(s); if(!d) return;
+   if(d.selesai){ x.done++; x.durSum+=d.menit; x.durN++; }
+   else x.open++;
+   /* Yang terbuka DAN sudah lewat target ikut dihitung melanggar — kalau tidak,
+      SO yang dibiarkan menggantung justru tidak pernah muncul sebagai masalah. */
+   if(d.menit>SLA_PROC_MENIT) x.breach++;
+ });
+ return Object.keys(m).map(function(k){
+   var x=m[k];
+   x.durAvg=x.durN?Math.round(x.durSum/x.durN):null;
+   x.slaPct=x.pick?Math.max(0,Math.round((1-(x.breach/x.pick))*100)):null;
+   return x;
+ }).sort(function(a,b){ return b.pick-a.pick; });
+}
+/* Satu baris rincian untuk staff Procurement: perjalanan sebuah SO. */
+function raporBarisProc(s){
+ var d=soProcDur(s);
+ var lewat=d&&d.menit>SLA_PROC_MENIT;
+ return '<tr onclick="soDocShow(\''+esc(s.no)+'\')" style="cursor:pointer">'+
+   '<td><b class="sono">'+esc(s.no)+'</b></td>'+
+   '<td>'+esc(String(s.item||"").slice(0,46))+'</td>'+
+   '<td class="muted small">'+esc((s.ts&&s.ts.proc)||"—")+'</td>'+
+   '<td>'+(d?('<b'+(lewat?' style="color:var(--red)"':'')+'>'+esc(fmtDur(d.menit))+'</b>')
+             :'<span class="muted">—</span>')+'</td>'+
+   '<td class="muted small">'+esc(s.bastDate||"belum")+'</td>'+
+   '<td>'+(lewat?'<span class="badge bd-crit">Lewat '+SLA_PROC_HARI+'h</span>'
+                :(d&&d.selesai?'<span class="badge bd-ok">Selesai</span>'
+                              :'<span class="badge bd-info">Berjalan</span>'))+'</td>'+
+ '</tr>';
+}
+function raporKartu(judul,nilai,ket,warna){
+ return '<div class="rap-kartu"><div class="rap-k-t">'+esc(judul)+'</div>'+
+   '<div class="rap-k-v"'+(warna?' style="color:'+warna+'"':'')+'>'+nilai+'</div>'+
+   '<div class="rap-k-s">'+ket+'</div></div>';
+}
+function renderRapor(){
+ var el=document.getElementById("page-rapor"); if(!el)return;
+ /* Sumbernya mengikuti section yang sedang dibuka, bukan menebak: satu nama bisa
+    ada di dua kelompok sekaligus (Staff Procurement yang juga pernah mengambil
+    tiket), dan rapor yang salah kelompok akan menampilkan kolom yang tidak
+    berlaku baginya. */
+ var st;
+ if(FO_REKAP_SEC==="procurement") st=procStaffStats().filter(function(s){ return orangSama(s.name,RAPOR_ORANG); })[0];
+ if(!st) st=foOperatorStats().filter(function(s){ return orangSama(s.name,RAPOR_ORANG); })[0];
+ if(!st) st=procStaffStats().filter(function(s){ return orangSama(s.name,RAPOR_ORANG); })[0];
+ if(!st){
+   el.innerHTML='<div class="card" style="padding:40px;text-align:center;color:var(--muted)">'+
+     'Pilih satu nama di rekap Field Ops untuk membuka rapornya.'+
+     '<div style="margin-top:14px"><button class="btn-out" onclick="raporKembali()">← Kembali ke Field Ops</button></div></div>';
+   return;
+ }
+ var koor=!!(st.koorKat&&st.koorKat.length);
+ var proc=!!(st.so&&st.so.length);
+ var slaW=st.slaPct==null?'var(--muted)':(st.slaPct>=90?'var(--green)':st.slaPct>=75?'#F59E0B':'var(--red)');
+ var daftar=proc
+   ? (SO||[]).filter(function(x){ return st.so.indexOf(x.no)>=0; })
+       .sort(function(a,b){ return String(b.no).localeCompare(String(a.no)); })
+   : (TICKETS||[]).filter(function(t){ return st.tiket && st.tiket.indexOf(t.no)>=0; })
+       .sort(function(a,b){ return String(b.no).localeCompare(String(a.no)); });
+
+ var kartu = proc
+   ? raporKartu("SO dipegang", st.pick, st.done+" selesai · "+st.open+" berjalan","")
+     + raporKartu("Rata-rata sampai BAST", st.durAvg==null?"—":esc(fmtDur(st.durAvg)),
+         "sejak ditugaskan · target "+SLA_PROC_HARI+" hari","")
+     + raporKartu("Lewat target", st.breach||0, "dari "+st.pick+" SO",(st.breach?'var(--red)':'var(--green)'))
+     + raporKartu("SLA", st.slaPct==null?"—":(st.slaPct+"%"), "SO selesai tepat waktu", slaW)
+   : koor
+   ? raporKartu("Eskalasi diterima", st.pick, "dari kategori "+esc(st.koorKat.join(", ")),"")
+     + raporKartu("Jadi SO", st.done, st.open+" masih terbuka","")
+     + raporKartu("Rata-rata sampai SO", st.resAvg==null?"—":esc(fmtDur(st.resAvg)), "batas "+ESC_KOOR_SLA_JAM+" jam","")
+     + raporKartu("Lewat batas", st.breachTotal||0, "dari "+st.pick+" eskalasi", (st.breachTotal?'var(--red)':'var(--green)'))
+     + raporKartu("SLA", st.slaPct==null?"—":(st.slaPct+"%"), "eskalasi tepat waktu", slaW)
+   : raporKartu("Tiket diambil", st.pick, st.done+" selesai · "+st.open+" terbuka","")
+     + raporKartu("Menunggu di antrean", st.respAvg==null?"—":esc(fmtDur(st.respAvg)),
+         "sebelum Anda ambil · <b>tidak dibebankan</b>","")
+     + raporKartu("Mulai kerja", st.startAvg==null?"—":esc(fmtDur(st.startAvg)),
+         "sesudah ambil · target "+fmtDur(SLA_START_MAX),"")
+     + raporKartu("Penyelesaian", st.resAvg==null?"—":esc(fmtDur(st.resAvg)), "sejak mulai dikerjakan","")
+     + raporKartu("SLA", st.slaPct==null?"—":(st.slaPct+"%"),
+         (st.breachTotal||0)+" pelanggaran dari "+((st.startN||0)+(st.resN||0))+" tahap", slaW);
+
+ var kepala = proc
+   ? '<tr><th>SO</th><th>Item</th><th>Ditugaskan</th><th>Lama berjalan</th><th>BAST</th><th>Status</th></tr>'
+   : koor
+   ? '<tr><th>Tiket</th><th>Judul</th><th>Dieskalasi oleh</th><th>Respons pertama</th><th>Sampai SO</th><th>SO</th><th>Status</th></tr>'
+   : '<tr><th>Tiket</th><th>Judul</th><th>Prioritas</th><th>Antre sebelum diambil</th><th>Mulai kerja</th><th>Penyelesaian</th><th>Rating</th><th>Status</th></tr>';
+ var perender = proc?raporBarisProc:(koor?raporBarisKoordinator:raporBarisOperator);
+ var baris = daftar.length
+   ? daftar.map(perender).join("")
+   : '<tr><td colspan="8" class="muted small" style="text-align:center;padding:24px">Belum ada catatan.</td></tr>';
+
+ el.innerHTML=
+  '<div class="card pad" style="margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
+    '<button class="btn-out" onclick="raporKembali()">← Field Ops</button>'+
+    '<div style="flex:1;min-width:200px">'+
+      '<div style="font-weight:800;color:var(--ink);font-size:calc(17px*var(--fz))">'+esc(st.name)+'</div>'+
+      '<div class="muted small">'+esc(proc?("Staff Procurement · target "+SLA_PROC_HARI+" hari per SO")
+        :koor?("Koordinator · "+st.koorKat.join(", ")+" · batas "+ESC_KOOR_SLA_JAM+" jam")
+        :((st.role||"Operator Lapangan")+(st.shift?" · "+st.shift:"")))+'</div>'+
+    '</div>'+
+    '<button class="btn-act" onclick="foExportCSV()">⬇ Unduh CSV semua</button>'+
+  '</div>'+
+  '<div class="rap-kartu-w">'+kartu+'</div>'+
+  ((koor||proc)?'':
+   '<div class="rap-adil">'+
+     '<b>Kenapa "menunggu di antrean" tidak dibebankan kepada Anda</b>'+
+     'Lamanya sebuah tiket menganggur sebelum ada yang mengambil adalah ukuran antrean, bukan ukuran orang. '+
+     'Membebankannya kepada siapa pun yang akhirnya mengambil berarti menghukum orang yang menyelamatkan tiket itu — '+
+     'dan mengajari tim untuk menghindari tiket tua. Angkanya tetap ditampilkan sebagai konteks; '+
+     'SLA Anda dihitung dari dua tahap yang benar-benar di tangan Anda: <b>mulai kerja</b> dan <b>penyelesaian</b>.'+
+   '</div>')+
+  '<div class="card sec"><div class="sec-h">'+secIc('#eef4ff','#2563eb','fieldops')+
+    '<div><h2>Rincian '+daftar.length+' '+(proc?'SO':(koor?'eskalasi':'tiket'))+'</h2>'+
+    '<div class="d">Setiap baris di sini ikut membentuk angka rata-rata di atas — klik untuk melihat tiketnya</div></div></div>'+
+    '<div class="fo-oplog-w"><table class="fo-oplog-t"><thead>'+kepala+'</thead><tbody>'+baris+'</tbody></table></div>'+
+  '</div>';
 }
 function foExportCSV(){
  var rows=foOperatorStats();
@@ -12025,29 +12391,49 @@ function renderFieldOps(){
   /* Log Record Operator = dasar penilaian kinerja orang. Bukan bahan pantauan
      umum, jadi akun pemantau dikecualikan meskipun ia melihat papan tiketnya. */
   if(isSuper()&&!myCat&&!isPantau()){
-    var st=foOperatorStats();
+    /* ── TIGA SECTION, TIGA ATURAN SLA (31 Agu 2026) ─────────────────────────
+       Sudana: "kalau SLA Operator dan Koordinator tidak bisa digabung kamu buat
+       saja page section baru yang tinggal saya swap."
+
+       Memang tidak bisa digabung, dan menyatukannya dalam satu tabel sudah
+       terbukti melahirkan angka mustahil (SLA −78%) — karena satu rumus dipaksa
+       menghitung tiga jenis pekerjaan yang jamnya berbeda:
+
+         Operator     pickup → mulai kerja → selesai   (antre TIDAK dibebankan)
+         Koordinator  eskalasi masuk → SO terbit       (batas 3 jam)
+         Procurement  ditugaskan → BAST diterima       (batas 7 hari)
+
+       Masing-masing punya kolomnya sendiri, jadi tidak ada kolom yang kosong
+       hanya karena ukuran itu tidak berlaku bagi kelompok tersebut. */
+    var semua=foOperatorStats();
+    var stOp=semua.filter(function(s){ return !(s.koorKat&&s.koorKat.length); });
+    var stKo=semua.filter(function(s){ return s.koorKat&&s.koorKat.length; });
+    var stPr=procStaffStats();
+    var secList=[{k:"operator",label:"Operator",n:stOp.length},
+                 {k:"koordinator",label:"Koordinator",n:stKo.length},
+                 {k:"procurement",label:"Procurement",n:stPr.length}];
+    if(!secList.some(function(x){return x.k===FO_REKAP_SEC;})) FO_REKAP_SEC="operator";
+    var st=(FO_REKAP_SEC==="koordinator")?stKo:(FO_REKAP_SEC==="procurement"?stPr:stOp);
+    var ket={operator:"Antre sebelum diambil TIDAK dibebankan — SLA dihitung dari mulai kerja &amp; penyelesaian",
+             koordinator:"Batas "+ESC_KOOR_SLA_JAM+" jam dari eskalasi masuk sampai SO terbit ke Procurement",
+             procurement:"Batas "+SLA_PROC_HARI+" hari dari ditugaskan sampai BAST diterima"}[FO_REKAP_SEC];
     oplog='<div class="card pad fo-oplog"><div class="fo-oplog-h">'+
-      '<div><div class="panel-t" style="margin:0">👷 Log Record Operator</div>'+
-        '<div class="muted small">'+st.length+' operator terdaftar · response &amp; resolution time, jumlah pickup, SLA compliance — dasar penilaian akhir tahun</div></div>'+
+      '<div><div class="panel-t" style="margin:0">👷 Log Record Kinerja</div>'+
+        '<div class="muted small">klik satu baris untuk membuka <b>rapor rincinya</b> — tiap angka rata-rata di sini bisa ditelusuri ke tiketnya satu per satu</div></div>'+
       '<button class="btn-act" onclick="foExportCSV()">⬇ Unduh CSV</button></div>'+
+      '<div class="svc-tabs" style="margin:12px 0 4px">'+secList.map(function(s){
+        return '<button type="button" class="svc-tab'+(FO_REKAP_SEC===s.k?' on':'')+'" '+
+          'onclick="foRekapSec(\''+s.k+'\')">'+esc(s.label)+'<b>'+s.n+'</b></button>'; }).join("")+'</div>'+
+      '<div class="muted small" style="margin:0 0 10px">'+ket+'</div>'+
       /* Pelanggaran jatuh tempo STNK/PBB ikut tercatat di log operator */
       ((typeof RMD_BREACH!=="undefined"&&RMD_BREACH.length)
         ? '<div class="rmd-breach"><b>⛔ '+RMD_BREACH.length+' pelanggaran jatuh tempo (STNK/PBB)</b>'+
           RMD_BREACH.slice(-5).map(function(x){ return '<div>· '+esc(x.nama)+' — jatuh tempo '+esc(x.due)+' · tercatat '+esc(x.at)+' · PIC '+esc(x.pic||"")+'</div>'; }).join("")+'</div>'
         : '')+
       (st.length?('<div class="fo-oplog-w"><table class="fo-oplog-t"><thead><tr>'+
-        '<th>Operator</th><th>Role · Shift</th><th>Pickup</th><th>Selesai</th><th>Terbuka</th><th>Eskalasi</th>'+
-        '<th>Avg Response</th><th>Avg Resolution</th><th>Breach</th><th>SLA</th><th>Rating</th></tr></thead><tbody>'+
-        st.map(function(s){
-          var sc=s.slaPct==null?'#9aa7b8':(s.slaPct>=90?'var(--green)':s.slaPct>=75?'#F59E0B':'var(--red)');
-          return '<tr><td><b>'+esc(s.name)+'</b></td><td class="muted small">'+esc(s.role||'—')+(s.shift?' · '+esc(s.shift):'')+'</td>'+
-            '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+(s.open>=FO_WIP_MAX?' 🚧':'')+'</td><td>'+s.esc+'</td>'+
-            '<td>'+(s.respAvg==null?'—':fmtDur(s.respAvg))+'</td><td>'+(s.resAvg==null?'—':fmtDur(s.resAvg))+'</td>'+
-            '<td>'+(s.breachTotal||'0')+'</td>'+
-            '<td style="color:'+sc+';font-weight:800">'+(s.slaPct==null?'—':s.slaPct+'%')+'</td>'+
-            '<td>'+(s.rateAvg==null?'—':'★ '+s.rateAvg.toFixed(1))+'</td></tr>';
-        }).join('')+'</tbody></table></div>')
-       :'<div class="muted small" style="padding:22px;text-align:center">Belum ada operator yang mengambil tiket.</div>')+
+        foRekapKepala(FO_REKAP_SEC)+'</tr></thead><tbody>'+
+        st.map(function(s){ return foRekapBaris(s,FO_REKAP_SEC); }).join('')+'</tbody></table></div>')
+       :'<div class="muted small" style="padding:22px;text-align:center">Belum ada catatan untuk kelompok ini.</div>')+
     '</div>';
   }
   /* Papan lembur — di ATAS papan tiket: setup AC punya jam mati, tiket tidak */
@@ -15452,6 +15838,18 @@ async function _submitSO_inti(){
  var _fromTk=window._soFromTicket; window._soFromTicket=null;
  if(_fromTk){
    var tk=TICKETS.find(function(x){return x.no===_fromTk;});
+   /* Pagar kedua: layar boleh basi, data tidak. Kalau rekan koordinator sudah
+      menautkan SO lain ke tiket ini di sela-sela pengisian formulir, tautannya
+      TIDAK ditimpa — SO yang baru saja dibuat tetap ada dan sah, hanya tidak
+      mengklaim tiket yang sudah punya pemilik. */
+   if(tk && (tk.soNo||tk.so) && (tk.soNo||tk.so)!==no){
+     try{ auditLog("so-tiket-bentrok", no+" gagal menaut tiket "+_fromTk+
+       " — sudah dipegang "+(tk.soNo||tk.so)+" oleh "+(tk.escSoBy||"?")); }catch(e){}
+     alert("⚠️ Tiket "+_fromTk+" sudah ditautkan ke SO "+(tk.soNo||tk.so)+
+           (tk.escSoBy?(" oleh "+tk.escSoBy):"")+".\n\nSO "+no+" Anda tetap tersimpan, "+
+           "tetapi tidak menutup eskalasi tiket itu. Periksa apakah keduanya memang diperlukan.");
+     tk=null;
+   }
    if(tk){
      tk.toProc=true; tk.soNo=no; tk.escDone=true; tk.escSoBy=(gUser&&gUser.name)||""; tk.escSoAt=nowStamp();
      so.fromTicket=_fromTk;
@@ -16980,8 +17378,8 @@ function escUntukSaya(t){
    var sh=(typeof ticketSectionOwner==="function")?ticketSectionOwner(t):"";
    if(sh && (typeof orangSama==="function") && orangSama(aku,sh)) return true;
  }
- var pemegang=escPemegang(t,d);
- if(pemegang) return orangSama(aku,pemegang);              // dipegang orang tertentu → hanya dia
+ var daftar=escPemegangList(t,d);
+ if(daftar.length) return escAkuDiantaraPemegang(t,d);     // dipegang orang tertentu → hanya mereka
  if(d.role) return gRole===d.role;                // dipegang peran → semua pemegang peran itu
  if(d.roleCadangan) return d.roleCadangan.indexOf(gRole)>=0;
  return false;
@@ -21679,7 +22077,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.31-272";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.31-273";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
