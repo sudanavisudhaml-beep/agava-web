@@ -2459,6 +2459,19 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .nav a{position:relative}
 .nav-badge{position:absolute;right:10px;top:50%;transform:translateY(-50%);min-width:18px;height:18px;background:var(--red);color:#fff;border-radius:9px;font-size:calc(10.5px*var(--fz));font-weight:700;display:grid;place-items:center;padding:0 5px}
 .side.collapsed .nav-badge{right:6px;top:7px;transform:none;min-width:15px;height:15px;font-size:calc(9px*var(--fz));padding:0 3px}
+/* Pemberitahuan "peran belum diatur" — menggantikan navigasi yang dulu diam-diam
+   diisi SELURUH menu saat peran kosong. Sengaja mencolok: inilah satu-satunya
+   petunjuk yang dipunyai pengguna maupun admin bahwa akunnya belum lengkap. */
+/* versi mobile — beranda HP, satu-satunya layar yang pasti dibuka pengguna HP */
+.mh-noperan{margin:0 0 14px;padding:14px 15px;border-radius:14px;
+  background:rgba(217,45,32,.12);border:1px solid rgba(217,45,32,.45)}
+.mh-noperan b{display:block;color:var(--red);font-size:calc(13.5px*var(--fz));margin-bottom:5px}
+.mh-noperan span{display:block;color:var(--m-mut,var(--muted));font-size:calc(12px*var(--fz));line-height:1.55}
+.nav-noperan{margin:6px 10px 10px;padding:12px 13px;border-radius:12px;
+  background:rgba(217,45,32,.10);border:1px solid rgba(217,45,32,.42)}
+.nav-noperan b{display:block;color:var(--red);font-size:calc(12.5px*var(--fz));margin-bottom:5px}
+.nav-noperan span{display:block;color:var(--muted);font-size:calc(11.5px*var(--fz));line-height:1.5}
+.side.collapsed .nav-noperan{display:none}
 .side.collapsed{width:76px;flex-basis:76px}
 .side.collapsed .logo-wrap{display:none}
 .side.collapsed .sec-label{font-size:0;padding:8px 0}
@@ -4730,6 +4743,19 @@ const MENU=[
    (go('reminder')); halaman page-reminder tetap ada & bisa dibuka dari ikon itu. */
 let active="overview";
 let gRole="admin", gUser=null;
+/* Seluruh id nav yang SAH — diturunkan dari MENU, tidak disalin ulang.
+   ── kenapa diturunkan (31 Agu 2026) ────────────────────────────────────────
+   ALLMENUS dulu daftar tulisan tangan, dan sudah melenceng dari MENU: "myticket"
+   ada di MENU dan dipakai ROLES.fieldops, tetapi TIDAK ada di ALLMENUS. Karena
+   menusFor() memvalidasi `plus` terhadap ALLMENUS, memberi satu orang modul
+   My Tickets lewat plus:["myticket"] ditolak diam-diam — persis mekanisme yang
+   dipakai untuk menambah satu modul ke satu akun tanpa menaikkan perannya.
+   Salinan manual dari sesuatu yang sudah ada adalah pelanggaran Prinsip 2 di
+   dalam kode kita sendiri; sekarang ia diturunkan supaya tidak bisa melenceng. */
+const MENU_IDS=MENU.map(function(m){ return m.id; });
+/* Menu untuk peran berakses penuh. Sengaja BUKAN MENU_IDS: "myticket" adalah
+   kotak masuk operator lapangan — memberikannya ke admin/dept/section hanya
+   menambah menu kosong. Yang berubah hanya validasi `plus` di menusFor(). */
 const ALLMENUS=["overview","building","landbank","project","gacal","service","fieldops","procurement","payment","vendor","energy","hse","approvals","assigned"];
 const ROLES={
  admin:{label:"Administrator",tier:"*",edit:true,menus:ALLMENUS},
@@ -5089,9 +5115,35 @@ function agavaLogout(){
 
 /* SO_SUMMARY / TIKET_SUMMARY / fetchSOSummary dihapus — SEMUA tampilan derive langsung dari
    array SO & TICKETS (single source). Integrasi SharePoint nanti: map list item → SO[] lalu renderAll(). */
+/* Akun ini punya peran yang dikenal? Super/owner selalu ya. */
+function peranTerpasang(){ return !!(gUser&&(gUser.super||ROLES[gRole])); }
 function buildNav(){
-  const allowed=myMenus().length?myMenus():MENU.map(m=>m.id);
-  var html=MENU.filter(m=>allowed.includes(m.id)).map(m=>
+  /* ── PERAN KOSONG BUKAN IZIN PENUH (31 Agu 2026) ──────────────────────────
+     Baris ini dulu berbunyi:
+
+         const allowed = myMenus().length ? myMenus() : MENU.map(m=>m.id);
+
+     Menu kosong jatuh ke SELURUH menu. Akibatnya akun yang perannya belum
+     diatur — Sunaryo Bara, 20–31 Agustus — melihat navigasi penuh di desktop,
+     sementara di HP mInbox() jatuh ke slot terakhir "Pesanan", dan seluruh
+     tulisannya ditolak Firestore rules karena peran() mengembalikan kosong.
+     Tiga gejala yang tampak tidak berhubungan, satu sebab, dan tak satu pun
+     layar menyebut sebabnya. Sebelas hari hilang untuk menebak.
+
+     Sekarang peran kosong diperlakukan sebagai "belum diatur", bukan "boleh
+     semuanya" (Prinsip 1), dan layarnya mengatakan alasannya alih-alih
+     menampilkan cangkang kosong (Prinsip 7). */
+  const allowed=myMenus();
+  var html="";
+  if(gUser&&!peranTerpasang()){
+    html+='<div class="nav-noperan">'
+      + '<b>Peran akun belum diatur</b>'
+      + '<span>Modul dan eskalasi tidak bisa mendarat sampai Administrator '
+      + 'menetapkan peran akun ini di Parameter → Kelola Akun.</span></div>';
+    try{ if(!window._noPeranDicatat){ window._noPeranDicatat=1;
+      auditLog("akun-tanpa-peran",(gUser.email||gUser.name||"")+" masuk tanpa peran"); } }catch(e){}
+  }
+  html+=MENU.filter(m=>allowed.includes(m.id)).map(m=>
     `<a data-id="${m.id}" class="${m.id===active?'active':''}" onclick="go('${m.id}')" title="${m.label}">
       <svg viewBox="0 0 24 24">${IC[m.ic]}</svg><span class="nav-txt">${m.label}</span>${navBadge(m.id)}</a>`).join("");
   /* Parameter & Biaya — hanya pemilik sistem (bukan sekadar admin) */
@@ -5442,8 +5494,11 @@ function menusFor(u,role){
  /* Modul TAMBAHAN per AKUN (`plus`), bukan per role. Dipakai saat satu orang
     perlu satu modul lagi tanpa menaikkan seluruh rolenya — kalau menu role yang
     diubah, semua rekan seperannya ikut kebagian, dan itu jarang yang dimaui. */
+ /* divalidasi terhadap MENU_IDS (seluruh nav yang sah), BUKAN ALLMENUS —
+    lihat catatan di MENU_IDS: memvalidasi ke ALLMENUS membuat plus:["myticket"]
+    ditolak tanpa suara. */
  if(u&&Array.isArray(u.plus)) u.plus.forEach(function(x){
-   if(ALLMENUS.indexOf(x)>=0 && m.indexOf(x)<0) m.push(x);
+   if(MENU_IDS.indexOf(x)>=0 && m.indexOf(x)<0) m.push(x);
  });
  return m;
 }
@@ -13229,7 +13284,17 @@ function renderMobileHome(){
  var nama=(gUser&&gUser.name)||"";
  var inisial=nama.split(/\s+/).filter(Boolean).map(function(w){return w[0];}).join("").slice(0,2).toUpperCase();
  var depan=nama.split(/\s+/)[0]||"";
+ /* Peringatan peran kosong WAJIB ada di sini juga, bukan hanya di sidebar:
+    di HP sidebar tidak pernah tampil, dan justru pengguna HP-lah yang paling
+    mungkin terdampak (operator & koordinator lapangan). Pesan yang hanya
+    muncul di layar yang tidak dibuka orangnya sama saja dengan tidak ada. */
+ var noPeran = (gUser&&!peranTerpasang())
+   ? '<div class="mh-noperan"><b>⛔ Peran akun belum diatur</b>'
+     + '<span>Karena itu modul tidak muncul dan tiket eskalasi tidak bisa mendarat '
+     + 'di akun ini. Minta Administrator AGAVA menetapkan peran akun Anda.</span></div>'
+   : '';
  el.innerHTML=
+  noPeran+
   '<div class="mh-hirow">'+
     '<div class="mh-av">'+esc(inisial)+'</div>'+
     '<div class="mh-hi">'+
@@ -21214,7 +21279,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.27-266";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.31-267";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
