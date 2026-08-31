@@ -13440,7 +13440,10 @@ function orderOpen(kind,no){
     '<span class="k">Status</span><span class="v" style="color:'+o.warna+'">'+esc(o.status)+'</span>'+
     (function(){ var c=gaActivityCost(o); return c.rp>0?'<span class="k">Biaya sumber daya</span><span class="v" style="color:#0a7d5e">'+costTag(c)+(c.rinci?' <small style="color:var(--muted)">('+esc(c.rinci)+')</small>':'')+'</span>':''; })()+
   '</div>'+
-  '<div class="mj-drawer">💡 Setiap layanan memakai sumber daya perusahaan — biaya ini nyata. Bijak memesan = hemat OPEX Astra.</div>'+
+  /* Kalimat "bijak memesan = hemat OPEX" dicabut 31 Agu 2026 (keputusan Sudana):
+     bekerja efisien sudah menjadi DNA, tidak perlu dijual sebagai imbauan
+     berhemat. Yang tersisa cukup pernyataan bahwa angkanya nyata. */
+  '<div class="mj-drawer">💡 Angka di bawah dihitung dari tarif yang berlaku, bukan perkiraan.</div>'+
   '<button class="btn-out" style="width:100%;margin-top:12px" onclick="closeDrawer();go(\''+o.nav+'\')">Buka modul '+esc(modLabel(o.nav))+' →</button></div>';
  document.getElementById("ovl").classList.add("show");
 }
@@ -14816,7 +14819,10 @@ function renderCreateTicket(){
     <div class="field"><label>Requester</label><input id="ct-req" value="${gUser?gUser.name:''}" disabled style="background:#f1f4f8;color:var(--muted)"/></div></div>
     <div class="field"><label>Description <span class="muted small">(dibaca operator sebelum mengambil tiket)</span></label><textarea id="ct-desc" rows="3" placeholder="Jelaskan masalahnya: apa yang rusak/dibutuhkan, sejak kapan, dampaknya…" oninput="ctCerminSync()"></textarea></div>
     <div class="field"><label>Catatan tambahan <span class="muted small">(opsional)</span></label><textarea id="ct-note" rows="2" placeholder="mis. akses lewat pintu belakang · hubungi Pak Budi 0812xxxx · hanya bisa dikerjakan setelah jam 17.00"></textarea></div>
-    <div class="field"><label>Lampiran Foto &amp; Video <span class="muted small">(maks ${CT_PHOTO_MAX} lampiran — sangat membantu operator)</span></label>
+    <!-- Syaratnya dinyatakan DI MUKA, bukan lewat penolakan setelah orang
+         selesai mengisi seluruh formulir. Menolak di akhir membuat orang
+         mengulang pekerjaan yang sebetulnya bisa dihindari satu kalimat. -->
+    <div class="field"><label>Lampiran Foto &amp; Video <span style="color:var(--red)">*wajib</span> <span class="muted small">(maks ${CT_PHOTO_MAX} lampiran — operator berangkat berbekal foto ini)</span></label>
       <div class="md-pick">
         <label class="fo-cam"><input type="file" accept="image/*" capture="environment" multiple onchange="ctPhotoPick(this)"/>
           <span class="fo-cam-ic">📷</span><b>Kamera</b><small>foto kondisi sekarang</small></label>
@@ -15046,6 +15052,30 @@ async function submitTicket(){
      "\n\nBiasanya ini karena tombol Submit tertekan lebih dari sekali.\n\nTetap buat tiket BARU lagi?")) {
      go("service"); return;
    }
+ }
+ /* ── FOTO WAJIB PADA TIKET (31 Agu 2026) ───────────────────────────────────
+    Sudana: "pastikan tiket harus dilengkapi foto, tidak bisa tiket tanpa foto
+    karena bisa membingungkan operator."
+
+    Benar, dan bebannya memang di tempat yang salah selama ini. Tanpa foto,
+    operator berangkat ke lokasi hanya berbekal kalimat — lalu menemukan
+    barangnya bukan yang ia bayangkan, atau tidak menemukannya sama sekali.
+    Waktu yang terbuang itu tercatat sebagai keterlambatannya, padahal
+    penyebabnya keterangan yang tidak lengkap sejak awal.
+
+    Satu foto dari pemohon menghemat satu perjalanan sia-sia. Ini SATU-SATUNYA
+    syarat baru pada formulir tiket — sengaja tidak ditambah yang lain, karena
+    membuat pelaporan masalah menjadi sulit akan mengembalikan orang ke jalur
+    lisan yang tidak tercatat sama sekali. */
+ var _nFotoTiket=((window._ctPhoto&&window._ctPhoto.imgs)||[]).length;
+ if(!_nFotoTiket){
+   alert("📷 Foto wajib dilampirkan.\n\n"+
+     "Operator berangkat ke lokasi hanya berbekal keterangan Anda. Satu foto "+
+     "kondisi saat ini membuatnya tahu persis apa yang dicari dan apa yang perlu "+
+     "dibawa — tanpa itu, ia sering harus bolak-balik.\n\n"+
+     "Gunakan tombol Kamera atau Galeri di formulir ini.");
+   try{ var _fb=document.querySelector("#page-createticket .fo-cam"); if(_fb) _fb.scrollIntoView({behavior:"smooth",block:"center"}); }catch(e){}
+   return;
  }
  /* dikunci SESUDAH seluruh validasi lewat — supaya formulir yang ditolak
     (mis. lokasi kosong) tidak meninggalkan tombol dalam keadaan mati */
@@ -23825,16 +23855,21 @@ const GA_PARAM_DEFAULT={
  ac:{ dayaPerPax:0.25, lampu:0.5, bebanPanasKw:3, bebanPanasJam:4 },
  tenaga:{ manpowerLembur:40000, jamKaryawan:75000 },
  /* ── NILAI KONTRIBUSI (31 Agu 2026) ────────────────────────────────────────
-    Kontribusi dinilai dari TARIF YANG SUDAH ADA, bukan angka baru yang
-    dikarang — supaya tiap rupiah bisa ditelusuri ke dasarnya:
+    Rupiah di sini adalah SATUAN PENGHARGAAN, bukan pengumuman berhemat.
+    Sudana, 31 Agu: "perusahaan sebesar Astra tidak perlu eksplisit melakukan
+    penghematan di hal-hal kecil — itu sudah jadi DNA kita untuk bekerja
+    efisien. Yang ditonjolkan: sistem ini menghargai kontribusi setiap warganya."
+
+    Angkanya tetap dihitung dari TARIF YANG SUDAH ADA supaya bisa ditelusuri —
+    tetapi yang dibaca orang adalah besarnya sumbangan, bukan besarnya
+    penghematan:
       · tenaga lapangan  = menit dikerjakan × tenaga.manpowerLembur
-      · admin dihindari  = hematAdminMenit × tenaga.jamKaryawan
-        (waktu yang TIDAK terpakai membuat, menyalurkan, dan menutup tiket
-        untuk pekerjaan yang sebetulnya bisa langsung dibereskan)
-      · kerusakan dicegah= opsional, diambil dari daftar GA_PARAM.repair
-    hematAdminMenit sengaja kecil dan konservatif: melebih-lebihkannya akan
-    membuat papan kontribusi terlihat hebat tanpa ada yang benar-benar hemat. */
- kontribusi:{ hematAdminMenit:15 },
+      · penanganan langsung = langsungMenit × tenaga.jamKaryawan
+        (bobot kerja menangani sendiri sampai tuntas, tanpa perlu jalur tiket)
+      · kerusakan dicegah = opsional, dari daftar GA_PARAM.repair
+    langsungMenit sengaja konservatif: angka yang dibesar-besarkan membuat
+    penghargaan kehilangan artinya. */
+ kontribusi:{ langsungMenit:15 },
  repair:[
    {item:"Keramik gompal / pecah (per titik)", biaya:250000},
    {item:"Meja kerja patah (perbaikan)", biaya:400000},
@@ -23994,7 +24029,7 @@ const KONTRIB_JENIS=[
  {k:"perbaikan",label:"Perbaikan ringan",       ic:"🔧"},
  {k:"penataan", label:"Penataan & penyimpanan", ic:"📦"},
  {k:"cegah",    label:"Pencegahan (sebelum rusak)", ic:"🛡️"},
- {k:"hemat",    label:"Penghematan energi/air", ic:"💡"},
+ {k:"hemat",    label:"Efisiensi energi & air", ic:"💡"},
  {k:"lain",     label:"Lainnya",                ic:"✨"}
 ];
 function kontribJenisLabel(k){
@@ -24022,8 +24057,8 @@ function kontribNilai(k){
    var t=Math.round(menit/60*P.tenaga.manpowerLembur);
    baris.push({label:"Tenaga lapangan "+menit+" menit", rp:t}); rp+=t;
  }
- var adm=Math.round((P.kontribusi.hematAdminMenit||0)/60*P.tenaga.jamKaryawan);
- if(adm>0){ baris.push({label:"Administrasi tiket yang dihindari", rp:adm}); rp+=adm; }
+ var adm=Math.round((P.kontribusi.langsungMenit||0)/60*P.tenaga.jamKaryawan);
+ if(adm>0){ baris.push({label:"Penanganan langsung sampai tuntas", rp:adm}); rp+=adm; }
  if(k.repairItem){
    var r=(P.repair||[]).filter(function(x){return x.item===k.repairItem;})[0];
    if(r&&r.biaya>0){ baris.push({label:"Kerusakan dicegah — "+r.item, rp:r.biaya}); rp+=r.biaya; }
@@ -24033,7 +24068,7 @@ function kontribNilai(k){
     keberlanjutan yang justru sedang kita siapkan. */
  var co2=0;
  if(k.jenis==="hemat"&&+k.kwh>0){ var e=costListrik(+k.kwh); co2=e.co2; rp+=e.rp;
-   baris.push({label:"Energi dihemat "+(+k.kwh)+" kWh", rp:e.rp}); }
+   baris.push({label:"Efisiensi energi "+(+k.kwh)+" kWh", rp:e.rp}); }
  return {rp:rp, co2:co2, rinci:baris.map(function(b){return b.label;}).join(" · "), baris:baris};
 }
 /* Kredit poin sebuah kontribusi. Bobotnya sengaja dibuat sebanding dengan
@@ -24086,8 +24121,8 @@ function kontribPanelHTML(){
   '<div class="card pad" style="margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
     '<div style="flex:1;min-width:210px">'+
       '<div class="panel-t" style="margin:0">✨ Kontribusi Staff GA</div>'+
-      '<div class="muted small" style="margin-top:3px">Masalah yang dilihat lalu langsung dibereskan — tanpa menjadi tiket. '+
-        'Nilainya dihitung dari tarif yang sama dengan modul biaya, jadi bisa ditelusuri.</div></div>'+
+      '<div class="muted small" style="margin-top:3px">Setiap orang yang turun tangan membereskan masalah tercatat di sini. '+
+        'Nilainya dihitung dari tarif yang sama dengan modul biaya — jadi bisa ditelusuri dan dipertanggungjawabkan.</div></div>'+
     '<div style="text-align:right"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:var(--green)">'+costRp(totRp)+'</div>'+
       '<div class="muted small">'+totN+' kontribusi · '+totCo2+' kg CO₂</div></div>'+
     '<button class="btn-act" onclick="kontribBuka()">✨ Lapor Kontribusi</button>'+
@@ -24447,19 +24482,28 @@ function mJejakCard(){
  var judul=semua?"✨ Kontribusi Seluruh Tim GA":"✨ Kontribusi Saya";
  var chips=Object.keys(j.byJenis).filter(function(k){return j.byJenis[k]>0;})
    .map(function(k){ return '<span class="mj-chip">'+esc(kontribJenisLabel(k))+' '+costRp(j.byJenis[k])+'</span>'; }).join("");
- /* Nada kartunya ikut berubah, bukan cuma angkanya. Kalimat lama berbunyi
-    "sadari biayanya — hemat yang bisa dihemat": itu bahasa untuk mengukur
-    konsumsi. Kartu ini mengukur hal yang berlawanan, jadi kalimatnya harus
-    ikut, kalau tidak orang akan membaca pencapaiannya sebagai tagihan. */
+ /* ── NADANYA IKUT BERUBAH, BUKAN CUMA ANGKANYA (31 Agu 2026) ───────────────
+    Kalimat lama: "sadari biayanya — hemat yang bisa dihemat". Itu bahasa untuk
+    mengukur konsumsi, dan Sudana menolaknya sebagai pesan:
+
+      "Perusahaan sebesar Astra tidak perlu eksplisit melakukan penghematan di
+       hal-hal kecil — itu sudah jadi DNA kita untuk bekerja efisien. Hemat yang
+       bisa dihemat tidak perlu dijual. Yang ditonjolkan: sistem ini menghargai
+       kontribusi setiap warganya."
+
+    Jadi rupiah di sini dibaca sebagai BESARNYA SUMBANGAN, bukan besarnya
+    penghematan. Baris "potensi terbuang organisasi" ikut dicabut dari kartu
+    ini: menaruh peringatan pemborosan di kartu penghargaan membuat orang
+    membaca pencapaiannya sebagai teguran. Fungsinya (mRoomIdle) dibiarkan
+    hidup untuk dipakai di tempat yang memang membahas utilisasi ruang. */
  return '<div class="mj-card">'+
    '<div class="mj-h"><span>'+judul+'</span><i>'+j.n+' kontribusi</i></div>'+
    '<div class="mj-main"><div class="mj-v">'+costRp(j.tot)+'</div>'+
      '<div class="mj-co2">'+(j.co2||0)+' kg CO₂</div></div>'+
    (chips?'<div class="mj-chips">'+chips+'</div>':'')+
-   (idle.rp>0?'<div class="mj-idle">⚠ Potensi terbuang organisasi: <b>'+costRp(idle.rp)+'</b> · '+idle.n+' ruang lewat tanpa ditandai terpakai</div>':'')+
    '<div class="mj-note">'+(j.n
-     ? 'Nilai yang Anda tambahkan dengan membereskan masalah langsung — tanpa harus menjadi tiket.'
-     : 'Belum ada kontribusi tercatat'+(semua?'':' atas nama Anda')+'. Lihat sesuatu yang bisa langsung dibereskan? Catat di sini.')+'</div>'+
+     ? 'Terima kasih — ini nilai yang Anda sumbangkan dengan turun tangan langsung.'
+     : 'Belum ada kontribusi tercatat'+(semua?'':' atas nama Anda')+'. Melihat sesuatu yang bisa langsung dibereskan? Catat di sini — sekecil apa pun, tetap dihargai.')+'</div>'+
    '<button class="mj-lapor" onclick="kontribBuka()">✨ Lapor Kontribusi</button>'+
    '</div>';
 }
