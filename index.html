@@ -4879,6 +4879,14 @@ const USERS=[
     `pantau:true` = boleh melihat seluruh tiket & papan Field Ops untuk memantau,
     tetapi tidak mengambil tiket dan tidak melihat Log Record Operator. */
  {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general",plus:["procurement","service","fieldops","myticket","approvals"],pantau:true},
+ /* Koordinator kedua Tenant & General Services (31 Agu 2026).
+    `name` HARUS "Nuzul Hariadi" persis — 3 tiket hidup sudah memakai nama itu
+    sebagai operator (t.pic), dan peta KOORDINATOR juga menyebutnya begitu.
+    SENGAJA TANPA `pantau:true`, berbeda dari Maria & Sunaryo: Nuzul masih
+    aktif mengambil tiket di lapangan, dan pantau:true akan mencabut haknya
+    mengambil. Ia dinilai di DUA papan sekaligus — sebagai operator dan sebagai
+    koordinator — dengan aturan SLA masing-masing. */
+ {email:"nuzul.hariadi@ai.astra.co.id",name:"Nuzul Hariadi",titel:"Koordinator Lapangan",role:"general",plus:["procurement","service","fieldops","myticket","approvals"]},
  {email:"salsa.savila@ai.astra.co.id",name:"Salsa",role:"finance"},
  {email:"fieldops@ai.astra.co.id",name:"Field Ops - Supervisor",role:"fieldsup"},
  {email:"fieldops.building@ai.astra.co.id",name:"Field Ops - Building & Utility",role:"fieldops",cat:"Building & Utility"},
@@ -11776,11 +11784,115 @@ function foAdvance(no){
   if((t.stg||0)===2){ foAskPhoto(no); return; }        // langkah Selesaikan → WAJIB foto bukti
   var me=fieldOpName();
   if(gRole==='fieldops' && t.pic && t.pic!==me){ alert("⛔ Tiket ini dipegang "+t.pic+". Hanya operator yang mengambil tiket yang bisa mengerjakannya."); return; }
+  /* ── "MULAI KERJA" HARUS BISA DIBUKTIKAN (31 Agu 2026) ─────────────────────
+     Sudana: "angka ini perlu bisa dibuktikan? perlu dibangun mekanisme
+     pembuktian terbaliknya — apakah dengan dia di lokasi? geotag? atau dia
+     memfotokan kondisi terkini?"
+
+     Pertanyaan yang tepat, dan mendesak: sampai baris ini, "Mulai Kerjakan"
+     hanya menaikkan tahap dan mencap waktu. Sepenuhnya deklarasi sendiri.
+     Selama ia cuma mengisi kolom laporan, kerugiannya kecil — tetapi begitu
+     angka itu membawa POIN, tombol yang bisa ditekan dari mana saja berubah
+     menjadi undangan. Ukuran yang tidak bisa dibuktikan tidak boleh dipakai
+     menilai orang, apalagi memberinya insentif.
+
+     Buktinya FOTO KONDISI TERKINI, bukan geotag, sebagai syarat:
+       · foto memperlihatkan BENDA yang dikerjakan — geotag hanya memperlihatkan
+         perangkat berada di suatu koordinat, dan di gedung bertingkat GPS tidak
+         bisa membedakan lantai 2 dari lantai 6;
+       · foto memakai idiom yang sudah dipahami tim (penutupan pun wajib foto);
+       · foto "sebelum" berpasangan dengan foto "sesudah" — jadi ia sekaligus
+         menjadi bukti kerja, bukan sekadar portal absensi.
+     Geotag TETAP diambil bila perangkat mengizinkan, sebagai penguat — tetapi
+     TIDAK pernah menghalangi: menolak izin lokasi bukan pelanggaran, dan
+     memaksakannya hanya akan membuat orang mematikan notifikasi sekalian. */
+  if((t.stg||0)===1){ foAskMulai(no); return; }
   t.stg++; t.ts=t.ts||{}; t.ts[t.stg]=nowStamp(); t.status=TSTAGES[t.stg];
   t.slaMs=t.slaMs||{}; if(!t.slaMs.pickup)t.slaMs.pickup=nowMs();
-  if(t.stg===2&&!t.slaMs.start)t.slaMs.start=nowMs();   // ← awal hitungan Resolution Time
   dbSaveTicket(t); triggerFlow("updateTicket",{ticketNo:t.no,stg:t.stg,status:t.status,ts:t.ts[t.stg]});
   renderFieldOps(); renderMyTickets(); renderService(); renderOverview(); renderBuilding(); updateBell();
+}
+/* Ambil koordinat bila diizinkan. Selalu selesai — menolak izin mengembalikan
+   null, bukan menggantung, supaya gerbang bukti tidak pernah macet karenanya. */
+function foGeo(){
+ return new Promise(function(res){
+   try{
+     if(!navigator.geolocation) return res(null);
+     var sudah=false;
+     var t=setTimeout(function(){ if(!sudah){ sudah=true; res(null); } },6000);
+     navigator.geolocation.getCurrentPosition(
+       function(p){ if(sudah)return; sudah=true; clearTimeout(t);
+         res({lat:+p.coords.latitude.toFixed(6), lon:+p.coords.longitude.toFixed(6),
+              acc:Math.round(p.coords.accuracy||0)}); },
+       function(){ if(sudah)return; sudah=true; clearTimeout(t); res(null); },
+       {enableHighAccuracy:true, timeout:5500, maximumAge:0});
+   }catch(e){ res(null); }
+ });
+}
+function foAskMulai(no){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ window._foMulai={no:no, img:null, geo:null};
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div class="sono" style="font-size:calc(15px*var(--fz))">'+esc(t.no)+'</div>'+
+   '<div style="font-size:calc(14.5px*var(--fz));color:var(--ink);font-weight:700;margin-top:5px">'+esc(t.judul||'')+'</div>'+
+   '<div class="muted small" style="margin-top:3px">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div></div>'+
+  '<div class="db">'+
+   '<div class="panel-t" style="margin-bottom:4px">📷 Foto Kondisi Terkini <span style="color:var(--red)">*wajib</span></div>'+
+   '<div class="muted small" style="margin-bottom:12px">Foto keadaan SEBELUM dikerjakan — inilah bukti Anda benar-benar sudah di lokasi dan mulai bekerja. '+
+     'Ia juga menjadi pasangan foto hasil saat tiket ditutup nanti.</div>'+
+   '<label class="fo-cam"><input type="file" accept="image/*" capture="environment" onchange="foMulaiPick(this)"/>'+
+     '<span class="fo-cam-ic">📷</span><b>Buka Kamera</b><small>foto langsung, bukan dari galeri</small></label>'+
+   '<div id="foMulaiPrev" class="fo-prev" style="margin-top:10px"></div>'+
+   '<div id="foMulaiGeo" class="muted small" style="margin-top:8px">📍 lokasi perangkat akan disertakan bila Anda mengizinkan</div>'+
+   '<div class="field" style="margin-top:12px"><label>Catatan awal (opsional)</label>'+
+     '<textarea id="fo-mulai-note" rows="2" placeholder="mis. ballast lampu terbakar, perlu ganti 2 unit"></textarea></div>'+
+   '<button id="foMulaiBtn" class="btn-act" style="width:100%;margin-top:6px;opacity:.5" disabled onclick="foMulaiSubmit()">▶ Mulai Kerjakan</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+ /* Geotag diminta di latar sejak drawer dibuka — jadi saat orangnya selesai
+    memotret, izinnya biasanya sudah terjawab dan tidak ada jeda tambahan. */
+ foGeo().then(function(g){
+   window._foMulai=window._foMulai||{}; window._foMulai.geo=g;
+   var el=document.getElementById("foMulaiGeo"); if(!el)return;
+   el.innerHTML=g?('📍 Lokasi tercatat · akurasi ±'+g.acc+' m')
+                 :'📍 Lokasi tidak tersedia — tidak masalah, fotonya yang menjadi bukti';
+ });
+}
+async function foMulaiPick(input){
+ var f=(input.files||[])[0]; input.value=""; if(!f)return;
+ var m=await agavaMediaDari(f,1000,0.72);
+ if(!m) return;
+ window._foMulai=window._foMulai||{}; window._foMulai.img=m;
+ var box=document.getElementById("foMulaiPrev");
+ if(box) box.innerHTML='<div class="fo-prev-i"><img src="'+(mdThumb(m)||"")+'"/>'+
+   '<button type="button" onclick="foMulaiHapus()" title="hapus">✕</button></div>';
+ var b=document.getElementById("foMulaiBtn");
+ if(b){ b.disabled=false; b.style.opacity=1; }
+}
+function foMulaiHapus(){
+ if(window._foMulai) window._foMulai.img=null;
+ var box=document.getElementById("foMulaiPrev"); if(box) box.innerHTML="";
+ var b=document.getElementById("foMulaiBtn"); if(b){ b.disabled=true; b.style.opacity=.5; }
+}
+function foMulaiSubmit(){
+ var d=window._foMulai||{};
+ var t=TICKETS.find(function(x){return x.no===d.no;});
+ if(!t){ closeDrawer(); return; }
+ if(!d.img){ alert("Foto kondisi terkini wajib — itulah buktinya."); return; }
+ var note=((document.getElementById("fo-mulai-note")||{}).value||"").trim();
+ closeDrawer();
+ t.stg=2; t.ts=t.ts||{}; t.ts[2]=nowStamp(); t.status=TSTAGES[2];
+ t.slaMs=t.slaMs||{}; if(!t.slaMs.pickup)t.slaMs.pickup=nowMs();
+ if(!t.slaMs.start) t.slaMs.start=nowMs();     // ← awal hitungan Resolution Time
+ /* Buktinya menempel pada tiketnya, bukan disimpan terpisah (Prinsip 5). */
+ t.mulaiBukti={img:d.img, at:nowStamp(), by:fieldOpName(),
+               geo:d.geo||null, note:note||""};
+ try{ tkKomen(t,"Mulai dikerjakan"+(d.geo?(" · lokasi tercatat ±"+d.geo.acc+" m"):" · tanpa data lokasi")+
+   (note?(": "+note):""),"kerja"); }catch(e){}
+ dbSaveTicket(t);
+ try{ triggerFlow("updateTicket",{ticketNo:t.no,stg:2,status:t.status,ts:t.ts[2]}); }catch(e){}
+ try{ agavaRenderAman(["renderFieldOps","renderMyTickets","renderService","renderOverview","renderBuilding","updateBell"]); }catch(e){}
 }
 /* ── FOTO BUKTI WAJIB sebelum tiket ditutup ──
    capture="environment" → di HP langsung membuka KAMERA BELAKANG. Foto dikompres
@@ -11892,6 +12004,60 @@ function foDiambil(t){
  return !!(t && ((t.stg||0)>=1 || t.pickBy || (t.slaMs&&t.slaMs.pickup) || (t.ts&&t.ts[1])));
 }
 function foPengambil(t){ return (t&&(t.pickBy||t.pic))||""; }
+/* ╔══ KREDIT POIN — MENDORONG, BUKAN MENGHUKUM (31 Agu 2026) ════════════════╗
+   Sudana: "bagaimana cara lain mendorong operator agar bisa pickup di bawah 10
+   menit? apa kita balik pendekatannya dengan Insentif?"
+
+   Ya, dan itu justru satu-satunya cara yang konsisten setelah kita menerima
+   logika Edwin. Begitu waktu antre tidak lagi boleh menghukum, satu-satunya
+   tuas yang tersisa memang penghargaan.
+
+   Yang paling penting di tabel ini: MENYELAMATKAN bernilai LEBIH TINGGI
+   daripada CEPAT. Mengambil tiket yang sudah lama menganggur dulu adalah
+   perbuatan yang dihukum; sekarang ia perbuatan yang paling dihargai — karena
+   orang itu sedang menutup kegagalan antrean, bukan membuatnya. Kalau
+   nilainya dibuat sama, kita hanya berhenti menghukum tanpa pernah mengajak.
+
+   Semua angka di sini KONFIGURASI, bukan program (Prinsip 4). */
+const POIN={
+ antreLamaMenit:30,            // di atas ini, mengambil tiket dihitung "menyelamatkan"
+ op:{ cepat:10, selamatkan:15, mulaiTepat:5, selesaiTepat:10, bintang5:5, buktiMulai:3,
+      langgarMulai:-5, langgarSelesai:-10 },
+ koor:{ tepat:15, lewat:-15 },
+ proc:{ tepat:15, lewat:-10 }
+};
+function poinRinci(baris){
+ var total=0;
+ baris.forEach(function(b){ b.jumlah=(b.n||0)*b.poin; total+=b.jumlah; });
+ return {total:total, rincian:baris.filter(function(b){ return b.n>0; })};
+}
+function poinOperator(s){
+ var P=POIN.op;
+ return poinRinci([
+  {k:"cepat",       label:"Diambil ≤ "+SLA_PICK_MAX+" menit",          n:s.cepat||0,        poin:P.cepat},
+  {k:"selamatkan",  label:"Menyelamatkan tiket antre lama",            n:s.selamatkan||0,   poin:P.selamatkan},
+  {k:"mulaiTepat",  label:"Mulai kerja dalam target",                  n:Math.max(0,(s.startN||0)-(s.startBreach||0)), poin:P.mulaiTepat},
+  {k:"selesaiTepat",label:"Selesai dalam target SLA",                  n:Math.max(0,(s.resN||0)-(s.resBreach||0)),     poin:P.selesaiTepat},
+  {k:"bintang5",    label:"Rating ⭐5 dari pemohon",                    n:s.rate5||0,        poin:P.bintang5},
+  {k:"buktiMulai",  label:"Mulai kerja dengan bukti foto",             n:s.buktiMulai||0,   poin:P.buktiMulai},
+  {k:"langgarMulai",label:"Terlambat mulai kerja",                     n:s.startBreach||0,  poin:P.langgarMulai},
+  {k:"langgarSelesai",label:"Terlambat menyelesaikan",                 n:s.resBreach||0,    poin:P.langgarSelesai}
+ ]);
+}
+function poinKoordinator(s){
+ var P=POIN.koor;
+ return poinRinci([
+  {k:"tepat",label:"Eskalasi jadi SO ≤ "+ESC_KOOR_SLA_JAM+" jam", n:s.cepat||0,      poin:P.tepat},
+  {k:"lewat",label:"Lewat batas "+ESC_KOOR_SLA_JAM+" jam",        n:s.escBreach||0,  poin:P.lewat}
+ ]);
+}
+function poinProc(s){
+ var P=POIN.proc;
+ return poinRinci([
+  {k:"tepat",label:"SO tuntas ≤ "+SLA_PROC_HARI+" hari", n:Math.max(0,(s.done||0)-(s.breach||0)), poin:P.tepat},
+  {k:"lewat",label:"Lewat "+SLA_PROC_HARI+" hari",       n:s.breach||0,                            poin:P.lewat}
+ ]);
+}
 function foOperatorStats(){
  var m={};
  TICKETS.forEach(function(t){
@@ -11902,8 +12068,11 @@ function foOperatorStats(){
    if(!who) who="⚠️ operator tidak tercatat";
    var s=m[who]=m[who]||{name:who,role:t.opRole||"",shift:t.opShift||"",pick:0,done:0,open:0,esc:0,
      respSum:0,respN:0,startSum:0,startN:0,resSum:0,resN:0,
-     respAntreLewat:0,startBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0,tiket:[]};
+     respAntreLewat:0,startBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0,
+     cepat:0,selamatkan:0,rate5:0,buktiMulai:0,tiket:[]};
    s.tiket.push(t.no);
+   if(t.rating>=5) s.rate5++;
+   if(t.mulaiBukti&&t.mulaiBukti.img) s.buktiMulai++;
    var sla=ticketSLA(t);
    s.pick++;
    if((t.stg||0)>=3)s.done++; else s.open++;
@@ -11925,86 +12094,33 @@ function foOperatorStats(){
       tetapi TIDAK ikut menghitung SLA orangnya. Yang membebani orang hanyalah
       dua tahap yang benar-benar ada di tangannya setelah ia mengambil:
         start → pickup..mulai kerja      resolution → mulai..selesai   */
-   if(sla.respDone&&sla.respMin!=null){ s.respSum+=sla.respMin; s.respN++; if(sla.respBreach)s.respAntreLewat++; }
+   if(sla.respDone&&sla.respMin!=null){
+     s.respSum+=sla.respMin; s.respN++;
+     if(sla.respBreach)s.respAntreLewat++;
+     /* ── DUA PERILAKU YANG DIHARGAI, BUKAN DIHUKUM ─────────────────────────
+        CEPAT     : diambil ≤ target (10 menit) — inilah yang ingin didorong.
+        MENYELAMATKAN: diambil setelah tiket lama menganggur. Dulu justru
+        INILAH yang dihukum. Sekarang ia bernilai paling tinggi, karena orang
+        yang mengambil tiket tua sedang menutup kegagalan antrean, bukan
+        membuatnya. Keduanya saling meniadakan — sebuah tiket saat diambil
+        entah masih segar atau sudah lama, tidak mungkin dua-duanya. */
+     if(sla.respMin<=SLA_PICK_MAX) s.cepat++;
+     else if(sla.respMin>POIN.antreLamaMenit) s.selamatkan++;
+   }
    if(sla.startDone&&sla.startMin!=null){ s.startSum+=sla.startMin; s.startN++; if(sla.startBreach)s.startBreach++; }
    if(sla.resDone&&sla.resMin!=null){ s.resSum+=sla.resMin; s.resN++; if(sla.resBreach)s.resBreach++; }
    if(t.rating){ s.rateSum+=t.rating; s.rateN++; }
    if(t.proof&&t.proof.length)s.proof++;
  });
- /* ── KOORDINATOR IKUT DIHITUNG (31 Agu 2026) ──────────────────────────────
-    Permintaan Sudana: "Koordinator juga masuk ke Field Ops sebagai daftar nama
-    yang kita perhitungkan juga waktu respon dan resolutionnya."
-
-    Ia tidak pernah muncul di log ini karena log dihitung dari PENGAMBILAN
-    tiket, dan koordinator ber-pantau:true tidak boleh mengambil. Tapi ia punya
-    jam yang ditagih, dan jamnya sudah ada: batas 3 jam mengubah eskalasi
-    menjadi SO. Itulah response & resolution-nya — diukur dari escAt sampai
-    escSoAt (saat SO-nya terbit ke Procurement), bukan ukuran baru yang
-    dikarang khusus untuk mengisi kolom.
-
-    Barisnya digabung ke tabel yang sama, ditandai "Koordinator" di kolom Role
-    supaya tidak tertukar dengan operator lapangan. */
- Object.keys(KOORDINATOR).forEach(function(kat){
-  koordinatorKategori(kat).forEach(function(nama){
-   var s=m[nama];
-   if(!s){ s=m[nama]={name:nama,role:"Koordinator",shift:"",koorKat:[],pick:0,done:0,open:0,esc:0,
-     respSum:0,respN:0,startSum:0,startN:0,resSum:0,resN:0,
-     respAntreLewat:0,startBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0,tiket:[]}; }
-   if(!s.koorKat) s.koorKat=[];
-   if(s.koorKat.indexOf(kat)<0) s.koorKat.push(kat);
-   if(!s.role) s.role="Koordinator";
-  });
- });
- TICKETS.forEach(function(t){
-   if(!t||!t.esc) return;
-   if(escKunci(t)!=="koor") return;                 // hanya yang mendarat di anak tangga Koordinator
-   /* Antrean BERSAMA: eskalasi yang sama masuk ke hitungan SETIAP koordinator
-      kategori itu. Kalau hanya dibebankan ke satu orang, yang lain terlihat
-      tidak pernah kebagian pekerjaan — padahal ia memang ikut memegangnya. */
-   ticketKoordinatorList(t).forEach(function(nama){
-   var s=m[nama]; if(!s||!s.koorKat) return;
-   s.pick++; s.esc++;
-   if(s.tiket.indexOf(t.no)<0) s.tiket.push(t.no);
-   var beres=!!(t.soNo||t.so||t.escDone);
-   if(beres) s.done++; else s.open++;
-   /* DUA ukuran yang berbeda, bukan satu angka disalin ke dua kolom:
-        Response   = escAt → tanda tangan pertama bahwa ia menggarapnya
-                     (diskusi dengan Section, atau langsung SO)
-        Resolution = escAt → SO terbit ke Procurement
-      Hanya dihitung bila penanda waktunya benar-benar ada; menebak salah
-      satunya melahirkan angka kinerja yang tidak bisa ditelusuri ke sumbernya
-      (Prinsip 7). */
-   /* SATU TIKET = SATU KEMUNGKINAN BREACH. Versi pertama menaikkan respBreach
-      DAN resBreach untuk tiket yang sama, sehingga Sunaryo memperoleh 38
-      pelanggaran dari 35 eskalasi — angka yang mustahil dan langsung menyingkap
-      bahwa yang dihitung bukan tiket, melainkan kejadian. */
-   var lewat=false;
-   if(t.escAt){
-     var aksiPertama=t.diskusiAt||t.escSoAt||"";
-     if(aksiPertama){
-       var msR=goLiveMs({ts:{created:aksiPertama}})-t.escAt;
-       if(msR>0){ var mr=Math.round(msR/60000);
-         s.respSum+=mr; s.respN++;
-         if(mr>ESC_KOOR_SLA_JAM*60) lewat=true; }
-     }
-     if(beres && t.escSoAt){
-       var msS=goLiveMs({ts:{created:t.escSoAt}})-t.escAt;
-       if(msS>0){ var ms2=Math.round(msS/60000);
-         s.resSum+=ms2; s.resN++;
-         if(ms2>ESC_KOOR_SLA_JAM*60) lewat=true; }
-     }
-   }
-   /* Didiamkan sampai lewat, SO-nya belum pernah ada. Tanpa cabang ini,
-      koordinator yang MENDIAMKAN tiket justru terlihat paling bersih: ia tidak
-      punya satu pun angka untuk dilanggar. */
-   if(!beres && (t.escBreachAt || escLewatSLA(t))) lewat=true;
-   if(lewat) s.escBreach=(s.escBreach||0)+1;
-   });
- });
+ /* Koordinator TIDAK lagi ikut di sini — lihat koorEscStats().
+    Sampai v273 keduanya digabung dalam SATU baris per nama, dan itu runtuh
+    begitu Nuzul Hariadi menjadi koordinator sekaligus tetap operator aktif:
+    barisnya memperoleh koorKat, lalu penyaring section menganggapnya
+    koordinator saja — dan 3 tiket yang ia ambil di lapangan lenyap dari
+    papan Operator. Satu orang boleh memegang dua peran; yang tidak boleh
+    adalah dua jenis pekerjaan berbagi satu baris angka. */
  return Object.keys(m).map(function(k){
    var s=m[k];
-   var koor=!!(s.koorKat&&s.koorKat.length);
-   if(koor) s.shift=s.shift||s.koorKat.join(", ");
    s.respAvg=s.respN?Math.round(s.respSum/s.respN):null;
    s.startAvg=s.startN?Math.round(s.startSum/s.startN):null;
    s.resAvg=s.resN?Math.round(s.resSum/s.resN):null;
@@ -12020,21 +12136,66 @@ function foOperatorStats(){
       tidak punya catatan waktu sama sekali. Untuk operator, aturan lama
       dipertahankan: yang dinilai adalah tiap tahap SLA yang benar-benar
       terukur. */
-   if(koor){
-     var langgar=(s.escBreach||0);          // satu tiket dihitung sekali
-     s.breachTotal=langgar;
-     s.slaPct=s.pick?Math.max(0,Math.round((1-(langgar/s.pick))*100)):null;
-   } else {
-     /* SLA operator dihitung dari tahap yang ADA DI TANGANNYA saja: mulai kerja
-        dan penyelesaian. Lamanya tiket menganggur sebelum diambil (respAntreLewat)
-        sengaja TIDAK ikut — lihat catatan pertanyaan Edwin di atas. Angkanya
-        tetap disimpan supaya terlihat di rapor sebagai konteks antrean. */
-     s.breachTotal=(s.startBreach||0)+(s.resBreach||0);
-     var tahap=(s.startN||0)+(s.resN||0);
-     s.slaPct=tahap?Math.round((1-(s.breachTotal/tahap))*100):null;
-   }
+   /* SLA operator dihitung dari tahap yang ADA DI TANGANNYA saja: mulai kerja
+      dan penyelesaian. Lamanya tiket menganggur sebelum diambil (respAntreLewat)
+      sengaja TIDAK ikut — lihat catatan pertanyaan Edwin di atas. Angkanya tetap
+      disimpan supaya terlihat di rapor sebagai konteks antrean. */
+   s.breachTotal=(s.startBreach||0)+(s.resBreach||0);
+   var tahap=(s.startN||0)+(s.resN||0);
+   s.slaPct=tahap?Math.round((1-(s.breachTotal/tahap))*100):null;
+   s.poin=poinOperator(s);
    return s;
  }).sort(function(a,b){return b.pick-a.pick;});
+}
+/* ╔══ PAPAN KOORDINATOR — TERPISAH DARI PAPAN OPERATOR ══════════════════════╗
+   Dipisah 31 Agu 2026 karena Nuzul Hariadi memegang dua peran sekaligus.
+   Jamnya berbeda, kolomnya berbeda, dan orang yang sama boleh muncul di
+   kedua papan dengan angkanya masing-masing. */
+function koorEscStats(){
+ var m={};
+ Object.keys(KOORDINATOR).forEach(function(kat){
+   koordinatorKategori(kat).forEach(function(nama){
+     var s=m[nama]; if(!s){ s=m[nama]={name:nama,role:"Koordinator",koorKat:[],
+       pick:0,done:0,open:0,respSum:0,respN:0,resSum:0,resN:0,escBreach:0,cepat:0,tiket:[]}; }
+     if(s.koorKat.indexOf(kat)<0) s.koorKat.push(kat);
+   });
+ });
+ (TICKETS||[]).forEach(function(t){
+   if(!t||!t.esc) return;
+   if(escKunci(t)!=="koor") return;
+   /* Antrean BERSAMA: eskalasi yang sama masuk ke hitungan SETIAP koordinator
+      kategori itu. Kalau hanya dibebankan ke satu orang, yang lain terlihat
+      tidak pernah kebagian pekerjaan — padahal ia memang ikut memegangnya. */
+   ticketKoordinatorList(t).forEach(function(nama){
+     var s=m[nama]; if(!s) return;
+     s.pick++; if(s.tiket.indexOf(t.no)<0) s.tiket.push(t.no);
+     var beres=!!(t.soNo||t.so||t.escDone);
+     if(beres) s.done++; else s.open++;
+     var batas=ESC_KOOR_SLA_JAM*60, lewat=false, resMnt=null;
+     if(t.escAt){
+       var aksi=t.diskusiAt||t.escSoAt||"";
+       if(aksi){ var mr=Math.round((goLiveMs({ts:{created:aksi}})-t.escAt)/60000);
+         if(mr>0){ s.respSum+=mr; s.respN++; if(mr>batas) lewat=true; } }
+       if(beres&&t.escSoAt){ resMnt=Math.round((goLiveMs({ts:{created:t.escSoAt}})-t.escAt)/60000);
+         if(resMnt>0){ s.resSum+=resMnt; s.resN++; if(resMnt>batas) lewat=true; } }
+     }
+     if(!beres && (t.escBreachAt||escLewatSLA(t))) lewat=true;
+     /* SATU TIKET = SATU KEMUNGKINAN BREACH (pelajaran v272: 38 pelanggaran
+        dari 35 eskalasi — yang dihitung kejadian, bukan tiket). */
+     if(lewat) s.escBreach++;
+     else if(beres&&resMnt!=null&&resMnt<=batas) s.cepat++;
+   });
+ });
+ return Object.keys(m).map(function(k){
+   var s=m[k];
+   s.shift=s.koorKat.join(", ");
+   s.respAvg=s.respN?Math.round(s.respSum/s.respN):null;
+   s.resAvg=s.resN?Math.round(s.resSum/s.resN):null;
+   s.breachTotal=s.escBreach;
+   s.slaPct=s.pick?Math.max(0,Math.round((1-(s.escBreach/s.pick))*100)):null;
+   s.poin=poinKoordinator(s);
+   return s;
+ }).sort(function(a,b){ return b.pick-a.pick; });
 }
 /* ╔══ RAPOR KINERJA PER ORANG ═══════════════════════════════════════════════╗
    Pertanyaan pertama Edwin, 30 Agustus: ia ingin melihat rincian di balik
@@ -12050,15 +12211,25 @@ function foOperatorStats(){
 var FO_REKAP_SEC="operator";
 function foRekapSec(k){ FO_REKAP_SEC=k; try{ renderFieldOps(); }catch(e){} }
 function foRekapKepala(sec){
+ var poin='<th>Poin<div class="fo-th-s">kredit</div></th>';
  if(sec==="koordinator")
    return '<th>Nama</th><th>Wilayah</th><th>Eskalasi</th><th>Jadi SO</th><th>Terbuka</th>'+
-          '<th>Respons pertama</th><th>Sampai SO</th><th>Lewat '+ESC_KOOR_SLA_JAM+'j</th><th>SLA</th>';
+          '<th>Respons pertama</th><th>Sampai SO</th><th>Lewat '+ESC_KOOR_SLA_JAM+'j</th><th>SLA</th>'+poin;
  if(sec==="procurement")
    return '<th>Nama</th><th>Peran</th><th>SO dipegang</th><th>Selesai (BAST)</th><th>Berjalan</th>'+
-          '<th>Rata-rata sampai BAST</th><th>Lewat '+SLA_PROC_HARI+'h</th><th>SLA</th>';
- return '<th>Nama</th><th>Peran · Shift</th><th>Tiket</th><th>Selesai</th><th>Terbuka</th><th>Eskalasi</th>'+
-        '<th>Antre<div class="fo-th-s">bukan beban</div></th><th>Mulai kerja</th><th>Penyelesaian</th>'+
-        '<th>Breach</th><th>SLA</th><th>Rating</th>';
+          '<th>Rata-rata sampai BAST</th><th>Lewat '+SLA_PROC_HARI+'h</th><th>SLA</th>'+poin;
+ return '<th>Nama</th><th>Peran · Shift</th><th>Tiket</th><th>Selesai</th><th>Terbuka</th>'+
+        '<th>Antre<div class="fo-th-s">bukan beban</div></th>'+
+        '<th>⚡ Cepat<div class="fo-th-s">≤'+SLA_PICK_MAX+' mnt</div></th>'+
+        '<th>🛟 Selamatkan<div class="fo-th-s">antre lama</div></th>'+
+        '<th>Mulai kerja</th><th>Penyelesaian</th><th>Breach</th><th>SLA</th>'+poin;
+}
+/* Sel poin — angka besar berwarna, karena inilah yang ingin dilihat orang
+   duluan. Positif hijau, negatif merah, nol abu. */
+function poinSel(p){
+ var n=(p&&p.total)||0;
+ var w=n>0?'var(--green)':(n<0?'var(--red)':'var(--muted)');
+ return '<td style="color:'+w+';font-weight:800;font-size:calc(15px*var(--fz))">'+(n>0?'+':'')+n+'</td>';
 }
 function foRekapBaris(s,sec){
  var sc=s.slaPct==null?'#9aa7b8':(s.slaPct>=90?'var(--green)':s.slaPct>=75?'#F59E0B':'var(--red)');
@@ -12073,21 +12244,22 @@ function foRekapBaris(s,sec){
      '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+'</td>'+
      '<td>'+(s.respAvg==null?'—':fmtDur(s.respAvg))+'</td>'+
      '<td>'+(s.resAvg==null?'—':fmtDur(s.resAvg))+'</td>'+
-     '<td>'+(s.breachTotal||'0')+'</td>'+sla+'</tr>';
+     '<td>'+(s.breachTotal||'0')+'</td>'+sla+poinSel(s.poin)+'</tr>';
  if(sec==="procurement")
    return '<tr'+buka+'><td><b>'+esc(s.name)+'</b></td>'+
      '<td class="muted small">'+esc(s.role||'Staff Procurement')+'</td>'+
      '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+'</td>'+
      '<td>'+(s.durAvg==null?'—':fmtDur(s.durAvg))+'</td>'+
-     '<td>'+(s.breach||'0')+'</td>'+sla+'</tr>';
+     '<td>'+(s.breach||'0')+'</td>'+sla+poinSel(s.poin)+'</tr>';
  return '<tr'+buka+'><td><b>'+esc(s.name)+'</b></td>'+
    '<td class="muted small">'+esc(s.role||'—')+(s.shift?' · '+esc(s.shift):'')+'</td>'+
-   '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+(s.open>=FO_WIP_MAX?' 🚧':'')+'</td><td>'+s.esc+'</td>'+
+   '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+(s.open>=FO_WIP_MAX?' 🚧':'')+'</td>'+
    '<td class="muted">'+(s.respAvg==null?'—':fmtDur(s.respAvg))+'</td>'+
+   '<td'+((s.cepat||0)?' style="color:var(--green);font-weight:700"':' class="muted"')+'>'+(s.cepat||0)+'</td>'+
+   '<td'+((s.selamatkan||0)?' style="color:var(--green);font-weight:700"':' class="muted"')+'>'+(s.selamatkan||0)+'</td>'+
    '<td>'+(s.startAvg==null?'—':fmtDur(s.startAvg))+'</td>'+
    '<td>'+(s.resAvg==null?'—':fmtDur(s.resAvg))+'</td>'+
-   '<td>'+(s.breachTotal||'0')+'</td>'+sla+
-   '<td>'+(s.rateAvg==null?'—':'★ '+s.rateAvg.toFixed(1))+'</td></tr>';
+   '<td>'+(s.breachTotal||'0')+'</td>'+sla+poinSel(s.poin)+'</tr>';
 }
 var RAPOR_ORANG="";
 function raporBuka(nama){ RAPOR_ORANG=String(nama||""); go("rapor"); }
@@ -12180,6 +12352,7 @@ function procStaffStats(){
    var x=m[k];
    x.durAvg=x.durN?Math.round(x.durSum/x.durN):null;
    x.slaPct=x.pick?Math.max(0,Math.round((1-(x.breach/x.pick))*100)):null;
+   x.poin=poinProc(x);
    return x;
  }).sort(function(a,b){ return b.pick-a.pick; });
 }
@@ -12210,10 +12383,14 @@ function renderRapor(){
     ada di dua kelompok sekaligus (Staff Procurement yang juga pernah mengambil
     tiket), dan rapor yang salah kelompok akan menampilkan kolom yang tidak
     berlaku baginya. */
- var st;
- if(FO_REKAP_SEC==="procurement") st=procStaffStats().filter(function(s){ return orangSama(s.name,RAPOR_ORANG); })[0];
- if(!st) st=foOperatorStats().filter(function(s){ return orangSama(s.name,RAPOR_ORANG); })[0];
- if(!st) st=procStaffStats().filter(function(s){ return orangSama(s.name,RAPOR_ORANG); })[0];
+ var cari=function(arr){ return arr.filter(function(s){ return orangSama(s.name,RAPOR_ORANG); })[0]; };
+ var sumber={operator:foOperatorStats, koordinator:koorEscStats, procurement:procStaffStats};
+ /* Sumbernya mengikuti section yang sedang dibuka. Ini bukan kerapian belaka:
+    Nuzul Hariadi ada di DUA papan dengan angka berbeda, dan rapor yang salah
+    papan akan menampilkan pencapaian yang bukan miliknya di peran itu. */
+ var st=cari((sumber[FO_REKAP_SEC]||foOperatorStats)());
+ if(!st){ ["operator","koordinator","procurement"].forEach(function(k){
+   if(!st) st=cari(sumber[k]()); }); }
  if(!st){
    el.innerHTML='<div class="card" style="padding:40px;text-align:center;color:var(--muted)">'+
      'Pilih satu nama di rekap Field Ops untuk membuka rapornya.'+
@@ -12272,6 +12449,32 @@ function renderRapor(){
     '<button class="btn-act" onclick="foExportCSV()">⬇ Unduh CSV semua</button>'+
   '</div>'+
   '<div class="rap-kartu-w">'+kartu+'</div>'+
+  /* ── RINCIAN KREDIT POIN ──────────────────────────────────────────────────
+     Total poin tanpa rinciannya adalah persis kesalahan yang dikeluhkan Edwin
+     soal rata-rata: angka yang tidak bisa dibantah maupun dibenarkan. Jadi tiap
+     baris menyebut PERBUATANNYA, jumlahnya, nilai satuannya, dan hasilnya —
+     sehingga orangnya bisa menghitung ulang sendiri. */
+  (function(p){
+    if(!p) return '';
+    var b=p.rincian.map(function(r){
+      var w=r.poin>0?'var(--green)':'var(--red)';
+      return '<tr><td>'+esc(r.label)+'</td><td style="text-align:right">'+r.n+'</td>'+
+        '<td style="text-align:right;color:'+w+'">'+(r.poin>0?'+':'')+r.poin+'</td>'+
+        '<td style="text-align:right;font-weight:700;color:'+w+'">'+(r.jumlah>0?'+':'')+r.jumlah+'</td></tr>';
+    }).join("");
+    var w=p.total>0?'var(--green)':(p.total<0?'var(--red)':'var(--muted)');
+    return '<div class="card sec" style="margin-bottom:14px"><div class="sec-h">'+
+      secIc('#eafaf1','#12805C','approvals')+
+      '<div><h2>Kredit Poin '+(p.total>0?'+':'')+p.total+'</h2>'+
+      '<div class="d">Tiap baris bisa dihitung ulang sendiri — jumlah × nilai satuan</div></div></div>'+
+      '<div class="fo-oplog-w"><table class="fo-oplog-t">'+
+      '<thead><tr><th>Perbuatan</th><th style="text-align:right">Jumlah</th>'+
+      '<th style="text-align:right">Nilai</th><th style="text-align:right">Poin</th></tr></thead>'+
+      '<tbody>'+(b||'<tr><td colspan="4" class="muted small" style="text-align:center;padding:18px">Belum ada poin tercatat.</td></tr>')+
+      '<tr style="border-top:2px solid var(--line)"><td colspan="3" style="font-weight:800">TOTAL</td>'+
+      '<td style="text-align:right;font-weight:800;font-size:calc(16px*var(--fz));color:'+w+'">'+(p.total>0?'+':'')+p.total+'</td></tr>'+
+      '</tbody></table></div></div>';
+  })(st.poin)+
   ((koor||proc)?'':
    '<div class="rap-adil">'+
      '<b>Kenapa "menunggu di antrean" tidak dibebankan kepada Anda</b>'+
@@ -12405,9 +12608,11 @@ function renderFieldOps(){
 
        Masing-masing punya kolomnya sendiri, jadi tidak ada kolom yang kosong
        hanya karena ukuran itu tidak berlaku bagi kelompok tersebut. */
-    var semua=foOperatorStats();
-    var stOp=semua.filter(function(s){ return !(s.koorKat&&s.koorKat.length); });
-    var stKo=semua.filter(function(s){ return s.koorKat&&s.koorKat.length; });
+    /* Tiga sumber TERPISAH, bukan satu daftar yang disaring. Nuzul Hariadi
+       memegang dua peran sekaligus — menyaring satu daftar akan menyembunyikan
+       angka operatornya di balik baris koordinatornya. */
+    var stOp=foOperatorStats();
+    var stKo=koorEscStats();
     var stPr=procStaffStats();
     var secList=[{k:"operator",label:"Operator",n:stOp.length},
                  {k:"koordinator",label:"Koordinator",n:stKo.length},
@@ -22077,7 +22282,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.31-273";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.31-274";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
