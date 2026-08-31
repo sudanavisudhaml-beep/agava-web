@@ -11071,9 +11071,17 @@ const ESC_TANGGA=[
  {k:"koor",    label:"Koordinator Kategori", nav:"service",
   ket:"koordinator operator kategori ini — berwenang mengajukan SO atau menaikkan ke Section Head",
   pemegang:function(t){ return (typeof ticketKoordinator==="function")?ticketKoordinator(t):""; },
-  /* Kategori yang koordinatornya belum ditentukan tetap punya anak tangga ini —
-     penerimanya sementara Staff GA, supaya tiket tidak menggantung tanpa alamat
-     DAN tanpa melompati tangga. */
+  /* DIUBAH 31 Agu 2026. Dulu: kategori tanpa koordinator tetap mendarat di anak
+     tangga ini dengan penerima "sementara Staff GA". Akibatnya setiap eskalasi
+     kategori tak berkoordinator muncul di layar SEMUA pemegang staffga —
+     termasuk Sunaryo, yang hanya memegang Building. Sekarang eskalasi baru
+     tidak pernah mendarat di sini tanpa koordinator bernama (lihat
+     escAnakBerlaku); ia naik langsung ke Section Head.
+
+     roleCadangan SENGAJA dipertahankan sebagai jaring, bukan sebagai alamat:
+     ia hanya dipakai escUntukSaya untuk tiket LAMA yang terlanjur ber-escTo
+     "koor" tanpa koordinator. Tiket seperti itu harus tetap terlihat seseorang
+     daripada menghilang — hilang jauh lebih mahal daripada terlihat lebih. */
   roleCadangan:["staffga","fieldsup","proc"]},
  {k:"section", label:"Section Head", nav:"approvals",
   ket:"keputusan atau anggaran di atas wewenang Koordinator",
@@ -11199,6 +11207,34 @@ function escTingkat(t){
 function escAnak(t){ return ESC_TANGGA[escTingkat(t)]||ESC_TANGGA[0]; }
 /* Anak tangga BERIKUTNYA, atau null bila sudah di puncak. */
 function escAnakBerikut(t){ return ESC_TANGGA[escTingkat(t)+1]||null; }
+/* ── ANAK TANGGA YANG BERLAKU UNTUK TIKET INI (31 Agu 2026) ─────────────────
+   Keputusan Sudana:
+
+     Building & Utility        → naik ke Sunaryo   (Koordinator)
+     Tenant & General Services → naik ke Maria     (Koordinator)
+     kategori lainnya          → naik LANGSUNG ke Section Head
+
+   Aturan ketiga itu TIDAK ditulis sebagai "kalau bukan Building/Tenant lompat
+   ke Section" — daftar kategori seperti itu akan basi begitu ada koordinator
+   baru diangkat. Yang ditulis adalah syaratnya: sebuah anak tangga baru
+   berlaku bila ia punya ALAMAT NYATA untuk tiket ini — nama pemegang, atau
+   peran tetap. Anak tangga Koordinator hanya punya nama bila kategorinya ada
+   di peta KOORDINATOR; kalau tidak, ia bukan anak tangga bagi tiket itu dan
+   dilewati. Mengangkat koordinator baru cukup menambah satu baris di peta,
+   tanpa menyentuh fungsi ini (Prinsip 4).
+
+   Kenapa roleCadangan TIDAK dihitung sebagai alamat: justru itu yang dulu
+   membuat SELURUH eskalasi kategori tak berkoordinator mendarat di semua
+   pemegang staffga sekaligus — termasuk Sunaryo, yang hanya memegang
+   Building. Alamat kolektif bukan alamat. */
+function escAnakBerlaku(t,mulai){
+ for(var i=Math.max(0,mulai);i<ESC_TANGGA.length;i++){
+   var d=ESC_TANGGA[i];
+   if(escPemegang(t,d)) return d;      // dipegang orang bernama untuk tiket ini
+   if(d.role) return d;                // dipegang peran tetap (section/dept)
+ }
+ return ESC_TANGGA[ESC_TANGGA.length-1];
+}
 /* Siapa yang memegang sebuah anak tangga untuk tiket ini. */
 function escPemegang(t,d){ try{ return (d&&d.pemegang)?(d.pemegang(t)||""):""; }catch(e){ return ""; } }
 function escTujuan(t){
@@ -11278,7 +11314,10 @@ function myTicketEscalateSubmit(no){
     dengan naik tingkat berikutnya: satu anak tangga, dari pemegang sekarang
     ke pemegang berikutnya. Satu tangga, satu aturan — dan labelnya jujur
     menyebut "dari Field Ops", bukan seolah Koordinator yang memulai. */
- var dariAnak=ESC_TANGGA[0], naik=ESC_TANGGA[1];
+ /* Tujuannya BUKAN lagi dipaku ke ESC_TANGGA[1]. Anak tangga Koordinator hanya
+    dipakai bila kategori tiket ini punya koordinator bernama; kalau tidak,
+    escAnakBerlaku melewatinya dan tiket naik langsung ke Section Head. */
+ var dariAnak=ESC_TANGGA[0], naik=escAnakBerlaku(t,1);
  var to=naik.k, d=ESC_TUJUAN[to];
  closeDrawer();
  t.esc=true; t.escTo=to; t.escBy=fieldOpName(); t.escNote=note; t.escAt=nowMs(); t.escDone=false;
@@ -21279,7 +21318,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.31-267";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.31-268";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
