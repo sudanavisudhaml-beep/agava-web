@@ -4824,12 +4824,17 @@ const USERS=[
     `name` SENGAJA tetap "Sunaryo" (bukan "Sunaryo Bara"): 15 tiket hidup sudah
     memakai "Sunaryo" sebagai operator (t.pic). Mengganti nama di sini akan
     memutus tautan itu — antrean My Tickets & Log Operator-nya ikut kosong. */
- {email:"sunaryo2@ai.astra.co.id",name:"Sunaryo",titel:"Koordinator Lapangan",role:"general",plus:["procurement","service","fieldops"],pantau:true},
+ /* 31 Agu 2026 — `myticket` & `approvals` ditambahkan atas permintaan Sudana:
+    bottom bar koordinator menjadi Beranda · My Tiket · + · Approval · Discover.
+    Halaman Approvals mereka hanya berisi eskalasi MILIK MEREKA — escUntukSaya
+    menyaring per orang, dan mereka bukan approver gerbang mana pun, jadi tidak
+    ada antrean orang lain yang ikut terlihat. */
+ {email:"sunaryo2@ai.astra.co.id",name:"Sunaryo",titel:"Koordinator Lapangan",role:"general",plus:["procurement","service","fieldops","myticket","approvals"],pantau:true},
  /* Maria diberi modul tambahan lewat `plus` — bukan dengan mengubah menu role
     "general", karena M Zhaenuri & Mujibur seperan dengannya dan tidak ikut diberi.
     `pantau:true` = boleh melihat seluruh tiket & papan Field Ops untuk memantau,
     tetapi tidak mengambil tiket dan tidak melihat Log Record Operator. */
- {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general",plus:["procurement","service","fieldops"],pantau:true},
+ {email:"maria.paulina@ai.astra.co.id",name:"Maria",role:"general",plus:["procurement","service","fieldops","myticket","approvals"],pantau:true},
  {email:"salsa.savila@ai.astra.co.id",name:"Salsa",role:"finance"},
  {email:"fieldops@ai.astra.co.id",name:"Field Ops - Supervisor",role:"fieldsup"},
  {email:"fieldops.building@ai.astra.co.id",name:"Field Ops - Building & Utility",role:"fieldops",cat:"Building & Utility"},
@@ -5083,6 +5088,15 @@ function applyLogin(u){
  setTimeout(rateGateCheck,800);     // ada tiket selesai yang menunggu dinilai?
  if(gRole==="fieldops" && !(fieldOp&&fieldOp.name)) fieldOpRegister();   // gate registrasi operator (sekali, diingat)
  try{ pinTawarkan(); }catch(e){}    // belum punya PIN di perangkat ini → tawarkan
+ /* ── PEMUTARAN ULANG TUJUAN NOTIFIKASI ────────────────────────────────────
+    Inilah potongan yang dulu tidak ada. Aplikasi dibuka dari notifikasi HP
+    saat sesi habis: hash tujuan dibaca & disimpan di awal boot, lalu layar
+    login muncul dan tujuannya terlupakan selamanya. Sekarang ia diputar
+    ulang PERSIS setelah menu & peran akun ini siap — jadi orangnya mendarat
+    di item yang diberitahukan, bukan di Beranda.
+    Ditunda sedikit supaya renderAll() & go() awal sudah selesai; kalau tidak,
+    halaman tujuan langsung ditimpa halaman pembuka. */
+ try{ if(agavaTujuanAmbil()) setTimeout(function(){ try{ agavaTujuanPakai(); }catch(e){} },420); }catch(e){}
 }
 function logout(){
  sessionClear();
@@ -8196,7 +8210,8 @@ function agavaNotify(title,body,opt){
  if(!opt.noSound)notifySound();
  try{
   if(!("Notification" in window)||Notification.permission!=="granted")return;
-  var tujuan=String(opt.nav||"").replace(/[^a-z0-9_-]/gi,"");
+  /* Membawa item, bukan cuma halaman — lihat catatan di AGAVA_TUJUAN_KEY. */
+  var tujuan=agavaTujuanKode(opt.nav,opt.doc,opt.ref);
   var o={body:body||"",icon:"icon-192.png",badge:"icon-192.png",tag:opt.tag||("agava-"+Date.now()),vibrate:[120,60,120],
          data:{url:"./index.html"+(tujuan?("#"+tujuan):""), nav:tujuan}};
   if(navigator.serviceWorker&&navigator.serviceWorker.ready){
@@ -8212,30 +8227,107 @@ function agavaNotify(title,body,opt){
      · aplikasi TERTUTUP      → dibuka dengan #hash, dibaca sekali saat boot
    Halaman tujuan divalidasi terhadap menu yang memang dimiliki akun ini —
    notifikasi tidak boleh menjadi jalan pintas ke modul yang bukan haknya. */
-function agavaNavKe(nav){
+/* ╔══ TUJUAN NOTIFIKASI: HALAMAN + ITEM, DAN TIDAK HILANG SAAT LOGIN ════════╗
+   Dua cacat yang diperbaiki 31 Agu 2026, keduanya dilaporkan Sudana:
+
+   1. TUJUAN DIBUANG SAAT PERLU LOGIN. Baris lama berbunyi:
+
+          if(!gUser) return false;   // belum login → biarkan alur login
+
+      Aplikasi dibuka dari notifikasi HP saat sesi sudah habis → tujuannya
+      langsung hilang. Sesudah login orangnya mendarat di Beranda dan harus
+      mencari sendiri apa yang tadi diberitahukan. Sekarang tujuan DISIMPAN
+      dulu di sessionStorage, lalu diputar ulang tepat setelah applyLogin.
+
+   2. HANYA MEMBAWA HALAMAN, BUKAN ITEM. `nav` cuma id halaman, jadi dari luar
+      aplikasi orang mendarat di daftar Approvals — bukan pada SO yang
+      diberitahukan. Di dalam aplikasi notifOpen sudah lama bisa membuka
+      dokumen & menyorot barisnya; kini kemampuan yang sama dibawa keluar
+      lewat kode tujuan.
+
+   Bentuk kodenya:  <halaman>[~doc=<no>][&ref=<no>]
+   contoh:          approvals~doc=SO-202606-0140-0000&ref=SO-202606-0140-0000  */
+const AGAVA_TUJUAN_KEY="agava_tujuan_notif";
+function agavaTujuanKode(nav,doc,ref){
+ var s=String(nav||"").replace(/[^a-z0-9_-]/gi,"");
+ if(!s) return "";
+ var q=[];
+ if(doc) q.push("doc="+encodeURIComponent(doc));
+ if(ref) q.push("ref="+encodeURIComponent(ref));
+ return s+(q.length?("~"+q.join("&")):"");
+}
+function agavaTujuanUrai(kode){
+ var s=String(kode||"").replace(/^#/,"");
+ if(!s) return null;
+ var i=s.indexOf("~");
+ var nav=(i<0?s:s.slice(0,i)).replace(/[^a-z0-9_-]/gi,"");
+ if(!nav) return null;
+ var out={nav:nav,doc:"",ref:""};
+ if(i>=0) s.slice(i+1).split("&").forEach(function(p){
+   var e=p.indexOf("="); if(e<0) return;
+   var k=p.slice(0,e), v=p.slice(e+1);
+   try{ v=decodeURIComponent(v); }catch(err){}
+   if(k==="doc") out.doc=v; else if(k==="ref") out.ref=v;
+ });
+ return out;
+}
+function agavaTujuanSimpan(k){ try{ if(k) sessionStorage.setItem(AGAVA_TUJUAN_KEY,k); }catch(e){} }
+function agavaTujuanAmbil(){ try{ return sessionStorage.getItem(AGAVA_TUJUAN_KEY)||""; }catch(e){ return ""; } }
+function agavaTujuanBuang(){ try{ sessionStorage.removeItem(AGAVA_TUJUAN_KEY); }catch(e){} }
+/* Pakai tujuan yang tersimpan. Belum login → BIARKAN tersimpan (inilah inti
+   perbaikan 1); tidak berhak → dibuang, supaya tidak menghantui sesi. */
+function agavaTujuanPakai(kode){
  try{
-   nav=String(nav||"").replace(/[^a-z0-9_-]/gi,"");
-   if(!nav) return false;
-   if(!gUser) return false;                       // belum login → biarkan alur login
+   var k=kode||agavaTujuanAmbil();
+   var t=agavaTujuanUrai(k);
+   if(!t) return false;
+   if(!gUser){ agavaTujuanSimpan(k); return false; }
    var boleh=(typeof myMenus==="function")?myMenus():[];
-   /* halaman yang selalu boleh walau bukan "menu": detail milik sendiri */
    var bebas=["reminder","myticket","mhome","overview","notif"];
-   if(boleh.indexOf(nav)<0 && bebas.indexOf(nav)<0) return false;
-   go(nav); return true;
+   if(boleh.indexOf(t.nav)<0 && bebas.indexOf(t.nav)<0){
+     /* Modulnya bukan haknya. Tapi bila notifikasi ini membawa DOKUMEN, dokumen
+        itu memang dialamatkan kepadanya oleh server (mis. SO miliknya ditolak),
+        jadi membuangnya berarti mengirim kabar tanpa jalan melihat isinya.
+        Halamannya diturunkan ke beranda; dokumennya tetap dibuka sebagai
+        lapisan di atasnya. Tanpa dokumen, tujuan memang tidak berhak → buang. */
+     if(!t.doc){ agavaTujuanBuang(); return false; }
+     t.nav=(typeof isMobile==="function"&&isMobile())?"mhome":"overview";
+     t.ref="";                                   // barisnya tidak ada di halaman ini
+   }
+   agavaTujuanBuang();
+   go(t.nav);
+   /* Urutannya sama dengan notifOpen yang sudah terbukti: dokumen dulu, lalu
+      sorot barisnya, supaya menutup dokumen tidak meninggalkan daftar polos. */
+   if(t.doc) setTimeout(function(){ try{ soDocShow(t.doc); }catch(e){} },140);
+   if(t.ref) setTimeout(function(){ try{ agavaSorot(t.ref,t.nav); }catch(e){} },360);
+   return true;
  }catch(e){ return false; }
 }
+function agavaNavKe(nav,doc,ref){
+ try{
+   var kode=(String(nav||"").indexOf("~")>=0&&!doc&&!ref) ? String(nav) : agavaTujuanKode(nav,doc,ref);
+   if(!kode) return false;
+   agavaTujuanSimpan(kode);          // simpan DULU — kalau login diperlukan, ia menunggu
+   return agavaTujuanPakai(kode);
+ }catch(e){ return false; }
+}
+/* Hash dibaca SEKALI di awal boot dan langsung disimpan, bahkan bila layar
+   login masih terpampang — kalau ditunda sampai login selesai, hash-nya sudah
+   lama hilang. Menerapkannya boleh gagal; menyimpannya tidak boleh. */
 function agavaNavDariHash(){
  try{
    var h=String(location.hash||"").replace(/^#/,"");
    if(!h) return;
-   if(agavaNavKe(h)){ try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} }
+   agavaTujuanSimpan(h);
+   try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){}
+   agavaTujuanPakai(h);
  }catch(e){}
 }
 try{
  if(navigator.serviceWorker&&navigator.serviceWorker.addEventListener){
    navigator.serviceWorker.addEventListener("message",function(ev){
      var d=(ev&&ev.data)||{};
-     if(d.type==="NAV") agavaNavKe(d.nav);
+     if(d.type==="NAV") agavaTujuanPakai(d.nav);
    });
  }
 }catch(e){}
@@ -12416,10 +12508,43 @@ function mBotItem(tab,nav,ic,label,badge){
  return '<button data-tab="'+tab+'" onclick="'+nav+'"><span>'+micSvg(ic)+
    (badge>0?'<i class="mb-bdg">'+(badge>99?"99+":badge)+'</i>':'')+'</span><i>'+esc(label)+'</i></button>';
 }
+/* Akun ini koordinator kategori mana pun? DITURUNKAN dari peta KOORDINATOR,
+   bukan daftar nama kedua — mengangkat koordinator baru cukup di peta itu. */
+function akuKoordinatorKategori(){
+ if(!gUser) return false;
+ var aku=gUser.name||"";
+ return Object.keys(KOORDINATOR).some(function(k){
+   var n=KOORDINATOR[k];
+   return n && (typeof orangSama==="function") && orangSama(aku,n);
+ });
+}
 function mBotSync(){
  var bar=document.getElementById("mBot"); if(!bar)return;
  var inb=mInbox();
  var notifN=(typeof activeNotifs==="function"?activeNotifs().length:0);
+ /* ── BOTTOM BAR KOORDINATOR (31 Agu 2026) ─────────────────────────────────
+    Permintaan Sudana: Beranda · My Tiket · + · Approval · Discover.
+
+    Slot "Notifikasi" dibuang DI SINI SAJA, bukan untuk semua orang: lonceng
+    sudah ada di top bar, jadi bagi koordinator slot itu mengulang sesuatu yang
+    sudah terjangkau — sementara My Tiket dan Approval adalah dua antrean kerja
+    yang berbeda dan dua-duanya ia pakai tiap hari. Peran lain tidak disentuh;
+    bagi mereka bottom bar lama masih cocok dengan cara kerjanya. */
+ if(akuKoordinatorKategori()){
+   var esk=(typeof escalatedTickets==="function")?escalatedTickets().length:0;
+   var mt=(function(){ try{ var me=fieldOpName();
+     return TICKETS.filter(function(x){return x.pic===me&&(x.stg||0)<3;}).length; }catch(e){ return 0; } })();
+   bar.style.gridTemplateColumns="repeat(5,1fr)";
+   bar.innerHTML=
+     mBotItem("home","mGoHome()","home","Beranda")+
+     mBotItem("myticket","go('myticket')","ticket","My Tiket",mt)+
+     '<button class="mb-fab" data-tab="layanan" onclick="mFabTap()" title="Buat pengajuan layanan GA">'+
+       '<span>'+micSvg("plus")+'</span><i>Layanan</i></button>'+
+     mBotItem("approvals","go('approvals')","shield","Approval",esk)+
+     mBotItem("discover","go('discover')","compass","Discover");
+   mBotActive(window._curPage||"mhome");
+   return;
+ }
  if(gRole==="fieldops"){
    /* 5 slot: Beranda · Notifikasi · Inbox · Discover · Keluar.
       Slot Keluar wajib ada — Beranda operator adalah modul Field Ops, jadi ia
@@ -21318,7 +21443,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.31-268";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.31-269";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -23867,8 +23992,12 @@ function agavaBoot(){
      /* Peta wewenang yang menunjuk ke ruang kosong harus bersuara sendiri —
         lihat catatan di agavaPeriksaPeta. Ditunda sampai USERS & SO termuat. */
      try{ if(fu) setTimeout(function(){ try{ agavaPeriksaPeta(); }catch(e){} },4000); }catch(e){}
-     /* Dibuka dari notifikasi saat aplikasi tertutup → mendarat di tujuannya. */
-     try{ if(fu) setTimeout(function(){ try{ agavaNavDariHash(); }catch(e){} },900); }catch(e){}
+     /* Dibuka dari notifikasi saat aplikasi tertutup → mendarat di tujuannya.
+        Syarat `if(fu)` DICABUT: dulu tujuan hanya dibaca bila sesi Firebase
+        sudah ada, sehingga pengguna yang harus login dulu kehilangan tujuannya
+        sebelum sempat dipakai. Sekarang hash selalu dibaca & disimpan; kalau
+        belum login ia menunggu dan diputar ulang oleh applyLogin. */
+     try{ setTimeout(function(){ try{ agavaNavDariHash(); }catch(e){} },900); }catch(e){}
      /* 2450ms: intro ikon selesai ±2,0s lalu logo mendarat ±2,44s. Menutup
         lebih cepat berarti membangun animasi yang tidak pernah dilihat orang.
         Batas kerasnya 3400ms, jadi tetap tidak pernah menahan startup lama. */
