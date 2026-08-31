@@ -2764,6 +2764,28 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .esc-strip-l.tunggu{color:#B54708}
 /* Lewat batas 3 jam — merah, sederajat dengan tombol terkuncinya. */
 .esc-strip-l.lewat{color:#B42318;font-weight:600}
+/* ── KONTRIBUSI ──────────────────────────────────────────────────────────── */
+.kb-nilai{background:#eafaf1;border:1px solid #b7e4c7;border-radius:12px;padding:12px 14px;margin-top:14px}
+.kb-n-h{font-size:calc(11.5px*var(--fz));color:#12805C;font-weight:700}
+.kb-n-v{font-size:calc(21px*var(--fz));font-weight:800;color:#0b5e44;margin:2px 0 6px}
+.kb-n-v i{font-size:calc(12px*var(--fz));font-weight:600;font-style:normal;color:#12805C}
+.kb-n-b div{display:flex;justify-content:space-between;gap:10px;font-size:calc(11.5px*var(--fz));color:#1b6b52;padding:2px 0}
+.kb-n-b b{white-space:nowrap}
+.kb-row{display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.kb-row:last-child{border-bottom:none}
+.kb-row:hover{background:#f7fbff}
+.kb-thumb{width:52px;height:52px;flex:none;border-radius:10px;overflow:hidden;background:#eef4ff;
+  display:grid;place-items:center;font-size:calc(20px*var(--fz))}
+.kb-thumb img{width:100%;height:100%;object-fit:cover}
+.kb-main{flex:1;min-width:0}
+.kb-t{font-size:calc(13.5px*var(--fz));color:var(--ink);line-height:1.35;margin-bottom:2px}
+.kb-val{text-align:right;flex:none}
+.kb-val b{display:block;font-size:calc(14px*var(--fz));font-weight:800;color:var(--green)}
+.kb-val i{display:block;font-size:calc(10.5px*var(--fz));font-style:normal;color:var(--muted)}
+.kb-val em{display:block;font-size:calc(10.5px*var(--fz));font-style:normal;color:#12805C;font-weight:700}
+.mj-lapor{width:100%;margin-top:10px;padding:10px;border-radius:10px;border:none;cursor:pointer;
+  background:rgba(255,255,255,.16);color:#fff;font-weight:700;font-size:calc(12.5px*var(--fz));font-family:var(--ff)}
+.mj-lapor:active{background:rgba(255,255,255,.26)}
 /* ── RAPOR KINERJA PER ORANG ─────────────────────────────────────────────── */
 .fo-oplog-r{cursor:pointer}
 .fo-oplog-r:hover{background:#f5f8ff}
@@ -9635,9 +9657,21 @@ function renderProc(){
  /* SO ditolak & dibatalkan punya tabnya sendiri dan TIDAK ikut mengotori tab
     kerja — dulu ia menetap di "All" tanpa bisa diapa-apakan. */
  const macet=s=>soDitolak(s)||s.batal;
+ /* ── DAFTAR UTAMA = YANG SUDAH LOLOS SARINGAN (31 Agu 2026) ────────────────
+    Aturan Sudana: SO baru "listing" setelah lolos PIC Budget DAN PIC
+    Procurement; yang sedang diklarifikasi tidak langsung listing.
+
+    Yang belum lolos TIDAK hilang — ia pindah ke tab "Penyaringan", lengkap
+    dengan sebabnya. Menyembunyikannya sama saja mengulang penyakit lama
+    AGAVA: dokumen yang lenyap tanpa penjelasan. */
+ const saring=s=>!macet(s)&&!soLolosSaring(s);
+ const nSaring=base.filter(saring).length;
  let list=base.filter(s=>{
    if(procFilter==="tolak")return macet(s);
    if(macet(s))return false;
+   if(procFilter==="saring")return saring(s);
+   /* Selain tab Penyaringan & Ditolak, daftar hanya memuat yang sudah lolos. */
+   if(saring(s))return false;
    if(procFilter==="all")return true;
    if(procFilter==="pre")return !ap(s)||s.wstep<2;
    if(procFilter==="upr")return ap(s)&&s.wstep>=2&&s.wstep<3;
@@ -9667,7 +9701,10 @@ function renderProc(){
 
  ${sfrHTML([
    /* abu-abu — "Semua" bukan sebuah tahap; biru sudah dipakai SO & Sourcing */
-   {label:"Semua",        n:base.filter(x=>!macet(x)).length,                                 dot:"#98A2B3", on:procFilter==='all',  act:"procFilter='all';renderProc()"},
+   /* Penyaringan ditaruh PALING DEPAN: inilah pekerjaan PIC Procurement yang
+      sebenarnya — menyaring, bukan menerima apa adanya. */
+   {label:"Penyaringan",  n:nSaring,                                                          dot:"#F59E0B", on:procFilter==='saring', act:"procFilter='saring';renderProc()"},
+   {label:"Semua",        n:base.filter(x=>!macet(x)&&soLolosSaring(x)).length,                dot:"#98A2B3", on:procFilter==='all',  act:"procFilter='all';renderProc()"},
    {label:"SO & Sourcing",n:base.filter(s=>!macet(s)&&(!ap(s)||s.wstep<2)).length,             dot:"#2563EB", on:procFilter==='pre',  act:"procFilter='pre';renderProc()"},
    {label:"UPR Stage",    n:base.filter(s=>!macet(s)&&ap(s)&&s.wstep>=2&&s.wstep<3).length,   dot:"#7A5AF8", on:procFilter==='upr',  act:"procFilter='upr';renderProc()"},
    {label:"SPK & Execution",n:base.filter(s=>!macet(s)&&ap(s)&&s.wstep===3).length,            dot:"#F79009", on:procFilter==='spk',  act:"procFilter='spk';renderProc()"},
@@ -12043,7 +12080,11 @@ const POIN={
  op:{ cepat:10, selamatkan:15, mulaiTepat:5, selesaiTepat:10, bintang5:5, buktiMulai:3,
       langgarMulai:-5, langgarSelesai:-10 },
  koor:{ tepat:15, lewat:-15 },
- proc:{ tepat:15, lewat:-10 }
+ proc:{ tepat:15, lewat:-10 },
+ /* Kontribusi — perilaku yang paling ingin didorong, jadi ia berdiri sendiri.
+    Nilainya dibuat sebanding dengan menangani satu tiket dengan cepat: cukup
+    untuk menarik, tidak cukup untuk membuat orang berhenti mengerjakan tiket. */
+ kontrib:{ lapor:10, berbukti:5, per10Menit:2, menitMaks:10, cegahRusak:10 }
 };
 function poinRinci(baris){
  var total=0;
@@ -14268,7 +14309,12 @@ function renderService(){
     section yang tersedia, tab bar disembunyikan sama sekali.
     Box Biaya (Sumber Daya Terpakai) ditaruh PALING ATAS di section Room &
     Event sesuai permintaan Sudana. */
- const secs=[{k:"tiket",ic:"🎫",t:"Service Ticket",n:total}]
+ const secs=[{k:"tiket",ic:"🎫",t:"Service Ticket",n:total},
+             /* Kontribusi terbuka untuk SEMUA orang, bukan hanya supervisor:
+                yang melihat masalah dan membereskannya bisa siapa saja, dan
+                papan yang hanya bisa dibuka atasan tidak akan pernah mengubah
+                perilaku siapa pun. */
+             {k:"kontribusi",ic:"✨",t:"Kontribusi Staff GA",n:(KONTRIBUSI||[]).length}]
    .concat(sup?[{k:"rating",ic:"⭐",t:"Service Rating",n:""},
                 {k:"room",  ic:"🏢",t:"Room & Event",n:""},
                 {k:"vendor",ic:"🏅",t:"Vendor Performance",n:""}]:[]);
@@ -14315,6 +14361,7 @@ function renderService(){
     <div class="svc-list">${list.length?hariS.map(G=>hariSepHTML("svc",G,"tiket")+(hariTutup("svc",G.key)?"":G.rows.map(ticketRow).join(""))).join(""):('<div class="muted small" style="padding:30px;text-align:center">'+(qS?cariKosongHTML(qS,'tiket'):(sup?'No tickets in this filter.':'Belum ada tiket. Klik <b>+ Create Ticket</b> untuk membuat permintaan layanan GA.'))+'</div>')}</div>
   </div>
   </div>
+  <div class="svc-sec svc-sec-kontribusi">${kontribPanelHTML()}</div>
   <div class="svc-sec svc-sec-rating">${blokRating}</div>
   <div class="svc-sec svc-sec-room">${gaOpexHTML("all")}${blokRoom}</div>
   <div class="svc-sec svc-sec-vendor">${blokVendor}</div>`;
@@ -15970,6 +16017,32 @@ async function _submitSO_inti(){
    return {item:g('item'),spec:g('spec'),satuan:g('satuan'),qty:g('qty'),lokasi:g('lokasi'),ket:g('ket')};
  }).filter(r=>r.item);
  if(!rows.length){ alert("Tambahkan minimal 1 item permintaan."); return; }
+ /* ── SO HARUS BERAWAL DARI TIKET (31 Agu 2026) ─────────────────────────────
+    Lihat catatan panjang di soBolehTanpaTiket(). Diperiksa DI SINI, sebelum
+    apa pun ditulis — menolak sesudah nomor terbit akan meninggalkan lubang di
+    penomoran dan lampiran yang sudah terunggah. */
+ if(!window._soRevisi && !window._soFromTicket && !soBolehTanpaTiket()){
+   alert("⛔ SO harus berawal dari tiket.\n\n"+
+     "Buat SO langsung tanpa tiket hanya untuk Section Head dan GA Dept Head.\n\n"+
+     "Yang perlu Anda lakukan:\n"+
+     "1. Buat tiket layanan untuk masalah ini (atau buka tiket yang sudah ada)\n"+
+     "2. Biarkan operator lapangan memeriksanya dulu\n"+
+     "3. Dari tiket yang sudah diperiksa itu, tekan \"Buat SO\"\n\n"+
+     "Tujuannya bukan mempersulit: SO adalah keputusan membelanjakan uang, dan "+
+     "tiket adalah tempat masalahnya diperiksa lebih dulu.");
+   return;
+ }
+ /* Tiketnya sudah benar-benar diperiksa orang lapangan? */
+ if(window._soFromTicket && !soBolehTanpaTiket()){
+   var _tkAsal=TICKETS.find(function(x){return x.no===window._soFromTicket;});
+   if(_tkAsal && !tiketSudahDiperiksa(_tkAsal)){
+     alert("⛔ Tiket "+window._soFromTicket+" belum diperiksa operator lapangan.\n\n"+
+       "Tiket ini belum diambil siapa pun dan belum ada catatan pemeriksaannya. "+
+       "Minta operator mengambil dan melihat kondisinya dulu — analisanya itulah "+
+       "yang dibaca Procurement saat menilai apakah belanja ini memang perlu.");
+     return;
+   }
+ }
  const lokasi=siteValue("so-lokasi","so-lokasi-lain");
  if(!lokasi){ alert("Isi dulu nama lokasinya — Anda memilih \"Lainnya\" tetapi kotaknya masih kosong."); return; }
  rows.forEach(r=>{ if(!r.lokasi) r.lokasi=lokasi; });   // lokasi item kosong → ikut lokasi (site) SO
@@ -17053,6 +17126,55 @@ let APPROVALS=[];
 /* Gate sadar-eskalasi.
    Normal (budget ada):   Budget → Procurement → Dept Head → selesai.
    Eskalasi (budget tdk): Budget(Escalated) → Dept Head → Procurement → selesai. */
+/* ╔══ DISIPLIN ASAL-USUL SO (31 Agu 2026) ═══════════════════════════════════╗
+   Keputusan Sudana:
+
+     "User yang buat SO biasanya menggampangkan, tidak mau analisa dulu, tidak
+      mau lihat root cause-nya. Hanya buat SO dan masalah mereka selesai, habis
+      itu tim procurement yang kebingungan… Yang punya privilege buat SO
+      langsung tanpa tiket hanya level section dan Dept Head. Selebihnya harus
+      diawali dari tiket, dan tiket juga harus dianalisa dan sudah dicek dulu
+      oleh operator."
+
+   Ini bukan pembatasan administratif, melainkan pemulihan urutan berpikir.
+   SO adalah KEPUTUSAN MEMBELANJAKAN UANG; tiket adalah tempat masalahnya
+   diperiksa. Membolehkan SO lahir tanpa tiket berarti membolehkan keputusan
+   belanja diambil sebelum ada yang melihat barangnya — dan beban membuktikan
+   apakah belanja itu perlu berpindah ke Procurement, yang paling jauh dari
+   lapangan dan paling tidak punya alat untuk menilainya.
+
+   Section Head & Dept Head dikecualikan karena merekalah yang secara jabatan
+   memang berwenang memutuskan tanpa didahului pemeriksaan lapangan. */
+function soBolehTanpaTiket(){
+ if(typeof isOwner==="function"&&isOwner()) return true;
+ return gRole==="section"||gRole==="dept";
+}
+/* Tiket ini sudah diperiksa orang lapangan? Bukan sekadar ada, tapi sudah
+   ADA YANG MELIHATNYA — itu inti "sudah dicek dulu oleh operator". */
+function tiketSudahDiperiksa(t){
+ if(!t) return false;
+ if(t.pic||t.pickBy) return true;              // sudah diambil orang lapangan
+ if(t.esc&&t.escNote) return true;             // dieskalasi dengan alasan tertulis
+ return (t.stg||0)>=1;
+}
+/* ── SARINGAN SEBELUM LISTING ──────────────────────────────────────────────
+   Sudana: "SO yang listing adalah SO yang sudah lewat dari PIC Procurement dan
+   PIC Budget. Kalau 2 itu lolos baru bisa listing dan menunggu approval Dept
+   Head." Dan: "SO yang saya klarifikasi… tidak langsung listing."
+
+   Jadi daftar utama Procurement bukan lagi tempat penampungan segala SO, tapi
+   daftar pekerjaan yang SUDAH LULUS penyaringan. Yang belum lulus tetap ada —
+   ia pindah ke kelompok "Dalam penyaringan", terlihat oleh yang bersangkutan,
+   dan tidak ikut mengaburkan antrean kerja. */
+function soKlarifikasiTerbuka(s){ return !!(s&&s.clarify&&!s.clarify.answered); }
+function soLolosSaring(s){
+ if(!s) return false;
+ if(s.batal||soDitolak(s)) return false;
+ if(soKlarifikasiTerbuka(s)) return false;      // masih menunggu jawaban pemohon
+ if(s.apprBudget!=="Approved"&&s.apprBudget!=="Escalated") return false;
+ if(s.apprProc!=="Approved") return false;
+ return true;
+}
 function soGateTier(s){
  /* ── SO YANG DIBATALKAN TIDAK MENUNGGU SIAPA PUN (26 Agu 2026) ────────────
     Sudana meminta SO-202606-0072-0000 dibatalkan, padahal ia SUDAH dibatalkan
@@ -22301,7 +22423,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.31-275";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.31-276";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -22580,6 +22702,27 @@ function dbListen(){
      yang tidak boleh bergantung pada field yang bisa salah. Batasnya dinaikkan
      jauh di atas jumlah sekarang, dan bila suatu saat tetap terlampaui, kondisi
      itu DIKATAKAN alih-alih diam (Prinsip 9). */
+  /* Kontribusi — foto TIDAK ikut ke cloud (batas dokumen), jadi salinan server
+     memuat faktanya saja. Foto tetap ada di perangkat pelapornya. */
+  AGDB.lepas.push(AGDB.db.collection("agava_kontribusi").limit(1000).onSnapshot(snap=>{
+    let ubah=false;
+    snap.docChanges().forEach(ch=>{
+      const d=ch.doc.data(); d.no=d.no||ch.doc.id;
+      const i=KONTRIBUSI.findIndex(x=>x.no===d.no);
+      if(ch.type==="removed"){ if(i>=0){KONTRIBUSI.splice(i,1); ubah=true;} }
+      else if(i>=0){
+        /* Foto lokal JANGAN ditimpa oleh salinan server yang memang tidak
+           membawanya — itu akan menghapus bukti dari layar pemiliknya. */
+        var fotoLokal=KONTRIBUSI[i].foto;
+        Object.assign(KONTRIBUSI[i],d);
+        if(fotoLokal&&fotoLokal.length) KONTRIBUSI[i].foto=fotoLokal;
+        ubah=true;
+      }
+      else { KONTRIBUSI.push(d); ubah=true; }
+    });
+    if(ubah){ kontribPersist();
+      try{ agavaRenderAman(["renderService","renderMobileHome","renderOverview"]); }catch(e){} }
+  },err=>{ cloudTurun("kontribusi",err&&err.code); }));
   const TIKET_AMBIL_MAX=1500;
   AGDB.lepas.push(AGDB.db.collection("agava_tickets").limit(TIKET_AMBIL_MAX).onSnapshot(snap=>{
     if(snap.size>=TIKET_AMBIL_MAX){
@@ -23681,6 +23824,17 @@ const GA_PARAM_DEFAULT={
  transport:{ tarifBBM:13000, konsumsi:10, emisiBBM:2.31, jarakDefault:20 },
  ac:{ dayaPerPax:0.25, lampu:0.5, bebanPanasKw:3, bebanPanasJam:4 },
  tenaga:{ manpowerLembur:40000, jamKaryawan:75000 },
+ /* ── NILAI KONTRIBUSI (31 Agu 2026) ────────────────────────────────────────
+    Kontribusi dinilai dari TARIF YANG SUDAH ADA, bukan angka baru yang
+    dikarang — supaya tiap rupiah bisa ditelusuri ke dasarnya:
+      · tenaga lapangan  = menit dikerjakan × tenaga.manpowerLembur
+      · admin dihindari  = hematAdminMenit × tenaga.jamKaryawan
+        (waktu yang TIDAK terpakai membuat, menyalurkan, dan menutup tiket
+        untuk pekerjaan yang sebetulnya bisa langsung dibereskan)
+      · kerusakan dicegah= opsional, diambil dari daftar GA_PARAM.repair
+    hematAdminMenit sengaja kecil dan konservatif: melebih-lebihkannya akan
+    membuat papan kontribusi terlihat hebat tanpa ada yang benar-benar hemat. */
+ kontribusi:{ hematAdminMenit:15 },
  repair:[
    {item:"Keramik gompal / pecah (per titik)", biaya:250000},
    {item:"Meja kerja patah (perbaikan)", biaya:400000},
@@ -23722,6 +23876,10 @@ function paramMerge(d){
  ["listrik","air","transport","ac","tenaga"].forEach(function(g){
    if(d[g]) Object.keys(GA_PARAM[g]).forEach(function(k){ if(d[g][k]!=null&&!isNaN(+d[g][k])) GA_PARAM[g][k]=+d[g][k]; });
  });
+ /* kontribusi ditambahkan belakangan — daftar grup di atas sengaja tidak diubah
+    supaya konfigurasi tersimpan versi lama tetap terbaca apa adanya. */
+ if(d.kontribusi&&GA_PARAM.kontribusi) Object.keys(GA_PARAM.kontribusi).forEach(function(k){
+   if(d.kontribusi[k]!=null&&!isNaN(+d.kontribusi[k])) GA_PARAM.kontribusi[k]=+d.kontribusi[k]; });
  if(Array.isArray(d.repair)) GA_PARAM.repair=d.repair.map(function(x){return {item:String(x.item||""),biaya:+x.biaya||0};});
  if(Array.isArray(d.lokasi)) GA_PARAM.lokasi=d.lokasi.map(function(x){return {nama:String(x.nama||""),lat:+x.lat||0,lng:+x.lng||0};});
  /* Poster: hormati data tersimpan HANYA bila versinya >= seed saat ini.
@@ -23800,6 +23958,319 @@ function rbRoomCap(id){ try{ for(var k in RB_ROOMS){ var r=RB_ROOMS[k].find(func
    Balik ke true HANYA setelah tiket/booking/transport/lembur berisi log asli.
    Saat true, tiap angka WAJIB bisa diklik → codecCostTally menjumlah persis. */
 const GA_COST_LIVE=false;
+/* ╔══ KONTRIBUSI SAYA ═══════════════════════════════════════════════════════╗
+   Keputusan Sudana, 31 Agustus:
+
+     "Untuk tiket yang sifatnya bisa langsung dikerjakan itu tidak perlu jadi
+      tiket. Tim GA yang melihat bisa langsung meminta tim lapangan dan langsung
+      dilaporkan ke AGAVA sebagai kontribusi saya. Saya mau merubah behaviour
+      orang dari sekedar banyak-banyakan buat tiket menjadi lapor kontribusi."
+
+   Ini pembalikan makna, bukan sekadar modul tambahan.
+
+   Kartu di beranda selama ini menghitung BIAYA YANG DIPAKAI seseorang lewat
+   pesanannya — kalimatnya pun berbunyi "sadari biayanya, hemat yang bisa
+   dihemat". Itu mengukur konsumsi, dan ukuran konsumsi hanya punya satu arah
+   untuk menang: memesan lebih sedikit. Ia tidak pernah bisa menghargai orang
+   yang MEMBERESKAN sesuatu.
+
+   Kontribusi mengukur arah sebaliknya: nilai yang seseorang tambahkan dengan
+   menyelesaikan masalah tanpa menjadikannya tiket. Angka di beranda kini
+   berasal dari sana. Biaya tiket tidak dihapus — ia diarsipkan (lihat
+   mBiayaTiketArsip) supaya sejarahnya tidak hilang, hanya berhenti menjadi
+   angka utama.
+
+   Yang dijaga supaya ini tidak berubah jadi ajang mengarang angka:
+     · foto bukti WAJIB, sama seperti penutupan tiket;
+     · nilainya diturunkan dari tarif yang sudah ada (GA_PARAM), bukan diketik
+       bebas oleh pelapor;
+     · pelapor dan pelaksana dicatat terpisah — yang melihat masalah dan yang
+       mengerjakannya sering bukan orang yang sama, dan keduanya berhak
+       disebut.                                                                */
+const KONTRIB_STORE="agava_kontribusi_v1";
+let KONTRIBUSI=[];
+const KONTRIB_JENIS=[
+ {k:"bersih",   label:"Kebersihan & kerapian",  ic:"🧹"},
+ {k:"perbaikan",label:"Perbaikan ringan",       ic:"🔧"},
+ {k:"penataan", label:"Penataan & penyimpanan", ic:"📦"},
+ {k:"cegah",    label:"Pencegahan (sebelum rusak)", ic:"🛡️"},
+ {k:"hemat",    label:"Penghematan energi/air", ic:"💡"},
+ {k:"lain",     label:"Lainnya",                ic:"✨"}
+];
+function kontribJenisLabel(k){
+ var j=KONTRIB_JENIS.filter(function(x){return x.k===k;})[0];
+ return j?(j.ic+" "+j.label):"✨ Lainnya";
+}
+/* Nomor kontribusi — memakai bulan NYATA, bukan awalan yang dipatok seperti
+   penomoran tiket. Pola baru tidak perlu mewarisi cacat pola lama. */
+function kontribNomor(){
+ var d=new Date(), pre="KB-"+d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+"-";
+ var n=0;
+ KONTRIBUSI.forEach(function(k){
+   var m=String(k.no||"").match(/^KB-\d{6}-(\d+)$/); if(m&&+m[1]>n) n=+m[1];
+ });
+ return pre+String(n+1).padStart(4,"0");
+}
+/* Nilai sebuah kontribusi — SELALU dihitung ulang dari parameter, tidak pernah
+   dibaca dari nilai tersimpan. Kalau tarif berubah, seluruh papan ikut berubah
+   dan tidak ada angka basi yang bertahan (Prinsip 2: turunkan, jangan duplikat). */
+function kontribNilai(k){
+ if(!k) return {rp:0,co2:0,rinci:"",baris:[]};
+ var P=GA_PARAM, baris=[], rp=0;
+ var menit=Math.max(0,+k.menit||0);
+ if(menit>0){
+   var t=Math.round(menit/60*P.tenaga.manpowerLembur);
+   baris.push({label:"Tenaga lapangan "+menit+" menit", rp:t}); rp+=t;
+ }
+ var adm=Math.round((P.kontribusi.hematAdminMenit||0)/60*P.tenaga.jamKaryawan);
+ if(adm>0){ baris.push({label:"Administrasi tiket yang dihindari", rp:adm}); rp+=adm; }
+ if(k.repairItem){
+   var r=(P.repair||[]).filter(function(x){return x.item===k.repairItem;})[0];
+   if(r&&r.biaya>0){ baris.push({label:"Kerusakan dicegah — "+r.item, rp:r.biaya}); rp+=r.biaya; }
+ }
+ /* CO₂ hanya bila kontribusinya memang menyentuh energi. Mengarang angka karbon
+    untuk pekerjaan yang tidak menyentuh listrik akan merusak dasar pelaporan
+    keberlanjutan yang justru sedang kita siapkan. */
+ var co2=0;
+ if(k.jenis==="hemat"&&+k.kwh>0){ var e=costListrik(+k.kwh); co2=e.co2; rp+=e.rp;
+   baris.push({label:"Energi dihemat "+(+k.kwh)+" kWh", rp:e.rp}); }
+ return {rp:rp, co2:co2, rinci:baris.map(function(b){return b.label;}).join(" · "), baris:baris};
+}
+/* Kredit poin sebuah kontribusi. Bobotnya sengaja dibuat sebanding dengan
+   poin operator: satu kontribusi kira-kira setara satu tiket yang ditangani
+   cepat — cukup untuk menarik, tidak cukup untuk mengalahkan kerja lapangan. */
+function poinKontribusiSatu(k){
+ var P=POIN.kontrib;
+ var n=P.lapor;
+ if(k.foto&&k.foto.length) n+=P.berbukti;
+ n+=Math.min(P.menitMaks, Math.floor((+k.menit||0)/10)*P.per10Menit);
+ if(k.repairItem) n+=P.cegahRusak;
+ return n;
+}
+function dbSaveKontribusi(k){
+ try{
+   if(!AGDB.on||!AGDB.db) return false;
+   /* Foto TIDAK ikut ke Firestore — batas dokumen 1 MB, dan strip foto sudah
+      punya jalurnya sendiri di perangkat. Yang dikirim adalah faktanya. */
+   var salinan={}; Object.keys(k).forEach(function(f){ if(f!=="foto") salinan[f]=k[f]; });
+   salinan.fotoN=(k.foto||[]).length;
+   AGDB.db.collection("agava_kontribusi").doc(String(k.no)).set(salinan,{merge:true})
+     .catch(function(e){ try{ tulisGagal("kontribusi",e); }catch(x){} });
+   return true;
+ }catch(e){ return false; }
+}
+/* Papan kontribusi per orang — inilah yang diminta Sudana: "di sini kita bisa
+   melihat kontribusi dari masing-masing orang GA membereskan masalahnya."
+   Diurutkan berdasarkan NILAI, bukan jumlah laporan: kalau diurutkan jumlah,
+   kita hanya memindahkan lomba banyak-banyakan dari tiket ke kontribusi. */
+function kontribPerOrang(){
+ var m={};
+ (KONTRIBUSI||[]).forEach(function(k){
+   var nm=k.pelapor||"(tanpa nama)";
+   var s=m[nm]=m[nm]||{nama:nm, n:0, rp:0, co2:0, menit:0, jenis:{}, poin:0, daftar:[]};
+   var v=kontribNilai(k);
+   s.n++; s.rp+=v.rp; s.co2+=v.co2; s.menit+=(+k.menit||0);
+   s.jenis[k.jenis||"lain"]=(s.jenis[k.jenis||"lain"]||0)+1;
+   s.poin+=poinKontribusiSatu(k);
+   s.daftar.push(k);
+ });
+ return Object.keys(m).map(function(x){ var s=m[x]; s.co2=+s.co2.toFixed(1); return s; })
+   .sort(function(a,b){ return b.rp-a.rp; });
+}
+function kontribPanelHTML(){
+ var orang=kontribPerOrang();
+ var totRp=orang.reduce(function(a,s){return a+s.rp;},0);
+ var totN=orang.reduce(function(a,s){return a+s.n;},0);
+ var totCo2=+orang.reduce(function(a,s){return a+s.co2;},0).toFixed(1);
+ var kepala=
+  '<div class="card pad" style="margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
+    '<div style="flex:1;min-width:210px">'+
+      '<div class="panel-t" style="margin:0">✨ Kontribusi Staff GA</div>'+
+      '<div class="muted small" style="margin-top:3px">Masalah yang dilihat lalu langsung dibereskan — tanpa menjadi tiket. '+
+        'Nilainya dihitung dari tarif yang sama dengan modul biaya, jadi bisa ditelusuri.</div></div>'+
+    '<div style="text-align:right"><div style="font-size:calc(22px*var(--fz));font-weight:800;color:var(--green)">'+costRp(totRp)+'</div>'+
+      '<div class="muted small">'+totN+' kontribusi · '+totCo2+' kg CO₂</div></div>'+
+    '<button class="btn-act" onclick="kontribBuka()">✨ Lapor Kontribusi</button>'+
+  '</div>';
+ if(!orang.length)
+   return kepala+'<div class="card" style="padding:40px;text-align:center;color:var(--muted)">'+
+     'Belum ada kontribusi tercatat.<br><span class="small">Lihat sesuatu yang bisa langsung dibereskan? '+
+     'Minta tim lapangan mengerjakannya, lalu catat di sini — tidak perlu jadi tiket.</span></div>';
+ var papan='<div class="card sec" style="margin-bottom:14px"><div class="sec-h">'+
+   secIc('#eafaf1','#12805C','approvals')+
+   '<div><h2>Papan Kontribusi</h2><div class="d">Diurutkan dari nilai terbesar — bukan dari jumlah laporan</div></div></div>'+
+   '<div class="fo-oplog-w"><table class="fo-oplog-t"><thead><tr>'+
+     '<th>Nama</th><th>Kontribusi</th><th>Total menit</th><th>Nilai</th><th>CO₂</th><th>Poin</th></tr></thead><tbody>'+
+   orang.map(function(s){
+     return '<tr><td><b>'+esc(s.nama)+'</b><div class="muted small">'+
+       Object.keys(s.jenis).map(function(j){return kontribJenisLabel(j).split(" ")[0]+" "+s.jenis[j];}).join(" · ")+'</div></td>'+
+       '<td>'+s.n+'</td><td>'+fmtDur(s.menit)+'</td>'+
+       '<td style="font-weight:800;color:var(--green)">'+costRp(s.rp)+'</td>'+
+       '<td>'+(s.co2||0)+'</td>'+
+       '<td style="font-weight:800;color:var(--green)">+'+s.poin+'</td></tr>';
+   }).join("")+'</tbody></table></div></div>';
+ var daftar=(KONTRIBUSI||[]).slice().sort(function(a,b){return (b.ms||0)-(a.ms||0);}).slice(0,40);
+ var kartu='<div class="card sec"><div class="sec-h">'+secIc('#eef4ff','#2563eb','service')+
+   '<div><h2>Kontribusi terbaru</h2><div class="d">'+daftar.length+' terakhir · klik untuk melihat fotonya</div></div></div>'+
+   '<div class="sec-body">'+daftar.map(kontribBarisHTML).join("")+'</div></div>';
+ return kepala+papan+kartu;
+}
+function kontribBarisHTML(k){
+ var v=kontribNilai(k);
+ var f=(k.foto||[])[0];
+ return '<div class="kb-row"'+((k.foto||[]).length?' onclick="kontribLihat(\''+esc(k.no)+'\')" style="cursor:pointer"':'')+'>'+
+   '<div class="kb-thumb">'+(f?('<img src="'+(mdThumb(f)||"")+'"/>'):'<span>✨</span>')+'</div>'+
+   '<div class="kb-main">'+
+     '<div class="kb-t"><b>'+esc(k.judul||"")+'</b></div>'+
+     '<div class="muted small">'+esc(kontribJenisLabel(k.jenis))+' · 📍 '+esc(k.lokasi||"—")+'</div>'+
+     '<div class="muted small">'+esc(k.pelapor||"—")+
+       (k.pelaksana&&k.pelaksana!==k.pelapor?(' · dikerjakan '+esc(k.pelaksana)):'')+
+       ' · '+esc((k.ts&&k.ts.created)||k.tgl||"")+'</div>'+
+   '</div>'+
+   '<div class="kb-val"><b>'+costRp(v.rp)+'</b>'+(v.co2?('<i>'+v.co2+' kg</i>'):'')+
+     '<em>+'+poinKontribusiSatu(k)+' poin</em></div>'+
+ '</div>';
+}
+function kontribLihat(no){
+ var k=(KONTRIBUSI||[]).filter(function(x){return x.no===no;})[0];
+ if(!k||!(k.foto||[]).length) return;
+ try{ proofOpen(k.foto,0,k.judul||k.no); }
+ catch(e){ try{ foBuktiLihatArr(k.foto,0); }catch(x){} }
+}
+function kontribMilikSaya(k){
+ if(!gUser||!k) return false;
+ var mail=String(gUser.email||"").toLowerCase();
+ if(k.pelaporEmail&&mail&&String(k.pelaporEmail).toLowerCase()===mail) return true;
+ return !!(k.pelapor&&gUser.name&&orangSama(gUser.name,k.pelapor));
+}
+function kontribPersist(){
+ try{ localStorage.setItem(KONTRIB_STORE,JSON.stringify(KONTRIBUSI)); }catch(e){}
+}
+function kontribLoad(){
+ try{ var raw=localStorage.getItem(KONTRIB_STORE); if(raw) KONTRIBUSI=JSON.parse(raw)||[]; }catch(e){ KONTRIBUSI=[]; }
+}
+/* ── FORMULIR LAPOR KONTRIBUSI ─────────────────────────────────────────────
+   Sengaja RINGKAS: kalau melaporkan kontribusi lebih repot daripada membuat
+   tiket, orang akan kembali membuat tiket dan seluruh maksudnya gagal.
+   Yang wajib hanya tiga: judul, lokasi, dan foto. Sisanya boleh kosong. */
+function kontribBuka(){
+ window._kb={imgs:[]};
+ var kat=(typeof SERVICE_CATS!=="undefined"&&SERVICE_CATS.length)
+   ? SERVICE_CATS : Object.keys(KOORDINATOR||{});
+ document.getElementById("drawer").innerHTML=
+  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
+   '<div style="font-weight:800;color:var(--ink);font-size:calc(16px*var(--fz))">✨ Lapor Kontribusi Saya</div>'+
+   '<div class="muted small" style="margin-top:4px">Masalah yang Anda lihat dan langsung dibereskan — tanpa perlu jadi tiket</div></div>'+
+  '<div class="db">'+
+   '<div class="field"><label>Apa yang dibereskan? <span style="color:var(--red)">*</span></label>'+
+     '<input id="kb-judul" placeholder="mis. Glassboard R.402 dibersihkan dari tempelan &amp; kardus"></div>'+
+   '<div class="field"><label>Lokasi <span style="color:var(--red)">*</span></label>'+
+     '<input id="kb-lokasi" placeholder="mis. AMDI Lt. 4A - Ruang 402"></div>'+
+   '<div class="field"><label>Kategori</label><select id="kb-kat">'+
+     kat.map(function(c){return '<option>'+esc(c)+'</option>';}).join("")+'</select></div>'+
+   '<div class="field"><label>Jenis kontribusi</label><select id="kb-jenis">'+
+     KONTRIB_JENIS.map(function(j){return '<option value="'+j.k+'">'+j.ic+' '+esc(j.label)+'</option>';}).join("")+
+     '</select></div>'+
+   '<div class="field"><label>Dikerjakan oleh (tim lapangan)</label>'+
+     '<input id="kb-pelaksana" list="kb-oplist" placeholder="kosongkan bila Anda kerjakan sendiri">'+
+     '<datalist id="kb-oplist">'+
+       (function(){ var m={}; (TICKETS||[]).forEach(function(t){ if(t.pic) m[t.pic]=1; });
+         return Object.keys(m).map(function(n){return '<option value="'+esc(n)+'">';}).join(""); })()+
+     '</datalist></div>'+
+   '<div class="field"><label>Lama pengerjaan (menit)</label>'+
+     '<input id="kb-menit" type="number" min="1" step="5" value="15"></div>'+
+   '<div class="field"><label>Kerusakan yang dicegah (opsional)</label><select id="kb-repair">'+
+     '<option value="">— tidak ada —</option>'+
+     (GA_PARAM.repair||[]).map(function(r){return '<option value="'+esc(r.item)+'">'+esc(r.item)+' · '+costRp(r.biaya)+'</option>';}).join("")+
+     '</select><div class="muted small" style="margin-top:4px">Isi hanya bila tindakan Anda benar-benar mencegah kerusakan itu terjadi</div></div>'+
+   '<div class="panel-t" style="margin:14px 0 4px">📷 Foto bukti <span style="color:var(--red)">*wajib</span></div>'+
+   '<div class="muted small" style="margin-bottom:10px">Sama seperti penutupan tiket: kontribusi tanpa bukti tidak bisa dinilai, dan angka yang tidak bisa dibuktikan akan meruntuhkan papan ini sendiri.</div>'+
+   '<div class="md-pick">'+
+     '<label class="fo-cam"><input type="file" accept="image/*" capture="environment" multiple onchange="kontribFoto(this)"/>'+
+       '<span class="fo-cam-ic">📷</span><b>Kamera</b><small>foto langsung</small></label>'+
+     '<label class="fo-cam galeri"><input type="file" accept="image/*" multiple onchange="kontribFoto(this)"/>'+
+       '<span class="fo-cam-ic">🖼️</span><b>Galeri</b><small>foto yang sudah ada</small></label>'+
+   '</div>'+
+   '<div id="kbPrev" class="fo-prev" style="margin-top:10px"></div>'+
+   '<div class="field" style="margin-top:12px"><label>Catatan (opsional)</label>'+
+     '<textarea id="kb-note" rows="2" placeholder="mis. sekalian dirapikan saat lewat, tidak perlu tiket"></textarea></div>'+
+   '<div id="kbNilai" class="kb-nilai"></div>'+
+   '<button id="kbBtn" class="btn-act" style="width:100%;margin-top:10px;opacity:.5" disabled onclick="kontribSubmit()">✨ Catat Kontribusi</button>'+
+  '</div>';
+ document.getElementById("ovl").classList.add("show");
+ ["kb-menit","kb-repair","kb-jenis"].forEach(function(id){
+   var el=document.getElementById(id); if(el) el.addEventListener("change",kontribPratinjau);
+ });
+ var mn=document.getElementById("kb-menit"); if(mn) mn.addEventListener("input",kontribPratinjau);
+ kontribPratinjau();
+}
+/* Nilainya diperlihatkan SEBELUM disimpan, dengan rinciannya — supaya pelapor
+   tahu persis dari mana angkanya, dan tidak ada kejutan di papan nanti. */
+function kontribPratinjau(){
+ var box=document.getElementById("kbNilai"); if(!box)return;
+ var n=kontribNilai({
+   menit:+((document.getElementById("kb-menit")||{}).value||0),
+   repairItem:(document.getElementById("kb-repair")||{}).value||"",
+   jenis:(document.getElementById("kb-jenis")||{}).value||""
+ });
+ box.innerHTML='<div class="kb-n-h">Nilai kontribusi ini</div>'+
+   '<div class="kb-n-v">'+costRp(n.rp)+(n.co2?' <i>'+n.co2+' kg CO₂</i>':'')+'</div>'+
+   '<div class="kb-n-b">'+n.baris.map(function(b){
+     return '<div><span>'+esc(b.label)+'</span><b>'+costRp(b.rp)+'</b></div>'; }).join("")+'</div>';
+}
+async function kontribFoto(input){
+ var files=[].slice.call(input.files||[]); input.value=""; if(!files.length)return;
+ window._kb=window._kb||{imgs:[]};
+ for(var i=0;i<files.length;i++){
+   if(window._kb.imgs.length>=6) break;
+   var m=await agavaMediaDari(files[i],1000,0.72);
+   if(m) window._kb.imgs.push(m);
+ }
+ var box=document.getElementById("kbPrev");
+ if(box) box.innerHTML=window._kb.imgs.map(function(im,i){
+   return '<div class="fo-prev-i"><img src="'+(mdThumb(im)||"")+'"/>'+
+     '<button type="button" onclick="kontribFotoHapus('+i+')" title="hapus">✕</button></div>'; }).join("");
+ var b=document.getElementById("kbBtn"); var ok=window._kb.imgs.length>0;
+ if(b){ b.disabled=!ok; b.style.opacity=ok?1:.5; }
+}
+function kontribFotoHapus(i){
+ if(!window._kb)return; window._kb.imgs.splice(i,1);
+ var box=document.getElementById("kbPrev");
+ if(box) box.innerHTML=window._kb.imgs.map(function(im,j){
+   return '<div class="fo-prev-i"><img src="'+(mdThumb(im)||"")+'"/>'+
+     '<button type="button" onclick="kontribFotoHapus('+j+')" title="hapus">✕</button></div>'; }).join("");
+ var b=document.getElementById("kbBtn"); var ok=window._kb.imgs.length>0;
+ if(b){ b.disabled=!ok; b.style.opacity=ok?1:.5; }
+}
+function kontribSubmit(){
+ var v=function(id){ return String((document.getElementById(id)||{}).value||"").trim(); };
+ var judul=v("kb-judul"), lokasi=v("kb-lokasi");
+ if(!judul){ alert("Isi dulu apa yang dibereskan."); return; }
+ if(!lokasi){ alert("Lokasi wajib diisi — tanpa itu kontribusinya tidak bisa ditelusuri."); return; }
+ var imgs=((window._kb||{}).imgs)||[];
+ if(!imgs.length){ alert("Foto bukti wajib."); return; }
+ var k={
+   no:kontribNomor(), judul:judul, lokasi:lokasi,
+   kategori:v("kb-kat"), jenis:v("kb-jenis")||"lain",
+   pelaksana:v("kb-pelaksana")||((gUser&&gUser.name)||""),
+   menit:Math.max(1,+v("kb-menit")||15),
+   repairItem:v("kb-repair"),
+   catatan:v("kb-note"),
+   foto:imgs,
+   pelapor:(gUser&&gUser.name)||"", pelaporEmail:(gUser&&gUser.email)||"",
+   tgl:TODAY_STR, ts:{created:nowStamp()}, ms:nowMs()
+ };
+ closeDrawer();
+ KONTRIBUSI.unshift(k);
+ kontribPersist();
+ var tersimpan=dbSaveKontribusi(k);
+ try{ auditLog("kontribusi-lapor", k.no+" · "+k.judul+" · "+k.lokasi+" · "+costRp(kontribNilai(k).rp)); }catch(e){}
+ try{ agavaRenderAman(["renderService","renderMobileHome","renderOverview","updateBell"]); }catch(e){}
+ var n=kontribNilai(k);
+ alert("✨ Kontribusi "+k.no+" tercatat.\n\nNilai: "+costRp(n.rp)+(n.co2?(" · "+n.co2+" kg CO₂"):"")+
+   "\nKredit poin: +"+poinKontribusiSatu(k)+
+   (tersimpan?"":"\n\n⚠️ BELUM tersimpan ke server — periksa koneksi lalu laporkan ulang."));
+}
 function gaActivityCost(o){
  var r=o.ref||{}, k=o.kind;
  if(k==="room"){ var jam=hhmmJam(r.start,r.end), pax=+r.pax||rbRoomCap(r.room)||8; var c=costRuangMeeting(pax,jam); c.rinci=pax+" pax · "+jam+" jam"; return c; }
@@ -23934,11 +24405,32 @@ function gaOpexHTML(scope){
 /* Angka diambil dari mesin biaya bersama (gaCostAll) yang sudah sadar cakupan:
    Super Admin, Dept Head, Division Head, Chief & Section Head → akumulasi SEMUA
    pengguna AGAVA; akun lain → hanya permintaannya sendiri. */
-function mJejakBiaya(){
+/* ── BIAYA TIKET: DIARSIPKAN, BUKAN DIHAPUS (31 Agu 2026) ───────────────────
+   Keputusan Sudana: "setiap tiket yang dicreate sekarang jangan menambah lagi
+   rupiah/co2 nya. Stop, diarsipkan saja."
+
+   Fungsinya dipertahankan utuh dan tetap bisa dipanggil — sejarah biaya yang
+   sudah terlanjur terhitung tidak dihapus, ia hanya berhenti menjadi angka
+   utama di beranda. Menghapusnya akan membuang bukti dari 300-an tiket yang
+   sudah dinilai, dan itu tidak bisa dibalik. */
+function mBiayaTiketArsip(){
  var a; try{ a=gaCostAll(); }catch(e){ return {tot:0,co2:0,n:0,byKind:{}}; }
  return {tot:a.rp||0, co2:a.co2||0, n:a.n||0,
    byKind:{complaint:(a.by.complaint||{}).rp||0, room:(a.by.room||{}).rp||0,
            transport:(a.by.transport||{}).rp||0, overtime:(a.by.overtime||{}).rp||0}};
+}
+/* Angka utama beranda kini KONTRIBUSI, bukan biaya pesanan. Lihat catatan
+   panjang di blok KONTRIBUSI SAYA untuk alasannya. */
+function mJejakBiaya(){
+ var semua=(typeof costSeeAll==="function")&&costSeeAll();
+ var daftar=(KONTRIBUSI||[]).filter(function(k){ return semua||kontribMilikSaya(k); });
+ var tot=0, co2=0, byJenis={};
+ daftar.forEach(function(k){
+   var n=kontribNilai(k);
+   tot+=n.rp; co2+=n.co2;
+   byJenis[k.jenis||"lain"]=(byJenis[k.jenis||"lain"]||0)+n.rp;
+ });
+ return {tot:tot, co2:+co2.toFixed(1), n:daftar.length, byJenis:byJenis, daftar:daftar};
 }
 function mRoomIdle(){
  if(!isSuper()||typeof RB_BOOKINGS==="undefined")return {rp:0,n:0};
@@ -23952,19 +24444,24 @@ function mJejakCard(){
  var j=mJejakBiaya();
  var idle=mRoomIdle();
  var semua=(typeof costSeeAll==="function")&&costSeeAll();
- var judul=semua?"💡 Jejak Biaya Seluruh Pengguna":"💡 Jejak Biaya Pesanan Saya";
- var lbl={complaint:"Layanan",room:"Ruang",transport:"Transport",overtime:"Overtime"};
- var chips=Object.keys(j.byKind).filter(function(k){return j.byKind[k]>0;})
-   .map(function(k){ return '<span class="mj-chip">'+lbl[k]+' '+costRp(j.byKind[k])+'</span>'; }).join("");
+ var judul=semua?"✨ Kontribusi Seluruh Tim GA":"✨ Kontribusi Saya";
+ var chips=Object.keys(j.byJenis).filter(function(k){return j.byJenis[k]>0;})
+   .map(function(k){ return '<span class="mj-chip">'+esc(kontribJenisLabel(k))+' '+costRp(j.byJenis[k])+'</span>'; }).join("");
+ /* Nada kartunya ikut berubah, bukan cuma angkanya. Kalimat lama berbunyi
+    "sadari biayanya — hemat yang bisa dihemat": itu bahasa untuk mengukur
+    konsumsi. Kartu ini mengukur hal yang berlawanan, jadi kalimatnya harus
+    ikut, kalau tidak orang akan membaca pencapaiannya sebagai tagihan. */
  return '<div class="mj-card">'+
-   '<div class="mj-h"><span>'+judul+'</span><i>'+j.n+' aktivitas</i></div>'+
+   '<div class="mj-h"><span>'+judul+'</span><i>'+j.n+' kontribusi</i></div>'+
    '<div class="mj-main"><div class="mj-v">'+costRp(j.tot)+'</div>'+
      '<div class="mj-co2">'+(j.co2||0)+' kg CO₂</div></div>'+
    (chips?'<div class="mj-chips">'+chips+'</div>':'')+
    (idle.rp>0?'<div class="mj-idle">⚠ Potensi terbuang organisasi: <b>'+costRp(idle.rp)+'</b> · '+idle.n+' ruang lewat tanpa ditandai terpakai</div>':'')+
    '<div class="mj-note">'+(j.n
-     ? 'Setiap pesanan memakai sumber daya perusahaan. Sadari biayanya — hemat yang bisa dihemat.'
-     : 'Belum ada aktivitas tercatat'+(semua?'':' atas nama Anda')+' — angka terisi sendiri begitu permintaan layanan masuk.')+'</div></div>';
+     ? 'Nilai yang Anda tambahkan dengan membereskan masalah langsung — tanpa harus menjadi tiket.'
+     : 'Belum ada kontribusi tercatat'+(semua?'':' atas nama Anda')+'. Lihat sesuatu yang bisa langsung dibereskan? Catat di sini.')+'</div>'+
+   '<button class="mj-lapor" onclick="kontribBuka()">✨ Lapor Kontribusi</button>'+
+   '</div>';
 }
 
 /* ── HALAMAN PARAMETER & BIAYA (owner-only) ── */
@@ -24493,7 +24990,7 @@ function renderParams(){
    Sekarang: data dimuat → INFRASTRUKTUR (dbInit & kawan-kawan) → baru render,
    dan setiap render dipagari sendiri. Render yang rusak hanya merusak layarnya
    sendiri, tidak pernah lagi menyeret login.                                  */
-agavaRenderAman(["loadFlowConfig","dbLoadAll","permitSeedBerlaku","paramLoad","selfCareLoad",
+agavaRenderAman(["loadFlowConfig","dbLoadAll","permitSeedBerlaku","paramLoad","selfCareLoad","kontribLoad",
   "energyLoad","energyToJul","esgAchLoad","wpLoad","soLoad","fieldOpLoad",
   "normalizeSO","normalizeTickets"]);
 /* INFRASTRUKTUR DULU — dbInit() memanggil firebase.initializeApp(), dan tanpa
