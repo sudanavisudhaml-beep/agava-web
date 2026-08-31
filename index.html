@@ -7978,7 +7978,26 @@ const ERSUS_ALERTS=[
    Catatan: jam di info bar SELALU memakai waktu nyata. Bila keduanya berbeda,
    AGAVA menampilkan penanda "mode demo" agar tidak menyesatkan. */
 function realToday(){ return new Date().toLocaleDateString('en-CA'); }
-let TODAY_PIN="2026-06-18";
+/* ── TANGGAL DEMO TIDAK BOLEH MENJADI NILAI BAWAAN (31 Agu 2026) ────────────
+   Baris ini dulu berbunyi:  let TODAY_PIN="2026-06-18";
+
+   Sebuah tanggal patokan untuk demo dipasang sebagai NILAI BAWAAN, dan hanya
+   dikosongkan bila data/codec-config.json berhasil dimuat. Begitu berkas itu
+   gagal terambil — sinyal HP jelek, cache service worker, apa pun — perangkat
+   itu diam-diam kembali ke 18 Juni 2026, dan SETIAP tiket yang dibuat di sana
+   dicap dengan tanggal itu.
+
+   Akibatnya berantai dan tak terlihat: listener tiket mengurutkan dengan
+   orderBy("created","desc") lalu memotong di 300, jadi tiket bertanggal Juni
+   jatuh ke luar jendela dan TIDAK PERNAH sampai ke perangkat siapa pun —
+   sementara Cloud Function tetap terpicu dan mengirim notifikasi. Orang
+   diberi kabar tentang tiket yang tidak akan pernah bisa ia buka.
+   36 tiket 31 Agustus hilang begitu saja sebelum ini ketahuan.
+
+   Sekarang bawaannya KOSONG = ikut tanggal nyata. Mematok tanggal harus
+   menjadi tindakan sadar lewat konfigurasi, bukan keadaan yang terjadi karena
+   sesuatu gagal dimuat (Prinsip 1: kosong berarti belum diatur). */
+let TODAY_PIN="";
 let TODAY_STR=TODAY_PIN||realToday();
  /* Data tiket dimulai KOSONG — diisi lewat Create Ticket. Backup data lama:
     GAVA/AGAVA-Backup-SebelumReset-2026-07-21.json */
@@ -22282,7 +22301,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.31-274";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.31-275";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -22541,7 +22560,32 @@ function dbListen(){
  if(!AGDB.db){ console.warn("dbListen: Firestore belum siap"); return; }
  try{
   dbLepasSemua();
-  AGDB.lepas.push(AGDB.db.collection("agava_tickets").orderBy("created","desc").limit(300).onSnapshot(snap=>{
+  /* ── JANGAN URUTKAN DENGAN FIELD YANG BISA SALAH (31 Agu 2026) ─────────────
+     Dulu: .orderBy("created","desc").limit(300)
+
+     Dua cacat yang saling menutupi:
+       1. `created` diisi TODAY_STR saat tiket dibuat, dan TODAY_STR bisa
+          terpatok ke tanggal demo bila konfigurasi gagal dimuat. Tiket baru
+          yang tercap Juni langsung tersortir ke DASAR daftar.
+       2. limit(300) sementara cloud sudah memuat 416 tiket. Yang jatuh di luar
+          jendela tidak pernah sampai — tanpa satu pun pesan.
+
+     Digabung: 36 tiket yang dibuat 31 Agustus tidak terlihat di perangkat mana
+     pun, sementara notifikasinya tetap terkirim. Gejalanya persis laporan
+     Sudana: "notifikasi muncul tapi tiketnya tidak ter-record".
+
+     Sekarang TANPA orderBy — urutan tampilan memang sudah ditentukan di
+     perendernya masing-masing, jadi mengurutkan di sini tidak pernah
+     dibutuhkan; ia hanya menentukan SIAPA yang lolos limit, dan itu keputusan
+     yang tidak boleh bergantung pada field yang bisa salah. Batasnya dinaikkan
+     jauh di atas jumlah sekarang, dan bila suatu saat tetap terlampaui, kondisi
+     itu DIKATAKAN alih-alih diam (Prinsip 9). */
+  const TIKET_AMBIL_MAX=1500;
+  AGDB.lepas.push(AGDB.db.collection("agava_tickets").limit(TIKET_AMBIL_MAX).onSnapshot(snap=>{
+    if(snap.size>=TIKET_AMBIL_MAX){
+      console.warn("AGAVA: jumlah tiket mencapai batas ambil ("+TIKET_AMBIL_MAX+") — naikkan TIKET_AMBIL_MAX.");
+      try{ auditLog("tiket-batas-ambil", snap.size+" tiket, batas "+TIKET_AMBIL_MAX); }catch(e){}
+    }
     cloudNaik("tiket · "+snap.size+" dok");
     let changed=false, arrivals=[];
     AGDB.tickCloud=AGDB.tickCloud||{};
