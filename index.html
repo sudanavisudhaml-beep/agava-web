@@ -12510,10 +12510,14 @@ function mBotItem(tab,nav,ic,label,badge){
 }
 /* Akun ini koordinator kategori mana pun? DITURUNKAN dari peta KOORDINATOR,
    bukan daftar nama kedua — mengangkat koordinator baru cukup di peta itu. */
-function akuKoordinatorKategori(){
- if(!gUser) return false;
+function akuKoordinatorKategori(){ return koorKategoriSaya().length>0; }
+/* Kategori apa saja yang dipegang akun ini sebagai koordinator. Dipakai untuk
+   deteksi peran DAN untuk menyebut wilayahnya di layar — satu sumber, jadi
+   keduanya tidak bisa melenceng. */
+function koorKategoriSaya(){
+ if(!gUser) return [];
  var aku=gUser.name||"";
- return Object.keys(KOORDINATOR).some(function(k){
+ return Object.keys(KOORDINATOR).filter(function(k){
    var n=KOORDINATOR[k];
    return n && (typeof orangSama==="function") && orangSama(aku,n);
  });
@@ -17039,24 +17043,55 @@ function renderApprovals(){
     Mekanismenya SAMA PERSIS dengan svcGoSec: satu halaman, atribut data-sec,
     CSS yang menyembunyikan section lain. Tombolnya polos tanpa ikon (diminta).
     Menambah section ke-4 nanti cukup menambah satu baris di APPR_SECS. */
- var secs=[
+ /* ── KOORDINATOR: HANYA ESKALASI MILIKNYA (31 Agu 2026) ────────────────────
+    Aturan Sudana: "di approval koordinator hanya tampilkan ekskalasi tiket yang
+    ditujukan ke dia, jangan pernah masukan item approval apapun diluar
+    wilayahnya."
+
+    Diperiksa lebih dulu, bukan diasumsikan: untuk Sunaryo & Maria seluruh
+    antrean di luar eskalasi memang sudah NOL — soApprovalsForMe, uprApprovalsForMe,
+    overtime, dan APPROVALS per tier, karena role "general" tidak memegang tier
+    apa pun. Jadi tidak ada item orang lain yang bocor.
+
+    Yang MASIH salah adalah rangkanya: kontrol "Approver tier" (menampilkan
+    lencana "—") dan tab Procurement & Service tetap terpampang, mengundang
+    koordinator ke wilayah yang bukan miliknya dan menyiratkan ia seorang
+    approver. Sebuah tab kosong tetap sebuah pintu.
+
+    Halamannya kini dikunci pada satu section. Ini penyempitan tampilan di atas
+    penyaringan data yang sudah ada — bukan penggantinya: kalau kelak ada
+    perubahan yang membuat sebuah item masuk ke antrean mereka, ia tetap tidak
+    akan terlihat DAN tetap tidak akan menjadi wewenangnya. */
+ var koorSaja = akuKoordinatorKategori() && !isOwner() && !isSuper();
+ var secs = koorSaja
+   ? [{k:"eskalasi", label:"Eskalasi", n:escList.length}]
+   : [
    {k:"eskalasi",   label:"Eskalasi",    n:escList.length},
    {k:"procurement",label:"Procurement", n:soList.length+uprList.length},
    {k:"service",    label:"Service",     n:otList.length+oPend.length}
  ];
  if(!secs.some(function(x){return x.k===apprSec;})) apprSec="eskalasi";
- var tabs='<div class="svc-tabs">'+secs.map(function(s){
+ /* Satu section = tidak ada yang bisa dipilih; tab bar-nya sendiri jadi hiasan. */
+ var tabs = koorSaja ? '' : '<div class="svc-tabs">'+secs.map(function(s){
    return '<button type="button" class="svc-tab'+(apprSec===s.k?' on':'')+'" data-sec="'+s.k+'" onclick="apprGoSec(\''+s.k+'\')">'+
      esc(s.label)+(s.n?'<b>'+s.n+'</b>':'')+'</button>'; }).join("")+'</div>';
  var el=document.getElementById("page-approvals");
  el.setAttribute("data-sec",apprSec);
  el.innerHTML=`
+  ${koorSaja?`
+  <!-- Koordinator bukan approver: kontrol "Approver tier" diganti keterangan
+       wewenangnya yang sebenarnya, supaya tidak ada yang menyangka ia memegang
+       gerbang persetujuan. -->
+  <div class="card" style="padding:16px 20px;margin-bottom:14px">
+    <div style="font-weight:700;color:var(--ink);font-size:calc(14px*var(--fz))">Eskalasi Tiket — Koordinator ${esc(koorKategoriSaya().join(" &amp; ")||"Kategori")}</div>
+    <div class="muted small" style="margin-top:4px">Hanya tiket yang dieskalasi ke Anda. Tindak lanjutnya: buat SO, diskusikan dengan Section Head, atau naikkan bila di luar wewenang Anda.</div>
+  </div>`:`
   <div class="card" style="padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
     <div style="font-size:calc(13px*var(--fz));color:var(--muted);font-weight:600">Approver tier:</div>${tierCtrl}
     <!-- Lencana "N pending" dibuang (Sudana, 5 Agu 2026): tiap tab section di
          bawahnya sudah membawa angkanya sendiri, dan bottom bar pun memuat
          angka yang sama. Tiga tempat untuk satu hitungan. -->
-  </div>
+  </div>`}
   ${tabs}
   <div class="ap-sec" data-sec="eskalasi">
   ${escList.length?escPanelHTML(escList):'<div class="card" style="padding:34px;text-align:center;color:var(--muted)">Tidak ada tiket yang dieskalasi.</div>'}
@@ -21443,7 +21478,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.31-269";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.31-270";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
