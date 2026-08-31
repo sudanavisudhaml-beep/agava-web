@@ -4553,8 +4553,8 @@ html,body{max-width:100%}
       </button>
       <!-- Dulu ikon Approval (kembar dengan yang di bottom bar) → kini modul
            Reminder khusus jatuh tempo STNK & PBB, bersebelahan dengan Chat. -->
-      <button class="mtop-ic" id="mRoleBtn" onclick="go('rmd')" title="Reminder — STNK &amp; PBB">
-        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      <button class="mtop-ic" id="mRoleBtn" onclick="go('rmd')" title="Reminder — jatuh tempo izin, STNK, PBB, kontrak">
+        <svg viewBox="0 0 24 24" id="mRoleIc"></svg>
         <i class="mtop-bdg hide" id="mRoleBdg">0</i></button>
       <button class="mtop-ic" onclick="go('chat')" title="Chat GA Team">
         <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
@@ -4603,8 +4603,10 @@ html,body{max-width:100%}
                LONCENG dan title "Notifikasi" — bentuk dan namanya sama persis
                dengan lonceng notifikasi di sebelahnya. Dua pintu berbeda dengan
                satu rupa: orang menekan yang satu sambil mengharapkan yang lain.
-               Kini jam weker: lingkaran + jarum + dua kaki bel di atas. -->
-          <button class="icon-btn" onclick="go('reminder')" title="Reminder — jatuh tempo izin, STNK, PBB, kontrak" style="position:relative"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.5 1.8"/><path d="M5 3.2 2.2 6"/><path d="M19 3.2 21.8 6"/></svg><span id="bellBadge" class="bell-badge hide">0</span></button>
+               Kini jam weker, diambil dari IC.jamweker — SATU definisi dipakai
+               desktop & mobile. Versi pertama perbaikan ini menulis SVG-nya
+               inline di sini saja, sehingga di HP ikonnya tetap lonceng. -->
+          <button class="icon-btn" onclick="go('reminder')" title="Reminder — jatuh tempo izin, STNK, PBB, kontrak" style="position:relative"><svg viewBox="0 0 24 24" id="rmdIc"></svg><span id="bellBadge" class="bell-badge hide">0</span></button>
           <button class="icon-btn" onclick="agavaLogout()" title="Keluar dari AGAVA"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
         </div>
       </div>
@@ -4722,7 +4724,17 @@ const IC={
     🕐 jam      = REMINDER — semata soal JATUH TEMPO tanggal di modul.
     📋 dokumen  = APPROVAL — aksi alur kerja yang menunggu persetujuan.
     Pakai ikon yang sesuai maknanya, jangan pukul rata lonceng. */
+ /* LONCENG — dipakai kartu notifikasi sebagai ikon cadangan. Namanya "reminder"
+    karena sejarah, TAPI artinya notifikasi. Jangan diganti jam: yang memakainya
+    adalah notifModIcon, bukan modul Reminder. */
  reminder:'<path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/>',
+ /* JAM WEKER — ikon modul Reminder (31 Agu 2026, permintaan Sudana).
+    Sebelumnya modul Reminder memakai lonceng yang sama persis dengan lonceng
+    notifikasi di sebelahnya: dua pintu berbeda, satu rupa, dan di HP bahkan
+    satu-satunya pembedanya cuma posisi. Didefinisikan SEKALI di sini lalu
+    dipakai top bar desktop maupun mobile — kemarin ikonnya ditulis inline di
+    dua tempat, jadi satu berubah dan satunya tertinggal (Prinsip 2). */
+ jamweker:'<circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.5 1.8"/><path d="M5 3.2 2.2 6"/><path d="M19 3.2 21.8 6"/>',
  jatuhtempo:'<circle cx="12" cy="12" r="9"/><path d="M12 6.5V12l3.6 2.2"/>',
  landbank:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
  today:'<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/>',
@@ -5142,6 +5154,20 @@ function agavaLogout(){
 
 /* SO_SUMMARY / TIKET_SUMMARY / fetchSOSummary dihapus — SEMUA tampilan derive langsung dari
    array SO & TICKETS (single source). Integrasi SharePoint nanti: map list item → SO[] lalu renderAll(). */
+/* Ikon modul Reminder diisi dari SATU definisi (IC.jamweker) ke dua tombol:
+   top bar desktop (#rmdIc) dan top bar mobile (#mRoleIc). Ditulis dari kode,
+   bukan disalin ke dua markup — itu yang kemarin membuat versi HP tertinggal
+   memakai lonceng lama. */
+function ikonReminderPasang(){
+ try{
+   var d=(typeof IC!=="undefined"&&IC.jamweker)||"";
+   if(!d) return;
+   ["rmdIc","mRoleIc"].forEach(function(id){
+     var el=document.getElementById(id);
+     if(el && el.innerHTML.indexOf("circle")<0) el.innerHTML=d;
+   });
+ }catch(e){}
+}
 /* Akun ini punya peran yang dikenal? Super/owner selalu ya. */
 function peranTerpasang(){ return !!(gUser&&(gUser.super||ROLES[gRole])); }
 function buildNav(){
@@ -5170,6 +5196,7 @@ function buildNav(){
     try{ if(!window._noPeranDicatat){ window._noPeranDicatat=1;
       auditLog("akun-tanpa-peran",(gUser.email||gUser.name||"")+" masuk tanpa peran"); } }catch(e){}
   }
+  ikonReminderPasang();
   html+=MENU.filter(m=>allowed.includes(m.id)).map(m=>
     `<a data-id="${m.id}" class="${m.id===active?'active':''}" onclick="go('${m.id}')" title="${m.label}">
       <svg viewBox="0 0 24 24">${IC[m.ic]}</svg><span class="nav-txt">${m.label}</span>${navBadge(m.id)}</a>`).join("");
@@ -11499,86 +11526,20 @@ function myTicketEscalateSubmit(no){
    escNote milik operator TIDAK ditimpa; alasan naik disimpan terpisah di
    escUpNote supaya kedua suara tetap terbaca. Kolom escUpBy/escUpAt yang
    selama ini tetap dibaca perender kartu kini terisi lagi oleh jalur sah. */
-/* Boleh menaikkan HANYA bila: (a) masih ada anak tangga di atasnya, dan
-   (b) yang menekan adalah PEMEGANG anak tangga saat ini. Estafet hanya boleh
-   diserahkan oleh yang sedang memegang tongkatnya. */
-function escBolehNaikkan(t){
- if(!t||!t.esc||t.escDone) return false;
- var naik=escAnakBerikut(t);
- if(!naik) return false;                           /* sudah di puncak tangga */
- /* Anak tangga tujuan harus punya penerima yang jelas — kalau dipegang orang
-    tertentu, orangnya harus ada. Kalau dipegang peran, selalu ada penerimanya. */
- if(!naik.role && !escPemegang(t,naik)) return false;
- if(typeof isOwner==="function" && isOwner()) return true;
- var d=escAnak(t), aku=(gUser&&gUser.name)||"", pemegang=escPemegang(t,d);
- if(pemegang) return orangSama(aku,pemegang);
- if(d.role) return gRole===d.role;
- if(d.roleCadangan) return d.roleCadangan.indexOf(gRole)>=0;
- return false;
-}
-/* Label tujuan naik: sebut namanya bila anak tangga itu dipegang orang tertentu. */
-function escNaikLabel(t){
- var naik=escAnakBerikut(t); if(!naik) return "";
- var nama=escPemegang(t,naik);
- return naik.label+(nama?" "+nama:"");
-}
-function escNaikkanBuka(no){
- var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
- if(!escBolehNaikkan(t)){
-   var d0=escAnak(t), n0=escAnakBerikut(t);
-   alert(n0 ? ("⛔ Hanya pemegang tingkat "+d0.label+" pada tiket ini yang dapat menaikkannya ke "+n0.label+".")
-            : ("⛔ Tiket ini sudah berada di tingkat teratas tangga eskalasi ("+d0.label+")."));
-   return; }
- var naik=escAnakBerikut(t), sh=escNaikLabel(t);
- document.getElementById("drawer").innerHTML=
-  '<div class="dh"><button class="x" onclick="closeDrawer()">✕</button>'+
-   '<div class="sono" style="font-size:calc(15px*var(--fz))">'+esc(t.no)+'</div>'+
-   '<div style="font-size:calc(14.5px*var(--fz));color:var(--ink);font-weight:700;margin-top:5px">'+esc(t.judul||'')+'</div>'+
-   '<div class="muted small" style="margin-top:3px">'+esc(foNormCat(t.cat))+' · '+esc(t.lokasi||'')+'</div></div>'+
-  '<div class="db">'+
-   '<div class="mt-esk-st" style="margin-top:0">Dari <b>'+esc(escAnak(t).label)+'</b> naik ke <b>'+esc(sh)+'</b>. '+
-     'Setelah naik, <b>'+esc(naik.label)+' yang membuat SO</b> — tiket ini keluar dari antrean eskalasi Anda.</div>'+
-   (t.escNote?'<div class="tk-brief-n" style="margin-top:12px"><b>⏫ Alasan operator:</b> '+esc(t.escNote)+(t.escBy?' — '+esc(t.escBy):'')+'</div>':'')+
-   '<div class="field" style="margin-top:14px"><label>Kenapa perlu naik ke '+esc(naik.label)+'? <span style="color:var(--red)">*</span></label>'+
-     '<textarea id="esc-naik-note" rows="3" placeholder="mis. nilainya di atas wewenang '+esc(escAnak(t).label)+' — perlu keputusan '+esc(naik.label)+'"></textarea></div>'+
-   '<button class="btn-act" style="width:100%" onclick="escNaikkanSubmit(\''+esc(no)+'\')">⏫ Naikkan ke '+esc(naik.label)+'</button>'+
-  '</div>';
- document.getElementById("ovl").classList.add("show");
- setTimeout(function(){ var x=document.getElementById("esc-naik-note"); if(x)x.focus(); },80);
-}
-function escNaikkanSubmit(no){
- var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
- if(!escBolehNaikkan(t)){ alert("⛔ Tidak berwenang menaikkan tiket ini."); return; }
- var note=((document.getElementById("esc-naik-note")||{}).value||"").trim();
- var dariAnak=escAnak(t), naik=escAnakBerikut(t);
- if(!naik){ alert("⛔ Sudah di tingkat teratas."); return; }
- if(!note){ alert("Alasannya wajib diisi — inilah yang dibaca "+naik.label+" saat tiket ini sampai padanya."); return; }
- var terima=escPemegang(t,naik), dari=(gUser&&gUser.name)||"";
- var labelTerima=naik.label+(terima?" "+terima:"");
- closeDrawer();
- /* SATU anak tangga, bukan lompat ke puncak. Tujuan diambil dari ESC_TANGGA —
-    jadi menambah tingkat baru tidak menuntut perubahan di fungsi ini. */
- t.escTo=naik.k; t.escUpBy=dari; t.escUpAt=nowMs(); t.escUpNote=note;
- try{ tkKomen(t,"Dinaikkan ke "+labelTerima+" oleh "+dariAnak.label+" "+dari+": "+note,"eskalasi"); }catch(e){}
- /* satu bidang masuk, satu bidang tertulis — aturan dbPatchTicket. escDone
-    sengaja TIDAK ikut ditulis: ia sudah false, dan menulis bendera false
-    secara sengaja adalah bentuk yang sama dengan salinan basi. */
- dbPatchTicket(t,{escTo:naik.k, escUpBy:dari, escUpAt:t.escUpAt, escUpNote:note});
- try{ triggerFlow("updateTicket",{ticketNo:t.no,escTo:naik.k,escUpBy:dari}); }catch(e){}
- var n={ic:"⏫", t:"Eskalasi naik ke "+naik.label,
-   d:t.no+" · "+(t.judul||"")+" · "+foNormCat(t.cat)+" · dari "+dariAnak.label+" "+dari+" — "+note,
-   at:nowStamp(), sev:"crit", nav:naik.nav, done:false};
- /* Beralamat ke ORANGNYA bila anak tangga itu dipegang orang tertentu;
-    ke perannya bila dipegang peran. Tidak pernah disiarkan ke keduanya. */
- if(terima){ n.nama=terima; n.namaRole=naik.role||""; } else if(naik.role){ n.roles=[naik.role]; }
- NOTIFS.unshift(n);
- try{ agavaNotify("⏫ Eskalasi naik ke Anda", t.no+" · "+(t.judul||"")+" · dari "+dariAnak.label+" "+dari, {nav:naik.nav}); }catch(e){}
- try{ auditLog("escalation-naik", t.no+" · "+dariAnak.label+" "+dari+" → "+labelTerima+" · "+foNormCat(t.cat)+" · "+note); }catch(e){}
- try{ agavaRenderAman(["renderService","renderApprovals","renderMyTickets",
-                       "renderFieldOps","renderReminder","updateBell"]); }catch(e){}
- alert("⏫ Tiket "+no+" naik ke "+labelTerima+".\n\nSO-nya kini dibuat oleh "+naik.label+
-       " — tiket ini keluar dari antrean eskalasi Anda."+awanPeringatan());
-}
+/* escBolehNaikkan / escNaikLabel / escNaikkanBuka / escNaikkanSubmit DIHAPUS
+   31 Agu 2026 - keputusan Sudana: "jangan melimpahkan pekerjaan. Pekerjaan itu
+   harus jelas siapa yang bertanggung jawab dari lahirnya pekerjaan itu."
+
+   Keempatnya melayani satu tindakan: memindahkan tanggung jawab sebuah tiket
+   ke orang lain. Tindakannya dicabut, jadi fungsinya ikut dicabut - bukan
+   ditinggalkan sebagai kode mati yang suatu saat terpanggil lagi tanpa sengaja.
+   Itu pelajaran escDismiss(): tombolnya dibuang v203, fungsinya dibiarkan
+   hidup, dan jalan pintas yang dinyatakan tertutup sebenarnya masih terbuka.
+
+   Penggantinya escDiskusiSection() & escDiskusiDept(): memindahkan PERTANYAAN,
+   bukan pekerjaannya. Satu-satunya perpindahan yang tersisa adalah otomatis
+   lewat batas 3 jam di anak tangga Koordinator, dan itu tercatat sebagai breach
+   atas nama orang yang tidak merespons - konsekuensi, bukan pelimpahan. */
 /* Selesaikan dari My Tickets — sama seperti Field Ops: WAJIB foto bukti dari kamera */
 function myTicketResolve(no){ foAskPhoto(no); }
 /* Supervisor buat SO dari tiket tereskalasi → prefill Create SO */
@@ -11867,12 +11828,95 @@ function foOperatorStats(){
    if(t.rating){ s.rateSum+=t.rating; s.rateN++; }
    if(t.proof&&t.proof.length)s.proof++;
  });
+ /* ── KOORDINATOR IKUT DIHITUNG (31 Agu 2026) ──────────────────────────────
+    Permintaan Sudana: "Koordinator juga masuk ke Field Ops sebagai daftar nama
+    yang kita perhitungkan juga waktu respon dan resolutionnya."
+
+    Ia tidak pernah muncul di log ini karena log dihitung dari PENGAMBILAN
+    tiket, dan koordinator ber-pantau:true tidak boleh mengambil. Tapi ia punya
+    jam yang ditagih, dan jamnya sudah ada: batas 3 jam mengubah eskalasi
+    menjadi SO. Itulah response & resolution-nya — diukur dari escAt sampai
+    escSoAt (saat SO-nya terbit ke Procurement), bukan ukuran baru yang
+    dikarang khusus untuk mengisi kolom.
+
+    Barisnya digabung ke tabel yang sama, ditandai "Koordinator" di kolom Role
+    supaya tidak tertukar dengan operator lapangan. */
+ Object.keys(KOORDINATOR).forEach(function(kat){
+   var nama=KOORDINATOR[kat]; if(!nama) return;
+   var s=m[nama];
+   if(!s){ s=m[nama]={name:nama,role:"Koordinator",shift:"",koorKat:[],pick:0,done:0,open:0,esc:0,
+     respSum:0,respN:0,resSum:0,resN:0,respBreach:0,resBreach:0,rateSum:0,rateN:0,proof:0}; }
+   if(!s.koorKat) s.koorKat=[];
+   if(s.koorKat.indexOf(kat)<0) s.koorKat.push(kat);
+   if(!s.role) s.role="Koordinator";
+ });
+ TICKETS.forEach(function(t){
+   if(!t||!t.esc) return;
+   if(escKunci(t)!=="koor") return;                 // hanya yang mendarat di anak tangga Koordinator
+   var nama=ticketKoordinator(t); if(!nama) return;
+   var s=m[nama]; if(!s||!s.koorKat) return;
+   s.pick++; s.esc++;
+   var beres=!!(t.soNo||t.so||t.escDone);
+   if(beres) s.done++; else s.open++;
+   /* DUA ukuran yang berbeda, bukan satu angka disalin ke dua kolom:
+        Response   = escAt → tanda tangan pertama bahwa ia menggarapnya
+                     (diskusi dengan Section, atau langsung SO)
+        Resolution = escAt → SO terbit ke Procurement
+      Hanya dihitung bila penanda waktunya benar-benar ada; menebak salah
+      satunya melahirkan angka kinerja yang tidak bisa ditelusuri ke sumbernya
+      (Prinsip 7). */
+   /* SATU TIKET = SATU KEMUNGKINAN BREACH. Versi pertama menaikkan respBreach
+      DAN resBreach untuk tiket yang sama, sehingga Sunaryo memperoleh 38
+      pelanggaran dari 35 eskalasi — angka yang mustahil dan langsung menyingkap
+      bahwa yang dihitung bukan tiket, melainkan kejadian. */
+   var lewat=false;
+   if(t.escAt){
+     var aksiPertama=t.diskusiAt||t.escSoAt||"";
+     if(aksiPertama){
+       var msR=goLiveMs({ts:{created:aksiPertama}})-t.escAt;
+       if(msR>0){ var mr=Math.round(msR/60000);
+         s.respSum+=mr; s.respN++;
+         if(mr>ESC_KOOR_SLA_JAM*60) lewat=true; }
+     }
+     if(beres && t.escSoAt){
+       var msS=goLiveMs({ts:{created:t.escSoAt}})-t.escAt;
+       if(msS>0){ var ms2=Math.round(msS/60000);
+         s.resSum+=ms2; s.resN++;
+         if(ms2>ESC_KOOR_SLA_JAM*60) lewat=true; }
+     }
+   }
+   /* Didiamkan sampai lewat, SO-nya belum pernah ada. Tanpa cabang ini,
+      koordinator yang MENDIAMKAN tiket justru terlihat paling bersih: ia tidak
+      punya satu pun angka untuk dilanggar. */
+   if(!beres && (t.escBreachAt || escLewatSLA(t))) lewat=true;
+   if(lewat) s.escBreach=(s.escBreach||0)+1;
+ });
  return Object.keys(m).map(function(k){
    var s=m[k];
+   var koor=!!(s.koorKat&&s.koorKat.length);
+   if(koor) s.shift=s.shift||s.koorKat.join(", ");
    s.respAvg=s.respN?Math.round(s.respSum/s.respN):null;
    s.resAvg=s.resN?Math.round(s.resSum/s.resN):null;
    s.rateAvg=s.rateN?(s.rateSum/s.rateN):null;
-   s.slaPct=s.respN||s.resN?Math.round((1-((s.respBreach+s.resBreach)/Math.max(1,s.respN+s.resN)))*100):null;
+   /* ── PENYEBUT SLA HARUS SEDERAJAT DENGAN PEMBILANGNYA ────────────────────
+      Versi pertama membagi SELURUH pelanggaran koordinator dengan jumlah
+      eskalasi yang punya catatan waktu saja — 32 dibagi 18, menghasilkan
+      "SLA −78%". Persentase negatif bukan sekadar jelek dipandang: ia tanda
+      bahwa pembilang dan penyebutnya menghitung himpunan yang berbeda.
+
+      Untuk koordinator, yang dinilai adalah SETIAP eskalasi yang mendarat
+      padanya (s.pick) — termasuk yang didiamkan sampai lewat dan karena itu
+      tidak punya catatan waktu sama sekali. Untuk operator, aturan lama
+      dipertahankan: yang dinilai adalah tiap tahap SLA yang benar-benar
+      terukur. */
+   if(koor){
+     var langgar=(s.escBreach||0);          // satu tiket dihitung sekali
+     s.breachTotal=langgar;
+     s.slaPct=s.pick?Math.max(0,Math.round((1-(langgar/s.pick))*100)):null;
+   } else {
+     s.breachTotal=(s.respBreach||0)+(s.resBreach||0);
+     s.slaPct=(s.respN||s.resN)?Math.round((1-(s.breachTotal/Math.max(1,s.respN+s.resN)))*100):null;
+   }
    return s;
  }).sort(function(a,b){return b.pick-a.pick;});
 }
@@ -11999,7 +12043,7 @@ function renderFieldOps(){
           return '<tr><td><b>'+esc(s.name)+'</b></td><td class="muted small">'+esc(s.role||'—')+(s.shift?' · '+esc(s.shift):'')+'</td>'+
             '<td>'+s.pick+'</td><td>'+s.done+'</td><td>'+s.open+(s.open>=FO_WIP_MAX?' 🚧':'')+'</td><td>'+s.esc+'</td>'+
             '<td>'+(s.respAvg==null?'—':fmtDur(s.respAvg))+'</td><td>'+(s.resAvg==null?'—':fmtDur(s.resAvg))+'</td>'+
-            '<td>'+((s.respBreach+s.resBreach)||'0')+'</td>'+
+            '<td>'+(s.breachTotal||'0')+'</td>'+
             '<td style="color:'+sc+';font-weight:800">'+(s.slaPct==null?'—':s.slaPct+'%')+'</td>'+
             '<td>'+(s.rateAvg==null?'—':'★ '+s.rateAvg.toFixed(1))+'</td></tr>';
         }).join('')+'</tbody></table></div>')
@@ -17080,17 +17124,25 @@ function escTicketRow(t){
          'title="Lewat batas '+ESC_KOOR_SLA_JAM+' jam — eskalasi berpindah ke Section Head '+esc(ticketSectionOwner(t)||"")+'">'+
          'Terekskalasi</button>'
        : '<button class="btn-act" onclick="soFromTicket(\''+esc(t.no)+'\')">Buat SO</button>')+
-     '<button class="btn-out" onclick="escDiskusiSection(\''+esc(t.no)+'\')" title="Buka Chat dengan Section Head pemilik kategori ini">Diskusi Section</button>'+
-     /* Tombol "Naikkan ke Section Head" DICABUT 31 Agu 2026 atas keputusan
-        Sudana: perpindahan itu kini otomatis lewat batas 3 jam. Anak tangga di
-        ATAS Koordinator tetap boleh dinaikkan manual — Section Head yang butuh
-        keputusan Dept Head tidak punya jam otomatis, dan mencabut tombolnya di
-        sana berarti menutup jalan tanpa menyediakan gantinya. */
-     ((escBolehNaikkan(t)&&escKunci(t)!=="koor")
-       ? '<button class="btn-out" style="grid-column:1/-1" onclick="escNaikkanBuka(\''+esc(t.no)+'\')" '+
-         'title="Di luar wewenang '+esc(escAnak(t).label)+' — teruskan satu tingkat ke atas, dan SO dibuat oleh penerimanya">'+
-         '⏫ Naikkan ke '+esc(escNaikLabel(t))+'</button>'
-       : '')+
+     /* ── JANGAN MELIMPAHKAN PEKERJAAN (31 Agu 2026) ────────────────────────
+        Aturan Sudana: "jangan melimpahkan pekerjaan. Pekerjaan itu harus jelas
+        siapa yang bertanggung jawab dari lahirnya pekerjaan itu."
+
+        Seluruh tombol "Naikkan ke ..." dicabut — bukan hanya yang ke Section
+        Head. Menaikkan memindahkan TANGGUNG JAWAB; berdiskusi memindahkan
+        PERTANYAAN. Yang kedua yang dibutuhkan orang saat mentok, dan yang
+        pertama itulah yang membuat sebuah pekerjaan kehilangan pemilik di
+        tengah jalan.
+
+        Satu-satunya perpindahan yang tersisa adalah otomatis lewat batas 3 jam
+        di anak tangga Koordinator — dan itu bukan pelimpahan, melainkan
+        konsekuensi yang tercatat sebagai breach atas nama orang yang tidak
+        merespons.
+
+        Gantinya: diskusi ke atas. Section pemilik kategori untuk keputusan
+        teknis, Dept Head untuk yang di atas wewenang Section. */
+     '<button class="btn-out" onclick="escDiskusiSection(\''+esc(t.no)+'\')" title="Buka Chat dengan Section Head pemilik kategori ini — bertanya, bukan menyerahkan">Diskusi Section</button>'+
+     '<button class="btn-out" style="grid-column:1/-1" onclick="escDiskusiDept(\''+esc(t.no)+'\')" title="Buka Chat dengan GA Dept Head — untuk keputusan di atas wewenang Section. Tiket tetap milik Anda.">Diskusi Dept Head</button>'+
    '</div>'+
  '</div>';
 }
@@ -17098,6 +17150,26 @@ function escTicketRow(t){
    Membuka percakapan P2P dengan Section Head pemilik kategori tiket ini, dan
    menempelkan konteks tiketnya sebagai pesan pembuka supaya yang dibaca Section
    Head bukan sekadar "pak, mau tanya". */
+/* Diskusi dengan GA Dept Head — pengganti tombol "Naikkan ke Dept Head".
+   Bedanya bukan kosmetik: menaikkan memindahkan tanggung jawab, berdiskusi
+   memindahkan pertanyaan. Tiketnya TIDAK berpindah tangan; escTo tidak disentuh
+   sama sekali, dan yang tercatat hanyalah bahwa diskusinya terjadi. */
+function escDiskusiDept(no){
+ var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
+ var dh=USERS.filter(function(u){return u.role==="dept";})[0];
+ if(!dh){ alert("Akun GA Dept Head belum terdaftar di AGAVA."); return; }
+ t.diskusiDeptWith=dh.name; t.diskusiDeptAt=nowStamp();
+ try{ tkKomen(t,"Didiskusikan dengan GA Dept Head "+dh.name+" — tanggung jawab tetap di "+
+   (escPemegang(t,escAnak(t))||escAnak(t).label),"eskalasi"); }catch(e){}
+ try{ dbPatchTicket(t,{diskusiDeptWith:dh.name,diskusiDeptAt:t.diskusiDeptAt}); }catch(e){}
+ var draf="Diskusi eskalasi tiket "+t.no+" — "+(t.judul||"")+"\n"+
+   "Kategori: "+foNormCat(t.cat)+" · Lokasi: "+(t.lokasi||"-")+"\n"+
+   "Pemohon: "+ticketReqName(t)+" · Operator: "+(t.escBy||t.pic||"-")+"\n"+
+   "Alasan eskalasi: "+(t.escNote||"-")+"\n\n"+
+   "Mohon arahan Bapak — keputusan ini di atas wewenang saya. Tiketnya tetap saya pegang.";
+ chatBukaDengan(dh.email,draf);
+ try{ renderApprovals(); renderService(); }catch(e){}
+}
 function escDiskusiSection(no){
  var t=TICKETS.find(function(x){return x.no===no;}); if(!t)return;
  var sh=ticketSectionOwner(t);
@@ -21607,7 +21679,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.31-271";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.08.31-272";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
