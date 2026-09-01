@@ -4943,8 +4943,10 @@ async function lupaPassword(){ return agavaSekaliJalan("lupaPass",null,null,_lup
 async function _lupaPassword_inti(){
  var e=((document.getElementById("loginEmail")||{}).value||"").trim().toLowerCase();
  if(!e){ loginPesan("Isi dulu email Anda, lalu klik Lupa password."); return; }
- var u=USERS.find(function(x){ return x.email.toLowerCase()===e; });
- if(!u){ loginPesan("Email akun tidak terdaftar."); return; }
+ /* Tidak lagi menuntut email ada di USERS: akun yang dibuat lewat Kelola Akun
+    juga berhak mengatur ulang passwordnya. Firebase sendiri yang menilai
+    apakah emailnya terdaftar — dan pesannya di bawah memang sudah ditulis
+    supaya tidak menjanjikan email itu pasti sampai. */
  if(/^fieldops/.test(e)){ loginPesan("Akun operator lapangan diatur ulang oleh Administrator AGAVA."); return; }
  try{ await firebase.auth().sendPasswordResetEmail(e); }catch(err){ console.warn("reset:",err&&err.code); }
  loginPesan("Permintaan atur ulang dikirim ke "+e+". Email sistem sering tertahan filter Astra — "+
@@ -4972,16 +4974,67 @@ function loginSibuk(on){
  const b=document.getElementById("loginBtn");
  if(b){ b.disabled=!!on; b.style.opacity=on?.6:1; }
 }
+/* ╔══ AKUN BARU BOLEH LOGIN TANPA MENUNGGU RILIS KODE (1 Sep 2026) ══════════╗
+   Laporan Sudana: "hari ini saya menambahkan akun christina.kesuma@... tapi
+   kenapa emailnya belum bisa digunakan untuk login?"
+
+   Sebabnya bukan pada akunnya. doLogin mencari email di array USERS DI DALAM
+   index.html, dan menolak sebelum password sempat diperiksa. Akun yang dibuat
+   lewat Parameter → Kelola Akun memang lahir di Firebase Auth + agava_users,
+   tetapi TIDAK di dalam kode — jadi ia tidak akan pernah bisa masuk sampai ada
+   orang menambahkan barisnya dan aplikasinya dirilis ulang.
+
+   Ini kali KETIGA cacat yang sama menggigit: peran Sunaryo kosong (20-31 Agu),
+   akun Nuzul tidak ada di kode (31 Agu), kini Christina. Semuanya satu sebab:
+   identitas hidup di DUA tempat, dan tombol Kelola Akun hanya mengubah salah
+   satunya. Menambahkan nama satu per satu hanya melanjutkan penyakitnya.
+
+   Sekarang: USERS bukan lagi DAFTAR IZIN, melainkan salinan cepat. Yang
+   menentukan boleh-tidaknya masuk adalah Firebase Auth; yang menentukan peran
+   adalah agava_users — sumber yang SAMA dengan yang dibaca Firestore rules,
+   jadi tidak ada lagi dua kebenaran yang bisa berbeda.
+
+   USERS tetap dipertahankan sebagai jalur cepat & cadangan: akun lama tidak
+   berubah perilakunya sedikit pun, dan `plus` per akun yang tertulis di kode
+   (Sunaryo, Maria, Nuzul) tetap berlaku. */
+async function akunDariCloud(email){
+ try{
+   var fu=(window.firebase&&firebase.auth&&firebase.auth().currentUser)||null;
+   if(!fu||!AGDB.db) return null;
+   var d=await AGDB.db.collection("agava_users").doc(fu.uid).get();
+   if(!d||!d.exists) return null;
+   var a=d.data()||{};
+   /* Peran kosong TIDAK ditolak di sini — ia dibiarkan masuk supaya spanduk
+      "Peran akun belum diatur" (v267) yang menjelaskannya. Menolak di layar
+      login hanya mengembalikan pesan buntu yang tidak menyebut apa yang kurang. */
+   return {email:a.email||email,
+           name:a.name||String(email).split("@")[0],
+           role:a.role||"",
+           plus:Array.isArray(a.plus)?a.plus:undefined,
+           _dariCloud:true};
+ }catch(e){ console.warn("akunDariCloud:",e&&(e.code||e.message)); return null; }
+}
 async function doLogin(){
  const e=(document.getElementById("loginEmail").value||"").trim().toLowerCase();
  const pw=(document.getElementById("loginPass")?document.getElementById("loginPass").value:"")||"";
- const u=USERS.find(x=>x.email.toLowerCase()===e);
- if(!u){ loginPesan("Email akun tidak terdaftar."); return; }
+ let u=USERS.find(x=>x.email.toLowerCase()===e);
+ if(!e){ loginPesan("Masukkan email akun Anda."); return; }
  if(!pw){ loginPesan("Masukkan password."); return; }
  loginPesan(""); loginSibuk(true);
  try{
    if(typeof firebase==="undefined"||!firebase.auth) throw {code:"auth/no-sdk"};
    await firebase.auth().signInWithEmailAndPassword(e,pw);
+   /* Tidak ada di kode → ambil identitasnya dari agava_users. Dijalankan SESUDAH
+      auth berhasil, jadi rules-nya terpenuhi dan tidak ada kebocoran data akun
+      kepada orang yang belum membuktikan dirinya. */
+   if(!u) u=await akunDariCloud(e);
+   if(!u){
+     loginSibuk(false);
+     loginPesan("Password Anda benar, tetapi akun ini belum punya data peran di AGAVA. Minta Administrator membuka Parameter → Kelola Akun dan menetapkan perannya.");
+     try{ auditLog("login-tanpa-peta-akun", e); }catch(x){}
+     try{ await firebase.auth().signOut(); }catch(x){}
+     return;
+   }
    loginSibuk(false); applyLogin(u); return;
  }catch(err){
    loginSibuk(false);
@@ -25371,11 +25424,28 @@ function agavaBoot(){
    var pulih = fu && s && sesiSegar(s) && samaOrang;
    if(pulih){
      var u=USERS.find(function(x){ return (x.email||"").toLowerCase()===String(fu.email||"").toLowerCase(); });
-     if(u){
-       sesiTulis({uid:fu.uid,email:u.email});          // perpanjang jendela 7 hari
-       var idAkun={uid:fu.uid, email:(u.email||fu.email||"")};
-       if(pinAda(idAkun)){ tutup(); pinTampil("buka",u,idAkun); return; }
-       tutup(); applyLogin(u); return;                  // belum pasang PIN → langsung masuk
+     var masuk=function(akun){
+       sesiTulis({uid:fu.uid,email:akun.email});        // perpanjang jendela 7 hari
+       var idAkun={uid:fu.uid, email:(akun.email||fu.email||"")};
+       if(pinAda(idAkun)){ tutup(); pinTampil("buka",akun,idAkun); return; }
+       tutup(); applyLogin(akun);                       // belum pasang PIN → langsung masuk
+     };
+     if(u){ masuk(u); return; }
+     /* Akun yang lahir di Kelola Akun tidak ada di USERS. Tanpa cabang ini ia
+        bisa login sekali, lalu DIMINTA PASSWORD LAGI setiap kali membuka
+        aplikasi — sesinya pulih, tetapi identitasnya tidak ditemukan. Sesi yang
+        pulih separuh lebih membingungkan daripada tidak pulih sama sekali.
+
+        Gagal mengambil identitas → JANGAN menggantung: tutup bumper dan biarkan
+        halaman Login tampil seperti biasa, supaya orangnya tetap punya jalan
+        masuk lewat password. */
+     if(fu.email){
+       akunDariCloud(fu.email).then(function(akun){
+         if(akun){ masuk(akun); return; }
+         console.warn("AGAVA: sesi pulih tetapi identitas tidak ada di USERS maupun agava_users —", fu.email);
+         tutup();
+       }).catch(function(){ tutup(); });
+       return;
      }
    }
    /* ── SEBABNYA DITULIS DI LAYAR, BUKAN CUMA DI CONSOLE ────────────────────
