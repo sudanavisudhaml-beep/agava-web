@@ -76,6 +76,35 @@ if (process.argv.includes("--pasang")) {
   process.exit(0);
 }
 
+/* ── PENGINGAT CADANGAN RIWAYAT (8 Sep 2026) ────────────────────────────────
+   Cadangan yang harus DIINGAT MANUSIA pasti akan terlupa — itu bukan soal
+   kedisiplinan, itu sifat pekerjaan yang jarang. Jadi pengingatnya ditempelkan
+   pada jalur yang PASTI dilewati tiap rilis: cek-versi.js dijalankan otomatis
+   oleh predeploy Firebase, jadi tidak ada deploy yang lewat tanpa melihat ini.
+
+   SENGAJA HANYA MEMPERINGATKAN, TIDAK PERNAH MEMBLOKIR. Deploy yang tertahan
+   karena urusan cadangan akan mendorong orang mencari jalan pintas — dan jalan
+   pintas itu akan dipakai juga untuk hal lain. Peringatan yang muncul tiap kali
+   lebih efektif daripada pagar yang dicari akalnya. */
+function ingatkanCadangan() {
+  try {
+    const p = require("path"), f = require("fs");
+    const dir = p.resolve(__dirname, "..", "AGAVA-Vault", "cadangan-repo");
+    const repo = ["AGAVA-Web", "agava-functions", "AGAVA-Vault"];
+    const BASI = 14;
+    let pesan = [];
+    repo.forEach((n) => {
+      const b = p.join(dir, n + ".bundle");
+      if (!f.existsSync(b)) { pesan.push(n + " belum pernah dicadangkan"); return; }
+      const umur = Math.floor((Date.now() - f.statSync(b).mtimeMs) / 864e5);
+      if (umur > BASI) pesan.push(n + " " + umur + " hari");
+    });
+    if (!pesan.length) return;
+    console.log("\n⚠ Cadangan riwayat repo perlu diperbarui: " + pesan.join(" · "));
+    console.log("  node ../AGAVA-Vault/cadangkan-repo.js");
+  } catch (e) { /* pengingat tidak boleh pernah menggagalkan rilis */ }
+}
+
 if (process.argv.includes("--naik")) {
   const kini = ambil("index");
   const m = String(kini || "").match(/^v(\d{4})\.(\d{2})\.(\d{2})-(\d+)$/);
@@ -139,6 +168,7 @@ for (const k of Object.keys(kini)) {
 
 if (!beda.length) {
   console.log(`\nSelaras di ${acuan}.`);
+  ingatkanCadangan();
   process.exit(0);
 }
 
