@@ -105,6 +105,39 @@ function ingatkanCadangan() {
   } catch (e) { /* pengingat tidak boleh pernah menggagalkan rilis */ }
 }
 
+/* ── SALINAN KEMBAR agava-functions TIDAK BOLEH DIAM-DIAM BERBEDA ───────────
+   Vault memuat salinan kedua agava-functions. Ia sudah dibuang 1 September,
+   dan OneDrive MENGEMBALIKANNYA pada 7 September — jadi melawan keberadaannya
+   sia-sia; yang bisa dijaga adalah supaya ia tidak pernah menyimpang tanpa ada
+   yang tahu.
+
+   Bahayanya bukan hipotetis: 31 Agustus aturan agava_kontribusi ditulis lebih
+   dulu di salinan Vault, baru disalin ke sumber deploy. Kalau urutannya
+   terbalik, aturan itu hilang tanpa jejak — dan yang ter-deploy adalah rules
+   lama yang menolak seluruh laporan kontribusi secara diam-diam.
+
+   Yang dibandingkan hanya berkas yang benar-benar menentukan perilaku produksi.
+   Seperti pengingat cadangan: memperingatkan, tidak pernah memblokir. */
+function cekSalinanKembar() {
+  try {
+    const p = require("path"), f = require("fs");
+    const sah = p.resolve(__dirname, "..", "agava-functions");
+    const kembar = p.resolve(__dirname, "..", "AGAVA-Vault", "agava-functions");
+    if (!f.existsSync(kembar)) return;                 // tidak ada kembaran — aman
+    const periksa = ["firestore.rules", "functions/index.js", "firebase.json"];
+    const beda = periksa.filter((n) => {
+      const a = p.join(sah, n), b = p.join(kembar, n);
+      if (!f.existsSync(a) || !f.existsSync(b)) return false;
+      return f.readFileSync(a, "utf8") !== f.readFileSync(b, "utf8");
+    });
+    if (!beda.length) return;
+    console.log("\n⚠ SALINAN KEMBAR MENYIMPANG: AGAVA-Vault/agava-functions berbeda dari sumber deploy");
+    console.log("  Berkas: " + beda.join(", "));
+    console.log("  Sumber deploy yang SAH: GAVA/agava-functions");
+    console.log("  Pastikan Anda menyunting yang benar sebelum deploy rules/functions.");
+  } catch (e) { /* peringatan tidak boleh pernah menggagalkan rilis */ }
+}
+
 if (process.argv.includes("--naik")) {
   const kini = ambil("index");
   const m = String(kini || "").match(/^v(\d{4})\.(\d{2})\.(\d{2})-(\d+)$/);
@@ -169,6 +202,7 @@ for (const k of Object.keys(kini)) {
 if (!beda.length) {
   console.log(`\nSelaras di ${acuan}.`);
   ingatkanCadangan();
+  cekSalinanKembar();
   process.exit(0);
 }
 
