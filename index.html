@@ -5091,7 +5091,33 @@ const PIN_MAKS_SALAH=3;
 function sesiBaca(){ try{ return JSON.parse(localStorage.getItem(SESI_KEY))||null; }catch(e){ return null; } }
 function sesiTulis(u){ try{ localStorage.setItem(SESI_KEY,JSON.stringify({uid:u.uid||"",email:u.email||"",at:Date.now()})); }catch(e){} }
 function sesiHapus(){ try{ localStorage.removeItem(SESI_KEY); }catch(e){} }
-function sesiSegar(s){ return !!(s && s.at && (Date.now()-s.at) < SESI_HARI*864e5); }
+/* ╔══ SESI AKUN LAPANGAN TIDAK PERNAH KEDALUWARSA (2 Sep 2026) ══════════════╗
+   Keputusan Sudana: "buat supaya aplikasinya tidak akan pernah berakhir
+   sesinya. Tidak usah bolak-balik login dengan memasukkan email. Bagi orang
+   lapangan itu menyulitkan. Cukup kasih PIN di masing-masing AGAVA mereka."
+
+   Benar, dan alasannya lebih dalam daripada kenyamanan. Operator memakai AGAVA
+   sambil berdiri di depan pekerjaannya, sering dengan tangan kotor dan sarung
+   tangan. Mengetik alamat surel panjang di layar kecil pada keadaan itu bukan
+   sekadar merepotkan — ia membuat orang menunda mencatat, lalu mencatat dari
+   ingatan di akhir sif, dan itulah cara data lapangan kehilangan ketepatannya.
+   Jendela 7 hari ini tidak pernah melindungi apa pun yang sepadan dengan itu.
+
+   Firebase Auth sendiri sudah persisten (setPersistence LOCAL) — yang memotong
+   selama ini hanyalah jendela buatan aplikasi ini. Untuk akun lapangan,
+   jendela itu dicabut.
+
+   YANG MENGGANTIKANNYA: PIN diwajibkan, bukan ditawarkan (lihat pinTawarkan).
+   Sesi abadi TANPA kunci berarti siapa pun yang memegang HP itu masuk sebagai
+   tim GA selamanya. PIN-lah yang membuat keputusan ini aman, jadi keduanya
+   harus berjalan bersama — melonggarkan yang satu tanpa memasang yang lain
+   akan menukar kerepotan dengan lubang. */
+function akunLapangan(email){ return /^fieldops/i.test(String(email||"").trim()); }
+function sesiSegar(s){
+ if(!s || !s.at) return false;
+ if(akunLapangan(s.email)) return true;                    // lapangan: tanpa batas waktu
+ return (Date.now()-s.at) < SESI_HARI*864e5;
+}
 function pinSemua(){ try{ return JSON.parse(localStorage.getItem(PIN_KEY))||{}; }catch(e){ return {}; } }
 function pinSimpanSemua(o){ try{ localStorage.setItem(PIN_KEY,JSON.stringify(o)); }catch(e){} }
 /* ╔══ KUNCI SESI & PIN = EMAIL, BUKAN uid (4 Agu 2026) ══════════════════════╗
@@ -12193,6 +12219,153 @@ function poinProc(s){
   {k:"lewat",label:"Lewat "+SLA_PROC_HARI+" hari",       n:s.breach||0,                            poin:P.lewat}
  ]);
 }
+/* ╔══ BASIS PERHITUNGAN FTE ══════════════════════════════════════════════════╗
+   Permintaan Sudana, 8 September: "saya mau AGAVA punya basis untuk bisa
+   menghitung FTE dari setiap layanannya."
+
+   KENAPA INI BERBEDA DARI CARA LAMA. Perhitungan FTE konvensional mengisi
+   "berapa menit sekali kerja" dan "berapa kali setahun" dari INGATAN dan
+   ESTIMASI. Itu sebabnya angka manfaatnya selalu bisa disebut extrapolated,
+   dan siapa pun yang tidak suka kesimpulannya bisa membantahnya tanpa data
+   tandingan.
+
+   AGAVA membalik itu. Ketiga bahan FTE sudah tercatat sendiri:
+     waktu     = slaMs.resolved − slaMs.start   (bukan diingat, tercatat)
+     frekuensi = jumlah tiket nyata             (bukan diperkirakan)
+     orang     = pemegang tiket dari log        (bukan diasumsikan)
+
+   ══ TIGA KEPUTUSAN YANG MENENTUKAN ANGKA INI DIPERCAYA ATAU TIDAK ══
+
+   1. JANGAN PERNAH PAKAI resolved − created.
+      Tiket yang menunggu persetujuan tiga hari akan tercatat 72 jam, dan FTE
+      meledak menjadi angka yang jelas-jelas mustahil. Yang dihitung HANYA
+      start → resolved: sejak orangnya benar-benar mulai bekerja.
+
+   2. slaMs.start ITU BERJANGKAR BUKTI.
+      Sejak v274, menekan "Mulai Kerjakan" menuntut foto kondisi terkini
+      (dan geotag bila diizinkan). Jadi penanda awal jam kerja ini bukan
+      ketukan tombol yang bisa dilakukan dari mana saja — ia punya bukti. Itulah
+      yang membedakan angka ini dari klaim.
+
+   3. YANG TIDAK TERUKUR DIHITUNG NOL, DAN CAKUPANNYA DIUMUMKAN.
+      Tiket lama & tiket hasil impor tidak punya slaMs.start. Menebak durasinya
+      akan mengembalikan kita ke estimasi yang justru sedang kita tinggalkan.
+      Jadi ia dilewati — TETAPI rekapnya selalu menyebut berapa persen tiket
+      yang benar-benar terukur, supaya tidak ada yang mengira data sebagian
+      adalah data lengkap. FTE dari cakupan 40% adalah lantai, bukan totalnya.
+
+   ══ BATAS YANG DIAKUI TERBUKA ══
+   start → resolved masih memuat jeda SETELAH pekerjaan dimulai (menunggu suku
+   cadang, ditinggal ke pekerjaan lain). Bidang `jedaMs` sudah dikurangkan di
+   rumus ini supaya begitu tombol jeda/lanjut dibangun, seluruh angka ikut benar
+   tanpa satu pun pemanggil berubah. Sampai itu ada, FTE ini adalah BATAS ATAS
+   dari waktu kerja — dan itu dikatakan, bukan disembunyikan.                  */
+
+/* Kategori layanan → kode aktivitas GA. SENGAJA KOSONG.
+   Kode aktivitas (mis. "3c" untuk Room Management) berasal dari katalog
+   aktivitas GA milik perusahaan — mengarangnya di sini akan menghasilkan kode
+   yang tidak cocok dengan katalog mana pun, dan angka yang tidak bisa
+   dibandingkan antar entitas justru menghilangkan seluruh gunanya.
+   Diisi lewat Parameter, atau lewat data/codec-config.json (kunci aktPeta). */
+const AKT_PETA={
+ "Building & Utility":"",
+ "Tenant & General Services":"",
+ "Project Development":"",
+ "Transport, Logistic & Document":"",
+ "Hospitality":"",
+ "HSE & Sustainability":"",
+ "Room & Event":"",
+ "Asset Management":""
+};
+function aktKode(t){
+ if(t&&t.aktKode) return String(t.aktKode);          // kode di tiketnya sendiri menang
+ return AKT_PETA[foNormCat(t&&t.cat)]||"";
+}
+/* Menit kerja NYATA sebuah tiket. null = tidak terukur (bukan nol) — pemanggil
+   wajib membedakan "tidak bekerja" dari "tidak tercatat". */
+function tiketMenitAktif(t){
+ var m=t&&t.slaMs; if(!m) return null;
+ if(!m.start||!m.resolved) return null;
+ var menit=Math.round((m.resolved-m.start-(+t.jedaMs||0))/60000);
+ return menit>0?menit:null;
+}
+/* Siapa saja yang mengerjakan, dengan bobotnya. Satu tiket bisa dikerjakan
+   berdua — bobot 0,5 masing-masing supaya jam kerjanya tidak terhitung dua
+   kali. Tanpa daftar kontributor, pemegang tiket dianggap mengerjakan penuh. */
+function tiketKontributor(t){
+ if(t&&Array.isArray(t.kontributor)&&t.kontributor.length)
+   return t.kontributor.map(function(k){
+     return {nama:String(k.nama||k.name||""), bobot:(+k.bobot||+k.weight||1)}; })
+     .filter(function(k){ return k.nama; });
+ var p=(t&&(t.pic||t.pickBy))||"";
+ return p?[{nama:p,bobot:1}]:[];
+}
+function fteSite(t){
+ try{ if(typeof fieldOpsSite==="function") return fieldOpsSite(t)||"—"; }catch(e){}
+ var l=String((t&&t.lokasi)||"");
+ for(var i=0;i<SITE_LIST.length;i++) if(l.indexOf(SITE_LIST[i])===0) return SITE_LIST[i];
+ return "—";
+}
+/* Rekap FTE. dari/sampai = epoch ms (opsional). pisah = "kategori" | "site" | "orang".
+   SELALU mengembalikan cakupan, karena angka FTE tanpa cakupannya menyesatkan. */
+function fteRekap(opsi){
+ opsi=opsi||{};
+ var dari=opsi.dari||0, sampai=opsi.sampai||Infinity, pisah=opsi.pisah||"kategori";
+ var jamTahun=(GA_PARAM.fte&&GA_PARAM.fte.jamPerTahun)||1760;
+ var m={}, nSelesai=0, nTerukur=0, menitTotal=0;
+ (TICKETS||[]).forEach(function(t){
+   if(!t||(t.stg||0)<3) return;                       // hanya yang benar-benar selesai
+   var ms=(t.slaMs&&t.slaMs.resolved)||0;
+   if(ms<dari||ms>sampai) return;
+   nSelesai++;
+   var menit=tiketMenitAktif(t);
+   if(menit!=null){ nTerukur++; menitTotal+=menit; }
+   var kontrib=tiketKontributor(t);
+   /* ── SATU TIKET BISA MASUK KE BEBERAPA BARIS ──────────────────────────────
+      Pada tampilan Per Orang, tiket yang dikerjakan berdua harus TERBELAH
+      menurut bobotnya — bukan seluruhnya dibebankan ke pemegang tiket. Versi
+      pertama fungsi ini memakai t.pic sebagai kunci, sehingga Teguh yang
+      mengerjakan separuh pekerjaan tidak muncul sama sekali, dan Rudy tercatat
+      dua kali lipat dari yang sebenarnya. Kesalahan seperti itu justru paling
+      berbahaya di angka FTE: ia melebihkan beban satu orang dan menghilangkan
+      orang lain, tepat pada data yang dipakai menilai kebutuhan headcount. */
+   var bagian = (pisah==="orang")
+     ? (kontrib.length?kontrib:[{nama:"(tidak tercatat)",bobot:1}])
+         .map(function(k){ return {kunci:k.nama, porsi:k.bobot}; })
+     : [{kunci:(pisah==="site"?fteSite(t):foNormCat(t.cat)), porsi:1}];
+   bagian.forEach(function(b){
+     var s=m[b.kunci]=m[b.kunci]||{kunci:b.kunci,
+       kode:(pisah==="kategori"?(AKT_PETA[b.kunci]||""):""),
+       n:0, nTerukur:0, menit:0, orang:{}};
+     s.n++;
+     if(menit==null) return;                          // tidak terukur → tidak ditebak
+     s.nTerukur++; s.menit+=menit*b.porsi;
+     if(pisah==="orang") s.orang[b.kunci]=(s.orang[b.kunci]||0)+menit*b.porsi;
+     else kontrib.forEach(function(k){ s.orang[k.nama]=(s.orang[k.nama]||0)+menit*k.bobot; });
+   });
+ });
+ var baris=Object.keys(m).map(function(k){
+   var s=m[k];
+   s.jam=+(s.menit/60).toFixed(2);
+   s.fte=+(s.menit/60/jamTahun).toFixed(3);
+   s.menitRata=s.nTerukur?Math.round(s.menit/s.nTerukur):null;
+   s.cakupan=s.n?Math.round(s.nTerukur/s.n*100):0;
+   s.nOrang=Object.keys(s.orang).length;
+   return s;
+ }).sort(function(a,b){ return b.menit-a.menit; });
+ return {
+   baris:baris,
+   jamPerTahun:jamTahun,
+   nSelesai:nSelesai, nTerukur:nTerukur,
+   cakupan:nSelesai?Math.round(nTerukur/nSelesai*100):0,
+   jamTotal:+(menitTotal/60).toFixed(1),
+   fteTotal:+(menitTotal/60/jamTahun).toFixed(3),
+   /* Setahun penuh? Kalau rentang datanya lebih pendek, FTE-nya adalah FTE
+      untuk rentang itu — bukan setahun. Disetahunkan HANYA bila diminta, dan
+      angkanya diberi label berbeda supaya tidak tertukar. */
+   petaAktivitasTerisi:Object.keys(AKT_PETA).filter(function(k){return AKT_PETA[k];}).length
+ };
+}
 function foOperatorStats(){
  var m={};
  TICKETS.forEach(function(t){
@@ -12344,7 +12517,61 @@ function koorEscStats(){
 /* Section rekap yang sedang dibuka — dipisah karena ketiganya punya kolom dan
    aturan SLA sendiri (lihat catatan di renderFieldOps). */
 var FO_REKAP_SEC="operator";
+var FTE_PISAH="kategori";
 function foRekapSec(k){ FO_REKAP_SEC=k; try{ renderFieldOps(); }catch(e){} }
+function ftePisahSet(k){ FTE_PISAH=k; try{ renderFieldOps(); }catch(e){} }
+/* Panel FTE. Cakupan ditaruh SEJAJAR dengan angka FTE-nya, bukan di catatan
+   kaki: angka FTE tanpa cakupannya adalah angka yang mengundang salah baca,
+   dan yang membacanya nanti adalah orang yang memutuskan headcount. */
+function ftePanelHTML(d){
+ var pisahBtn=[["kategori","Per Kategori"],["site","Per Lokasi"],["orang","Per Orang"]]
+   .map(function(p){ return '<button type="button" class="svc-tab'+(FTE_PISAH===p[0]?' on':'')+'" '+
+     'onclick="ftePisahSet(\''+p[0]+'\')">'+p[1]+'</button>'; }).join("");
+ var warnaCak=d.cakupan>=80?'var(--green)':d.cakupan>=50?'#F59E0B':'var(--red)';
+ var kepala=
+  '<div class="rap-kartu-w" style="margin:4px 0 12px">'+
+    raporKartu("FTE terukur", d.fteTotal, "dari "+d.jamTotal+" jam kerja tercatat","")+
+    raporKartu("Cakupan data", d.cakupan+"%", d.nTerukur+" dari "+d.nSelesai+" tiket selesai punya jam kerja", warnaCak)+
+    raporKartu("Jam kerja setahun", d.jamPerTahun, "penyebut FTE · dapat diubah di Parameter","")+
+    raporKartu("Kode aktivitas", d.petaAktivitasTerisi+" / "+Object.keys(AKT_PETA).length,
+      d.petaAktivitasTerisi?"kategori sudah dipetakan":"belum dipetakan ke katalog GA",
+      d.petaAktivitasTerisi?"":"#F59E0B")+
+  '</div>';
+ /* Peringatan cakupan ditulis sebagai kalimat, bukan ikon: yang membacanya
+    perlu tahu ARAH kesalahannya, bukan sekadar bahwa ada yang kurang. */
+ var pesanCak = d.cakupan>=95 ? ''
+   : '<div class="rap-adil" style="background:#fff7e6;border-color:#f0c987;color:#7a4a00">'+
+     '<b>Angka ini lantai, bukan total</b>'+
+     'Baru <b>'+d.cakupan+'%</b> tiket selesai yang punya penanda mulai kerja, jadi FTE sebenarnya '+
+     'lebih tinggi dari '+d.fteTotal+'. Tiket tanpa penanda TIDAK ditebak durasinya — menebak akan '+
+     'mengembalikan kita ke estimasi yang justru sedang ditinggalkan. Cakupan naik sendiri seiring '+
+     'operator memakai tombol Mulai Kerjakan.</div>';
+ if(!d.baris.length)
+   return kepala+'<div class="muted small" style="padding:26px;text-align:center">'+
+     'Belum ada tiket selesai dengan jam kerja tercatat.</div>';
+ var tabel='<div class="svc-tabs" style="margin:0 0 10px">'+pisahBtn+'</div>'+
+  '<div class="fo-oplog-w"><table class="fo-oplog-t"><thead><tr>'+
+   '<th>'+(FTE_PISAH==="site"?"Lokasi":FTE_PISAH==="orang"?"Operator":"Kategori layanan")+'</th>'+
+   (FTE_PISAH==="kategori"?'<th>Kode<div class="fo-th-s">katalog GA</div></th>':'')+
+   '<th>Tiket selesai</th><th>Terukur</th><th>Cakupan</th>'+
+   '<th>Rata-rata</th><th>Total jam</th><th>Orang</th><th>FTE</th></tr></thead><tbody>'+
+  d.baris.map(function(s){
+    var w=s.cakupan>=80?'var(--green)':s.cakupan>=50?'#F59E0B':'var(--red)';
+    return '<tr><td><b>'+esc(s.kunci)+'</b></td>'+
+      (FTE_PISAH==="kategori"
+        ? '<td>'+(s.kode?('<b>'+esc(s.kode)+'</b>'):'<span class="muted">—</span>')+'</td>' : '')+
+      '<td>'+s.n+'</td><td>'+s.nTerukur+'</td>'+
+      '<td style="color:'+w+';font-weight:700">'+s.cakupan+'%</td>'+
+      '<td>'+(s.menitRata==null?'—':fmtDur(s.menitRata))+'</td>'+
+      '<td>'+s.jam+'</td><td>'+s.nOrang+'</td>'+
+      '<td style="font-weight:800;color:var(--blue);font-size:calc(15px*var(--fz))">'+s.fte+'</td></tr>';
+  }).join("")+
+  '<tr style="border-top:2px solid var(--line)"><td colspan="'+(FTE_PISAH==="kategori"?5:4)+'" style="font-weight:800">TOTAL</td>'+
+   '<td></td><td style="font-weight:800">'+d.jamTotal+'</td><td></td>'+
+   '<td style="font-weight:800;color:var(--blue);font-size:calc(16px*var(--fz))">'+d.fteTotal+'</td></tr>'+
+  '</tbody></table></div>';
+ return kepala+pesanCak+tabel;
+}
 function foRekapKepala(sec){
  var poin='<th>Poin<div class="fo-th-s">kredit</div></th>';
  if(sec==="koordinator")
@@ -12749,14 +12976,18 @@ function renderFieldOps(){
     var stOp=foOperatorStats();
     var stKo=koorEscStats();
     var stPr=procStaffStats();
+    var fteData=fteRekap({pisah:FTE_PISAH});
     var secList=[{k:"operator",label:"Operator",n:stOp.length},
                  {k:"koordinator",label:"Koordinator",n:stKo.length},
-                 {k:"procurement",label:"Procurement",n:stPr.length}];
+                 {k:"procurement",label:"Procurement",n:stPr.length},
+                 {k:"fte",label:"FTE",n:fteData.baris.length}];
     if(!secList.some(function(x){return x.k===FO_REKAP_SEC;})) FO_REKAP_SEC="operator";
     var st=(FO_REKAP_SEC==="koordinator")?stKo:(FO_REKAP_SEC==="procurement"?stPr:stOp);
     var ket={operator:"Antre sebelum diambil TIDAK dibebankan — SLA dihitung dari mulai kerja &amp; penyelesaian",
              koordinator:"Batas "+ESC_KOOR_SLA_JAM+" jam dari eskalasi masuk sampai SO terbit ke Procurement",
-             procurement:"Batas "+SLA_PROC_HARI+" hari dari ditugaskan sampai BAST diterima"}[FO_REKAP_SEC];
+             procurement:"Batas "+SLA_PROC_HARI+" hari dari ditugaskan sampai BAST diterima",
+             fte:"Jam kerja terukur dari <b>mulai kerja → selesai</b>, bukan dari tiket dibuat — "+
+                 "penantian persetujuan tidak ikut dihitung"}[FO_REKAP_SEC];
     oplog='<div class="card pad fo-oplog"><div class="fo-oplog-h">'+
       '<div><div class="panel-t" style="margin:0">👷 Log Record Kinerja</div>'+
         '<div class="muted small">klik satu baris untuk membuka <b>rapor rincinya</b> — tiap angka rata-rata di sini bisa ditelusuri ke tiketnya satu per satu</div></div>'+
@@ -12770,7 +13001,8 @@ function renderFieldOps(){
         ? '<div class="rmd-breach"><b>⛔ '+RMD_BREACH.length+' pelanggaran jatuh tempo (STNK/PBB)</b>'+
           RMD_BREACH.slice(-5).map(function(x){ return '<div>· '+esc(x.nama)+' — jatuh tempo '+esc(x.due)+' · tercatat '+esc(x.at)+' · PIC '+esc(x.pic||"")+'</div>'; }).join("")+'</div>'
         : '')+
-      (st.length?('<div class="fo-oplog-w"><table class="fo-oplog-t"><thead><tr>'+
+      (FO_REKAP_SEC==="fte" ? ftePanelHTML(fteData)
+       : st.length?('<div class="fo-oplog-w"><table class="fo-oplog-t"><thead><tr>'+
         foRekapKepala(FO_REKAP_SEC)+'</tr></thead><tbody>'+
         st.map(function(s){ return foRekapBaris(s,FO_REKAP_SEC); }).join('')+'</tbody></table></div>')
        :'<div class="muted small" style="padding:22px;text-align:center">Belum ada catatan untuk kelompok ini.</div>')+
@@ -22528,7 +22760,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.08.31-276";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.09.08-277";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
@@ -23945,6 +24177,15 @@ const GA_PARAM_DEFAULT={
     langsungMenit sengaja konservatif: angka yang dibesar-besarkan membuat
     penghargaan kehilangan artinya. */
  kontribusi:{ langsungMenit:15 },
+ /* ── DASAR PERHITUNGAN FTE (8 Sep 2026) ────────────────────────────────────
+    jamPerTahun = jam kerja efektif SATU orang dalam setahun. Dipakai sebagai
+    penyebut: FTE = total jam kerja terukur ÷ jamPerTahun.
+
+    1.760 = 8 jam × 5 hari × 44 minggu efektif (52 minggu dikurangi cuti, libur
+    nasional, dan pelatihan). Angka ini SENGAJA konservatif — memakai 2.080
+    (52 minggu penuh) akan menurunkan FTE yang terhitung, dan angka penghematan
+    yang terlalu bagus adalah angka yang pertama dibantah orang. */
+ fte:{ jamPerTahun:1760 },
  repair:[
    {item:"Keramik gompal / pecah (per titik)", biaya:250000},
    {item:"Meja kerja patah (perbaikan)", biaya:400000},
@@ -23986,10 +24227,14 @@ function paramMerge(d){
  ["listrik","air","transport","ac","tenaga"].forEach(function(g){
    if(d[g]) Object.keys(GA_PARAM[g]).forEach(function(k){ if(d[g][k]!=null&&!isNaN(+d[g][k])) GA_PARAM[g][k]=+d[g][k]; });
  });
- /* kontribusi ditambahkan belakangan — daftar grup di atas sengaja tidak diubah
-    supaya konfigurasi tersimpan versi lama tetap terbaca apa adanya. */
- if(d.kontribusi&&GA_PARAM.kontribusi) Object.keys(GA_PARAM.kontribusi).forEach(function(k){
-   if(d.kontribusi[k]!=null&&!isNaN(+d.kontribusi[k])) GA_PARAM.kontribusi[k]=+d.kontribusi[k]; });
+ /* kontribusi & fte ditambahkan belakangan — daftar grup di atas sengaja tidak
+    diubah supaya konfigurasi tersimpan versi lama tetap terbaca apa adanya. */
+ ["kontribusi","fte"].forEach(function(g){
+   if(d[g]&&GA_PARAM[g]) Object.keys(GA_PARAM[g]).forEach(function(k){
+     if(d[g][k]!=null&&!isNaN(+d[g][k])) GA_PARAM[g][k]=+d[g][k]; });
+ });
+ if(d.aktPeta&&typeof d.aktPeta==="object") Object.keys(AKT_PETA).forEach(function(k){
+   if(typeof d.aktPeta[k]==="string") AKT_PETA[k]=d.aktPeta[k]; });
  if(Array.isArray(d.repair)) GA_PARAM.repair=d.repair.map(function(x){return {item:String(x.item||""),biaya:+x.biaya||0};});
  if(Array.isArray(d.lokasi)) GA_PARAM.lokasi=d.lokasi.map(function(x){return {nama:String(x.nama||""),lat:+x.lat||0,lng:+x.lng||0};});
  /* Poster: hormati data tersimpan HANYA bila versinya >= seed saat ini.
@@ -25363,6 +25608,19 @@ function pinTawarkan(){
       untuk menemukan catatan PIN lama yang terlanjur berkunci uid. */
    var uid={uid:(fu&&fu.uid)||"", email:gUser.email||""};
    if(pinAda(uid)) return;
+   /* ── AKUN LAPANGAN: PIN DIWAJIBKAN, BUKAN DITAWARKAN ─────────────────────
+      Sesinya tidak pernah kedaluwarsa (lihat sesiSegar), jadi PIN adalah
+      SATU-SATUNYA kunci yang tersisa di perangkat itu. Menawarkannya lewat
+      confirm() berarti membiarkan orang menekan "Batal" lalu memegang akun GA
+      yang terbuka selamanya — dan yang menekan Batal biasanya justru yang
+      paling terburu-buru, bukan yang paling sadar risiko.
+      Layarnya dibuka langsung tanpa pertanyaan; "Nanti saja" tetap ada sebagai
+      jalan keluar darurat, tetapi tawarannya kembali pada pembukaan berikutnya
+      sampai PIN benar-benar dipasang. */
+   if(akunLapangan(gUser.email)){
+     setTimeout(function(){ if(!pinAda(uid)) pinTampil("pasang",gUser,uid); },1200);
+     return;
+   }
    setTimeout(function(){
      if(!confirm("🔒 Buat PIN untuk perangkat ini?\n\nDengan PIN, membuka AGAVA cukup "+PIN_PANJANG+" digit — tanpa mengetik email & password lagi.\n\nPIN hanya berlaku di perangkat ini.")) return;
      pinTampil("pasang",gUser,uid);

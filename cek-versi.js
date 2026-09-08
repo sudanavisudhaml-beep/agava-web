@@ -78,11 +78,40 @@ if (process.argv.includes("--pasang")) {
 
 if (process.argv.includes("--naik")) {
   const kini = ambil("index");
-  const m = String(kini || "").match(/^(v\d{4}\.\d{2}\.)(\d{2})(-)(\d+)$/);
+  const m = String(kini || "").match(/^v(\d{4})\.(\d{2})\.(\d{2})-(\d+)$/);
   if (!m) { console.error("✖ bentuk AGAVA_BUILD tidak dikenali: " + kini); process.exit(2); }
+  /* ── TANGGAL DIBANGUN ULANG SELURUHNYA (8 Sep 2026) ────────────────────────
+     Versi lama menangkap "v2026.08." sebagai satu potongan yang DIPERTAHANKAN,
+     lalu hanya menimpa harinya. Tahun dan bulan ikut terbawa dari stempel
+     sebelumnya dan tidak pernah maju.
+
+     Cacat ini tidur selama seluruh Agustus — setiap bump terjadi di bulan yang
+     sama, jadi hasilnya kebetulan benar. Ia menggigit pada bump PERTAMA di
+     bulan baru: 31 Agustus → 8 September menghasilkan "v2026.08.08", yaitu
+     stempel yang MUNDUR 23 hari dari versi sebelumnya.
+
+     Stempel yang mundur bukan cuma jelek dipandang: ia bahan bakar bug v247 —
+     perangkat membandingkan versi dan menyimpulkan dirinya lebih baru daripada
+     yang di server, lalu menyuruh orang "memperbarui" ke versi yang lebih lama.
+
+     Sekarang tanggalnya dibangun ulang dari jam hari ini, bukan disalin.
+     getMonth() berbasis nol — +1 wajib, dan itulah yang dulu tidak pernah
+     terlihat karena bulannya memang tidak pernah dihitung. */
   const d = new Date();
-  const hariIni = String(d.getDate()).padStart(2, "0");
-  const baru = m[1] + hariIni + m[3] + (parseInt(m[4], 10) + 1);
+  const tgl = d.getFullYear() + "." +
+              String(d.getMonth() + 1).padStart(2, "0") + "." +
+              String(d.getDate()).padStart(2, "0");
+  const baru = "v" + tgl + "-" + (parseInt(m[4], 10) + 1);
+  /* Pagar terakhir: stempel baru tidak boleh lebih kecil dari yang lama.
+     Jam sistem bisa salah, dan satu stempel mundur menular ke semua perangkat. */
+  const urut = (v) => { const p = String(v).replace(/^v/, "").split(/[.\-]/).map(Number);
+                        return p[0]*1e10 + p[1]*1e8 + p[2]*1e6 + p[3]; };
+  if (urut(baru) <= urut(kini)) {
+    console.error("✖ stempel baru (" + baru + ") tidak lebih besar dari yang lama (" + kini + ").");
+    console.error("  Periksa tanggal & jam sistem — stempel yang mundur membuat perangkat");
+    console.error("  menyuruh penggunanya memperbarui ke versi yang lebih lama.");
+    process.exit(2);
+  }
   const isi = baca(F.index).replace(POLA.index, 'const AGAVA_BUILD="' + baru + '"');
   fs.writeFileSync(F.index, isi, "utf8");
   fs.writeFileSync(F.versi, JSON.stringify({ build: baru }) + "\n", "utf8");
