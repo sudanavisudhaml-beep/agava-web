@@ -2764,6 +2764,12 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .esc-strip-l.tunggu{color:#B54708}
 /* Lewat batas 3 jam — merah, sederajat dengan tombol terkuncinya. */
 .esc-strip-l.lewat{color:#B42318;font-weight:600}
+/* Tombol ganti staff di drawer SO — kecil dan tidak menuntut perhatian, karena
+   ia jalan keluar yang jarang dipakai, bukan tindakan utama. */
+.so-ganti{margin-left:6px;padding:2px 8px;border-radius:7px;cursor:pointer;
+  border:1px solid var(--line);background:#fff;color:var(--blue);
+  font-family:var(--ff);font-size:calc(10.5px*var(--fz));font-weight:700}
+.so-ganti:hover{background:#eef4ff}
 /* ── KONTRIBUSI ──────────────────────────────────────────────────────────── */
 .kb-nilai{background:#eafaf1;border:1px solid #b7e4c7;border-radius:12px;padding:12px 14px;margin-top:14px}
 .kb-n-h{font-size:calc(11.5px*var(--fz));color:#12805C;font-weight:700}
@@ -8134,6 +8140,20 @@ function ini(n){if(!n)return"–";const p=n.split(" ");return (p[0][0]+(p[1]?p[1
 
 /* ===== SO workflow model (Create → Budget → Proc(assign) → Dept → Staff work → Payment) ===== */
 const STAFF_PROC=["Didi Sutama","Endang Maulana","Khalilul Rahman","Alma Tasya"];
+/* ── STAFF DEFAULT SAAT GERBANG PROCUREMENT LEWAT OTOMATIS (16 Sep 2026) ────
+   Laporan Sudana: "karena saya juga megang gerbang procurement, artinya itu
+   juga dilewati tanpa saya sempat milih/assign staffnya."
+
+   Benar, dan akibatnya lebih buruk daripada sekadar kolom kosong: SO itu
+   melenggang ke Dept Head TANPA ADA YANG MENGERJAKANNYA. Ia tidak muncul di
+   Assigned SO siapa pun, tidak masuk hitungan beban kerja siapa pun, dan tidak
+   ada yang merasa ditagih — jenis pekerjaan yang hilang paling sunyi.
+
+   Ditulis sebagai konstanta bernama, bukan ditanam di dalam fungsi, supaya
+   mengganti orangnya cukup satu baris di sini (Prinsip 4). Kalau namanya
+   kelak tidak ada lagi di STAFF_PROC, kode jatuh ke nama pertama daftar
+   daripada membiarkan SO tanpa pemilik. */
+const STAFF_PROC_DEFAULT="Didi Sutama";
 const KATEGORI8=["Building & Utility","Tenant & General Services","Project Development","Transport, Logistic & Document","Hospitality","HSE & Sustainability","Room & Event","Asset Management"];
 /* ══════════════════════════════════════════════════════════════════════════
    PILIHAN LOKASI (SITE) — satu daftar untuk Tiket & Supply Order
@@ -9075,7 +9095,22 @@ function soAutoGerbang(so){
      so.apprProc="Approved";
      so.ts=so.ts||{}; so.tsf=so.tsf||{};
      so.ts.proc=nowStamp(); so.tsf.proc=nowStampDoc();
-     if(!so.staffPIC) so.perluTugas=true;
+     /* ── SO TIDAK BOLEH LEWAT TANPA PEMILIK PEKERJAAN (16 Sep 2026) ────────
+        Baris ini dulu hanya menyetel `so.perluTugas=true` — sebuah penanda
+        yang TIDAK PERNAH DIBACA di mana pun dalam kode. Jadi gerbangnya lewat,
+        kolom staff kosong, dan tidak ada satu layar pun yang mengatakannya.
+
+        Penugasan normal (approveSO gerbang proc) menyetel EMPAT bidang:
+        apprProc, staffPIC, pic, fup. Auto-gerbang hanya menyetel yang pertama,
+        sehingga SO-nya tidak masuk Assigned SO siapa pun.
+
+        Sekarang keempatnya diisi memakai staff default, dan ditandai
+        `autoTugas` supaya terlihat bahwa ini penugasan otomatis — bukan
+        pilihan sadar seseorang — dan bisa diganti. */
+     if(!so.staffPIC){
+       var st=(STAFF_PROC.indexOf(STAFF_PROC_DEFAULT)>=0)?STAFF_PROC_DEFAULT:(STAFF_PROC[0]||"");
+       if(st){ so.staffPIC=st; so.pic=st; so.fup=soStaffInit(st); so.autoTugas=true; }
+     }
      auto.push("Procurement");
    }
    /* Budget — gerbang Yessy (role Section Head + tiers:["Budget"]). */
@@ -9813,6 +9848,51 @@ function renderProc(){
  </div>`;
 }
 
+/* ── GANTI STAFF PROCUREMENT SESUDAH GERBANGNYA LEWAT (16 Sep 2026) ─────────
+   Sebelum ini TIDAK ADA jalur ganti staff sama sekali: dropdown pilih staff
+   hanya muncul selama SO berada DI gerbang Procurement, dan hilang begitu
+   gerbang itu lewat.
+
+   Selama penugasan selalu merupakan pilihan sadar, itu tidak terasa. Tetapi
+   begitu ada penugasan OTOMATIS (staff default), ketiadaan jalur ganti berubah
+   menjadi masalah: satu tebakan sistem menjadi keputusan permanen. Memberi
+   default tanpa memberi jalan menggantinya bukan memperbaiki, hanya menukar
+   satu kekakuan dengan kekakuan lain.
+
+   Boleh mengganti: pemegang gerbang Procurement, atau Owner. Batasnya sampai
+   BAST (wstep<4) — sesudah pekerjaan diterima, mengganti nama pelaksana hanya
+   merusak catatan siapa yang benar-benar mengerjakannya. */
+function soBolehGantiStaff(s){
+ if(!s||s.batal||soDitolak(s)) return false;
+ if((s.wstep||0)>=4) return false;
+ if(s.apprProc!=="Approved") return false;        // masih di gerbangnya → pakai dropdown gerbang
+ if(typeof isOwner==="function" && isOwner()) return true;
+ try{ return (userTiers(gUser,gRole)||[]).indexOf("Procurement")>=0; }catch(e){ return false; }
+}
+function soGantiStaff(no){
+ var s=SO.find(function(x){return x.no===no;}); if(!s) return;
+ if(!soBolehGantiStaff(s)){ alert("⛔ Tidak berwenang mengganti staff untuk SO ini."); return; }
+ var kini=s.staffPIC||s.pic||"";
+ var daftar=STAFF_PROC.map(function(n,i){ return (i+1)+". "+n+(n===kini?"  ← sekarang":""); }).join("\n");
+ var jwb=prompt("Ganti Staff Procurement untuk "+no+"\n\n"+daftar+
+   "\n\nKetik nomornya (1-"+STAFF_PROC.length+"), atau kosongkan untuk batal:","");
+ if(jwb===null) return;
+ var i=parseInt(String(jwb).trim(),10);
+ if(!(i>=1&&i<=STAFF_PROC.length)){ if(String(jwb).trim()) alert("Nomor tidak dikenali."); return; }
+ var baru=STAFF_PROC[i-1];
+ if(baru===kini){ alert("Staff tidak berubah."); return; }
+ s.staffPIC=baru; s.pic=baru; s.fup=soStaffInit(baru);
+ s.autoTugas=false;                                // sudah menjadi pilihan sadar
+ /* dbPatchSO: satu bidang masuk, satu bidang tertulis — dan nilai baliknya
+    DIBACA, supaya kegagalan tulis tidak diumumkan sebagai keberhasilan. */
+ var ok=true;
+ try{ ok=dbPatchSO(no,{staffPIC:baru,pic:baru,fup:s.fup,autoTugas:false}); }catch(e){ ok=false; }
+ try{ auditLog("so-ganti-staff", no+" · "+(kini||"(kosong)")+" → "+baru+" · oleh "+((gUser&&gUser.name)||"")); }catch(e){}
+ try{ agavaRenderAman(["renderProc","renderAssigned","renderApprovals","renderFieldOps"]); }catch(e){}
+ try{ closeDrawer(); }catch(e){}
+ alert((ok?"✅ ":"⚠️ ")+"Staff "+no+" diganti ke "+baru+"."+
+   (ok?"":"\n\nBELUM tersimpan ke server — periksa koneksi lalu ulangi."));
+}
 function openDrawer(no){
  const s=SO.find(x=>x.no===no);if(!s)return;
  if(!soBolehLihat(s)){ soTolakLihat(no); return; }
@@ -9838,7 +9918,9 @@ function openDrawer(no){
       <button class="btn-out" onclick="soHapus('${s.no}')">🗑 Hapus SO</button></div>`:''}
     <div class="kv">
       <span class="k">Requester</span><span class="v">${s.req}</span>
-      <span class="k">Proc PIC</span><span class="v">${s.pic||'— unassigned'}</span>
+      <span class="k">Proc PIC</span><span class="v">${s.pic||'— unassigned'}${
+        s.autoTugas?' <span class="badge bd-warn" style="font-size:calc(9px*var(--fz))">otomatis</span>':''}${
+        soBolehGantiStaff(s)?` <button class="so-ganti" onclick="event.stopPropagation();soGantiStaff('${s.no}')">ganti</button>`:''}</span>
       <span class="k">Type</span><span class="v">${s.jenis}</span>
       <span class="k">Est. value</span><span class="v">${soNilaiTeks(s)}</span>
       <span class="k">UPR Approver</span><span class="v">${tier(s)} <span class="muted" style="font-weight:400">(by value)</span></span>
@@ -22760,7 +22842,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.09.08-277";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.09.16-278";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service
