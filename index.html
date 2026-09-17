@@ -2764,6 +2764,37 @@ input::placeholder,textarea::placeholder{color:#aeb8c6;opacity:1;font-style:ital
 .esc-strip-l.tunggu{color:#B54708}
 /* Lewat batas 3 jam — merah, sederajat dengan tombol terkuncinya. */
 .esc-strip-l.lewat{color:#B42318;font-weight:600}
+/* ── INBOX APPROVAL OWNER: GRUP ─────────────────────────────────────────── */
+.apg-ringkas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.apg-ringkas>div{border-radius:14px;padding:12px 16px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.apg-ringkas b{font-size:calc(24px*var(--fz));font-weight:800;line-height:1}
+.apg-ringkas span{font-size:calc(12px*var(--fz));font-weight:600}
+.apg-r1{background:#fff4e5;border:1px solid #f5c98a}
+.apg-r1 b,.apg-r1 span{color:#9a4a00}
+.apg-r2{background:#f2f4f7;border:1px solid var(--line)}
+.apg-r2 b,.apg-r2 span{color:#475467}
+.apg-sekat{font-size:calc(11px*var(--fz));font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:#9a4a00;margin:18px 2px 8px}
+.apg-sekat.pantau{color:#667085}
+.apg{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.apg-tindak{border-left:4px solid #F59E0B}
+.apg-pantau{border-left:4px solid #D0D5DD}
+.apg-h{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;list-style:none;user-select:none}
+.apg-h::-webkit-details-marker{display:none}
+.apg-h:hover{background:#fafbfc}
+.apg-h:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
+.apg-ic{font-size:calc(17px*var(--fz));flex:none}
+.apg-t{flex:1;min-width:0;font-weight:700;color:var(--ink);font-size:calc(14px*var(--fz))}
+.apg-n{flex:none;min-width:26px;text-align:center;padding:2px 9px;border-radius:999px;
+  font-weight:800;font-size:calc(12.5px*var(--fz));background:#eef4ff;color:var(--blue)}
+.apg-tindak .apg-n{background:#fff4e5;color:#9a4a00}
+.apg-tag{flex:none;font-size:calc(10.5px*var(--fz));font-weight:600;color:var(--muted)}
+.apg-chev{flex:none;width:8px;height:8px;border-right:2px solid #98a2b3;border-bottom:2px solid #98a2b3;
+  transform:rotate(-45deg);transition:transform .18s ease;margin-left:2px}
+.apg[open] .apg-chev{transform:rotate(45deg)}
+.apg-body{padding:4px 12px 12px;border-top:1px solid var(--line)}
+@media (max-width:600px){ .apg-tag{display:none} .apg-ringkas{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){ .apg-chev{transition:none} }
 /* Tombol ganti staff di drawer SO — kecil dan tidak menuntut perhatian, karena
    ia jalan keluar yang jarang dipakai, bukan tindakan utama. */
 .so-ganti{margin-left:6px;padding:2px 8px;border-radius:7px;cursor:pointer;
@@ -18357,6 +18388,113 @@ function escDiskusiSection(no){
    pintas yang dinyatakan ditutup sebenarnya masih terbuka, hanya tidak terlihat.
    Sekarang benar-benar tertutup. Eskalasi berakhir lewat SO, atau lewat diskusi
    dengan Section Head — dua-duanya meninggalkan jejak yang bisa ditagih. */
+/* ╔══ INBOX APPROVAL OWNER DIKELOMPOKKAN (17 Sep 2026) ══════════════════════╗
+   Permintaan Sudana: "Saya mau di inbox approval Owner dibuat grouping. Semua
+   approval masuk di sana — mulai approval SO Section, UPR, maupun assigned PIC
+   Procurement. Kalau ngurut ke bawah saya bingung juga bacanya."
+
+   KENAPA HANYA OWNER. Akun lain memegang satu-dua gerbang, jadi daftarnya
+   memang pendek dan seragam. Owner melihat SO di ENAM gerbang sekaligus plus
+   seluruh UPR — padahal ia hanya bisa BERTINDAK di sebagian kecilnya. Dalam
+   satu daftar datar, pekerjaan yang menunggu dirinya tenggelam di antara
+   pekerjaan yang sedang menunggu orang lain.
+
+   DUA LAPIS PENGELOMPOKAN:
+     1. PERLU TINDAKAN ANDA  vs  DIPANTAU — pembagian yang paling menentukan,
+        karena itulah yang dicari mata pertama kali.
+     2. Di dalamnya, per jenis & gerbang: Section Head, Penugasan Staff
+        Procurement, UPR, Budget, Dept Head, dst.
+
+   "Bisa bertindak" TIDAK dipaku ke nama gerbang. Ia diturunkan dari
+   OWNER_OVERRIDE ditambah tier akun ini — jadi kalau kelak Owner memegang
+   gerbang lain, pengelompokannya ikut sendiri tanpa kode ini disentuh.
+
+   Kartu di dalam grup TIDAK diubah (soApprovalCard & uprApprovalCard). Yang
+   berubah hanya wadahnya — jadi tidak ada perilaku approval yang ikut bergeser.
+
+   Grup tindakan TERBUKA secara bawaan, grup pantau TERTUTUP. Keadaan buka-tutup
+   DIINGAT: halaman ini dirender ulang pada setiap perubahan data cloud, dan
+   tanpa ingatan setiap SO yang masuk akan menutup grup yang sedang dibaca. */
+const APPR_GRUP_KEY="agava_owner_appr_grup_v1";
+var APPR_GRUP_BUKA=(function(){ try{ return JSON.parse(localStorage.getItem(APPR_GRUP_KEY)||"{}")||{}; }catch(e){ return {}; } })();
+function apprGrupToggle(k,el){
+ APPR_GRUP_BUKA[k]=!!(el&&el.open);
+ try{ localStorage.setItem(APPR_GRUP_KEY,JSON.stringify(APPR_GRUP_BUKA)); }catch(e){}
+}
+function ownerBisaTindak(tier){
+ if(OWNER_OVERRIDE.indexOf(tier)>=0) return true;
+ try{ return (userTiers(gUser,gRole)||[]).indexOf(tier)>=0; }catch(e){ return false; }
+}
+/* Urutan mengikuti perjalanan dokumen, bukan abjad — supaya membaca dari atas
+   ke bawah sama dengan membaca dari awal ke akhir proses. */
+const APPR_GRUP_DEF=[
+ {kind:"so",  tier:"Section Head",  ic:"✍️",  judul:"Approval SO — Section Head"},
+ {kind:"so",  tier:"Budget",        ic:"💰", judul:"SO — PIC Budget"},
+ {kind:"so",  tier:"Procurement",   ic:"🧑‍💼", judul:"Penugasan Staff Procurement"},
+ {kind:"upr", tier:"Procurement",   ic:"📑", judul:"UPR — PIC Procurement"},
+ {kind:"so",  tier:"Dept Head",     ic:"🏛️", judul:"SO — GA Dept Head"},
+ {kind:"upr", tier:"Dept Head",     ic:"📑", judul:"UPR — GA Dept Head"},
+ {kind:"so",  tier:"Division Head", ic:"🏢", judul:"SO — Division Head"},
+ {kind:"upr", tier:"Division Head", ic:"📑", judul:"UPR — Division Head"},
+ {kind:"so",  tier:"Chief CHCD",    ic:"⭐", judul:"SO — Chief CHCD"},
+ {kind:"upr", tier:"Chief CHCD",    ic:"📑", judul:"UPR — Chief CHCD"}
+];
+function ownerApprovalGrupHTML(soList,uprList){
+ var isi={};
+ (soList||[]).forEach(function(s){
+   var g=soGateTier(s); if(!g) return;
+   (isi["so|"+g]=isi["so|"+g]||[]).push(s);
+ });
+ (uprList||[]).forEach(function(s){
+   var g=uprGate(s); if(!g) return;
+   (isi["upr|"+g.tier]=isi["upr|"+g.tier]||[]).push(s);
+ });
+ /* Grup yang tidak terdaftar di APPR_GRUP_DEF tetap ditampilkan di akhir —
+    gerbang baru tidak boleh membuat dokumennya lenyap dari inbox hanya karena
+    daftar ini belum diperbarui. */
+ var dikenal={}; APPR_GRUP_DEF.forEach(function(d){ dikenal[d.kind+"|"+d.tier]=1; });
+ var def=APPR_GRUP_DEF.slice();
+ Object.keys(isi).forEach(function(k){
+   if(dikenal[k]) return;
+   var p=k.split("|");
+   def.push({kind:p[0], tier:p[1], ic:"📌", judul:(p[0]==="upr"?"UPR — ":"SO — ")+p[1]});
+ });
+ var grup=def.map(function(d){
+   var key=d.kind+"|"+d.tier;
+   return {key:key, d:d, items:isi[key]||[], tindak:ownerBisaTindak(d.tier)};
+ }).filter(function(g){ return g.items.length; });
+
+ var nTindak=grup.filter(function(g){return g.tindak;}).reduce(function(a,g){return a+g.items.length;},0);
+ var nPantau=grup.filter(function(g){return !g.tindak;}).reduce(function(a,g){return a+g.items.length;},0);
+
+ if(!grup.length)
+   return '<div class="card" style="padding:34px;text-align:center;color:var(--muted)">Tidak ada SO maupun UPR yang sedang menunggu.</div>';
+
+ var grupHTML=function(g){
+   var buka=(g.key in APPR_GRUP_BUKA)?APPR_GRUP_BUKA[g.key]:g.tindak;
+   var kartu=g.items.map(g.d.kind==="upr"?uprApprovalCard:soApprovalCard).join("");
+   return '<details class="apg'+(g.tindak?' apg-tindak':' apg-pantau')+'"'+(buka?' open':'')+
+     ' ontoggle="apprGrupToggle(\''+g.key.replace(/'/g,"\\'")+'\',this)">'+
+     '<summary class="apg-h">'+
+       '<span class="apg-ic">'+g.d.ic+'</span>'+
+       '<span class="apg-t">'+esc(g.d.judul)+'</span>'+
+       '<span class="apg-n">'+g.items.length+'</span>'+
+       '<span class="apg-tag">'+(g.tindak?'perlu tindakan':'dipantau')+'</span>'+
+       '<span class="apg-chev" aria-hidden="true"></span>'+
+     '</summary>'+
+     '<div class="apg-body">'+kartu+'</div>'+
+   '</details>';
+ };
+ var tindak=grup.filter(function(g){return g.tindak;});
+ var pantau=grup.filter(function(g){return !g.tindak;});
+ return ''+
+  '<div class="apg-ringkas">'+
+    '<div class="apg-r1"><b>'+nTindak+'</b><span>perlu tindakan Anda</span></div>'+
+    '<div class="apg-r2"><b>'+nPantau+'</b><span>dipantau — gerbang orang lain</span></div>'+
+  '</div>'+
+  (tindak.length?'<div class="apg-sekat">Perlu tindakan Anda</div>'+tindak.map(grupHTML).join(""):'')+
+  (pantau.length?'<div class="apg-sekat pantau">Dipantau — menunggu gerbang orang lain</div>'+pantau.map(grupHTML).join(""):'');
+}
 function renderApprovals(){
  const escList=escalatedTickets();   // sudah tersaring per alamat di escUntukSaya()
  /* Breach dicatat saat kartunya benar-benar dilihat — sekali per tiket, dipagari
@@ -18461,12 +18599,12 @@ function renderApprovals(){
   ${escList.length?escPanelHTML(escList):'<div class="card" style="padding:34px;text-align:center;color:var(--muted)">Tidak ada tiket yang dieskalasi.</div>'}
   </div>
   <div class="ap-sec" data-sec="procurement">
-  ${uprList.length?`<div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','approvals')}<div><h2>📑 UPR — Usulan Penunjukan Rekanan</h2><div class="d">${uprList.length} usulan menunggu gerbang Anda · perbandingan 3 penawaran &amp; alasan penunjukan ada di kartunya</div></div></div>
+  ${isOwner()?ownerApprovalGrupHTML(soList,uprList):`${uprList.length?`<div class="card sec"><div class="sec-h">${secIc('#eef4ff','#2563eb','approvals')}<div><h2>📑 UPR — Usulan Penunjukan Rekanan</h2><div class="d">${uprList.length} usulan menunggu gerbang Anda · perbandingan 3 penawaran &amp; alasan penunjukan ada di kartunya</div></div></div>
     <div class="sec-body">${uprList.map(uprApprovalCard).join("")}</div>
   </div>`:''}
   ${soGate?`<div class="card sec"><div class="sec-h">${secIc('#fdf3e3','#c2740a','approvals')}<div><h2>SO Approvals</h2></div></div>
     <div class="sec-body">${soList.length?soList.map(soApprovalCard).join(""):'<div class="muted small" style="padding:24px;text-align:center">Tidak ada SO menunggu di gerbang Anda.</div>'}</div>
-  </div>`:''}
+  </div>`:''}`}
   ${others.length?`<div class="card sec"><div class="sec-h">${secIc('#ede9fe','#7a4fd0','approvals')}<div><h2>Other approvals</h2><div class="d">UPR · SPK/PKS · BAST · Ticket→SO</div></div></div>
     <div class="sec-body"><div class="svc-head" style="grid-template-columns:120px 1.5fr 110px 130px 150px"><span>Source</span><span>Item</span><span>Value</span><span>Status</span><span>Action</span></div>
     <div class="svc-list">${[...oPend,...others.filter(a=>a.status!=="Pending")].map(otherApprovalRow).join("")}</div></div>
@@ -22842,7 +22980,7 @@ function liveStatus(state,name){
    Proyek khusus AGAVA: "agava-astra" (terpisah dari Query/CHCD). Online + rules
    terbuka → tiket sinkron REAL-TIME antar perangkat/browser. Offline / rules
    tertutup → app tetap jalan dengan data lokal (mock). */
-const AGAVA_BUILD="v2026.09.16-278";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
+const AGAVA_BUILD="v2026.09.17-279";   /* stempel build — naikkan tiap deploy agar user tahu versi yang termuat.
                                           WAJIB sama dengan version.json & BUILD di sw.js.
                                           Peringatan itu dilanggar di v247 (index.html saja yang naik) dan
                                           akibatnya dua: pita mengajak TURUN ke v246, dan nama CACHE service

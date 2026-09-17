@@ -16,7 +16,7 @@
      3. Ada pintu PURGE lewat postMessage, dipakai tombol "Perbarui sekarang"
         di aplikasi untuk membersihkan semuanya tanpa menunggu iOS berbaik hati.
    ══════════════════════════════════════════════════════════════════════════ */
-const BUILD = 'v2026.09.16-278';
+const BUILD = 'v2026.09.17-279';
 const CACHE = 'agava-' + BUILD;          /* WAJIB ikut naik tiap deploy */
 const ASSETS = [
   './', './index.html',
