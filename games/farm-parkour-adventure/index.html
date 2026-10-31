@@ -74,6 +74,9 @@ const SFX = {
   trick: m => { tone(600 + m * 70, 0, .08, 'triangle', .05); tone(900 + m * 70, 0, .1, 'triangle', .05, .07); },
   splash: () => noise(.45, .18),
   slide: () => noise(.18, .05),
+  chain: () => [784, 988, 1175, 1568, 1976].forEach((f, i) => tone(f, 0, .14, 'square', .05, i * .07)),
+  roll: () => noise(.22, .07),
+  swing: () => tone(300, 900, .3, 'triangle', .06),
   zone: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0, .18, 'square', .045, i * .11)),
   life: () => [660, 880, 1320].forEach((f, i) => tone(f, 0, .12, 'sine', .08, i * .08)),
   moo: () => { tone(150, 95, .7, 'sawtooth', .06); },
@@ -89,23 +92,38 @@ const ZONES = [
   { name: 'LUMBUNG & SILO', sub: 'Lompat ke dinding = WALL RUN!', sky0: '#86b2ff', sky1: '#e4eeff', far: '#a9c2c9', hill: '#79b06a', hill2: '#5a8f4d', grass: '#5fae43', soil: '#6e4423', soilD: '#4f2f17' },
   { name: 'PADANG SAPI', sub: 'Banteng mengamuk — lompati!', sky0: '#ff8a5a', sky1: '#ffe0a8', far: '#d9a07c', hill: '#a8a24c', hill2: '#86833a', grass: '#a4b53c', soil: '#7a4520', soilD: '#552e13' },
 ];
-const TUTORIAL = ['hay', 'corn', 'gap', 'fence'];
+const TUTORIAL = ['hay', 'corn', 'gap', 'fence', 'kong', 'swing'];
 const SIGNS = {
   hay: 'LOMPAT!  ▲', corn: 'TAHAN ▼ SLIDE', gap: 'AWAS LUMPUR', fence: 'LOMPAT DEKAT = VAULT',
-  barn: 'LOMPAT KE DINDING!', plats: 'LOMPAT 2X DI UDARA', goose: 'INJAK ANGSA!', bull: 'BANTENG! LOMPATI',
+  barn: 'LOMPAT KE DINDING, LALU LOMPAT LAGI', plats: 'LOMPAT 2X DI UDARA', goose: 'INJAK ANGSA!', bull: 'BANTENG! LOMPATI',
+  kong: 'SLIDE ▼ LALU LOMPAT = KONG', swing: 'SENTUH PALANG BAMBU = SWING', roll: 'TAHAN ▼ SAAT MENDARAT = ROLL',
 };
+/* Combo Parkour: rangkaian trik bernama (dicek dari trik terakhir dalam satu combo) */
+const VAULTS = ['SPEED VAULT', 'KONG VAULT', 'FLIP'];
+const CHAINS = [
+  { name: 'FLOW STATE', seq: [['SLIDE'], ['KONG VAULT', 'KONG DASH']], bonus: 400, how: 'Slide → Kong' },
+  { name: 'ROOFTOP RUNNER', seq: [['WALL RUN', 'WALL FLIP'], ['ROLL']], bonus: 350, how: 'Wall Run/Flip → Roll' },
+  { name: 'TARZAN', seq: [['BAR SWING'], ['ROLL', 'PRECISION', 'FLIP', 'SPEED VAULT', 'KONG VAULT', 'STOMP', 'DIVE STOMP']], bonus: 350, how: 'Swing → trik apa saja' },
+  { name: 'SKY STOMPER', seq: [['WALL FLIP', 'BAR SWING', 'RODEO!'], ['DIVE STOMP']], bonus: 450, how: 'Flip/Swing → Dive Stomp' },
+  { name: 'HAT TRICK', seq: [VAULTS, VAULTS, VAULTS], bonus: 500, how: '3 vault/flip beruntun' },
+];
+const FILLER = ['LOMPAT', 'DODGE', 'DUCK', 'ROOF HOP']; // tidak memutus rantai combo
+const NINJA_N = 5; // FARM NINJA: 5 trik berbeda dalam satu combo
 
 /* ---------- STATE ---------- */
 let state = 'menu', t = 0, camX = 0, camY = 0, shake = 0, overT = 0, newBest = false;
 let P, solids, hazards, enemies, pickups, parts, popups, decor, genX, spd, pts, eggs, tricks, lives;
 let combo, comboT, mult, magnet, zoneIdx, banner, maxCombo, lastPat, lastGround, tutQ, seenSign, hintT;
+let bars, chain, chainSet, ninjaDone, chainPop, chainsDone;
 let best = loadBest();
 const input = { jumpBuf: 0, down: false };
 
 function reset() {
   P = { x: 120, y: G - 60, w: 30, h: 60, vx: 0, vy: 0, onGround: true, slide: false, slideT: 0, wall: null, wallT: 0,
-        inv: 0, coyote: 0, airJumps: 1, flip: 0, flipping: false, runPh: 0, takeoff: -999, usedDbl: false, dead: false };
-  solids = []; hazards = []; enemies = []; pickups = []; parts = []; popups = []; decor = [];
+        inv: 0, coyote: 0, airJumps: 1, flip: 0, flipDir: 1, flipping: false, runPh: 0, takeoff: -999, usedDbl: false, dead: false,
+        kong: false, kongScored: false, rollT: 0, swing: null, wallFlip: false, airBot: G };
+  solids = []; hazards = []; enemies = []; pickups = []; parts = []; popups = []; decor = []; bars = [];
+  chain = []; chainSet = new Set(); ninjaDone = false; chainPop = null; chainsDone = 0;
   genX = 0; spd = 330; pts = 0; eggs = 0; tricks = 0; lives = 3; combo = 0; comboT = 0; mult = 1; magnet = 0;
   zoneIdx = -1; banner = null; maxCombo = 0; lastPat = ''; lastGround = null; tutQ = TUTORIAL.slice(); seenSign = {};
   camX = 0; camY = 0; shake = 0; hintT = 7; input.jumpBuf = 0; input.down = false;
@@ -124,7 +142,7 @@ function addSolid(kind, x, y, w, h) { const s = { x, y, w, h, kind }; solids.pus
 function egg(x, y, type = 'egg') { pickups.push({ x, y, type, ph: Math.random() * 6, taken: false }); }
 function eggLine(x, y, n, gap = 34) { for (let i = 0; i < n; i++) egg(x + i * gap, y); }
 function eggArc(x, w, baseY, ht, n) { for (let i = 0; i < n; i++) { const u = i / (n - 1); egg(x + u * w, baseY - 4 * u * (1 - u) * ht); } }
-function sign(x, key) { if (seenSign[key]) return; seenSign[key] = true; decor.push({ x, text: SIGNS[key] }); }
+function sign(x, key, y = G) { if (seenSign[key]) return; seenSign[key] = true; decor.push({ x, y, text: SIGNS[key] }); }
 
 /* ---------- CONFIG: pola rintangan (s = kecepatan, R = jarak ancang-ancang) ---------- */
 const PAT = {
@@ -180,7 +198,19 @@ const PAT = {
     addGround(genX, R + 40); sign(genX + 10, 'barn');
     const x = genX + R + 40, h = randi(165, 215), w = randi(280, 420);
     addSolid('wall', x, G - h, w, h + 400); eggLine(x + 40, G - h - 34, Math.floor((w - 60) / 40), 40);
+    sign(x + w - 150, 'roll', G - h);
     genX = x + w; lastGround = null; const L = rand(220, 320); addGround(genX, L); genX += L;
+  },
+  kong(s, R) {
+    const L = R + s * .5 + 300; addGround(genX, L); sign(genX + 20, 'kong');
+    const x = genX + R + s * .3; addSolid('crate', x, G - 44, 44, 44); eggArc(x - 70, 190, G - 40, 60, 5); genX += L;
+  },
+  swing(s, R) {
+    addGround(genX, R + 40); sign(genX + 20, 'swing'); genX += R + 40;
+    const gw = clamp(s * .62, 210, 360), bx = genX + gw * .36;
+    bars.push({ x: bx - 36, y: G - 172, w: 72, used: false });
+    eggArc(bx + 20, gw * .6, G - 200, 70, 4);
+    genX += gw; addGround(genX, 260); genX += 260;
   },
   silo(s, R) {
     addGround(genX, R + 40); const x = genX + R + 40, h = randi(200, 232);
@@ -206,7 +236,7 @@ function generate() {
     let k;
     if (tutQ.length) k = tutQ.shift();
     else {
-      const opts = [['flat', 1], ['gap', 3], ['hay', 3], ['fence', 2], ['corn', 2], ['chicken', 1]];
+      const opts = [['flat', 1], ['gap', 3], ['hay', 3], ['fence', 2], ['corn', 2], ['chicken', 1], ['kong', 2], ['swing', 2]];
       if (zi >= 1 || z >= 4) opts.push(['goose', zi === 1 ? 4 : 2], ['coop', 3], ['plats', 2], ['chicken', 2]);
       if (zi >= 2 || z >= 4) opts.push(['barn', zi === 2 ? 4 : 2], ['silo', 2], ['crates', 2]);
       if (zi >= 3 || z >= 4) opts.push(['bull', zi === 3 ? 4 : 2], ['fence2', 2]);
@@ -241,10 +271,25 @@ function trick(name, base) {
   const off = popups.filter(p => p.t > .8).length * 22;
   popup(name + '  +' + gain, P.x + 10, P.y - 18 - off, mult >= 4 ? '#ff7bd5' : '#ffe14d', 20);
   SFX.trick(mult);
+  if (FILLER.includes(name)) return;
+  chain.push(name); chainSet.add(name);
+  for (const c of CHAINS) {
+    const n = c.seq.length; if (chain.length < n) continue;
+    const tail = chain.slice(-n);
+    if (tail.every((nm, i) => c.seq[i].includes(nm))) { chainBonus(c.name, c.bonus); chain.push('|'); break; }
+  }
+  if (!ninjaDone && chainSet.size >= NINJA_N) { ninjaDone = true; chainBonus('FARM NINJA', 800); }
 }
+function chainBonus(name, bonus) {
+  const gain = bonus * mult; pts += gain; chainsDone++;
+  chainPop = { name, gain, t: 1.8 }; shake = Math.max(shake, 4);
+  burst(P.x + 15, P.y + 20, 22, ['#ff7bd5', '#ffe14d', '#7ad7ff', '#ffffff'], 300, 300, .9, 5);
+  SFX.chain();
+}
+function breakCombo() { combo = 0; comboT = 0; mult = 1; chain = []; chainSet = new Set(); ninjaDone = false; }
 function hurt() {
   if (P.inv > 0 || state !== 'play') return;
-  lives--; P.inv = 1.7; combo = 0; comboT = 0; mult = 1; shake = 14; SFX.hurt();
+  lives--; P.inv = 1.7; breakCombo(); shake = 14; SFX.hurt();
   popup('AUW!', P.x, P.y - 20, '#ff6b5a', 24);
   burst(P.x + 15, P.y + 30, 10, ['#d42a2a', '#ffffff'], 220, 800, .6, 5);
   if (lives <= 0) gameOver();
@@ -258,12 +303,12 @@ function canStand() {
 }
 function fallen() {
   SFX.splash(); burst(P.x + 15, G + 30, 22, ['#5b3a1e', '#7a5230', '#3f2a15'], 320, 900, .9, 7);
-  lives--; combo = 0; mult = 1; shake = 10;
+  lives--; breakCombo(); shake = 10;
   if (lives <= 0) { gameOver(); return; }
   let b = null;
   for (const s of solids) if ((s.kind === 'ground' || s.kind === 'wall' || s.kind === 'silo') && s.x + s.w > P.x + 60 && (!b || s.x < b.x)) b = s;
   if (!b) b = addGround(P.x, 600);
-  P.x = Math.max(b.x + 24, P.x); P.y = b.y - 60; P.h = 60; P.slide = false; P.vy = 0; P.wall = null; P.inv = 2.2; P.onGround = true;
+  P.x = Math.max(b.x + 24, P.x); P.y = b.y - 60; P.h = 60; P.slide = false; P.vy = 0; P.wall = null; P.swing = null; P.kong = false; P.inv = 2.2; P.onGround = true;
   enemies = enemies.filter(e => e.x > P.x + 500 || e.x < P.x - 50);
   popup('BYUR! -1', P.x, P.y - 30, '#ff6b5a', 24);
 }
@@ -275,21 +320,33 @@ function gameOver() {
 
 /* ---------- ENGINE: player ---------- */
 function land(s) {
+  const drop = P.y + P.h - P.airBot;
   P.airJumps = 1; P.flipping = false; P.flip = 0; P.usedDbl = false;
   dust(P.x + 15, P.y + P.h);
+  if (P.kong) { if (!P.kongScored) trick('KONG DASH', 80); P.kong = false; }
+  if (input.down && drop >= 90) { P.rollT = .42; SFX.roll(); trick('ROLL', 120); }
   if (s.kind === 'coop' && !s.hopped) { s.hopped = true; trick('ROOF HOP', 120); }
+  else if ((s.kind === 'hay' || s.kind === 'fence' || s.kind === 'crate') && !s.hopped) { s.hopped = true; trick('PRECISION', 150); }
 }
 function updatePlayer(dt) {
   const prevTop = P.y;
   // lompat / double jump (flip)
+  if (P.swing) { updateSwing(dt); return; }
+  if (input.jumpBuf > 0 && P.wall && !P.wallFlip) { // WALL FLIP: lompat saat wall run
+    P.wallFlip = true; P.flipping = true; P.flip = 0; P.flipDir = -1; input.jumpBuf = 0; SFX.dbl();
+    burst(P.x + P.w, P.y + P.h, 8, ['#ffffff', '#d9c7a3'], 150, 200, .4, 4);
+  }
   if (input.jumpBuf > 0 && !P.wall) {
     if (P.onGround || P.coyote > 0) {
       if (!P.slide || canStand()) {
-        standUp(); P.vy = JUMP_V; P.onGround = false; P.coyote = 0; P.takeoff = P.x + P.w; P.usedDbl = false;
+        const kong = P.slide && P.onGround; // KONG: slide lalu lompat = dive panjang
+        standUp(); P.vy = kong ? -700 : JUMP_V; P.onGround = false; P.coyote = 0; P.takeoff = P.x + P.w; P.usedDbl = false;
+        P.kong = kong; P.kongScored = false;
         input.jumpBuf = 0; SFX.jump(); dust(P.x + 15, P.y + P.h);
+        if (kong) burst(P.x + 10, P.y + P.h, 10, ['#d8bf95', '#ffffff'], 200, 300, .5, 5);
       }
     } else if (P.airJumps > 0) {
-      standUp(); P.airJumps--; P.vy = DJUMP_V; P.flipping = true; P.flip = 0; P.usedDbl = true; input.jumpBuf = 0;
+      standUp(); P.airJumps--; P.vy = DJUMP_V; P.flipping = true; P.flip = 0; P.flipDir = 1; P.usedDbl = true; P.kong = false; input.jumpBuf = 0;
       SFX.dbl(); burst(P.x + 15, P.y + P.h, 8, ['#fff6b0', '#ffffff'], 160, 200, .5, 4);
     }
   }
@@ -303,22 +360,24 @@ function updatePlayer(dt) {
   }
   // WALL RUN
   if (P.wall) {
-    P.vy = -640; P.y += P.vy * dt; P.wallT += dt; P.runPh += dt * 20;
+    P.vy = P.wallFlip ? -980 : -640; P.y += P.vy * dt; P.wallT += dt; P.runPh += dt * 20;
     if (P.y + P.h <= P.wall.y + 2) {
-      P.y = P.wall.y - P.h; P.x += 6; P.vy = -280; P.wall = null; P.airJumps = 1; trick('WALL RUN', 200);
-    } else if (P.wallT > .8) { P.wall = null; P.vy = 0; }
+      P.y = P.wall.y - P.h; P.x += 6; P.vy = P.wallFlip ? -560 : -280; P.wall = null; P.airJumps = 1;
+      if (P.wallFlip) trick('WALL FLIP', 300); else trick('WALL RUN', 200);
+      P.wallFlip = false; P.airBot = P.y + P.h;
+    } else if (P.wallT > .8) { P.wall = null; P.wallFlip = false; P.vy = 0; }
     return;
   }
   // gerak horizontal
-  P.vx = spd; P.x += P.vx * dt;
+  P.vx = spd * (P.kong ? 1.35 : 1); P.x += P.vx * dt;
   for (const s of solids) {
     if (s.broken || s.kind === 'plat' || !overlap(P, s)) continue;
     const pen = P.y + P.h - s.y;
-    if (pen <= 12 && P.vy >= 0) { P.y = s.y - P.h; P.vy = 0; P.onGround = true; continue; }
+    if (pen <= 12 && P.vy >= 0) { const was = P.onGround; P.y = s.y - P.h; P.vy = 0; P.onGround = true; if (!was) land(s); continue; }
     if (s.kind === 'ground') { P.x = s.x - P.w - .01; continue; }
     if (s.kind === 'wall' || s.kind === 'silo') {
       P.x = s.x - P.w - .01; const fromGround = P.onGround;
-      standUp(); P.wall = s; P.wallT = 0; P.flipping = false; P.flip = 0;
+      standUp(); P.wall = s; P.wallT = 0; P.flipping = false; P.flip = 0; P.wallFlip = false; P.kong = false;
       if (fromGround) hurt();
       return;
     }
@@ -337,6 +396,27 @@ function updatePlayer(dt) {
     else if (s.kind !== 'plat' && P.vy < 0 && prevTop >= s.y + s.h - 6) { P.y = s.y + s.h; P.vy = 0; }
   }
   if (wasOn && !P.onGround && P.vy >= 0) P.coyote = .09; else P.coyote = Math.max(0, P.coyote - dt);
+  if (P.onGround) P.airBot = P.y + P.h; else P.airBot = Math.min(P.airBot, P.y + P.h);
+  // BAR SWING: sentuh palang bambu saat di udara
+  if (!P.onGround) for (const b of bars) {
+    const cx = b.x + b.w / 2;
+    if (!b.used && Math.abs(P.x + P.w / 2 - cx) < 30 && P.y < b.y + 26 && P.y > b.y - 55) {
+      b.used = true; standUp(); P.kong = false; P.flipping = false; P.flip = 0;
+      P.swing = { b, a: clamp(Math.asin(clamp((P.x + P.w / 2 - cx) / 36, -1, 1)), -1.1, .5) };
+      SFX.swing(); break;
+    }
+  }
+}
+function updateSwing(dt) {
+  const sw = P.swing, cx = sw.b.x + sw.b.w / 2;
+  sw.a += dt * 6.5;
+  P.x = cx + Math.sin(sw.a) * 36 - P.w / 2; P.y = sw.b.y + Math.cos(sw.a) * 36 - 26;
+  if (sw.a >= 1.35 || input.jumpBuf > 0) {
+    const early = input.jumpBuf > 0; input.jumpBuf = 0;
+    P.swing = null; P.vy = early ? -880 : -760; P.airJumps = 1; P.usedDbl = false; P.airBot = P.y + P.h;
+    trick('BAR SWING', 220);
+    if (early) { P.flipping = true; P.flip = 0; P.flipDir = 1; }
+  }
 }
 
 /* ---------- ENGINE: frame update ---------- */
@@ -346,9 +426,10 @@ function update(dt) {
   for (let i = 0; i < 2 && state === 'play'; i++) updatePlayer(dt / 2);
   if (state !== 'play') return;
   P.inv = Math.max(0, P.inv - dt); magnet = Math.max(0, magnet - dt); hintT -= dt;
-  comboT -= dt; if (comboT <= 0 && combo > 0) { combo = 0; mult = 1; }
+  comboT -= dt; if (comboT <= 0 && combo > 0) breakCombo();
+  P.rollT = Math.max(0, P.rollT - dt); if (chainPop) { chainPop.t -= dt; if (chainPop.t <= 0) chainPop = null; }
   if (P.onGround) P.runPh += dt * spd / 21;
-  if (P.flipping) { P.flip += dt * 15; if (P.flip >= Math.PI * 2) { P.flipping = false; P.flip = 0; } }
+  if (P.flipping) { P.flip += dt * (P.wall ? 9 : 15); if (P.flip >= Math.PI * 2) { P.flipping = false; P.flip = 0; } }
 
   // skor rintangan yang berhasil dilewati
   for (const s of solids) {
@@ -356,7 +437,7 @@ function update(dt) {
     if (P.x > s.x + s.w) {
       s.scored = true; if (s.hopped) continue;
       const d = s.x - P.takeoff;
-      if (P.usedDbl) trick('FLIP', 200); else if (d >= 0 && d < 115) trick('SPEED VAULT', 150); else trick('LOMPAT', 60);
+      if (P.kong) { P.kongScored = true; trick('KONG VAULT', 250); } else if (P.usedDbl) trick('FLIP', 200); else if (d >= 0 && d < 115) trick('SPEED VAULT', 150); else trick('LOMPAT', 60);
     }
   }
   for (const h of hazards) {
@@ -377,11 +458,12 @@ function update(dt) {
     if (e.type === 'chicken') e.y = e.base + Math.sin(t * 7 + e.ph) * 4;
     if (e.type === 'bull' && Math.random() < .5) parts.push({ x: e.x + e.w, y: G - 4, vx: rand(40, 120), vy: rand(-90, -20), g: 200, life: .5, max: .5, col: '#c9a77a', size: 6 });
     if (overlap(P, e)) {
-      const fromAbove = P.vy > 0 && (P.y + P.h) - e.y < 24;
+      const fromAbove = P.vy > 0 && (P.y + P.h) - e.y < 30;
+      const dive = input.down && P.vy > 650;
       if (fromAbove) {
         P.vy = -660; P.airJumps = 1; P.onGround = false; SFX.stomp();
         if (e.type === 'bull') { if (!e.rode) { e.rode = true; trick('RODEO!', 300); } }
-        else { e.dead = true; e.vy = -320; e.vx = 220; trick('STOMP', 150); burst(e.x + e.w / 2, e.y + 10, 14, ['#ffffff', '#f2eadb', '#ffb347'], 220, 300, 1.1, 5); }
+        else { e.dead = true; e.vy = -320; e.vx = 220; if (dive) { trick('DIVE STOMP', 250); shake = 8; } else trick('STOMP', 150); burst(e.x + e.w / 2, e.y + 10, 14, ['#ffffff', '#f2eadb', '#ffb347'], 220, 300, 1.1, 5); }
       } else if (!e.hit && P.inv <= 0) { e.hit = true; hurt(); }
     }
     if (!e.scored && !e.dead && !e.hit && P.x > e.x + e.w) {
@@ -418,7 +500,7 @@ function update(dt) {
   const cut = camX - 400;
   solids = solids.filter(s => s.x + s.w > cut); hazards = hazards.filter(h => h.x + h.w > cut);
   enemies = enemies.filter(e => e.x + e.w > cut && e.y < G + 600); pickups = pickups.filter(p => !p.taken && p.x > cut);
-  decor = decor.filter(d => d.x > cut);
+  decor = decor.filter(d => d.x > cut); bars = bars.filter(b => b.x + b.w > cut);
   stepFX(dt);
 }
 function stepFX(dt) {
@@ -594,11 +676,18 @@ function drawCorn(h) {
     }
   }
 }
+function drawBar(b) {
+  ctx.fillStyle = 'rgba(110,90,40,.8)'; ctx.fillRect(b.x - 6, b.y - 4, 7, G + 60 - b.y); ctx.fillRect(b.x + b.w - 1, b.y - 4, 7, G + 60 - b.y);
+  ctx.fillStyle = b.used ? '#b9a24a' : '#d9c25a'; rr(b.x - 10, b.y - 5, b.w + 20, 10, 5); ctx.fill();
+  ctx.fillStyle = '#8a7a3a'; for (let x = b.x; x < b.x + b.w; x += 24) ctx.fillRect(x, b.y - 5, 3, 10);
+  if (!b.used) { ctx.strokeStyle = `rgba(255,255,255,${.3 + .3 * Math.sin(t * 8)})`; ctx.lineWidth = 2; rr(b.x - 13, b.y - 8, b.w + 26, 16, 8); ctx.stroke(); }
+}
 function drawSign(d) {
-  ctx.fillStyle = '#7a4f2a'; ctx.fillRect(d.x + 60, G - 70, 8, 70);
+  const gy = d.y;
+  ctx.fillStyle = '#7a4f2a'; ctx.fillRect(d.x + 60, gy - 70, 8, 70);
   ctx.font = '900 13px "Trebuchet MS", system-ui, sans-serif'; const tw = ctx.measureText(d.text).width + 20;
-  ctx.fillStyle = '#c48b4f'; rr(d.x + 64 - tw / 2, G - 100, tw, 34, 5); ctx.fill(); ctx.strokeStyle = '#6d4520'; ctx.lineWidth = 3; ctx.stroke();
-  ctx.fillStyle = '#3a220f'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(d.text, d.x + 64, G - 83);
+  ctx.fillStyle = '#c48b4f'; rr(d.x + 64 - tw / 2, gy - 100, tw, 34, 5); ctx.fill(); ctx.strokeStyle = '#6d4520'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.fillStyle = '#3a220f'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(d.text, d.x + 64, gy - 83);
 }
 function drawPickup(p) {
   const y = p.y + Math.sin(t * 4 + p.ph) * 3, x = p.x;
@@ -697,12 +786,22 @@ function drawPlayer() {
   if (state === 'play' || state === 'pause') { ctx.beginPath(); ctx.rect(camX - 50, camY - 400, W + 100, G + 34 - camY + 400); ctx.clip(); }
   if (P.dead) {
     ctx.translate(cx, P.y + 30); ctx.rotate(P.flip); renderPose(0, 2, { lean: .2, legs: [[.6, 0], [-.3, -.4]], arms: [[2.2, 2.6], [1.6, 2.2]] });
+  } else if (P.swing) {
+    const sw = P.swing; ctx.translate(sw.b.x + sw.b.w / 2, sw.b.y); ctx.rotate(-sw.a);
+    renderPose(0, 44, { lean: 0, legs: [[.5 + Math.sin(sw.a) * .3, .1], [.1, -.4]], arms: [[3.05, 3.1], [3.2, 3.15]] });
+  } else if (P.wall && P.flipping) {
+    ctx.translate(cx, P.y + 32); ctx.rotate(-P.flip); renderPose(0, 4, { lean: .5, legs: [[1.7, -.7], [1.4, -.9]], arms: [[1.3, .4], [1.0, .2]] });
   } else if (P.wall) {
     ctx.translate(cx + 4, P.y + 34); ctx.rotate(-1.15); renderPose(0, 0, runPose(P.runPh, .2));
+  } else if (P.rollT > 0 && P.onGround) {
+    ctx.translate(cx, fy - 17); ctx.rotate((1 - P.rollT / .42) * Math.PI * 2); ctx.scale(.8, .8);
+    renderPose(0, 4, { lean: .9, legs: [[1.8, -.6], [1.5, -.8]], arms: [[1.5, .6], [1.2, .4]] });
+  } else if (P.kong && !P.flipping) {
+    renderPose(cx - 4, P.y + 34, { lean: 1.35, legs: [[-1.25, -1.5], [-1.6, -1.7]], arms: [[1.65, 1.6], [1.4, 1.5]] });
   } else if (P.slide) {
     renderPose(cx - 6, fy - 9, { lean: -1.15, legs: [[1.5, 1.55], [1.15, .3]], arms: [[-1.7, -1.4], [.7, 1.6]] });
   } else if (P.flipping) {
-    ctx.translate(cx, P.y + 32); ctx.rotate(P.flip); renderPose(0, 4, { lean: .5, legs: [[1.7, -.7], [1.4, -.9]], arms: [[1.3, .4], [1.0, .2]] });
+    ctx.translate(cx, P.y + 32); ctx.rotate(P.flip * P.flipDir); renderPose(0, 4, { lean: .5, legs: [[1.7, -.7], [1.4, -.9]], arms: [[1.3, .4], [1.0, .2]] });
   } else if (!P.onGround) {
     if (P.vy < 0) renderPose(cx, fy - 30, { lean: .18, legs: [[1.15, -.15], [.15, -.9]], arms: [[2.6, 2.9], [-.7, .3]] });
     else renderPose(cx, fy - 30, { lean: .12, legs: [[.7, .1], [-.3, -.5]], arms: [[2.1, 2.5], [1.5, 2.1]] });
@@ -746,6 +845,16 @@ function drawHUD() {
     ctx.beginPath(); ctx.moveTo(W - 14, G - 30 - camY - 26); ctx.lineTo(W - 44, G - 30 - camY + 22); ctx.lineTo(W + 16, G - 30 - camY + 22); ctx.fill(); ctx.globalAlpha = 1;
     txt('!', W - 14, G - 30 - camY + 6, 26, '#fff', 'center', null);
   }
+  // Combo Parkour
+  if (chainPop) {
+    const a = clamp(chainPop.t * 2, 0, 1), sc = 1 + Math.max(0, chainPop.t - 1.5) * 1.2;
+    ctx.globalAlpha = a; ctx.fillStyle = 'rgba(60,10,60,.65)'; rr(W / 2 - 220, 232, 440, 76, 16); ctx.fill();
+    ctx.strokeStyle = '#ff7bd5'; ctx.lineWidth = 3; ctx.stroke();
+    txt('★ COMBO PARKOUR ★', W / 2, 250, 14, '#ffd27a', 'center', null);
+    txt(chainPop.name, W / 2, 276, 30 * sc, '#ff7bd5', 'center', '#2a0a2a', 6);
+    txt('+' + chainPop.gain, W / 2, 298, 15, '#fff', 'center', null);
+    ctx.globalAlpha = 1;
+  }
   // banner zona
   if (banner) {
     const zz = ZONES[banner.z % 4], a = clamp(Math.min(banner.t, 3.2 - banner.t) * 3, 0, 1), loop = Math.floor(banner.z / 4);
@@ -765,17 +874,19 @@ function card(y, h) { ctx.fillStyle = 'rgba(30,18,8,.78)'; rr(W / 2 - 290, y, 58
 function drawMenu() {
   txt('FARM PARKOUR', W / 2, 74, 60, '#ffe14d', 'center', '#5a2a0a', 10);
   txt('A D V E N T U R E', W / 2, 122, 26, '#ff5a4a', 'center', '#2a1a0e', 6);
-  card(160, 212);
-  const rows = [
-    ['LOMPAT', 'SPASI / ↑ / W  •  Tap kanan layar'],
-    ['FLIP', 'Lompat lagi di udara (double jump)'],
-    ['SLIDE', '↓ / S  •  Tahan kiri layar'],
-    ['VAULT', 'Lompat tepat di depan jerami/pagar'],
-    ['WALL RUN', 'Lompat ke dinding lumbung & silo'],
-    ['STOMP', 'Injak angsa & ayam dari atas'],
+  ctx.fillStyle = 'rgba(30,18,8,.8)'; rr(W / 2 - 400, 148, 800, 262, 20); ctx.fill(); ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 3; ctx.stroke();
+  txt('▲ LOMPAT: SPASI / ↑ / W / tap kanan      ▼ SLIDE: ↓ / S / tahan kiri', W / 2, 170, 16, '#bfe8ff', 'center', null);
+  const moves = [
+    ['FLIP', 'lompat lagi di udara'], ['SPEED VAULT', 'lompat dekat rintangan'], ['KONG VAULT', 'slide ▼ lalu lompat ▲'],
+    ['WALL RUN', 'lompat ke dinding'], ['WALL FLIP', 'lompat saat wall run'], ['BAR SWING', 'sentuh palang bambu'],
+    ['ROLL', 'tahan ▼ saat mendarat tinggi'], ['PRECISION', 'mendarat di atas rintangan'], ['DIVE STOMP', '▼ di udara + injak musuh'],
   ];
-  rows.forEach((r, i) => { txt(r[0], W / 2 - 250, 186 + i * 27, 17, '#ffd27a', 'left', null); txt(r[1], W / 2 - 120, 186 + i * 27, 17, '#fff', 'left', null); });
-  txt('Trik beruntun = COMBO ×8 • Kumpulkan telur, hindari lumpur!', W / 2, 350, 15, '#bfe8ff', 'center', null);
+  moves.forEach((m, i) => { const c = i % 3, r = Math.floor(i / 3), x = W / 2 - 380 + c * 262, y = 200 + r * 38;
+    txt(m[0], x, y, 16, '#ffd27a', 'left', null); txt(m[1], x, y + 17, 13, '#fff', 'left', null); });
+  txt('COMBO PARKOUR (bonus berantai)', W / 2, 316, 15, '#ff7bd5', 'center', null);
+  CHAINS.concat([{ name: 'FARM NINJA', how: '5 trik berbeda' }]).forEach((c, i) => { const col = i % 3, r = Math.floor(i / 3), x = W / 2 - 380 + col * 262, y = 340 + r * 22;
+    txt(c.name, x, y, 13, '#fff', 'left', null); ctx.font = '900 13px "Trebuchet MS", system-ui, sans-serif'; txt(c.how, x + ctx.measureText(c.name).width + 8, y, 12, '#bfe8ff', 'left', null); });
+  txt('Trik beruntun = COMBO ×8 • Kumpulkan telur, hindari lumpur!', W / 2, 392, 13, '#ffd27a', 'center', null);
   if (Math.floor(t * 2) % 2 === 0) txt('TEKAN SPASI / TAP UNTUK MULAI', W / 2, 462, 26, '#fff', 'center', '#5a2a0a', 6);
   txt('Rekor: ' + best.toLocaleString('id-ID') + '   •   P = Jeda   •   M = Suara', W / 2, 505, 15, '#ffd27a', 'center', '#2a1a0e', 4);
 }
@@ -784,9 +895,9 @@ function drawOver() {
   card(90, 360);
   txt('PANEN SELESAI!', W / 2, 135, 44, '#ffe14d', 'center', '#5a2a0a', 8);
   const z = ZONES[Math.max(0, zoneIdx) % 4].name;
-  const rows = [['Skor', score().toLocaleString('id-ID')], ['Jarak', meters() + ' m  (' + z + ')'], ['Telur', eggs], ['Trik parkour', tricks], ['Combo terbaik', maxCombo]];
-  rows.forEach((r, i) => { txt(r[0], W / 2 - 200, 190 + i * 34, 20, '#ffd27a', 'left', null); txt(String(r[1]), W / 2 + 200, 190 + i * 34, 20, '#fff', 'right', null); });
-  txt(newBest ? '★ REKOR BARU! ★' : 'Rekor: ' + best.toLocaleString('id-ID'), W / 2, 372, 22, newBest ? '#ff7bd5' : '#bfe8ff', 'center');
+  const rows = [['Skor', score().toLocaleString('id-ID')], ['Jarak', meters() + ' m  (' + z + ')'], ['Telur', eggs], ['Trik parkour', tricks], ['Combo parkour', chainsDone], ['Combo terbaik', maxCombo]];
+  rows.forEach((r, i) => { txt(r[0], W / 2 - 200, 182 + i * 31, 20, '#ffd27a', 'left', null); txt(String(r[1]), W / 2 + 200, 182 + i * 31, 20, '#fff', 'right', null); });
+  txt(newBest ? '★ REKOR BARU! ★' : 'Rekor: ' + best.toLocaleString('id-ID'), W / 2, 380, 22, newBest ? '#ff7bd5' : '#bfe8ff', 'center');
   if (overT > .8 && Math.floor(t * 2) % 2 === 0) txt('SPASI / TAP UNTUK MAIN LAGI', W / 2, 420, 22, '#fff', 'center', '#5a2a0a', 5);
 }
 function draw() {
@@ -803,7 +914,7 @@ function draw() {
   ctx.stroke();
   if (state === 'menu') {
     drawGround({ x: camX - 30, y: G, w: W + 60 }, pl);
-    P.x = camX + 230; P.y = G - 60; P.h = 60; P.onGround = true; P.slide = false; P.wall = null; P.flipping = false; P.dead = false;
+    P.x = camX + 230; P.y = G - 60; P.h = 60; P.onGround = true; P.slide = false; P.wall = null; P.flipping = false; P.dead = false; P.swing = null; P.kong = false; P.rollT = 0;
     drawPlayer();
     ctx.restore(); drawMenu(); return;
   }
@@ -814,6 +925,7 @@ function draw() {
     ({ hay: drawHay, fence: drawFence, crate: drawCrate, coop: drawCoop, wall: drawWall, silo: drawSilo, plat: drawPlat })[s.kind](s);
   }
   for (const h of hazards) if (h.x < camX + W + 40 && h.x + h.w > camX - 40) drawCorn(h);
+  for (const b of bars) if (b.x < camX + W + 40 && b.x + b.w > camX - 40) drawBar(b);
   for (const p of pickups) if (!p.taken && p.x > camX - 30 && p.x < camX + W + 30) drawPickup(p);
   for (const e of enemies) if (e.x < camX + W + 120 && e.x + e.w > camX - 60) drawEnemy(e);
   drawPlayer();
