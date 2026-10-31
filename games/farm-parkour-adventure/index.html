@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Panen Parkour — Arcade Adventure di Peternakan</title>
+<title>Farm Parkour Adventure</title>
 <style>
   html,body{margin:0;height:100%;background:#1b1410;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
   body{display:flex;align-items:center;justify-content:center}
@@ -11,11 +11,11 @@
 </style>
 </head>
 <body>
-<canvas id="c" aria-label="Game Panen Parkour"></canvas>
+<canvas id="c" aria-label="Game Farm Parkour Adventure"></canvas>
 <script>
 'use strict';
 /* =========================================================
-   PANEN PARKOUR — Arcade Adventure di Peternakan
+   FARM PARKOUR ADVENTURE — Arcade Adventure di Peternakan
    Arsitektur: CONFIG (zona, pola rintangan) -> ENGINE (fisika,
    kolisi, skor) -> RENDER (parallax, sprite vektor) -> HUD.
    Tambah zona/rintangan baru cukup lewat ZONES & PAT.
@@ -246,7 +246,7 @@ function hurt() {
   if (P.inv > 0 || state !== 'play') return;
   lives--; P.inv = 1.7; combo = 0; comboT = 0; mult = 1; shake = 14; SFX.hurt();
   popup('AUW!', P.x, P.y - 20, '#ff6b5a', 24);
-  burst(P.x + 15, P.y + 30, 10, ['#ff7a1a', '#ffffff'], 220, 800, .6, 5);
+  burst(P.x + 15, P.y + 30, 10, ['#d42a2a', '#ffffff'], 220, 800, .6, 5);
   if (lives <= 0) gameOver();
 }
 function standUp() { if (P.slide) { P.slide = false; P.y -= 32; P.h = 60; } }
@@ -656,7 +656,7 @@ function drawEnemy(e) {
   ctx.restore();
 }
 
-/* ---------- player (pejuang parkour bercaping) ---------- */
+/* ---------- player (petani parkour) ---------- */
 function limb(x, y, a1, l1, a2, l2, col, w) {
   const kx = x + Math.sin(a1) * l1, ky = y + Math.cos(a1) * l1, fx = kx + Math.sin(a2) * l2, fy = ky + Math.cos(a2) * l2;
   ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -664,22 +664,26 @@ function limb(x, y, a1, l1, a2, l2, col, w) {
 }
 function renderPose(hx, hy, p) {
   const sx = hx + Math.sin(p.lean) * 22, sy = hy - Math.cos(p.lean) * 22;
-  let f = limb(hx, hy, p.legs[1][0], 15, p.legs[1][1], 15, '#1c2a4a', 7); ctx.fillStyle = '#d9d9d9'; ctx.beginPath(); ctx.arc(f[0], f[1], 4, 0, 7); ctx.fill();
-  f = limb(sx, sy, p.arms[1][0], 12, p.arms[1][1], 11, '#c95e12', 6); ctx.fillStyle = '#c8905f'; ctx.beginPath(); ctx.arc(f[0], f[1], 3.5, 0, 7); ctx.fill();
-  // syal merah berkibar
-  ctx.strokeStyle = '#e8322e'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(sx, sy - 2);
-  ctx.quadraticCurveTo(sx - 12, sy - 2 + Math.sin(t * 18) * 4, sx - 22, sy + Math.sin(t * 18 + 1) * 6); ctx.stroke();
-  ctx.strokeStyle = '#ff7a1a'; ctx.lineWidth = 13; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(sx, sy); ctx.stroke();
-  ctx.fillStyle = '#ffffff'; ctx.save(); ctx.translate((hx + sx) / 2, (hy + sy) / 2); ctx.rotate(p.lean); ctx.fillRect(-1, -5, 4, 4); ctx.restore();
-  ctx.fillStyle = '#2c3e6b'; ctx.beginPath(); ctx.arc(hx, hy, 7, 0, 7); ctx.fill();
-  f = limb(hx, hy, p.legs[0][0], 15, p.legs[0][1], 15, '#2c3e6b', 7); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(f[0], f[1], 4.5, 0, 7); ctx.fill();
+  // Petani parkour: kemeja merah kotak-kotak, jeans biru, sepatu bot, topi kuning
+  let f = limb(hx, hy, p.legs[1][0], 15, p.legs[1][1], 15, '#2f5793', 7); ctx.fillStyle = '#4a2c17'; ctx.beginPath(); ctx.arc(f[0], f[1], 4.5, 0, 7); ctx.fill();
+  f = limb(sx, sy, p.arms[1][0], 12, p.arms[1][1], 11, '#a81d1d', 6); ctx.fillStyle = '#c8905f'; ctx.beginPath(); ctx.arc(f[0], f[1], 3.5, 0, 7); ctx.fill();
+  ctx.lineCap = 'round'; ctx.strokeStyle = '#d42a2a'; ctx.lineWidth = 13; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(sx, sy); ctx.stroke();
+  ctx.save(); ctx.translate(hx, hy); ctx.rotate(p.lean);
+  ctx.fillStyle = 'rgba(90,0,0,.45)'; ctx.fillRect(-6.5, -9, 13, 2.5); ctx.fillRect(-6.5, -17, 13, 2.5); ctx.fillRect(-2, -22, 2.5, 22);
+  ctx.fillStyle = '#5a3417'; ctx.fillRect(-7, -3, 14, 4); ctx.fillStyle = '#e8c547'; ctx.fillRect(-1.5, -3, 4, 4);
+  ctx.restore();
+  ctx.fillStyle = '#3f6fb5'; ctx.beginPath(); ctx.arc(hx, hy + 2, 6.5, 0, 7); ctx.fill();
+  f = limb(hx, hy, p.legs[0][0], 15, p.legs[0][1], 15, '#3f6fb5', 7); ctx.fillStyle = '#5a3417'; ctx.beginPath(); ctx.arc(f[0], f[1], 5, 0, 7); ctx.fill();
   const hdx = sx + Math.sin(p.lean) * 10, hdy = sy - Math.cos(p.lean) * 10;
   ctx.fillStyle = '#e0a878'; ctx.beginPath(); ctx.arc(hdx, hdy, 8, 0, 7); ctx.fill();
   ctx.fillStyle = '#1b1b1b'; ctx.fillRect(hdx + 3, hdy - 1, 2.5, 3);
-  ctx.save(); ctx.translate(hdx, hdy - 4); ctx.rotate(p.lean * .6);
-  ctx.fillStyle = '#e2bd6b'; ctx.strokeStyle = '#a8803a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-18, 1); ctx.lineTo(18, 1); ctx.lineTo(0, -12); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(-9, -2); ctx.lineTo(9, -2); ctx.stroke(); ctx.restore();
-  f = limb(sx, sy, p.arms[0][0], 12, p.arms[0][1], 11, '#ff8a2a', 6); ctx.fillStyle = '#e0a878'; ctx.beginPath(); ctx.arc(f[0], f[1], 3.5, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#e8c547'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(hdx + 6, hdy + 4); ctx.lineTo(hdx + 14, hdy + 1 + Math.sin(t * 9)); ctx.stroke();
+  ctx.save(); ctx.translate(hdx, hdy - 5); ctx.rotate(p.lean * .6);
+  ctx.fillStyle = '#ffd21f'; ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(0, 0, 17, 4, 0, 0, 7); ctx.fill(); ctx.stroke();
+  rr(-8.5, -11, 17, 11, 5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#c0392b'; ctx.fillRect(-8.5, -3.5, 17, 3); ctx.restore();
+  f = limb(sx, sy, p.arms[0][0], 12, p.arms[0][1], 11, '#e03434', 6); ctx.fillStyle = '#e0a878'; ctx.beginPath(); ctx.arc(f[0], f[1], 3.5, 0, 7); ctx.fill();
 }
 function runPose(ph, lean = .32) {
   const L = p => [Math.sin(p) * .85, Math.sin(p) * .85 - (.25 + 1.0 * Math.max(0, -Math.cos(p)))];
@@ -759,8 +763,8 @@ function drawHUD() {
 }
 function card(y, h) { ctx.fillStyle = 'rgba(30,18,8,.78)'; rr(W / 2 - 290, y, 580, h, 22); ctx.fill(); ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 3; ctx.stroke(); }
 function drawMenu() {
-  txt('PANEN PARKOUR', W / 2, 92, 64, '#ffe14d', 'center', '#5a2a0a', 10);
-  txt('Arcade Adventure • Lari Bebas di Peternakan', W / 2, 140, 20, '#fff', 'center', '#2a1a0e', 5);
+  txt('FARM PARKOUR', W / 2, 74, 60, '#ffe14d', 'center', '#5a2a0a', 10);
+  txt('A D V E N T U R E', W / 2, 122, 26, '#ff5a4a', 'center', '#2a1a0e', 6);
   card(160, 212);
   const rows = [
     ['LOMPAT', 'SPASI / ↑ / W  •  Tap kanan layar'],
